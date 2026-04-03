@@ -1,0 +1,90 @@
+{
+  "eli3": [
+    "Imagine two groups of students — morning learners and night learners — each described by their test score and hours slept. LDA asks: assuming both groups follow bell-curve distributions with the same spread but different centres, where should we draw the line between them?",
+    "The algorithm estimates the centre (mean) and spread (covariance) of each group from training data. For a new student, it calculates which group they're more likely to belong to, taking into account how common each group is overall.",
+    "Because it assumes both groups share the same covariance shape, the boundary ends up being a straight line (or hyperplane in higher dimensions). This makes LDA very efficient and interpretable, and it doubles as a dimensionality reduction tool."
+  ],
+  "whenWhy": [
+    {
+      "title": "Interpretable linear classifier with probabilistic output",
+      "body": "LDA provides a principled probabilistic classifier when the Gaussian assumptions are reasonable. Coefficients have direct geometric interpretation as directions that separate class means while controlling within-class spread."
+    },
+    {
+      "title": "Dimensionality reduction for classification",
+      "body": "LDA projects data into at most K−1 dimensions (K = number of classes) that maximally separate the classes. This makes it both a classifier and a dimensionality reduction tool — a key advantage over PCA, which is unsupervised."
+    },
+    {
+      "title": "When sample size is small relative to features",
+      "body": "LDA pools the covariance estimate across all classes, requiring fewer parameters than QDA. This makes it more stable when n is not much larger than p. Regularised LDA (add λI to Σ) handles the case p > n."
+    },
+    {
+      "title": "Multi-class classification",
+      "body": "LDA naturally extends to K > 2 classes by computing K linear discriminant functions and assigning the class with the highest value. No one-vs-rest or one-vs-one binarisation is needed."
+    }
+  ],
+  "deepDiveIntro": [
+    "Linear Discriminant Analysis models each class as a multivariate Gaussian with class-specific mean μₖ but a shared covariance matrix Σ. Under these assumptions, the log posterior ratio between any two classes is linear in x — producing a linear decision boundary.",
+    "The derivation proceeds from Bayes' theorem: P(y=k|x) ∝ P(x|y=k)·P(y=k). Plugging in the Gaussian likelihood and simplifying, the shared covariance cancels the quadratic terms and leaves a linear discriminant function for each class."
+  ],
+  "visualizationType": "lda",
+  "deepDive": [
+    {
+      "heading": "Generative Model Assumptions",
+      "body": "LDA assumes: (1) each class k follows a multivariate Gaussian with mean μₖ and shared covariance Σ; (2) the prior probability of class k is πₖ. Parameters are estimated by maximum likelihood: μ̂ₖ = sample mean of class k; Σ̂ = pooled within-class covariance; π̂ₖ = nₖ/n. [1][2]"
+    },
+    {
+      "heading": "Linear Discriminant Function",
+      "body": "Substituting the Gaussian density into Bayes' theorem and cancelling terms that don't depend on k, the log-posterior simplifies to the linear discriminant δₖ(x). Classify x to the class k that maximises δₖ(x). The pooled covariance Σ makes the quadratic terms identical across classes — they cancel — leaving a linear function of x. [1]",
+      "formula": "δₖ(x) = xᵀΣ⁻¹μₖ − ½μₖᵀΣ⁻¹μₖ + log πₖ"
+    },
+    {
+      "heading": "Decision Boundary",
+      "body": "The boundary between classes k and l is the set {x : δₖ(x) = δₗ(x)}, which simplifies to xᵀΣ⁻¹(μₖ−μₗ) = ½(μₖᵀΣ⁻¹μₖ − μₗᵀΣ⁻¹μₗ) − log(πₖ/πₗ). This is an affine hyperplane (linear in x) — hence 'Linear' Discriminant Analysis. [1]"
+    },
+    {
+      "heading": "LDA as Dimensionality Reduction",
+      "body": "LDA can project p-dimensional data onto at most K−1 dimensions (the Fisher discriminant subspace) that maximise between-class scatter relative to within-class scatter. Objective: maximise J(w) = wᵀSᴮw / wᵀSᵂw, where Sᴮ is between-class scatter and Sᵂ is within-class scatter. This is a generalised eigenvalue problem. [1]",
+      "formula": "max_w  wᵀSᴮw / wᵀSᵂw   ⟺   Sᴮw = λSᵂw"
+    },
+    {
+      "heading": "Regularised LDA",
+      "body": "When p > n, the pooled covariance Σ̂ is singular and cannot be inverted. Regularised LDA (Friedman 1989) replaces Σ̂ with (1−α)Σ̂ + αI, where α ∈ [0,1] is a shrinkage parameter tuned by cross-validation. α=0 recovers standard LDA; α=1 gives Gaussian NB with equal variances. [1]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: LDA (Linear Discriminant Analysis)",
+  "youtubeUrl": "https://www.youtube.com/embed/azXCzI57Yfc",
+  "takeaways": [
+    "LDA assumes class-conditional Gaussians with a shared covariance Σ — the shared Σ makes the boundary linear in x. [1]",
+    "The discriminant function δₖ(x) = xᵀΣ⁻¹μₖ − ½μₖᵀΣ⁻¹μₖ + log πₖ assigns x to the class with the highest value. [1]",
+    "Parameters are estimated by: class means μ̂ₖ, pooled within-class covariance Σ̂, class priors π̂ₖ = nₖ/n. [1]",
+    "LDA reduces dimensionality to K−1 dimensions, making it both a classifier and a visualisation tool for K-class problems. [1]",
+    "When p > n, the pooled covariance is singular — apply regularised LDA (shrinkage towards identity). [1]",
+    "LDA vs QDA: LDA shares Σ across classes (linear boundary), QDA allows class-specific Σₖ (quadratic boundary). [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "When does LDA fail?",
+      "a": "LDA fails when classes have very different covariance structures (e.g. one class is tightly clustered, another is spread out) — a linear boundary cannot capture this. Use QDA for class-specific covariances, or SVM/neural networks for more complex geometries. Also fails when features are heavily non-Gaussian (e.g. count data, binary features). [2]"
+    },
+    {
+      "q": "What is the relationship between LDA and PCA?",
+      "a": "Both project data to a lower-dimensional space, but with different objectives. PCA is unsupervised — it finds directions of maximum variance in the data regardless of labels. LDA is supervised — it finds directions that maximise class separation (between-class variance) relative to within-class spread. LDA is usually preferred when the goal is classification. [1]"
+    },
+    {
+      "q": "How does LDA handle class imbalance?",
+      "a": "The prior πₖ in the discriminant function accounts for class frequency. With balanced priors (πₖ = 1/K), all classes are treated equally. With imbalanced priors, the decision boundary shifts towards rarer classes. You can override the prior in scikit-learn with the priors parameter to compensate for imbalance. [2]"
+    },
+    {
+      "q": "Can LDA produce probability estimates?",
+      "a": "Yes. After computing δₖ(x) for each class, convert to probabilities using the softmax: P(y=k|x) = exp(δₖ(x)) / Σⱼ exp(δⱼ(x)). These are the Bayes optimal posterior probabilities under the Gaussian model assumptions. [1]"
+    },
+    {
+      "q": "Why is LDA limited to K−1 discriminant dimensions?",
+      "a": "The between-class scatter matrix Sᴮ is formed from K class means, so it has rank at most K−1 (the K means lie in a K−1 dimensional affine subspace). Consequently, there are at most K−1 non-trivial solutions to the generalised eigenvalue problem — and therefore at most K−1 discriminant directions. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 4", "url": "https://hastie.su.domains/ElemStatLearn/" },
+    { "label": "James et al. — An Introduction to Statistical Learning, Ch. 4", "url": "https://www.statlearning.com/" }
+  ]
+}

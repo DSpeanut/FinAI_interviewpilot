@@ -1,0 +1,89 @@
+{
+  "eli3": [
+    "Imagine you're at a crowded party. A core guest is someone surrounded by at least MinPts other people within arm's reach (radius ε). If you can walk from one core person to another through a chain of arm's-reach connections, you're all in the same cluster. Anyone standing alone far from any crowd is labelled 'noise' — an outlier.",
+    "This density-first thinking is what makes DBSCAN special: it finds clusters of any shape — crescents, rings, blobs — as long as they form dense connected regions. It also automatically identifies outliers as points that don't belong to any dense region.",
+    "You only need two parameters: ε (how close is 'close') and MinPts (how many neighbours make a dense region). The algorithm never asks you to specify how many clusters to find — it discovers that automatically."
+  ],
+  "whenWhy": [
+    {
+      "title": "Arbitrarily shaped clusters",
+      "body": "K-Means only finds convex, roughly spherical blobs. DBSCAN can find elongated clusters, rings, spirals — any shape that forms a connected dense region. Classic use cases: geographic hotspot detection, anomaly detection in spatial data."
+    },
+    {
+      "title": "Automatic outlier / anomaly detection",
+      "body": "Unlike K-Means, DBSCAN explicitly labels points that don't belong to any dense cluster as noise (label = −1). This built-in outlier identification makes it directly useful for fraud detection, sensor fault detection, and data cleaning."
+    },
+    {
+      "title": "Unknown number of clusters",
+      "body": "DBSCAN does not require specifying K. It discovers the number of clusters from the data density. This is a significant advantage when you have no prior knowledge of how many groups exist."
+    },
+    {
+      "title": "When clusters have very different densities — consider alternatives",
+      "body": "DBSCAN uses a global ε and MinPts, so it struggles when clusters differ significantly in density. A dense cluster and a sparse cluster may need different ε values. For this case, HDBSCAN (hierarchical DBSCAN) is a direct improvement."
+    }
+  ],
+  "deepDiveIntro": [
+    "DBSCAN (Density-Based Spatial Clustering of Applications with Noise) defines clusters as dense regions of points separated by sparse regions. The key insight is that a cluster is a maximal set of density-connected points — reachable through chains of overlapping ε-neighbourhoods.",
+    "The algorithm classifies each point as a core point (sufficient density nearby), a border point (in the neighbourhood of a core point but not itself dense), or a noise point (isolated). Only the two hyperparameters ε and MinPts need to be set."
+  ],
+  "visualizationType": "dbscan",
+  "deepDive": [
+    {
+      "heading": "Core, Border, and Noise Points",
+      "body": "A point p is a core point if at least MinPts points lie within distance ε of p (including p itself). A point q is directly density-reachable from p if q ∈ Nε(p) and p is a core point. Density-reachability is transitive but not symmetric. A noise point is not density-reachable from any core point. [1]"
+    },
+    {
+      "heading": "The DBSCAN Algorithm",
+      "body": "For each unvisited point: compute Nε(p). If |Nε(p)| < MinPts, mark as noise (may be reclassified later as border). Otherwise, start a new cluster and expand it by recursively finding all density-reachable points. Time complexity: O(n log n) with a spatial index (k-d tree or ball tree); O(n²) naïvely. [1]"
+    },
+    {
+      "heading": "Choosing ε and MinPts",
+      "body": "Rule of thumb: MinPts ≥ p+1 (where p = number of features); for 2D data MinPts = 4 is common. To choose ε: sort all n points by their k-NN distance (k = MinPts−1) and plot these sorted distances — the 'elbow' (point of maximum curvature) is a good ε. Too small ε: everything is noise. Too large ε: everything merges into one cluster. [1]",
+      "formula": "ε ≈ k-NN distance at the elbow of the sorted k-distance plot"
+    },
+    {
+      "heading": "Density Reachability & Connectivity",
+      "body": "Point q is density-reachable from p if there exists a chain p = p₁, p₂, …, pₙ = q where each pᵢ₊₁ is directly density-reachable from pᵢ (i.e. pᵢ is a core point with pᵢ₊₁ in its ε-neighbourhood). Two points are density-connected if there exists a point o from which both are density-reachable. A cluster is a maximal set of density-connected core points plus their border points. [1]"
+    },
+    {
+      "heading": "Complexity and Scalability",
+      "body": "Naïve implementation: O(n²) — distance between every pair. With a spatial index (k-d tree works well for p ≤ 20; ball tree for higher dimensions): O(n log n) average. For very large datasets, approximate nearest-neighbour methods (FAISS) or HDBSCAN's single-linkage tree are more scalable alternatives. [1]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: DBSCAN",
+  "youtubeUrl": "https://www.youtube.com/embed/RDZUdRSDOok",
+  "takeaways": [
+    "DBSCAN finds clusters as maximal dense-connected regions; no need to specify K in advance. [1]",
+    "Three point types: core (dense neighbourhood), border (near core), noise (outlier) — label −1. [1]",
+    "Two hyperparameters: ε (neighbourhood radius) and MinPts (density threshold). Use the k-distance elbow plot to choose ε. [1]",
+    "Handles arbitrarily shaped clusters; K-Means cannot. [1]",
+    "Struggles when clusters have very different densities — use HDBSCAN for that case. [1]",
+    "Time complexity: O(n log n) with a spatial index; always standardise features since ε is in Euclidean distance units. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why is border point assignment non-deterministic?",
+      "a": "A border point can be in the ε-neighbourhood of multiple core points from different clusters. Depending on the order in which points are processed, it may be assigned to either cluster. The core-point assignments and noise labels are deterministic, but border points are not. In scikit-learn the outcome depends on the order of iteration. [1]"
+    },
+    {
+      "q": "How does DBSCAN handle high-dimensional data?",
+      "a": "In high dimensions, distances concentrate and all points appear roughly equidistant — the ε neighbourhood either contains everything or nothing. The elbow in the k-distance plot disappears. Recommended: reduce dimensionality with PCA or UMAP before applying DBSCAN, or switch to HDBSCAN which is more robust to varying density. [1]"
+    },
+    {
+      "q": "What is the difference between noise in DBSCAN and outliers in other methods?",
+      "a": "DBSCAN noise is purely geometric — a point is noise because it is not dense enough or density-reachable from a core point. It makes no probabilistic claim. This is different from statistical outlier definitions (e.g. points beyond 3 standard deviations) but often correlates well in practice. [1]"
+    },
+    {
+      "q": "When should you prefer DBSCAN over K-Means?",
+      "a": "Use DBSCAN when: (1) you don't know K, (2) clusters are non-spherical, (3) you need outlier detection. Prefer K-Means when: (1) clusters are approximately spherical and equal-sized, (2) you need cluster centroids (interpretable), (3) scalability is paramount (K-Means is faster for large n). [1]"
+    },
+    {
+      "q": "What is the effect of MinPts on the results?",
+      "a": "Larger MinPts requires higher density to form a cluster — more points become noise and clusters are more conservative. Smaller MinPts allows low-density regions to form clusters. MinPts = 1 degenerates to every point being its own core point. MinPts = 2 is equivalent to single-linkage hierarchical clustering. The recommendation MinPts ≥ p+1 ensures clusters have a meaningful geometric extent. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Ester et al. — A Density-Based Algorithm for Discovering Clusters (DBSCAN, 1996)", "url": "https://www.aaai.org/Library/KDD/1996/kdd96-037.php" },
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 14.3", "url": "https://hastie.su.domains/ElemStatLearn/" }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "eli3": [
+    "Imagine you're standing on a hilly landscape in fog. You can't see far, but you can sense which direction goes uphill nearby. You take a step uphill. Then another. Eventually you reach a peak and stop. Everyone who ends up at the same peak is in the same cluster.",
+    "Mean Shift does exactly this with probability density. It estimates how densely data points are packed around any location, then slides each point toward the densest nearby region. Points that converge to the same peak are assigned to the same cluster.",
+    "The only parameter is the bandwidth — how wide the neighbourhood is when sensing 'nearby'. Wide bandwidth = few large blobs. Narrow bandwidth = many small tight clusters. You don't specify how many clusters to find — they emerge naturally from the density landscape."
+  ],
+  "whenWhy": [
+    {
+      "title": "Unknown number of clusters with irregular shapes",
+      "body": "Mean Shift automatically finds the number of clusters from the data's density structure. It handles non-convex, elongated, or irregular shapes well — any region of consistently high density becomes a cluster centre."
+    },
+    {
+      "title": "Computer vision: image segmentation and tracking",
+      "body": "Mean Shift was originally developed for robust visual tracking (Comaniciu & Meer, 2002). In image segmentation, pixels are clustered in colour+position space — each mode in the density corresponds to a homogeneous image region. It is particularly effective on smooth natural images."
+    },
+    {
+      "title": "When you want a non-parametric density estimate alongside clusters",
+      "body": "Mean Shift is grounded in kernel density estimation. The modes it finds are the local maxima of the KDE — so you get both a density estimate and a clustering simultaneously."
+    },
+    {
+      "title": "Small to medium datasets",
+      "body": "Mean Shift is O(n² T) per run (n points × n density evaluations × T iterations). This is expensive for large datasets. For n > 10,000, consider approximate implementations or switch to HDBSCAN which is more scalable."
+    }
+  ],
+  "deepDiveIntro": [
+    "Mean Shift is a non-parametric, mode-seeking algorithm. For each point, it computes the weighted mean of all points within a window of radius h (the bandwidth), then moves to that mean — the 'mean shift' vector. This process is repeated until convergence. Convergence is guaranteed for smooth kernel functions (Gaussian, Epanechnikov).",
+    "The key insight: the mean shift vector is proportional to the gradient of the kernel density estimate. So mean shift is gradient ascent on the KDE surface, without ever computing the gradient explicitly."
+  ],
+  "visualizationType": "mean-shift",
+  "deepDive": [
+    {
+      "heading": "Kernel Density Estimation (KDE)",
+      "body": "The KDE of a dataset X = {x₁, …, xₙ} with kernel K and bandwidth h is: p̂(x) = (1/nhᵖ) Σᵢ K((x−xᵢ)/h). Common kernels: Gaussian K(u) = exp(−‖u‖²/2), Epanechnikov K(u) = max(0, 1−‖u‖²). The bandwidth h controls smoothness — large h = smooth density, few modes; small h = spiky density, many modes. [1]",
+      "formula": "p̂(x) = (1/nhᵖ) Σᵢ K((x−xᵢ)/h)"
+    },
+    {
+      "heading": "The Mean Shift Vector",
+      "body": "The mean shift vector m(x) = (Σᵢ xᵢ k(‖x−xᵢ‖²/h²)) / (Σᵢ k(‖x−xᵢ‖²/h²)) − x, where k is the kernel profile. This vector always points toward the direction of increasing density. The update rule is: x ← x + m(x), i.e. move to the weighted mean of points in the window. [1]",
+      "formula": "x ← (Σᵢ xᵢ K((x−xᵢ)/h)) / (Σᵢ K((x−xᵢ)/h))"
+    },
+    {
+      "heading": "Connection to Gradient Ascent on KDE",
+      "body": "The mean shift vector is proportional to ∇p̂(x)/p̂(x). So iterating mean shift performs gradient ascent on the KDE surface — converging to local maxima (modes). Points initialised in the same basin of attraction converge to the same mode and form a cluster. This theoretical connection (Comaniciu & Meer, 2002) gives mean shift its non-parametric rigour. [1][2]"
+    },
+    {
+      "heading": "Bandwidth Selection",
+      "body": "Bandwidth h is the critical hyperparameter. Too small: many fine-grained clusters (each mode is a tiny peak). Too large: everything merges into one or two clusters. Heuristics: Silverman's rule-of-thumb h ≈ 1.06 σ̂ n^(−1/5) (optimal for Gaussian data); estimate_bandwidth in scikit-learn uses quantile-based heuristics. Cross-validate on downstream task quality when ground truth is unavailable. [1]",
+      "formula": "h_Silverman ≈ 1.06 · σ̂ · n^{-1/5}"
+    },
+    {
+      "heading": "Complexity & Scalability",
+      "body": "Each iteration: O(n²) — every point updates using all n training points. Total: O(n² T) where T ≈ 50–200 iterations in practice. Scikit-learn provides an O(n log n) approximate implementation using ball trees. For large datasets, seed the algorithm from a grid rather than all n points. [1]"
+    }
+  ],
+  "youtubeLabel": "Computerphile: Mean Shift Clustering",
+  "youtubeUrl": "https://www.youtube.com/embed/k42BNLp71PI",
+  "takeaways": [
+    "Mean Shift performs gradient ascent on a kernel density estimate; each data point climbs to a local density mode. [1]",
+    "No need to specify K — the number of clusters is determined by the number of modes in the KDE. [1]",
+    "Bandwidth h controls the smoothness of the KDE and directly determines the number and size of clusters. [1]",
+    "The mean shift vector at x equals the difference between the kernel-weighted mean of the neighbourhood and x, pointing uphill. [1]",
+    "Handles arbitrary cluster shapes — any dense connected region becomes a cluster. [1]",
+    "Expensive O(n²T) per run; use approximate implementations or switch to HDBSCAN for large n. [1][2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Does Mean Shift always converge?",
+      "a": "Yes, for Gaussian or Epanechnikov kernels with fixed bandwidth h. Each iteration is guaranteed to not decrease the density estimate at the current point. Convergence to a stationary point (local maximum of KDE) is proven for these smooth kernel profiles (Comaniciu & Meer, 2002). Convergence speed depends on how far the starting point is from a mode. [1]"
+    },
+    {
+      "q": "What happens with multiple runs from the same starting point?",
+      "a": "Mean Shift is deterministic given starting point and bandwidth — every run from the same point converges to the same mode. Unlike K-Means or GMM-EM, there is no randomness in the algorithm itself. Only the starting points and bandwidth selection matter. [1]"
+    },
+    {
+      "q": "How do you merge nearby modes into one cluster?",
+      "a": "Different starting points that converge to modes very close together should be assigned the same cluster. Scikit-learn uses a threshold of h/2: modes within this distance are merged. In theory the number of modes is determined by the bandwidth, but numerical near-convergence can produce spurious duplicates. [1]"
+    },
+    {
+      "q": "Is Mean Shift robust to outliers?",
+      "a": "Moderately. Outliers form small isolated modes in the KDE and create singleton clusters. If you increase h, these low-density modes disappear as the density surface smooths out and the outlier's basin of attraction merges with a larger cluster. Setting h appropriately is the key control. [1]"
+    },
+    {
+      "q": "How does Mean Shift compare to DBSCAN?",
+      "a": "Both are density-based and find clusters of arbitrary shape without specifying K. Mean Shift uses a continuous KDE and gradient ascent; DBSCAN uses a discrete density threshold (MinPts) and connected components. Mean Shift produces smooth mode estimates and is differentiable, making it suitable for image processing. DBSCAN is faster (O(n log n) with spatial index) and has an explicit noise label — Mean Shift does not naturally identify outliers. [1][2]"
+    }
+  ],
+  "sources": [
+    { "label": "Comaniciu & Meer — Mean Shift: A Robust Approach Toward Feature Space Analysis (2002)", "url": "https://ieeexplore.ieee.org/document/1000236" },
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 14.3", "url": "https://hastie.su.domains/ElemStatLearn/" }
+  ]
+}

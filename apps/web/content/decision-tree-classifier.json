@@ -1,0 +1,91 @@
+{
+  "eli3": [
+    "A decision tree classifier works like a game of 20 Questions. Starting from the top, it asks a yes/no question about a feature — 'Is the petal length > 2.5 cm?' — and sends you down the left branch for 'no' or the right branch for 'yes.' It keeps asking questions until it reaches a leaf node that says 'It's an iris virginica.'",
+    "Building the tree means figuring out which questions to ask and in what order. The algorithm picks the question that splits the data into the purest groups — groups where almost all examples belong to the same class.",
+    "Trees are powerful because they can capture complex non-linear patterns, handle mixed feature types, and are easy to visualise and explain. The main weakness is that they can memorise training data (overfit) if grown too deep."
+  ],
+  "whenWhy": [
+    {
+      "title": "Interpretability and explainability",
+      "body": "A decision tree can be visualised as a flow chart and explained to non-technical stakeholders. The path from root to leaf is a human-readable set of if-then rules. This makes decision trees valuable in healthcare, finance, and legal settings where decisions must be justified."
+    },
+    {
+      "title": "Mixed data types",
+      "body": "Decision trees handle continuous and categorical features natively without scaling, one-hot encoding, or imputation of missing values. They split on whatever feature and threshold reduce impurity most."
+    },
+    {
+      "title": "Feature importance screening",
+      "body": "The split structure reveals which features drive predictions. Even when a single tree overfits, the feature importances computed from a deep tree are often informative starting points for feature selection."
+    },
+    {
+      "title": "Building block for ensembles",
+      "body": "Standalone trees are rarely used in production. Their true power comes from being base learners in Random Forest (bagging of deep trees) and Gradient Boosting (sequential boosting of shallow trees). Understanding trees is prerequisite to understanding these ensembles."
+    }
+  ],
+  "deepDiveIntro": [
+    "Decision tree classifiers use recursive binary partitioning: at each node, the algorithm searches over all features and all possible thresholds to find the split that maximises the reduction in impurity. The most common impurity measures are Gini impurity (used by CART/scikit-learn) and entropy (information gain).",
+    "Trees are grown greedily — each split is locally optimal but not globally optimal. The resulting tree is then pruned back using cost-complexity pruning to improve generalisation."
+  ],
+  "visualizationType": "decision-tree",
+  "deepDive": [
+    {
+      "heading": "Splitting Criteria: Gini Impurity",
+      "body": "Gini impurity at a node measures the probability of incorrectly classifying a randomly chosen element. For K classes with proportions p₁, …, pₖ at a node, Gini = 1 − Σₖ pₖ². A pure node (all one class) has Gini = 0. CART selects the split that maximises the weighted reduction in Gini across child nodes. [1][2]",
+      "formula": "Gini = 1 − Σₖ₌₁ᴷ pₖ²"
+    },
+    {
+      "heading": "Splitting Criteria: Entropy & Information Gain",
+      "body": "Entropy H(t) = −Σₖ pₖ log₂(pₖ) measures information content at node t. Information Gain = H(parent) − Σ_children (nᵢ/n)·H(child_i). The algorithm chooses the split maximising information gain. Entropy-based splitting (ID3/C4.5) tends to produce similar trees to Gini; Gini is slightly faster to compute. [1]",
+      "formula": "H(t) = −Σₖ pₖ log₂ pₖ"
+    },
+    {
+      "heading": "Tree Growing: CART Algorithm",
+      "body": "Classification and Regression Trees (CART) grows a full binary tree by greedily selecting the best (feature, threshold) pair at each node. It searches all features j and thresholds s, evaluating all binary splits x_j ≤ s vs x_j > s. This is O(p·n log n) per node (sort each feature once). The process repeats recursively until a stopping criterion (max depth, min samples per leaf, min impurity decrease) is reached. [1]"
+    },
+    {
+      "heading": "Cost-Complexity Pruning (Weakest Link Pruning)",
+      "body": "A full tree overfits. Pruning collapses internal nodes into leaves to reduce variance. The cost-complexity criterion penalises tree size: Rα(T) = R(T) + α|T̃|, where R(T) is misclassification rate, |T̃| is the number of leaf nodes, and α ≥ 0 is the complexity parameter (ccp_alpha in scikit-learn). Cross-validate to find optimal α. [1]",
+      "formula": "Rα(T) = R(T) + α · |T̃|"
+    },
+    {
+      "heading": "Feature Importance",
+      "body": "Scikit-learn computes Mean Decrease in Impurity (MDI) importance: for each feature, sum the weighted impurity decrease across all nodes where it was used as the split feature, normalised so importances sum to 1. Note: MDI is biased towards high-cardinality features; use permutation importance for more reliable estimates. [1]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: Decision Trees",
+  "youtubeUrl": "https://www.youtube.com/embed/7VeUPuFGJHk",
+  "takeaways": [
+    "CART uses recursive binary splits, greedily minimising Gini impurity (or entropy) at each node. [1]",
+    "Deep trees overfit; apply cost-complexity pruning (tune ccp_alpha via cross-validation) to improve generalisation. [1]",
+    "Feature scaling and one-hot encoding are not required — trees operate on raw feature thresholds. [1]",
+    "Leaf predictions are the majority class in that leaf; predicted probabilities are the class proportions. [1]",
+    "Single trees are unstable (high variance); use Random Forest or Gradient Boosting for production models. [2]",
+    "MDI feature importances are biased towards high-cardinality features; prefer permutation importance or SHAP values. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why do decision trees overfit so easily?",
+      "a": "A fully grown tree creates a unique leaf for almost every training example, perfectly memorising the training set (zero training error). The decision boundary is highly irregular. Fixes: limit max_depth, set min_samples_leaf, or apply cost-complexity pruning. Ensemble methods (Random Forest) address this by averaging many trees. [1]"
+    },
+    {
+      "q": "How does a decision tree handle missing values?",
+      "a": "CART in scikit-learn does not natively handle missing values (impute first). Some implementations (e.g. XGBoost, CatBoost) learn a default direction for missing values at each split, sending them left or right based on whichever direction reduces impurity more during training. [1]"
+    },
+    {
+      "q": "What is the difference between Gini impurity and entropy in practice?",
+      "a": "They produce similar trees in most cases. Entropy tends to penalise splits that result in one very impure child slightly more than Gini does. Gini is computationally cheaper (no logarithm). In practice the choice rarely matters — hyperparameters like max_depth have much larger effects. [1]"
+    },
+    {
+      "q": "Why are decision trees called unstable learners?",
+      "a": "Small changes in training data (a few new points, slight noise) can cause completely different splits at early nodes, changing the entire tree structure. This high variance is why bagging (Random Forest) is so effective: averaging many slightly different trees reduces variance while keeping bias low. [1][2]"
+    },
+    {
+      "q": "Can decision trees handle multi-output classification?",
+      "a": "Yes. A single tree can predict multiple output classes simultaneously by optimising the sum of impurity reductions across all outputs at each node. Scikit-learn's DecisionTreeClassifier accepts a 2D y array for multi-output problems. Each leaf stores the class proportions for all output labels. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 9", "url": "https://hastie.su.domains/ElemStatLearn/" },
+    { "label": "James et al. — An Introduction to Statistical Learning, Ch. 8", "url": "https://www.statlearning.com/" }
+  ]
+}

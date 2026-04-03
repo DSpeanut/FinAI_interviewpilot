@@ -1,0 +1,90 @@
+{
+  "eli3": [
+    "Imagine you move to a new town and need to decide which football team to support. You look at your 5 nearest neighbours — 4 cheer for Team A, 1 cheers for Team B — so you go with Team A. That's exactly how K-Nearest Neighbors works: to classify a new point, look at the K closest training examples and take a majority vote.",
+    "There's no explicit training step. The algorithm memorises the entire dataset and does all the work at prediction time. This makes it extremely simple — but also slow for large datasets, because you must compute distances to every stored point for each new query.",
+    "The key choices are K (how many neighbours to consult) and the distance metric (usually Euclidean distance). Small K = jagged, complex boundary that can overfit; large K = smooth boundary that can underfit."
+  ],
+  "whenWhy": [
+    {
+      "title": "Non-linear decision boundaries with little tuning",
+      "body": "KNN can represent any decision boundary shape without specifying a functional form. It naturally adapts to local structure in the data — a strong advantage when you don't know the geometry of the problem."
+    },
+    {
+      "title": "Small to medium datasets",
+      "body": "KNN requires storing all training data and computing pairwise distances at inference time. This is feasible for thousands to tens of thousands of points; for millions, approximate nearest-neighbour search (FAISS, Annoy) is needed."
+    },
+    {
+      "title": "Anomaly detection and recommendation baselines",
+      "body": "KNN is often used as a quick baseline for anomaly detection (outliers are far from their neighbours) and recommendation systems (collaborative filtering is a form of KNN)."
+    },
+    {
+      "title": "When the local smoothness assumption holds",
+      "body": "KNN assumes that nearby points in feature space have similar labels. If this is true — i.e. the label function is locally smooth — KNN can be surprisingly effective even without feature engineering."
+    }
+  ],
+  "deepDiveIntro": [
+    "KNN is a non-parametric, instance-based (lazy) learning algorithm. It makes no assumption about the functional form of the decision boundary and instead relies entirely on the local structure of the training data. There are no parameters to learn from data — only hyperparameters to tune.",
+    "The prediction rule is: find the K training points closest to the query (under some distance metric), then output the majority class label. The decision boundary is implicitly defined by the Voronoi diagram of the training data weighted by K."
+  ],
+  "visualizationType": "knn",
+  "deepDive": [
+    {
+      "heading": "Prediction Rule",
+      "body": "For a query point x*, collect the K nearest neighbours Nₖ(x*) in the training set under distance metric d. The predicted class is the plurality vote: ŷ = argmax_c Σᵢ∈Nₖ(x*) 𝟙[yᵢ = c]. For regression, replace the vote with the mean of neighbour labels. [1]",
+      "formula": "ŷ = argmax_{c} Σ_{i ∈ Nₖ(x*)} 𝟙[yᵢ = c]"
+    },
+    {
+      "heading": "Distance Metrics",
+      "body": "Euclidean distance (L2) is the default: d(x,z) = ||x−z||₂. Alternatives include Manhattan (L1), Minkowski (Lₚ), and Cosine similarity for text/sparse data. For categorical features, Hamming distance is appropriate. Feature scaling is essential — otherwise features with large numerical ranges dominate the distance calculation. [1]"
+    },
+    {
+      "heading": "Choosing K: The Bias-Variance Tradeoff",
+      "body": "K=1: zero training error, high variance (decision boundary traces every training point — prone to noise). Large K: smoother boundary, higher bias. Optimal K is typically found by cross-validation. As n → ∞, the 1-NN error rate converges to at most twice the Bayes error rate — a classical theoretical result. [1][2]",
+      "formula": "K=1: lowest bias, highest variance   |   K=n: highest bias (predict majority class)"
+    },
+    {
+      "heading": "Curse of Dimensionality",
+      "body": "In high dimensions, the concept of 'nearest neighbours' breaks down: all distances become nearly equal as p grows. The fraction of the data volume needed to capture K neighbours grows exponentially with p. Rule of thumb: KNN degrades significantly for p > 20 without dimensionality reduction (PCA, UMAP) or feature selection. [1][2]"
+    },
+    {
+      "heading": "Computational Complexity",
+      "body": "Naïve KNN: O(n·p) per query (compute distance to every training point). KD-trees accelerate search to O(log n) per query for low-dimensional data (p ≲ 20). Ball trees are more efficient in moderate dimensions. For very large n, approximate nearest-neighbour libraries (FAISS, HNSW) provide sub-linear query time. [1]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: K-Nearest Neighbors",
+  "youtubeUrl": "https://www.youtube.com/embed/HVXime0nQeI",
+  "takeaways": [
+    "KNN is a lazy learner — no training phase; all computation happens at prediction time. [1]",
+    "Small K → high variance (overfitting); large K → high bias (underfitting). Tune K via cross-validation. [1]",
+    "Always standardise features before applying KNN — distances are dominated by features with large scales. [1]",
+    "Performance degrades in high dimensions (curse of dimensionality); apply PCA or feature selection first. [2]",
+    "Weighted KNN (neighbours closer to x* get more vote weight) often improves performance over uniform voting. [1]",
+    "Naïve KNN is O(n·p) per query; use KD-trees, Ball trees, or FAISS for large datasets. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What do you do when there is a tie in the vote?",
+      "a": "Use an odd K to avoid ties in binary classification. For multi-class or even K, common strategies include: (1) reduce K by 1 until tie is broken, (2) use distance-weighted voting (nearest neighbour breaks tie), (3) pick the class with the nearest neighbour. scikit-learn breaks ties by returning the class with the lowest index. [1]"
+    },
+    {
+      "q": "Can KNN handle imbalanced classes?",
+      "a": "KNN is sensitive to class imbalance — the majority class dominates votes. Mitigations: use distance-weighted voting, apply SMOTE before fitting, adjust the decision threshold, or use class-weighted voting. [1]"
+    },
+    {
+      "q": "How does KNN deal with missing values?",
+      "a": "KNN cannot handle missing values natively — distance computation requires complete vectors. Impute missing values first (mean/median imputation, or ironically use KNN imputation which uses KNN on other features to fill gaps) before applying KNN classification. [1]"
+    },
+    {
+      "q": "Why is KNN called a non-parametric method?",
+      "a": "Non-parametric means the model complexity grows with the training set size rather than being fixed by a set of parameters. KNN's 'model' is the entire training dataset — memory usage grows as O(n·p). Parametric models (logistic regression, SVM with linear kernel) have a fixed number of parameters regardless of n. [2]"
+    },
+    {
+      "q": "What is distance-weighted KNN?",
+      "a": "Instead of a uniform vote, each neighbour's contribution is weighted by 1/d(x*, xᵢ), so closer neighbours have more influence. This reduces sensitivity to the choice of K and handles uneven neighbour distributions more gracefully. Use weights='distance' in scikit-learn's KNeighborsClassifier. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 13", "url": "https://hastie.su.domains/ElemStatLearn/" },
+    { "label": "James et al. — An Introduction to Statistical Learning, Ch. 2", "url": "https://www.statlearning.com/" }
+  ]
+}

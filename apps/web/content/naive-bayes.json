@@ -1,0 +1,92 @@
+{
+  "eli3": [
+    "Imagine a doctor diagnosing whether a patient has a cold based on symptoms: runny nose, fever, and cough. Naïve Bayes asks: 'Given that the patient has a cold, how likely is a runny nose? How likely is a fever? How likely is a cough?' It assumes each symptom is independent of the others — which is obviously an oversimplification (colds do cause fever AND runny nose together), but it still works remarkably well.",
+    "The algorithm multiplies these individual probabilities together and also weights them by how common each disease is overall. The diagnosis is whichever disease makes the observed symptoms most probable.",
+    "It's called 'naïve' because of that independence assumption. Despite being mathematically wrong in most real problems, the simplification makes the model fast to train, easy to update, and surprisingly accurate for text classification tasks like spam filtering."
+  ],
+  "whenWhy": [
+    {
+      "title": "Text classification and spam filtering",
+      "body": "Naïve Bayes (particularly Multinomial NB) is extremely effective for document classification, spam detection, and sentiment analysis. It scales linearly with vocabulary size and handles high-dimensional sparse feature vectors naturally."
+    },
+    {
+      "title": "Real-time or streaming classification",
+      "body": "Training is a single pass over the data (count statistics), making NB very fast and easy to update incrementally as new labelled data arrives. Ideal for online learning scenarios."
+    },
+    {
+      "title": "When training data is limited",
+      "body": "The strong independence assumption effectively reduces the number of parameters that need to be estimated. NB can perform well with surprisingly few training examples where more flexible models would overfit."
+    },
+    {
+      "title": "As a probabilistic baseline",
+      "body": "NB naturally outputs calibrated posterior probabilities. Use it as a fast, interpretable baseline before trying complex models. Its performance is often within striking distance of more sophisticated methods for text tasks."
+    }
+  ],
+  "deepDiveIntro": [
+    "Naïve Bayes is a generative probabilistic classifier based on Bayes' theorem with the strong (naïve) assumption that features are conditionally independent given the class label. Despite this assumption almost never holding in practice, NB is competitive across many real-world tasks.",
+    "There are three main variants: Gaussian NB (continuous features assumed Gaussian), Multinomial NB (count features — word frequencies), and Bernoulli NB (binary features — word presence). The choice of variant should match the feature distribution."
+  ],
+  "visualizationType": "naive-bayes",
+  "deepDive": [
+    {
+      "heading": "Bayes' Theorem & the Naïve Assumption",
+      "body": "By Bayes' theorem, P(y|x) ∝ P(y)·P(x|y). Naïve Bayes factorises the class-conditional likelihood: P(x|y) = ∏ⱼ P(xⱼ|y), assuming features are conditionally independent given y. The predicted class is the argmax over classes. [1][2]",
+      "formula": "ŷ = argmax_y  P(y) · ∏ⱼ₌₁ᵖ P(xⱼ | y)"
+    },
+    {
+      "heading": "Gaussian Naïve Bayes",
+      "body": "For continuous features, each class-conditional distribution is assumed Gaussian: P(xⱼ|y=k) = N(xⱼ; μⱼₖ, σ²ⱼₖ). Parameters μⱼₖ and σ²ⱼₖ are estimated by the sample mean and variance within each class. This is the variant used for general continuous features. [1]",
+      "formula": "P(xⱼ|y=k) = (1/√(2πσ²ⱼₖ)) · exp(−(xⱼ−μⱼₖ)²/(2σ²ⱼₖ))"
+    },
+    {
+      "heading": "Multinomial Naïve Bayes",
+      "body": "For count features (word frequencies in a document), P(x|y) is modelled as a multinomial distribution. The parameter θⱼₖ = P(feature j | class k) is estimated by the relative frequency of feature j among all feature occurrences in class-k documents. Standard for text classification. [1]"
+    },
+    {
+      "heading": "Laplace (Additive) Smoothing",
+      "body": "If a feature–class pair never appears in training, P(xⱼ|y) = 0 and the entire product becomes 0. Laplace smoothing adds a pseudo-count α (typically 1) to every feature count, ensuring no zero probabilities. [1]",
+      "formula": "θ̂ⱼₖ = (count(xⱼ, y=k) + α) / (Σⱼ count(xⱼ, y=k) + α·p)"
+    },
+    {
+      "heading": "Log-Space Computation",
+      "body": "In practice, probabilities are multiplied across many features, leading to numerical underflow. Use log-probabilities instead: log P(y|x) ∝ log P(y) + Σⱼ log P(xⱼ|y). The argmax is identical, and subtraction in log-space avoids underflow. [1]",
+      "formula": "ŷ = argmax_y [ log P(y) + Σⱼ log P(xⱼ|y) ]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: Naïve Bayes",
+  "youtubeUrl": "https://www.youtube.com/embed/O2L2Uv9pdDA",
+  "takeaways": [
+    "Naïve Bayes applies Bayes' theorem with the conditional independence assumption: P(x|y) = ∏ⱼ P(xⱼ|y). [1]",
+    "Despite the naïve assumption being wrong in most cases, NB is competitive — especially for text classification. [1]",
+    "Three variants: Gaussian (continuous), Multinomial (counts), Bernoulli (binary). Match the variant to your feature type. [1]",
+    "Always apply Laplace smoothing (α ≥ 1) to prevent zero-probability features from zeroing out the posterior. [1]",
+    "Compute in log-space to avoid numerical underflow when multiplying many small probabilities. [1]",
+    "Training is O(n·p) — a single pass over the data — making NB among the fastest classifiers to train. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What if two features are correlated — does that break Naïve Bayes?",
+      "a": "Technically yes. When features are correlated, the product P(x₁|y)·P(x₂|y) double-counts information — the model is over-confident. In practice, NB's predicted probabilities are poorly calibrated, but the predicted class label (argmax) is often still correct. For calibrated probabilities, use logistic regression or apply calibration post-hoc. [1]"
+    },
+    {
+      "q": "Why does Naïve Bayes work so well for spam filtering despite the independence assumption?",
+      "a": "The decision rule only requires the correct class to have higher posterior probability than all other classes — the exact magnitude doesn't matter. Even with dependencies, the ordering of posteriors is often preserved, making the classification accurate even when probability estimates are inaccurate. [1]"
+    },
+    {
+      "q": "How is Gaussian NB different from LDA?",
+      "a": "Both assume Gaussian class-conditional distributions. The difference: LDA assumes all classes share the same covariance matrix Σ (leading to a linear boundary); Gaussian NB assumes features are independent within each class (diagonal Σ that varies by class). LDA is more general; NB is faster and more robust when the independence assumption holds. [2]"
+    },
+    {
+      "q": "Can Naïve Bayes handle missing values?",
+      "a": "Yes — one of NB's rare genuine advantages. Because features are treated independently, missing features are simply omitted from the product: ŷ = argmax_y P(y) · ∏_{j: xⱼ observed} P(xⱼ|y). No imputation is needed. [1]"
+    },
+    {
+      "q": "What is the effect of Laplace smoothing parameter α?",
+      "a": "α=0: maximum likelihood estimation (zero-probability problem). α=1: Laplace smoothing (uniform prior over features). Large α: shrinks all feature probabilities towards the uniform distribution, increasing bias. Tune α with cross-validation, though α=1 is a robust default for text. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 6.6", "url": "https://hastie.su.domains/ElemStatLearn/" },
+    { "label": "James et al. — An Introduction to Statistical Learning, Ch. 4", "url": "https://www.statlearning.com/" }
+  ]
+}

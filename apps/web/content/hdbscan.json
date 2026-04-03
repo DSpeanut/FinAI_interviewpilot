@@ -1,0 +1,90 @@
+{
+  "eli3": [
+    "Imagine you're exploring a mountain range from above. At sea level (low density threshold) everything is one big landmass. As the water rises, islands appear — those are clusters at increasing density thresholds. HDBSCAN watches which islands persist longest as the water rises and calls those the 'true' clusters.",
+    "Regular DBSCAN uses one fixed water level everywhere. HDBSCAN sweeps through all possible levels, builds a hierarchy, and automatically picks the most stable clusters — even when different parts of the data have very different densities.",
+    "The result: robust clusters that persist across a range of densities, a proper hierarchy of clusters you can explore, and automatic outlier identification — all with just one parameter (minimum cluster size) rather than the two sensitive parameters of DBSCAN."
+  ],
+  "whenWhy": [
+    {
+      "title": "Clusters of varying density",
+      "body": "DBSCAN fails when clusters differ in density because a single global ε cannot handle them simultaneously. HDBSCAN extracts clusters at the appropriate local density for each region. This makes it far more robust on real-world data where natural groupings rarely have uniform density."
+    },
+    {
+      "title": "Automatic and robust outlier detection",
+      "body": "HDBSCAN assigns each point an outlier score (GLOSH — Global-Local Outlier Score from Hierarchies). Points with high outlier scores are assigned to no cluster (label = −1). This is more nuanced than DBSCAN's binary noise label."
+    },
+    {
+      "title": "Single intuitive parameter",
+      "body": "The primary parameter is min_cluster_size — the smallest group you consider a meaningful cluster. Unlike DBSCAN's two sensitive parameters (ε and MinPts), min_cluster_size is conceptually straightforward and HDBSCAN is much less sensitive to it."
+    },
+    {
+      "title": "Exploratory analysis with a cluster hierarchy",
+      "body": "HDBSCAN produces a condensed cluster tree, allowing you to explore nested cluster structure — sub-populations within populations, fine vs coarse granularity. This is richer than the flat partition from DBSCAN."
+    }
+  ],
+  "deepDiveIntro": [
+    "HDBSCAN (Hierarchical DBSCAN, McInnes et al. 2017) extends DBSCAN by running it over all values of ε implicitly via a minimum spanning tree on the mutual reachability distance graph. It then extracts a condensed cluster hierarchy and selects flat clusters by maximising cluster stability.",
+    "The algorithm has five steps: (1) compute mutual reachability distances; (2) build the minimum spanning tree (MST); (3) extract the cluster hierarchy from the MST; (4) condense the hierarchy using min_cluster_size; (5) extract flat clusters by selecting the most stable subtrees."
+  ],
+  "visualizationType": "hdbscan",
+  "deepDive": [
+    {
+      "heading": "Mutual Reachability Distance",
+      "body": "HDBSCAN uses the mutual reachability distance to smooth density: d_mreach(a,b) = max(core_k(a), core_k(b), d(a,b)), where core_k(x) is the distance to the k-th nearest neighbour of x (k = min_samples). This effectively 'spreads out' sparse points and reduces the impact of noise on the distance structure. [1]",
+      "formula": "d_mreach(a,b) = max(core_k(a), core_k(b), d(a,b))"
+    },
+    {
+      "heading": "Minimum Spanning Tree & Cluster Hierarchy",
+      "body": "Build a weighted graph where edge weight between all pairs is the mutual reachability distance. Extract the minimum spanning tree (MST) of this graph (Prim's or Kruskal's algorithm). Remove edges in decreasing weight order — each removal splits a connected component, creating the cluster hierarchy. This is equivalent to single-linkage clustering on mutual reachability distances. [1]"
+    },
+    {
+      "heading": "Condensed Cluster Tree",
+      "body": "From the dendrogram, condense by collapsing splits where the smaller resulting component has fewer than min_cluster_size points (those points become noise, not a new cluster). The condensed tree retains only 'true' splits. The λ scale (λ = 1/distance) measures density — higher λ means higher density. [1]"
+    },
+    {
+      "heading": "Cluster Stability & Flat Cluster Extraction",
+      "body": "Stability of a cluster C is: Σᵢ∈C (λ_death(i) − λ_birth(i)), where λ_birth is the λ at which point i joined cluster C and λ_death is the λ at which C splits. HDBSCAN selects the flat partition by choosing, for each subtree, whether to keep the parent or replace it with its children based on stability — a dynamic programming solution. [1]",
+      "formula": "stability(C) = Σᵢ∈C (λ_death(i) − λ_birth(i))"
+    },
+    {
+      "heading": "GLOSH Outlier Scores",
+      "body": "The Global-Local Outlier Score from Hierarchies (GLOSH) measures how far above the density at which a point's local cluster dissolves. Points that exist only at very low density levels (dissolved early) have high outlier scores. This provides a continuous outlier score rather than a binary noise label, enabling threshold-based anomaly detection. [1]"
+    }
+  ],
+  "youtubeLabel": "HDBSCAN: Density Based Clustering Explained",
+  "youtubeUrl": "https://www.youtube.com/embed/dGsxd67IFiU",
+  "takeaways": [
+    "HDBSCAN uses mutual reachability distance to smooth local density, making it robust to varying cluster densities. [1]",
+    "Builds a minimum spanning tree, extracts a full cluster hierarchy, then selects stable flat clusters automatically. [1]",
+    "Primary parameter is min_cluster_size — intuitively the smallest meaningful group. Far less sensitive than DBSCAN's ε. [1]",
+    "Cluster stability = total 'density-weighted lifetime' in the condensed tree; stable clusters persist across a wide density range. [1]",
+    "GLOSH provides continuous outlier scores — more informative than DBSCAN's binary noise label. [1]",
+    "Time complexity O(n log n) with approximate NN; space O(n) for the MST — scalable to millions of points. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How does HDBSCAN handle high-dimensional data?",
+      "a": "Like DBSCAN, HDBSCAN relies on Euclidean distances that suffer from the curse of dimensionality in high dimensions. Recommended: apply dimensionality reduction (UMAP to 10–50 dimensions) before HDBSCAN. The combination UMAP → HDBSCAN is one of the most effective general-purpose clustering pipelines for high-dimensional data. [1]"
+    },
+    {
+      "q": "What is the difference between min_cluster_size and min_samples?",
+      "a": "min_cluster_size: the smallest group that can be called a cluster — controls the coarseness of the final clustering. min_samples: equivalent to DBSCAN's MinPts — controls the smoothness of the mutual reachability distance (higher = more conservative, more outliers). Setting min_samples = min_cluster_size is a reasonable default. [1]"
+    },
+    {
+      "q": "Can HDBSCAN recover DBSCAN results?",
+      "a": "Yes. HDBSCAN with a specific combination of min_samples and extracting the flat clustering at a single cut of the hierarchy (equivalent to DBSCAN at a given ε) reproduces DBSCAN. In fact, HDBSCAN is strictly more general — it subsumes DBSCAN as a special case. [1]"
+    },
+    {
+      "q": "How does HDBSCAN select the 'best' flat clustering from the hierarchy?",
+      "a": "It uses a dynamic programming procedure on the condensed tree: for each node, compare the node's own stability to the sum of stabilities of its children. If the node's stability > children sum, keep the node as a single cluster (don't split further). Otherwise, replace it with its children. This greedily selects the most stable partition. [1]"
+    },
+    {
+      "q": "How does HDBSCAN compare to Gaussian Mixture Models?",
+      "a": "GMM is parametric — it assumes Gaussian components and requires specifying K. HDBSCAN is non-parametric and detects K automatically. GMM provides soft probabilistic assignments and works best for elliptical, well-separated clusters. HDBSCAN handles arbitrary shapes, varying densities, and noise robustly. Use GMM when the Gaussian assumption fits; use HDBSCAN for general exploratory clustering. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "McInnes, Healy & Astels — hdbscan: Hierarchical density based clustering (2017)", "url": "https://joss.theoj.org/papers/10.21105/joss.00205" },
+    { "label": "Campello et al. — Density-Based Clustering Based on Hierarchical Density Estimates (2013)", "url": "https://link.springer.com/chapter/10.1007/978-3-642-37456-2_14" }
+  ]
+}

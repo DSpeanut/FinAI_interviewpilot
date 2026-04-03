@@ -1,0 +1,89 @@
+{
+  "eli3": [
+    "Support Vector Regression (SVR) fits a function to your data, but with a twist: instead of trying to minimise every prediction error, it ignores errors that are smaller than a threshold ε (epsilon). Think of it as fitting a tube of width 2ε around the data — anything inside the tube is 'good enough' and contributes zero penalty.",
+    "Only the data points outside the tube — called support vectors — actually influence where the tube is placed. This makes SVR robust to small amounts of noise and very sparse: the model is defined by a small subset of training points.",
+    "SVR also inherits the kernel trick from Support Vector Machines. By swapping in a kernel function (RBF, polynomial, etc.) you can fit highly non-linear functions without ever explicitly computing the high-dimensional feature map. The tube stays the same — only the shape of the space it lives in changes."
+  ],
+  "whenWhy": [
+    {
+      "title": "Robustness to noise and outliers",
+      "body": "The ε-insensitive loss completely ignores errors within ε, so small perturbations in training labels have zero effect on the model. OLS squares errors, giving outliers disproportionate influence. SVR is the right choice when labels are noisy or when the relationship has a few anomalous points."
+    },
+    {
+      "title": "Non-linear regression with a kernel",
+      "body": "The RBF kernel implicitly maps inputs into an infinite-dimensional space, allowing SVR to capture highly non-linear relationships. This is more principled than choosing a polynomial degree and avoids the instability of high-degree polynomials."
+    },
+    {
+      "title": "Small-to-medium datasets",
+      "body": "SVR solves a quadratic programming (QP) problem whose cost scales as O(n²) to O(n³) with the number of training examples. It excels on datasets up to roughly 10,000–50,000 samples. For larger data, gradient-boosted trees or neural networks are usually preferred."
+    },
+    {
+      "title": "When you want a sparse dual representation",
+      "body": "The SVR model is defined entirely by its support vectors — often a small fraction of training points. This can be useful in memory-constrained deployment scenarios, since inference requires only the support vectors and their dual coefficients."
+    }
+  ],
+  "visualizationType": "svr",
+  "deepDiveIntro": [
+    "The key concept is the ε-tube. SVR tries to find a function f(x) = wᵀx + b such that most training points fall within a tube of radius ε around f(x). Points inside the tube incur zero loss. Points outside the tube are penalised proportionally to how far they protrude.",
+    "This is captured by the ε-insensitive loss function: Lε(y, f(x)) = max(0, |y − f(x)| − ε). It is flat for small errors and linear for large ones — similar in spirit to Huber loss, but with a hard dead-zone."
+  ],
+  "deepDive": [
+    {
+      "heading": "The ε-Insensitive Loss",
+      "body": "SVR uses a loss function that is zero inside the ε-tube and grows linearly outside it. This is fundamentally different from squared loss (OLS) or absolute loss (LAD). The flat zone makes SVR insensitive to small label noise and produces sparse solutions in the dual. [1]",
+      "formula": "Lε(y, f(x)) = max(0, |y − f(x)| − ε)"
+    },
+    {
+      "heading": "Primal Formulation",
+      "body": "The primal optimisation introduces slack variables ξᵢ ≥ 0 (above the tube) and ξᵢ* ≥ 0 (below the tube) for each training point. The trade-off parameter C controls the penalty for violations: large C means fewer allowed violations (less regularisation), small C allows more violations (more regularisation). [1]",
+      "formula": "min_{w,b,ξ,ξ*}  ½||w||² + C·Σᵢ(ξᵢ + ξᵢ*)  s.t.  yᵢ − wᵀxᵢ − b ≤ ε + ξᵢ,  wᵀxᵢ + b − yᵢ ≤ ε + ξᵢ*"
+    },
+    {
+      "heading": "Dual & the Kernel Trick",
+      "body": "The Lagrangian dual of the primal QP has the form below, where αᵢ, αᵢ* ∈ [0, C] are dual variables. The prediction f(x) = Σᵢ(αᵢ − αᵢ*)⟨xᵢ, x⟩ + b involves only inner products, which can be replaced by a kernel K(xᵢ, x) = ⟨φ(xᵢ), φ(x)⟩ to fit non-linear functions. Common kernels: RBF K(x,x') = exp(−γ||x−x'||²), polynomial K(x,x') = (γxᵀx' + r)ᵈ. [1]",
+      "formula": "f(x) = Σᵢ (αᵢ − αᵢ*) K(xᵢ, x) + b"
+    },
+    {
+      "heading": "Support Vectors",
+      "body": "Only points where αᵢ − αᵢ* ≠ 0 contribute to f(x) — these are the support vectors. They correspond to training points that lie exactly on or outside the ε-tube. Points inside the tube have αᵢ = αᵢ* = 0 and play no role in the model. A small ε creates more support vectors (denser model); a large ε creates fewer (sparser model). [1]"
+    },
+    {
+      "heading": "Key Hyperparameters",
+      "body": "C: regularisation strength. Large C → model tries hard to fit every point, may overfit. Small C → allows more tube violations, smoother function. ε: tube half-width. Large ε → more points inside tube, fewer support vectors, sparser model. Kernel γ (RBF): controls locality. Large γ → very local fit (high variance); small γ → smooth global fit. All three interact and should be tuned jointly via cross-validation. [2]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: Support Vector Machines (concept applies to SVR)",
+  "takeaways": [
+    "SVR uses the ε-insensitive loss Lε = max(0, |y − f(x)| − ε), ignoring errors within a tube of radius ε. [1]",
+    "The primal QP minimises ½||w||² + C·Σ(ξᵢ + ξᵢ*); C controls the bias–variance trade-off. [1]",
+    "The dual formulation f(x) = Σ(αᵢ − αᵢ*)K(xᵢ, x) + b enables non-linear regression via the kernel trick. [1]",
+    "Only support vectors (points on or outside the ε-tube) have non-zero dual coefficients and influence predictions. [1]",
+    "SVR scales as O(n²)–O(n³); prefer gradient-boosted trees or neural nets for n > ~50,000. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you choose ε?",
+      "a": "ε should reflect the noise level in your labels. A common heuristic is ε ≈ 3σ_noise where σ_noise is estimated from a preliminary fit. In practice, tune ε by cross-validation alongside C and γ. Setting ε too small produces many support vectors and overfits; too large ignores real signal. [1]"
+    },
+    {
+      "q": "What is the difference between SVR and Huber regression?",
+      "a": "Both are robust to outliers. Huber loss is quadratic near zero and linear far from zero — it always penalises every training point. SVR's ε-insensitive loss has a flat zone that contributes exactly zero loss — some points are truly ignored. SVR also produces a sparse dual solution (only support vectors matter); Huber regression has a dense solution. [1]"
+    },
+    {
+      "q": "How do you scale features for SVR?",
+      "a": "Always standardise to zero mean and unit variance before fitting SVR. The RBF kernel uses ||xᵢ − xⱼ||² — if one feature is in thousands and another in fractions, the distance is dominated by the large-scale feature, making the kernel blind to the others. Feature scaling ensures all features contribute equally to the distance. [2]"
+    },
+    {
+      "q": "Why is SVR slow on large datasets?",
+      "a": "The dual QP requires computing and storing an n×n kernel matrix (O(n²) memory) and solving it in O(n²)–O(n³) time. For n = 100,000 this is 10GB and billions of operations. Approximate methods (Nyström approximation, random Fourier features, LinearSVR for linear kernels) reduce this to near-linear scaling. [2]"
+    },
+    {
+      "q": "Can SVR handle multi-output regression?",
+      "a": "Not natively — standard SVR is single-output. For multi-output regression, fit one SVR per output independently (sklearn's MultiOutputRegressor wrapper). If outputs are correlated, this ignores the correlation structure; consider multi-task regression methods or neural networks instead. [2]"
+    }
+  ],
+  "sources": [
+    { "label": "Smola, A.J. & Schölkopf, B. — A Tutorial on Support Vector Regression (Statistics and Computing, 2004)", "url": "https://doi.org/10.1023/B:STCO.0000035301.49549.88" },
+    { "label": "Bishop, C.M. — Pattern Recognition and Machine Learning, Ch. 7.1", "url": "https://www.microsoft.com/en-us/research/publication/pattern-recognition-machine-learning/" }
+  ]
+}

@@ -47,7 +47,7 @@ export const categories = [
     subcategories: [
       { id: "4-1", name: "Regression", slug: "regression", entryCount: 7 },
       { id: "4-2", name: "Classification", slug: "classification", entryCount: 7 },
-      { id: "4-3", name: "Clustering", slug: "clustering", entryCount: 5 },
+      { id: "4-3", name: "Clustering", slug: "clustering", entryCount: 7 },
       { id: "4-4", name: "Ensemble Methods", slug: "ensemble-methods", entryCount: 8 },
       { id: "4-5", name: "Dimensionality Reduction", slug: "dimensionality-reduction", entryCount: 5 },
       { id: "4-6", name: "Anomaly Detection", slug: "anomaly-detection", entryCount: 4 },
@@ -146,16 +146,84 @@ export const categories = [
   },
 ]
 
-export const mockEntries = [
-  { id: "e1", title: "Linear Regression", slug: "linear-regression", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "4-1", tags: ["regression", "supervised"] },
-  { id: "e2", title: "Ridge Regression", slug: "ridge-regression", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "4-1", tags: ["regression", "regularization"] },
-  { id: "e3", title: "Lasso Regression", slug: "lasso-regression", difficulty: "intermediate" as const, status: "review" as const, subcategoryId: "4-1", tags: ["regression", "regularization"] },
+export type Difficulty = "beginner" | "intermediate" | "advanced"
+export type Status = "draft" | "review" | "published"
+
+export type WhenWhyItem = { title: string; body: string }
+export type DeepDiveSection = { heading: string; body: string; extraBody?: string[]; formula?: string }
+export type EdgeCaseItem = { q: string; a: string }
+export type Source = { label: string; url: string }
+
+export interface WikiEntryContent {
+  eli3: string[]
+  whenWhy: WhenWhyItem[]
+  deepDiveIntro?: string[]
+  visualizationType?: string
+  deepDive: DeepDiveSection[]
+  youtubeLabel?: string
+  youtubeUrl?: string
+  takeaways: string[]
+  edgeCases: EdgeCaseItem[]
+  sources: Source[]
+}
+
+export interface WikiEntry {
+  id: string
+  title: string
+  slug: string
+  difficulty: Difficulty
+  status: Status
+  subcategoryId: string
+  tags: string[]
+  content?: WikiEntryContent
+}
+
+export const mockEntries: WikiEntry[] = [
+  {
+    id: "e1",
+    title: "Linear Regression",
+    slug: "linear-regression",
+    difficulty: "beginner",
+    status: "published",
+    subcategoryId: "4-1",
+    tags: ["regression", "supervised"],
+  },
+  {
+    id: "e2",
+    title: "Ridge Regression",
+    slug: "ridge-regression",
+    difficulty: "intermediate" as const,
+    status: "published" as const,
+    subcategoryId: "4-1",
+    tags: ["regression", "regularization"],
+  },
+  {
+    id: "e3",
+    title: "Lasso Regression",
+    slug: "lasso-regression",
+    difficulty: "intermediate" as const,
+    status: "review" as const,
+    subcategoryId: "4-1",
+    tags: ["regression", "regularization"],
+  },
   { id: "e4", title: "Elastic Net", slug: "elastic-net", difficulty: "intermediate" as const, status: "draft" as const, subcategoryId: "4-1", tags: ["regression", "regularization"] },
   { id: "e5", title: "Polynomial Regression", slug: "polynomial-regression", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "4-1", tags: ["regression"] },
   { id: "e6", title: "SVR", slug: "svr", difficulty: "advanced" as const, status: "draft" as const, subcategoryId: "4-1", tags: ["regression", "svm"] },
   { id: "e7", title: "Decision Tree Regressor", slug: "decision-tree-regressor", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "4-1", tags: ["regression", "tree"] },
-  { id: "e8", title: "K-Means", slug: "k-means", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "4-3", tags: ["clustering", "unsupervised"] },
-  { id: "e9", title: "DBSCAN", slug: "dbscan", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "4-3", tags: ["clustering", "unsupervised"] },
+  { id: "e11", title: "Logistic Regression", slug: "logistic-regression", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "4-2", tags: ["classification", "supervised", "linear"] },
+  { id: "e12", title: "SVM", slug: "svm", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "4-2", tags: ["classification", "supervised", "kernel"] },
+  { id: "e13", title: "K-Nearest Neighbors", slug: "k-nearest-neighbors", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "4-2", tags: ["classification", "supervised", "instance-based"] },
+  { id: "e14", title: "Naive Bayes", slug: "naive-bayes", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "4-2", tags: ["classification", "supervised", "probabilistic"] },
+  { id: "e15", title: "Decision Tree Classifier", slug: "decision-tree-classifier", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "4-2", tags: ["classification", "supervised", "tree"] },
+  { id: "e16", title: "LDA", slug: "lda", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "4-2", tags: ["classification", "supervised", "generative"] },
+  { id: "e17", title: "QDA", slug: "qda", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "4-2", tags: ["classification", "supervised", "generative"] },
+  { id: "e8",  title: "K-Means",                slug: "k-means",                difficulty: "beginner"     as const, status: "published" as const, subcategoryId: "4-3", tags: ["clustering", "unsupervised"] },
+  { id: "e9",  title: "DBSCAN",                 slug: "dbscan",                 difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "4-3", tags: ["clustering", "unsupervised", "density"] },
+  { id: "e18", title: "Hierarchical Clustering", slug: "hierarchical-clustering", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "4-3", tags: ["clustering", "unsupervised", "dendrogram"] },
+  { id: "e19", title: "Gaussian Mixture Models", slug: "gaussian-mixture-models", difficulty: "advanced"     as const, status: "published" as const, subcategoryId: "4-3", tags: ["clustering", "unsupervised", "probabilistic", "em"] },
+  { id: "e20", title: "Mean Shift",              slug: "mean-shift",              difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "4-3", tags: ["clustering", "unsupervised", "density"] },
+  { id: "e21", title: "HDBSCAN",                slug: "hdbscan",                difficulty: "advanced"     as const, status: "published" as const, subcategoryId: "4-3", tags: ["clustering", "unsupervised", "density", "hierarchy"] },
+  { id: "e22", title: "UMAP",                   slug: "umap",                   difficulty: "advanced"     as const, status: "published" as const, subcategoryId: "4-3", tags: ["clustering", "dimensionality-reduction", "visualization"] },
   { id: "e10", title: "Self-Attention", slug: "self-attention", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "5-4", tags: ["transformers", "attention", "nlp"] },
 ]
 

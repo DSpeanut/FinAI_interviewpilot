@@ -1,0 +1,89 @@
+{
+  "eli3": [
+    "Imagine you have a class photo. You start by pairing the two students who look most alike, then merge the two closest groups, then again and again, until everyone is in one big group. Draw a tree that records every merge — that's a dendrogram. You can cut the tree at any height to get however many clusters you want.",
+    "This is agglomerative (bottom-up) hierarchical clustering. You never have to choose K upfront: you build the full tree and decide later where to cut it by looking at the structure of the dendrogram.",
+    "The key decision is how to measure distance between groups — do you compare the two closest members, the two furthest, the averages, or minimise the total variance? This choice of linkage dramatically changes the shape of clusters you find."
+  ],
+  "whenWhy": [
+    {
+      "title": "Exploratory analysis — you don't know K",
+      "body": "The dendrogram shows the full merging history. You can explore different numbers of clusters by cutting at different heights. This is invaluable in early-stage exploration of genomics data, document collections, or customer segments where the structure is unknown."
+    },
+    {
+      "title": "Nested or hierarchical structure in the data",
+      "body": "Biological taxonomy (species → genus → family), document topic hierarchies, organisational hierarchies — data with natural nesting is best visualised and understood with a dendrogram rather than a flat partition."
+    },
+    {
+      "title": "Small to medium datasets",
+      "body": "Agglomerative clustering with Ward linkage is O(n² log n) time and O(n²) memory. This is feasible for up to tens of thousands of points. For larger datasets, approximate methods or mini-batch variants are needed."
+    },
+    {
+      "title": "When you need reproducibility",
+      "body": "Unlike K-Means, agglomerative clustering is deterministic given the linkage and distance metric — no random initialisation. This makes results fully reproducible and stable across runs."
+    }
+  ],
+  "deepDiveIntro": [
+    "Agglomerative hierarchical clustering starts with n singleton clusters and repeatedly merges the two closest clusters according to a linkage criterion until only one cluster remains. The full merge history is recorded as a dendrogram — a binary tree whose branch heights represent the merge distance.",
+    "The critical design choice is the linkage: how to define the distance between two clusters from pairwise point distances. Different linkages produce fundamentally different cluster shapes: single linkage tends to 'chain', complete linkage produces compact spheres, Ward minimises total within-cluster variance."
+  ],
+  "visualizationType": "hierarchical-clustering",
+  "deepDive": [
+    {
+      "heading": "Linkage Criteria",
+      "body": "Single linkage: d(A,B) = min_{a∈A, b∈B} d(a,b). Produces elongated, chained clusters; susceptible to outliers. Complete linkage: d(A,B) = max d(a,b). Produces compact, roughly equal-sized clusters. Average linkage (UPGMA): d(A,B) = (1/|A||B|) Σ_{a,b} d(a,b). Ward linkage: minimises the increase in total within-cluster variance when merging. Ward is usually the default and performs best in practice. [1][2]"
+    },
+    {
+      "heading": "Ward's Method",
+      "body": "Ward's linkage merges the two clusters whose merger minimises the increase in total WCSS. For clusters A and B with centroids c_A, c_B and sizes n_A, n_B: Δ = (n_A·n_B)/(n_A+n_B) · ‖c_A − c_B‖². This produces compact, spherical clusters and generally outperforms other linkage choices when clusters are of similar size. [1]",
+      "formula": "d_Ward(A,B) = (n_A · n_B)/(n_A + n_B) · ‖c_A − c_B‖²"
+    },
+    {
+      "heading": "Reading the Dendrogram",
+      "body": "The y-axis (height) represents the distance at which two clusters merged. The x-axis lists individual data points. A horizontal cut at height h yields all clusters active when that height was reached. The 'best' cut is often at the largest vertical gap — the level where merges jump from close (coherent clusters) to far (forcing disparate groups together). [1]"
+    },
+    {
+      "heading": "Computational Complexity",
+      "body": "Naïve agglomerative clustering: O(n³) — recompute all pairwise distances after each merge. With priority queues and Prim's-style updates: O(n² log n) for most linkages. Ward and average linkage have efficient O(n² log n) implementations (scipy's implementation). Memory: O(n²) to store the distance matrix — limits practical use to n ≲ 10,000. [1]"
+    },
+    {
+      "heading": "Divisive vs Agglomerative",
+      "body": "Divisive (top-down) clustering starts with all points in one cluster and recursively splits. It is more expensive (NP-hard to find the optimal split), but can be approximated by repeatedly applying K-Means with K=2. In practice, agglomerative methods dominate because they are more efficient and the dendrogram is easier to interpret. [1]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: Hierarchical Clustering",
+  "youtubeUrl": "https://www.youtube.com/embed/7xHsRkOdVwo",
+  "takeaways": [
+    "Agglomerative clustering builds a dendrogram bottom-up; cut at any height to get any number of clusters. [1]",
+    "Linkage choice dominates cluster shape: Ward (minimise WCSS increase) is the best default for compact clusters. [1]",
+    "No random initialisation — results are fully deterministic and reproducible. [1]",
+    "The best cut is usually at the largest vertical gap in the dendrogram — the jump from within-cluster to between-cluster distances. [1]",
+    "Complexity O(n² log n), memory O(n²) — practical up to ~10,000 points; use approximate methods beyond that. [1]",
+    "Single linkage is sensitive to chaining and outliers; complete and Ward linkage produce more compact clusters. [1][2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does single linkage suffer from chaining?",
+      "a": "Single linkage defines cluster distance as the minimum pairwise distance. One stray point bridging two groups can cause them to merge early, producing long, chain-like clusters that span the whole dataset. This is catastrophic when clusters have any overlap or when there are bridge points. Complete or Ward linkage are robust to this. [1]"
+    },
+    {
+      "q": "How do you objectively choose where to cut the dendrogram?",
+      "a": "Visually, cut at the largest vertical gap — the longest horizontal line you can draw without crossing any merge. Quantitatively, use the inconsistency coefficient (compare each merge height to the mean and std of nearby merges) or the Cophenet correlation coefficient (how well the dendrogram preserves pairwise distances). The silhouette score can also be computed for any flat partition derived from the cut. [1]"
+    },
+    {
+      "q": "Is hierarchical clustering sensitive to outliers?",
+      "a": "Yes, especially with single and average linkage. Outliers merge late (at high heights) in the dendrogram, which is useful for identifying them. Ward linkage is more robust because it minimises variance — a singleton outlier has high merge cost and stays isolated until forced to merge. [1]"
+    },
+    {
+      "q": "How do you apply hierarchical clustering when n is large?",
+      "a": "For n > 10,000 the O(n²) memory requirement becomes prohibitive. Alternatives: (1) subsample and apply clustering to the sample, then assign remaining points to nearest centroid; (2) use BIRCH (Balanced Iterative Reducing and Clustering using Hierarchies) which builds a summary tree first; (3) use approximate NN to reduce the distance matrix computation. [2]"
+    },
+    {
+      "q": "What is the Cophenetic correlation coefficient?",
+      "a": "The Cophenetic correlation measures how faithfully the dendrogram preserves the original pairwise distances. It is the Pearson correlation between the pairwise distances in the original space and the cophenetic distances (heights at which pairs are first joined) in the dendrogram. Values close to 1 indicate the dendrogram is a faithful representation of the data structure. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 14.3", "url": "https://hastie.su.domains/ElemStatLearn/" },
+    { "label": "Bishop — Pattern Recognition and Machine Learning, Ch. 9", "url": "https://www.microsoft.com/en-us/research/publication/pattern-recognition-machine-learning/" }
+  ]
+}

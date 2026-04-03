@@ -1,0 +1,89 @@
+{
+  "eli3": [
+    "Lasso is like Ridge regression with one key twist: instead of penalising the square of each coefficient, it penalises the absolute value. This small change has a dramatic effect — Lasso can shrink some coefficients all the way to exactly zero, effectively removing those features from the model.",
+    "Think of it this way: Ridge squeezes all dials down a little. Lasso turns some dials completely off and leaves the important ones on. This makes Lasso a feature selection tool built into the regression itself.",
+    "The name stands for Least Absolute Shrinkage and Selection Operator. The λ hyperparameter controls how aggressively features are zeroed out — larger λ means fewer features survive."
+  ],
+  "whenWhy": [
+    {
+      "title": "Sparse models — you believe few features truly matter",
+      "body": "Lasso is ideal when you expect most of your p features to be irrelevant. It automatically sets their coefficients to zero, giving you a parsimonious model that is easy to interpret and deploy."
+    },
+    {
+      "title": "Automatic feature selection",
+      "body": "Rather than running a separate feature selection step, Lasso does it during fitting. This is especially useful in high-dimensional settings (genomics, text, finance) where you have hundreds or thousands of candidate features."
+    },
+    {
+      "title": "Interpretability over predictive performance",
+      "body": "The resulting sparse model is easy to explain to stakeholders: 'the prediction depends on these 5 features.' Ridge keeps all features, making interpretation harder when p is large."
+    },
+    {
+      "title": "When predictors are not highly correlated",
+      "body": "Lasso struggles with multicollinearity — among a group of correlated features it arbitrarily picks one and zeros the rest. If features are correlated, prefer Ridge or Elastic Net."
+    }
+  ],
+  "deepDiveIntro": [
+    "The key difference from Ridge is the penalty term: Lasso uses the L1 norm (sum of absolute values) instead of the L2 norm (sum of squares). Geometrically, the L1 constraint region is a diamond (rhombus in 2D, cross-polytope in higher dimensions) with corners on the axes.",
+    "The RSS contours — ellipses centred on the OLS solution — tend to first touch the L1 diamond at a corner, and corners correspond to one or more coefficients being exactly zero. This is why Lasso produces sparse solutions: geometry forces some coefficients to zero at the optimum."
+  ],
+  "visualizationType": "lasso-regression",
+  "deepDive": [
+    {
+      "heading": "The Objective (L1 Penalty)",
+      "body": "Lasso replaces Ridge's squared penalty with an absolute-value penalty. This changes the problem from a smooth quadratic (easy to solve analytically) to a non-smooth convex problem (requires iterative methods). [1]",
+      "formula": "min_β  Σᵢ(yᵢ − ŷᵢ)² + λ Σⱼ|βⱼ|"
+    },
+    {
+      "heading": "Why L1 Produces Sparsity",
+      "body": "The L1 penalty has non-differentiable kinks at β = 0. The subgradient condition for optimality at zero is |Xⱼᵀr| ≤ λ, where r is the current residual. If the correlation between feature j and the residual is small enough, the optimal solution is βⱼ = 0. For Ridge, this condition is never exact; for Lasso it is exact at corners of the diamond constraint. [1]"
+    },
+    {
+      "heading": "Soft Thresholding (Coordinate Descent)",
+      "body": "Lasso is typically solved via coordinate descent, updating one coefficient at a time while holding the others fixed. The update has a closed form: the soft-threshold operator S(z, λ) clips values in [-λ, λ] to zero and shrinks values outside that range by λ. This is far more efficient than general-purpose convex solvers for high-dimensional data. [2]",
+      "formula": "β̂ⱼ = sign(zⱼ) · max(|zⱼ| − λ, 0)"
+    },
+    {
+      "heading": "The Lasso Path",
+      "body": "As λ increases from 0 (OLS) to ∞ (all-zero model), coefficients are progressively shrunk to zero at different rates. The sequence of λ values at which features enter the model is called the regularisation path. The LARS (Least Angle Regression) algorithm computes the full Lasso path efficiently. sklearn's LassoCV computes this path and selects λ by cross-validation. [1]"
+    },
+    {
+      "heading": "Lasso vs Ridge — When to Choose",
+      "body": "Lasso: use when you expect sparsity (few truly relevant features) and want automatic selection. Ridge: use when many features are modestly relevant or features are correlated. Elastic Net (α · L1 + (1-α) · L2): best of both — handles correlated features while still achieving sparsity. [2]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: Lasso Regression",
+  "youtubeUrl": "https://www.youtube.com/embed/NGf0voTMlcs",
+  "takeaways": [
+    "Lasso's L1 penalty (λΣ|βⱼ|) shrinks coefficients to exactly zero, performing implicit feature selection — Ridge never does this. [1]",
+    "Geometrically, L1 constraints form a diamond; the OLS ellipses tend to intersect at a corner where one or more β = 0. [1]",
+    "Solved efficiently via coordinate descent with the soft-threshold update: β̂ⱼ = sign(zⱼ)·max(|zⱼ|−λ, 0). [2]",
+    "Lasso can be inconsistent with correlated features — it arbitrarily picks one from a correlated group. Use Elastic Net instead. [2]",
+    "Always standardise features before fitting; the penalty treats all features equally on the same scale."
+  ],
+  "edgeCases": [
+    {
+      "q": "What happens when two features are perfectly correlated?",
+      "a": "Lasso is unstable: it will randomly pick one feature and zero out the other, but which one it picks depends on tiny numerical differences. This is a fundamental limitation. Elastic Net adds an L2 penalty alongside L1, which groups correlated features and shrinks them together, producing more stable selection. [1]"
+    },
+    {
+      "q": "Why does Lasso set coefficients to exactly zero but Ridge doesn't?",
+      "a": "The L1 penalty has a kink at zero — its subdifferential at β = 0 is the interval [-λ, λ]. The optimality condition can be satisfied exactly at zero when the feature-residual correlation is ≤ λ. The L2 penalty (Ridge) is smooth at zero — its gradient at 0 is 0 — so the minimum always occurs at a non-zero value unless λ → ∞. [1]"
+    },
+    {
+      "q": "Can Lasso select more than n features when p > n?",
+      "a": "No. When p > n, Lasso selects at most n non-zero coefficients (it saturates the solution). This is a hard upper bound from the geometry of the L1 problem. If you need more than n features, Ridge or Elastic Net can handle the over-determined case. [2]"
+    },
+    {
+      "q": "Is Lasso a good idea if the true model is dense (all features matter)?",
+      "a": "No. If every feature has a small but genuine effect, Lasso will zero out many of them, introducing unnecessary bias. Ridge will distribute the shrinkage across all features and typically give better predictive performance. Elastic Net with α close to 0 is a safe intermediate choice. [2]"
+    },
+    {
+      "q": "How does the choice of λ affect the number of selected features?",
+      "a": "λ = 0 recovers OLS with all features. As λ increases, features drop out of the model one by one. The regularisation path (computed by LARS or LassoCV) shows exactly which feature exits at which λ. Cross-validation picks the λ with the best hold-out MSE, balancing sparsity and fit. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Tibshirani — Regression Shrinkage and Selection via the Lasso (JRSS-B, 1996)", "url": "https://statweb.stanford.edu/~tibs/lasso/lasso.pdf" },
+    { "label": "James et al. — An Introduction to Statistical Learning, Ch. 6.2", "url": "https://www.statlearning.com/" }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "eli3": [
+    "Imagine two groups of points on a table — red dots and blue dots. A support vector machine tries to find the widest possible gap — called a margin — between the two groups, then draws a line exactly in the middle of that gap. Any new point on the red side gets classified red, blue side gets classified blue.",
+    "What makes SVMs clever is that only the points closest to the gap — the 'support vectors' — determine where the line goes. You could remove all other points and the answer would be the same. This makes the model very selective about what information it uses.",
+    "When the points cannot be separated by a straight line, SVMs use a mathematical trick called the kernel to secretly map the data into a higher-dimensional space where a flat separator does exist — all without ever computing the new coordinates explicitly."
+  ],
+  "whenWhy": [
+    {
+      "title": "High-dimensional, small-sample problems",
+      "body": "SVMs generalise well even when p > n — common in genomics, text classification (bag-of-words vectors are high-dimensional), and image recognition before deep learning. The margin maximisation acts as an implicit regulariser."
+    },
+    {
+      "title": "Non-linear boundaries via kernels",
+      "body": "With RBF or polynomial kernels, SVMs can learn complex non-linear decision boundaries. The kernel trick lets you work in very high-dimensional (even infinite) feature spaces efficiently."
+    },
+    {
+      "title": "When you need a maximum-margin classifier",
+      "body": "SVMs are theoretically motivated by structural risk minimisation: maximising the margin minimises an upper bound on generalisation error. They remain competitive in many domains, especially with well-tuned kernels."
+    },
+    {
+      "title": "Not ideal for very large datasets",
+      "body": "Training an SVM with a kernel is O(n²) to O(n³) in memory and time. For millions of samples, use linear SVM with SGD (e.g. scikit-learn's SGDClassifier) or switch to gradient boosting / neural networks."
+    }
+  ],
+  "deepDiveIntro": [
+    "The SVM finds the hyperplane that maximises the margin — the distance between the hyperplane and the nearest training points of each class. These nearest points are the support vectors, and they are the only training examples that matter for the final classifier.",
+    "The hard-margin SVM assumes classes are linearly separable. The soft-margin SVM (practical default) allows some misclassifications controlled by the regularisation parameter C. The kernel trick extends SVMs to non-linear boundaries without explicitly computing high-dimensional feature maps."
+  ],
+  "visualizationType": "svm",
+  "deepDive": [
+    {
+      "heading": "Hard-Margin Primal Problem",
+      "body": "For linearly separable data with binary labels yᵢ ∈ {−1, +1}, we want the hyperplane wᵀx + b = 0 that correctly classifies all points with maximum margin. The margin width is 2/||w||, so maximising it is equivalent to minimising ||w||². [1][2]",
+      "formula": "min_{w,b} ½||w||²   s.t. yᵢ(wᵀxᵢ + b) ≥ 1  ∀i"
+    },
+    {
+      "heading": "Soft-Margin SVM (Hinge Loss)",
+      "body": "Real data is rarely separable. Slack variables ξᵢ ≥ 0 allow points to violate the margin. C > 0 controls the tradeoff: large C penalises misclassification heavily (low bias, higher variance); small C allows more violations (higher bias, lower variance). [1]",
+      "formula": "min_{w,b,ξ} ½||w||² + C Σᵢ ξᵢ   s.t. yᵢ(wᵀxᵢ+b) ≥ 1−ξᵢ, ξᵢ ≥ 0"
+    },
+    {
+      "heading": "Dual Formulation & Support Vectors",
+      "body": "Using Lagrange multipliers, the primal converts to a dual problem over αᵢ ≥ 0. The solution has the form w = Σᵢ αᵢyᵢxᵢ — only training points with αᵢ > 0 contribute. These are the support vectors. The dual is a convex quadratic program. [1]",
+      "formula": "max_α Σᵢ αᵢ − ½ ΣᵢΣⱼ αᵢαⱼyᵢyⱼ xᵢᵀxⱼ   s.t. Σᵢ αᵢyᵢ = 0, 0 ≤ αᵢ ≤ C"
+    },
+    {
+      "heading": "The Kernel Trick",
+      "body": "The dual only involves dot products xᵢᵀxⱼ. Replace these with a kernel function K(xᵢ,xⱼ) = φ(xᵢ)ᵀφ(xⱼ), where φ maps inputs to a higher-dimensional feature space. Common kernels: RBF K(x,z) = exp(−γ||x−z||²), polynomial K(x,z) = (xᵀz+c)ᵈ. Mercer's theorem guarantees a valid feature map exists for any positive semi-definite kernel. [1]",
+      "formula": "K(x, z) = exp(−γ||x − z||²)   (RBF kernel)"
+    },
+    {
+      "heading": "Prediction",
+      "body": "For a new point x*, the decision function is: f(x*) = sign(Σᵢ αᵢyᵢ K(xᵢ, x*) + b). Only support vectors (αᵢ > 0) contribute, making prediction sparse and efficient even when the kernel maps to infinite dimensions. [1]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: Support Vector Machines",
+  "youtubeUrl": "https://www.youtube.com/embed/efR1C6CvhmE",
+  "takeaways": [
+    "SVMs maximise the margin between classes; only support vectors (points closest to the boundary) determine the hyperplane. [1]",
+    "The soft-margin parameter C trades off margin width against training error — tune it via cross-validation. [1]",
+    "The kernel trick implicitly maps data to high-dimensional spaces where linear separation is possible, without computing the mapping explicitly. [1]",
+    "The RBF kernel has one hyperparameter γ controlling how quickly influence decays with distance — large γ leads to overfitting. [1]",
+    "SVMs are O(n²–n³) to train with kernels; use linear SVMs with SGD for large-scale problems. [2]",
+    "SVMs do not natively output calibrated probabilities; use Platt scaling (CalibratedClassifierCV in scikit-learn) if probabilities are needed. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you choose C and γ (for RBF kernel)?",
+      "a": "Use cross-validated grid search or random search over a log-scale grid, e.g. C ∈ {0.001, 0.01, 0.1, 1, 10, 100} and γ ∈ {0.0001, 0.001, 0.01, 0.1, 1}. The optimal pair balances margin width against training accuracy. A coarse-to-fine search is efficient. [1]"
+    },
+    {
+      "q": "Can SVMs handle multi-class classification?",
+      "a": "Standard SVMs are inherently binary. Two strategies: One-vs-One (OVO) trains K(K−1)/2 binary classifiers and uses voting; One-vs-Rest (OVR) trains K classifiers. scikit-learn uses OVO by default for kernel SVMs. [2]"
+    },
+    {
+      "q": "Why are SVMs sensitive to feature scaling?",
+      "a": "The margin and kernel distances depend on Euclidean norms. Features on different scales distort the geometry — a feature measured in thousands dominates. Always standardise features (zero mean, unit variance) before fitting an SVM. [2]"
+    },
+    {
+      "q": "What does it mean when all training points are support vectors?",
+      "a": "If αᵢ > 0 for nearly every training point, the model is likely overfitting or C is too large. In this regime the margin is very narrow and the classifier memorises training data. Reduce C or add more training data. [1]"
+    },
+    {
+      "q": "How does SVM relate to logistic regression?",
+      "a": "Both are linear classifiers. SVM uses hinge loss (max(0, 1 − yf(x))) and maximises margin; logistic regression uses log-loss and maximises likelihood. Hinge loss is zero for correctly classified points far from the boundary, making SVM sparse in support vectors. For probabilistic outputs, prefer logistic regression. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 12", "url": "https://hastie.su.domains/ElemStatLearn/" },
+    { "label": "James et al. — An Introduction to Statistical Learning, Ch. 9", "url": "https://www.statlearning.com/" }
+  ]
+}

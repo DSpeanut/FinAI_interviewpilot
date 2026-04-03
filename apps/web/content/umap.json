@@ -1,0 +1,90 @@
+{
+  "eli3": [
+    "Imagine you have a 1,000-dimensional dataset — too many dimensions to visualise. UMAP finds a 2D map that preserves the neighbourhood relationships: if two points were close neighbours in the original high-dimensional space, they should still be neighbours on the 2D map.",
+    "It does this in two stages: first, build a fuzzy graph of who-is-neighbours-with-whom in the high-dimensional space. Second, optimise the positions of points in 2D so the low-dimensional neighbourhood graph matches the high-dimensional one as closely as possible.",
+    "The result is a map where clusters of similar data points clump together, the global structure (which groups are similar to each other) is also roughly preserved, and the computation is fast enough to run on millions of points."
+  ],
+  "whenWhy": [
+    {
+      "title": "Visualisation of high-dimensional data",
+      "body": "UMAP projects data to 2D or 3D for visualisation — single-cell RNA-seq data (tens of thousands of genes), word embeddings (hundreds of dimensions), image embeddings (thousands of dimensions). It is the dominant visualisation tool in computational biology and increasingly in NLP."
+    },
+    {
+      "title": "Pre-processing for clustering",
+      "body": "Running UMAP → HDBSCAN is one of the most effective clustering pipelines for high-dimensional data. UMAP reduces dimensions while preserving cluster structure; HDBSCAN finds clusters in the low-dimensional space much more reliably than in the original high-dimensional space."
+    },
+    {
+      "title": "General-purpose dimensionality reduction",
+      "body": "UMAP can project to any dimension d (not just 2 or 3) while preserving local structure. For d > 3, it is used as a preprocessing step for supervised learning — a 10–50 dimensional UMAP embedding often produces better downstream classifier accuracy than PCA of the same dimension."
+    },
+    {
+      "title": "When global structure matters (vs t-SNE)",
+      "body": "t-SNE preserves local structure extremely well but distorts global structure — relative positions of clusters are not meaningful. UMAP better preserves both local and global structure, making inter-cluster distances more interpretable. UMAP is also faster and scales to millions of points."
+    }
+  ],
+  "deepDiveIntro": [
+    "UMAP (Uniform Manifold Approximation and Projection, McInnes et al. 2018) is grounded in Riemannian geometry and algebraic topology. The algorithm assumes the data lies on a low-dimensional manifold embedded in the high-dimensional space and constructs a fuzzy topological representation of that manifold.",
+    "The high-dimensional fuzzy graph is matched to a low-dimensional analogue by minimising a cross-entropy objective between the two fuzzy set representations using stochastic gradient descent. In practice, UMAP is 5–10× faster than t-SNE and often produces cleaner cluster separation with more interpretable global structure."
+  ],
+  "visualizationType": "umap",
+  "deepDive": [
+    {
+      "heading": "High-Dimensional Graph Construction",
+      "body": "For each point xᵢ, find its k nearest neighbours (k = n_neighbors). Compute fuzzy membership strengths: the weight of edge (i,j) is exp(−(d(xᵢ,xⱼ) − ρᵢ)/σᵢ), where ρᵢ is the distance to the nearest neighbour (normalises local density) and σᵢ is chosen so each point has log₂(k) effective neighbours. Combine directed edges symmetrically: wᵢⱼ = wᵢ→ⱼ + wⱼ→ᵢ − wᵢ→ⱼ · wⱼ→ᵢ. [1]",
+      "formula": "w(i,j) = exp(-(d(xᵢ,xⱼ) - ρᵢ) / σᵢ)"
+    },
+    {
+      "heading": "Low-Dimensional Graph & Objective",
+      "body": "In the low-dimensional space (e.g. 2D), the membership strength between embedded points yᵢ, yⱼ is modelled as a Student-t kernel: v(i,j) = (1 + a‖yᵢ−yⱼ‖^(2b))⁻¹. Parameters a and b control the shape (defaults approximate a Student-t with 1 d.f., similar to t-SNE). The objective is the cross-entropy between the high-dimensional fuzzy graph W and low-dimensional graph V. [1]",
+      "formula": "C(W,V) = Σᵢⱼ [ wᵢⱼ log(wᵢⱼ/vᵢⱼ) + (1−wᵢⱼ) log((1−wᵢⱼ)/(1−vᵢⱼ)) ]"
+    },
+    {
+      "heading": "Optimisation via SGD with Negative Sampling",
+      "body": "Minimise C by gradient descent on the positions yᵢ in the low-dimensional space. For efficiency, use negative sampling: for each positive edge (i,j), sample several non-connected pairs and push them apart. This is analogous to the word2vec skip-gram objective. The result is a fast O(n · k · epochs) algorithm. [1]"
+    },
+    {
+      "heading": "Key Hyperparameters",
+      "body": "n_neighbors (default 15): controls the balance between local and global structure. Small n_neighbors → focus on fine local structure, more fragmented. Large n_neighbors → broader global structure, smoother. min_dist (default 0.1): minimum distance between points in the embedding. Small min_dist → tight clumps; large min_dist → uniform spreading. metric: defaults to Euclidean; use cosine for text/embedding vectors. [1]"
+    },
+    {
+      "heading": "UMAP vs PCA vs t-SNE",
+      "body": "PCA: linear, preserves global variance, no cluster emphasis. Deterministic, fast. t-SNE: non-linear, excellent local structure, global structure meaningless, slow O(n log n), non-parametric (can't embed new points without rerunning). UMAP: non-linear, good local + global structure, fast O(n), parametric option available (train a neural network to embed new points). UMAP generally dominates t-SNE for both speed and structure preservation. [1][2]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: UMAP",
+  "youtubeUrl": "https://www.youtube.com/embed/eN0wFzBA4Sc",
+  "takeaways": [
+    "UMAP constructs a fuzzy topological graph in high dimensions, then optimises a 2D (or low-d) layout to match it. [1]",
+    "n_neighbors controls local vs global structure tradeoff; min_dist controls how tightly points clump together. [1]",
+    "UMAP preserves both local and global structure better than t-SNE, and is 5–10× faster. [1]",
+    "The objective is a fuzzy set cross-entropy; optimisation uses SGD with negative sampling. [1]",
+    "For clustering pipelines, combine UMAP (reduce to 10–50 dims) → HDBSCAN for best results. [1]",
+    "A parametric UMAP (neural network encoder) can embed new out-of-sample points — t-SNE cannot. [1][2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Are inter-cluster distances meaningful in a UMAP plot?",
+      "a": "More meaningful than t-SNE, but still not perfectly preserved. UMAP tries to preserve the global topology: clusters that are far apart in the original space should be far apart in the embedding. However, the exact distances in the 2D plot are distorted. Do not draw quantitative conclusions from cluster positions; use them for qualitative exploration only. [1]"
+    },
+    {
+      "q": "What happens when you change n_neighbors?",
+      "a": "Small n_neighbors (e.g. 5): the algorithm focuses on very local structure — each point only cares about its 5 nearest neighbours. This can fragment clusters and emphasise fine-grained sub-structure. Large n_neighbors (e.g. 50): the algorithm builds a coarser graph that reflects larger-scale structure — clusters merge, global topology dominates. Always explore multiple values. [1]"
+    },
+    {
+      "q": "How does UMAP handle new out-of-sample data?",
+      "a": "Standard UMAP is non-parametric and must be re-run on new data. Scikit-learn's UMAP supports transform() which embeds new points using the learned fuzzy graph (approximate). For a fully parametric approach, ParametricUMAP (McInnes 2021) trains a neural network encoder that can embed arbitrary new points quickly. [1]"
+    },
+    {
+      "q": "Is UMAP deterministic?",
+      "a": "No — UMAP uses SGD with random negative sampling and random initialisation. Set random_state for reproducibility. The structure is stable across runs (especially for clear data), but exact point positions will differ. For publication-quality figures, fix random_state and verify the plot is not deceptively structured. [1]"
+    },
+    {
+      "q": "When should you use PCA instead of UMAP?",
+      "a": "Use PCA when: (1) you need an interpretable linear transformation; (2) you need to reconstruct data from the embedding (PCA is invertible); (3) downstream algorithms assume linear feature relationships; (4) the data intrinsically has low variance structure. UMAP is better for visualisation and non-linear cluster detection, but PCA should be applied first as a preprocessing step when p > 500 (UMAP has O(p) cost per distance computation). [2]"
+    }
+  ],
+  "sources": [
+    { "label": "McInnes, Healy & Melville — UMAP: Uniform Manifold Approximation and Projection (2018)", "url": "https://arxiv.org/abs/1802.03426" },
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 14", "url": "https://hastie.su.domains/ElemStatLearn/" }
+  ]
+}

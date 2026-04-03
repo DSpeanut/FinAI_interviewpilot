@@ -1,0 +1,91 @@
+{
+  "eli3": [
+    "Imagine you have a bag of mixed sweets — red ones, blue ones, and green ones — but the colours have faded so you can't tell them apart. K-Means says: decide there are K groups, pick K random starting points (centroids), and assign each sweet to its nearest centroid. Then move each centroid to the average position of all the sweets assigned to it. Repeat until nothing changes.",
+    "After a few iterations the centroids settle in the natural centres of the groups and the assignments stabilise. The number K is the only thing you have to specify in advance.",
+    "The algorithm is fast, scales to millions of points, and is the most widely deployed clustering method in practice. Its main weakness: you must guess K beforehand, and it can get stuck in a bad solution depending on where the centroids start."
+  ],
+  "whenWhy": [
+    {
+      "title": "Customer and user segmentation",
+      "body": "K-Means is the workhorse of marketing segmentation — grouping customers by purchase behaviour, grouping users by engagement pattern. Fast enough to run on millions of rows, interpretable enough that you can name each segment."
+    },
+    {
+      "title": "Vector quantisation and compression",
+      "body": "In image compression and speech coding, K-Means finds K representative codewords that minimise reconstruction error. Each data point is then stored as its centroid index rather than its full vector — dramatically reducing storage."
+    },
+    {
+      "title": "Pre-processing for supervised learning",
+      "body": "K-Means cluster assignments can be used as features for downstream models, or to initialise Gaussian Mixture Model fitting. Running K-Means first is often faster than EM directly on raw data."
+    },
+    {
+      "title": "When clusters are roughly spherical and similar in size",
+      "body": "K-Means minimises squared Euclidean distance, so it implicitly assumes spherical clusters of similar size and variance. It struggles with elongated, irregular, or heavily imbalanced clusters. For those, use DBSCAN, GMM, or spectral clustering."
+    }
+  ],
+  "deepDiveIntro": [
+    "K-Means minimises the Within-Cluster Sum of Squares (WCSS), also called inertia. The objective is NP-hard in general, but Lloyd's algorithm — alternating between assignment and centroid updates — provides an efficient local solution that converges in a finite number of steps.",
+    "The algorithm is guaranteed to converge but not to a global optimum. Multiple random restarts (n_init in scikit-learn, default 10) reduce the chance of a bad local minimum. K-Means++ initialisation further improves stability by spreading initial centroids."
+  ],
+  "visualizationType": "k-means",
+  "deepDive": [
+    {
+      "heading": "Objective: Within-Cluster Sum of Squares",
+      "body": "K-Means minimises the total squared distance from each point to its assigned centroid μₖ. Assign each point xᵢ to the closest centroid (E-step); update each centroid to the mean of its assigned points (M-step). Each step is guaranteed not to increase J, so the algorithm converges. [1]",
+      "formula": "J = Σₖ₌₁ᴷ Σᵢ∈Cₖ ‖xᵢ − μₖ‖²"
+    },
+    {
+      "heading": "Lloyd's Algorithm",
+      "body": "1. Initialise K centroids (random or K-Means++). 2. Assignment step: assign each point to its nearest centroid: cᵢ = argminₖ ‖xᵢ − μₖ‖². 3. Update step: set each centroid to the mean of its assigned points: μₖ = (1/|Cₖ|) Σᵢ∈Cₖ xᵢ. 4. Repeat steps 2–3 until assignments do not change. Time complexity per iteration: O(n·K·p). [1]",
+      "formula": "μₖ ← (1/|Cₖ|) Σᵢ∈Cₖ xᵢ"
+    },
+    {
+      "heading": "K-Means++ Initialisation",
+      "body": "Random initialisation can lead to poor local minima. K-Means++ (Arthur & Vassilvitskii, 2007) selects the first centroid uniformly at random, then each subsequent centroid with probability proportional to D(x)² — the squared distance to the nearest already-chosen centroid. This spreads centroids across the data and gives an O(log K) approximation guarantee on WCSS. [1][2]"
+    },
+    {
+      "heading": "Choosing K: Elbow Method & Silhouette Score",
+      "body": "Plot WCSS vs K — it decreases monotonically, but the rate slows after the 'true' K creating an elbow. More rigorously, use the Silhouette Score: for each point, s = (b−a)/max(a,b) where a is mean intra-cluster distance and b is mean nearest-cluster distance. s ∈ [−1,1]; higher is better. Choose K maximising mean silhouette. [1]",
+      "formula": "s(i) = (b(i) − a(i)) / max(a(i), b(i))"
+    },
+    {
+      "heading": "Assumptions & Limitations",
+      "body": "K-Means uses Euclidean distance and implicitly assumes spherical clusters of equal size and density. It cannot detect non-convex or elongated clusters (use DBSCAN or spectral clustering). It is sensitive to outliers (use K-Medoids / PAM instead) and requires feature scaling. Hard assignments mean each point belongs to exactly one cluster — use GMM for soft probabilistic memberships. [1]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: K-Means Clustering",
+  "youtubeUrl": "https://www.youtube.com/embed/4b5d3muPQmA",
+  "takeaways": [
+    "K-Means minimises WCSS via alternating assignment and centroid-update steps; convergence is guaranteed but to a local minimum. [1]",
+    "Use K-Means++ initialisation (default in scikit-learn) to avoid poor random starts and get a log-K approximation guarantee. [1]",
+    "Always standardise features before K-Means — Euclidean distance is dominated by features with large scales. [1]",
+    "Choose K using the elbow method (visual) or silhouette score (quantitative). [1]",
+    "K-Means assumes spherical, equal-size clusters; for irregular shapes or noise, use DBSCAN or GMM. [1][2]",
+    "Time complexity is O(n·K·p·iterations) — scales linearly with n, making it feasible for millions of points. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What happens when a centroid ends up with no assigned points?",
+      "a": "An empty cluster means the update step is undefined (division by zero). Scikit-learn handles this by reinitialising the empty centroid — typically to the point furthest from its current centroid, or a random data point. This is an edge case of bad initialisation; K-Means++ makes it rare. [1]"
+    },
+    {
+      "q": "Why does K-Means fail on non-spherical clusters?",
+      "a": "The Voronoi partition induced by K centroids always produces convex, roughly spherical regions. A banana-shaped cluster or two concentric rings cannot be separated. Solutions: kernel K-Means (implicitly maps to higher-dimensional space), spectral clustering (uses graph Laplacian), or DBSCAN (density-based). [1]"
+    },
+    {
+      "q": "How is K-Means related to the EM algorithm?",
+      "a": "K-Means is a degenerate case of EM for Gaussian Mixture Models where all covariances are equal and the responsibility (posterior) is a hard 0/1 assignment rather than a soft probability. The assignment step corresponds to the E-step, and the centroid update to the M-step. [1][2]"
+    },
+    {
+      "q": "Is K-Means affected by the curse of dimensionality?",
+      "a": "Yes. In high dimensions, all pairwise distances concentrate — meaning every point is roughly equidistant from every centroid. Cluster boundaries become meaningless. Apply PCA or UMAP before K-Means when p > 50, or use cosine similarity (K-Means on normalised vectors). [2]"
+    },
+    {
+      "q": "What is Mini-Batch K-Means and when should you use it?",
+      "a": "Mini-Batch K-Means (Sculley, 2010) updates centroids using small random subsets of data at each step rather than the full dataset. This reduces time and memory at the cost of slightly higher final WCSS. Use it when n > 100,000 or when data arrives in a stream. Available as MiniBatchKMeans in scikit-learn. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 14.3", "url": "https://hastie.su.domains/ElemStatLearn/" },
+    { "label": "Bishop — Pattern Recognition and Machine Learning, Ch. 9.1", "url": "https://www.microsoft.com/en-us/research/publication/pattern-recognition-machine-learning/" }
+  ]
+}

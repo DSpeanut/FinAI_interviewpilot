@@ -1,0 +1,89 @@
+{
+  "eli3": [
+    "QDA is the older sibling of LDA. Both assume each class follows a bell-curve distribution, but LDA forces all classes to share the same bell shape, while QDA lets each class have its own unique shape.",
+    "Because each class can have a different spread and orientation, the boundary between classes is no longer a straight line — it can bend into a curved (quadratic) shape. This makes QDA more flexible but requires more data to estimate all those extra covariance parameters reliably.",
+    "If you have plenty of data and suspect your classes have different shapes, QDA will likely outperform LDA. If data is limited or the shapes look similar, LDA is safer because it estimates fewer parameters."
+  ],
+  "whenWhy": [
+    {
+      "title": "Classes have different covariance structures",
+      "body": "When visualising data shows that different classes have different shapes, orientations, or scales, the shared-covariance assumption of LDA is violated. QDA allows each class to have its own Σₖ, correctly capturing this structure."
+    },
+    {
+      "title": "Sufficient data to estimate class covariances",
+      "body": "QDA estimates K separate p×p covariance matrices, requiring significantly more data than LDA. As a rule of thumb, each class should have at least a few times more observations than features. Otherwise, use LDA or regularised QDA."
+    },
+    {
+      "title": "Non-linear classification without kernels",
+      "body": "QDA produces quadratic (curved) decision boundaries in the original feature space — a form of non-linearity that doesn't require kernel tricks or neural networks. It is often underutilised as a flexible yet principled alternative."
+    },
+    {
+      "title": "As a diagnostic for LDA",
+      "body": "Comparing LDA and QDA performance (via cross-validation) tests whether the equal-covariance assumption matters. If QDA is substantially better, the classes have meaningfully different covariances."
+    }
+  ],
+  "deepDiveIntro": [
+    "QDA is a generative classifier that models each class k as a multivariate Gaussian with its own mean μₖ and covariance Σₖ. Unlike LDA, the class-specific covariance matrices do not cancel in the log-posterior ratio, leaving a quadratic function of x — hence the quadratic decision boundary.",
+    "QDA is the natural relaxation of LDA: drop the shared-covariance constraint. The price is a much larger parameter space (Kp(p+1)/2 covariance parameters vs p(p+1)/2 for LDA), requiring more training data."
+  ],
+  "visualizationType": "qda",
+  "deepDive": [
+    {
+      "heading": "Generative Model",
+      "body": "Each class k is modelled as a multivariate Gaussian: P(x|y=k) = N(x; μₖ, Σₖ). Unlike LDA, Σₖ is class-specific. Parameters are estimated by maximum likelihood: μ̂ₖ = class-k sample mean; Σ̂ₖ = class-k sample covariance (using nₖ or nₖ−1 denominator); π̂ₖ = nₖ/n. [1][2]"
+    },
+    {
+      "heading": "Quadratic Discriminant Function",
+      "body": "Plugging the Gaussian density into Bayes' theorem and taking the log-posterior (without the shared-Σ simplification), the quadratic terms no longer cancel and we get a quadratic function of x. Classify to class k with the largest δₖ(x). [1]",
+      "formula": "δₖ(x) = −½ log|Σₖ| − ½(x−μₖ)ᵀΣₖ⁻¹(x−μₖ) + log πₖ"
+    },
+    {
+      "heading": "Decision Boundary",
+      "body": "The boundary between classes k and l is {x : δₖ(x) = δₗ(x)}. Because Σₖ ≠ Σₗ, the quadratic terms do not cancel, and the boundary is a general quadratic surface (ellipse, hyperbola, or parabola in 2D). In the special case Σₖ = Σₗ = Σ, the quadratic terms cancel and QDA reduces to LDA. [1]"
+    },
+    {
+      "heading": "LDA vs QDA: Bias-Variance Tradeoff",
+      "body": "LDA: fewer parameters (p(p+1)/2 + Kp + K), lower variance, higher bias when covariances differ. QDA: more parameters (Kp(p+1)/2 + Kp + K), lower bias, higher variance — needs more data. With small n, LDA often outperforms QDA even when the true covariances differ, because the QDA estimate of Σₖ is noisy. [2]"
+    },
+    {
+      "heading": "Regularised QDA",
+      "body": "When a class has fewer observations than features (nₖ < p), Σ̂ₖ is singular. Regularise by shrinking towards a scaled identity or towards the pooled LDA estimate: Σₖ(α) = (1−α)Σ̂ₖ + αΣ̂, where α ∈ [0,1]. α=0 is full QDA; α=1 is LDA. This is Friedman's regularised discriminant analysis (RDA). [1]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: LDA & QDA",
+  "youtubeUrl": "https://www.youtube.com/embed/azXCzI57Yfc",
+  "takeaways": [
+    "QDA models each class with its own covariance Σₖ, producing a quadratic (curved) decision boundary in x. [1]",
+    "The discriminant function is δₖ(x) = −½log|Σₖ| − ½(x−μₖ)ᵀΣₖ⁻¹(x−μₖ) + log πₖ. [1]",
+    "QDA reduces to LDA when Σₖ = Σ for all k — the quadratic terms cancel. [1]",
+    "QDA requires more data than LDA: each class needs nₖ > p observations for Σ̂ₖ to be invertible. [2]",
+    "Use regularised QDA (RDA) to interpolate between QDA and LDA via shrinkage parameter α. [1]",
+    "Compare LDA and QDA via cross-validation: if QDA wins, classes have meaningfully different covariance shapes. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What happens when a class has fewer observations than features?",
+      "a": "The sample covariance matrix Σ̂ₖ is singular (rank-deficient) and cannot be inverted. Solutions: (1) use regularised QDA (RDA) to shrink towards a positive-definite matrix; (2) apply PCA to reduce dimensionality below nₖ before fitting QDA; (3) switch to LDA which pools all observations for Σ̂. [1]"
+    },
+    {
+      "q": "How do you choose between LDA and QDA?",
+      "a": "Use cross-validation. Heuristically: if each class has at least 5–10× more observations than features, QDA is stable. If classes look visually similar in shape (scatterplot or covariance inspection), LDA may be sufficient and more robust. The log-determinant term −½log|Σₖ| in QDA's discriminant also penalises high-variance classes, which can be useful. [2]"
+    },
+    {
+      "q": "Why is the log|Σₖ| term important in QDA but not LDA?",
+      "a": "In LDA, log|Σ| is the same for all classes and cancels in the comparison. In QDA, each class has a different |Σₖ|, so this term penalises classes with large covariance determinants (high spread). A new point placed in a region where one class is highly spread gets a lower posterior probability for that class, all else equal. [1]"
+    },
+    {
+      "q": "Can QDA handle more than 2 classes?",
+      "a": "Yes. QDA naturally extends to K classes: compute δₖ(x) for each class k and assign the argmax. There is no need for one-vs-rest or one-vs-one binarisation. The decision boundaries are pairwise quadratic surfaces in the feature space. [1]"
+    },
+    {
+      "q": "Is QDA related to Gaussian Naïve Bayes?",
+      "a": "Yes — Gaussian NB is a restricted form of QDA where the class-specific covariance Σₖ is diagonal (features assumed conditionally independent within each class). QDA allows full (non-diagonal) class-specific covariances, capturing feature correlations within each class. QDA is thus strictly more general than Gaussian NB. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 4", "url": "https://hastie.su.domains/ElemStatLearn/" },
+    { "label": "James et al. — An Introduction to Statistical Learning, Ch. 4", "url": "https://www.statlearning.com/" }
+  ]
+}

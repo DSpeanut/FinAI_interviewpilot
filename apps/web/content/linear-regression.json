@@ -1,0 +1,91 @@
+{
+  "eli3": [
+    "Imagine you're trying to guess how much a house costs based on its size. You collect data on 100 houses — their square footage and their sale prices — and plot them on a graph. You notice a pattern: bigger houses tend to cost more. Linear regression is the algorithm that draws the single best straight line through all those points.",
+    "\"Best\" means the line is as close as possible to all the points at once. Once you have that line, you can point to any square footage on the x-axis, follow it up to the line, and read off a price prediction on the y-axis. That's it — that's linear regression.",
+    "The line has two properties: a slope (how much the price increases per extra square foot) and an intercept (the baseline price when size is zero). Learning those two numbers from data is what the algorithm does."
+  ],
+  "whenWhy": [
+    {
+      "title": "Predicting a continuous outcome",
+      "body": "Use it when your target variable is a real number — house prices, stock returns, patient blood pressure, temperature. If the output is a category, use classification instead."
+    },
+    {
+      "title": "You need interpretability",
+      "body": "Each coefficient β directly tells you: 'holding everything else constant, a one-unit increase in feature X changes y by β units.' This makes linear regression the gold standard for explainability in regulated industries (finance, healthcare)."
+    },
+    {
+      "title": "As a baseline before complex models",
+      "body": "Always run linear regression first. If it achieves 85% of the performance of a neural network, the added complexity may not be worth the loss of interpretability and speed."
+    },
+    {
+      "title": "When data is limited",
+      "body": "Linear regression has very few parameters (just n+1 coefficients for n features), so it generalises well even with small datasets where more complex models would overfit."
+    }
+  ],
+  "deepDiveIntro": [
+    "Think of linear regression as finding the best-fit straight line through a cloud of data points. Each point is one observation — say, a house with a given size (x-axis) and its sale price (y-axis). The algorithm slides and tilts the line until it is as close as possible to all points simultaneously.",
+    "The vertical gap between a point and the line is called a residual — it's the prediction error for that observation. The red dashed lines in the chart show these residuals. The algorithm minimises the total squared size of all residuals at once, which is why the method is called Ordinary Least Squares."
+  ],
+  "visualizationType": "linear-regression",
+  "deepDive": [
+    {
+      "heading": "The Model",
+      "body": "In simple linear regression (one feature) the model predicts ŷ = β₀ + β₁x. In multiple linear regression (p features) this extends to ŷ = β₀ + β₁x₁ + · · · + βₚxₚ. In matrix form with n observations: ŷ = Xβ where X ∈ ℝⁿˣ⁽ᵖ⁺¹⁾, β ∈ ℝᵖ⁺¹. [1][2]",
+      "formula": "ŷ = Xβ"
+    },
+    {
+      "heading": "Ordinary Least Squares (OLS)",
+      "body": "The objective is to minimise the Residual Sum of Squares (RSS). Taking the derivative with respect to β and setting to zero yields the Normal Equations, giving the closed-form solution below. This requires XᵀX to be invertible (full column rank), and matrix inversion is O(p³), which becomes expensive for very high-dimensional data. In those cases, gradient descent is preferred. [1]",
+      "formula": "β̂ = (XᵀX)⁻¹ Xᵀy"
+    },
+    {
+      "heading": "The Four Assumptions (LINE)",
+      "body": "Linearity — the relationship between X and y is linear. Independence — observations are independent of each other. Normality — residuals are normally distributed. Equal Variance (homoscedasticity) — variance of residuals is constant across all fitted values. [2]"
+    },
+    {
+      "heading": "Model Evaluation",
+      "body": "R² (coefficient of determination) measures the proportion of variance in y explained by the model: R² = 1 − RSS/TSS. R² always increases with more features even useless ones. Use Adjusted R² to penalise unnecessary complexity. [2]",
+      "formula": "R²_adj = 1 − (1 − R²) · (n − 1) / (n − p − 1)"
+    },
+    {
+      "heading": "Gradient Descent Alternative",
+      "body": "When p is very large, inverting XᵀX is infeasible (O(p³)). Use gradient descent with learning rate α to iteratively update coefficients. This converges to the same solution as OLS since the cost surface is convex for linear regression with MSE loss. [1]",
+      "formula": "βⱼ := βⱼ − α · (1/n) Σᵢ (ŷᵢ − yᵢ) xᵢⱼ"
+    }
+  ],
+  "youtubeLabel": "StatQuest: Linear Regression",
+  "youtubeUrl": "https://www.youtube.com/embed/nk2CQITm_eo",
+  "takeaways": [
+    "OLS minimises the sum of squared residuals and has a closed-form solution β̂ = (XᵀX)⁻¹Xᵀy — no iteration required when p is small. [1]",
+    "The four assumptions (LINE) must hold for OLS estimates to be BLUE (Best Linear Unbiased Estimator) — always validate with residual plots. [2]",
+    "R² always increases with more features; use Adjusted R² or cross-validation MSE for honest model comparison. [2]",
+    "Coefficients are interpretable: βⱼ is the expected change in y for a one-unit increase in xⱼ, holding all other features constant. [1]",
+    "Use regularisation (Ridge/Lasso) when features are correlated or p is large relative to n — plain OLS will overfit."
+  ],
+  "edgeCases": [
+    {
+      "q": "What is multicollinearity and why does it matter?",
+      "a": "When two or more features are highly correlated, XᵀX becomes near-singular, making β̂ extremely sensitive to small changes in the data. The coefficients become unreliable even if overall predictions are fine. Detect with Variance Inflation Factor (VIF > 10 is a red flag). Fix with Ridge regression, PCA, or dropping one of the correlated features. [1]"
+    },
+    {
+      "q": "Linear regression gives a straight line — how do you handle non-linear relationships?",
+      "a": "Add polynomial features (x², x³) or interaction terms (x₁·x₂) to the feature matrix X. The model remains linear in the parameters β even though it's non-linear in the original features. Alternatively, apply a log transformation to y or X to linearise the relationship. [2]"
+    },
+    {
+      "q": "Why is OLS sensitive to outliers?",
+      "a": "Squaring the residuals in RSS gives disproportionate weight to large errors — an outlier 10 units away contributes 100× more than a point 1 unit away. Use Huber loss or RANSAC for robust regression, or Lasso/Ridge to reduce sensitivity. [1]"
+    },
+    {
+      "q": "When would you use gradient descent instead of the normal equations?",
+      "a": "When p (number of features) is very large. Inverting XᵀX is O(p³) — for p = 10,000 this is 10¹² operations. Gradient descent scales linearly with p and n. Also when the dataset doesn't fit in memory (use mini-batch SGD). [1]"
+    },
+    {
+      "q": "What's the difference between homoscedasticity and heteroscedasticity, and why does it matter?",
+      "a": "Homoscedasticity means the variance of residuals is constant across all predicted values. Heteroscedasticity makes OLS standard errors incorrect, invalidating t-tests and confidence intervals on coefficients. Fix with weighted least squares (WLS) or by transforming the target (e.g. log y). [2]"
+    }
+  ],
+  "sources": [
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 3", "url": "https://hastie.su.domains/ElemStatLearn/" },
+    { "label": "James et al. — An Introduction to Statistical Learning, Ch. 3", "url": "https://www.statlearning.com/" }
+  ]
+}

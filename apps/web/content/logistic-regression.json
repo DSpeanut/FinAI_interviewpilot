@@ -1,0 +1,96 @@
+{
+  "eli3": [
+    "Imagine you want to sort emails into spam or not-spam. Unlike linear regression, which predicts a number, logistic regression predicts a probability between 0 and 1 — something like '87% chance this is spam.' If that probability is above 0.5, you call it spam; below, you call it safe.",
+    "The trick is a special S-shaped curve called the sigmoid function. It squashes any real number into the 0–1 range. Your model computes a weighted sum of the features (just like linear regression), then feeds that number through the sigmoid to get a probability.",
+    "Training means adjusting the weights until the predicted probabilities are as close as possible to the true labels — 1 for spam, 0 for not-spam. The algorithm does this by maximising the likelihood of seeing the actual data under the model."
+  ],
+  "whenWhy": [
+    {
+      "title": "Binary classification baseline",
+      "body": "Logistic regression is the go-to baseline for any binary classification task (spam/not-spam, churn/no-churn, fraud/legit). Its interpretable coefficients and fast training make it a natural starting point before reaching for complex models."
+    },
+    {
+      "title": "You need calibrated probabilities",
+      "body": "The output is a proper probability, not just a class label. This is important when downstream decisions depend on confidence — e.g. 'alert only when fraud probability > 0.9', or ranking candidates by predicted probability."
+    },
+    {
+      "title": "Interpretability is required",
+      "body": "Each coefficient represents the change in log-odds for a one-unit increase in the corresponding feature. In regulated industries (credit scoring, clinical trials), this explainability is often legally required."
+    },
+    {
+      "title": "Multi-class classification",
+      "body": "Softmax regression (multinomial logistic regression) generalises logistic regression to K classes. It is the output layer of most neural network classifiers, making logistic regression conceptually foundational."
+    }
+  ],
+  "deepDiveIntro": [
+    "Logistic regression models the posterior probability P(Y=1|x) directly using the sigmoid (logistic) function applied to a linear combination of features. The key insight is that while the probability must lie in [0,1], the log-odds (logit) is unbounded and linear in x.",
+    "Training maximises the conditional log-likelihood — equivalently, minimises binary cross-entropy. Unlike linear regression there is no closed-form solution, so iterative solvers (Newton-Raphson or gradient descent) are used."
+  ],
+  "visualizationType": "logistic-regression",
+  "deepDive": [
+    {
+      "heading": "The Model",
+      "body": "The log-odds (logit) of the positive class is assumed to be linear in x. Exponentiating and solving gives the sigmoid form. For p features: P(Y=1|x) = σ(β₀ + β₁x₁ + … + βₚxₚ) where σ(z) = 1/(1+e⁻ᶻ). [1][2]",
+      "formula": "P(Y=1|x) = σ(βᵀx) = 1 / (1 + e^{−βᵀx})"
+    },
+    {
+      "heading": "Loss Function — Binary Cross-Entropy",
+      "body": "The model is trained by maximising the conditional log-likelihood over n observations. This is equivalent to minimising the binary cross-entropy (negative log-likelihood). There is no closed-form solution because the sigmoid is non-linear. [1]",
+      "formula": "ℓ(β) = −(1/n) Σᵢ [ yᵢ log p̂ᵢ + (1−yᵢ) log(1−p̂ᵢ) ]"
+    },
+    {
+      "heading": "Decision Boundary",
+      "body": "The boundary between classes is the set of points where P(Y=1|x) = 0.5, i.e. where βᵀx = 0. This is a hyperplane — logistic regression produces a linear decision boundary in the original feature space. Use polynomial features or a kernel to get non-linear boundaries. [2]"
+    },
+    {
+      "heading": "Optimisation: Gradient Descent & Newton-Raphson",
+      "body": "The gradient of the loss with respect to β is (1/n)Xᵀ(p̂ − y), where p̂ is the vector of predicted probabilities. Newton-Raphson (used by scikit-learn's 'lbfgs' and 'newton-cg' solvers) converges quadratically by using the Hessian. For large datasets, mini-batch SGD is preferred. [1]",
+      "formula": "β := β − α · (1/n) Xᵀ(p̂ − y)"
+    },
+    {
+      "heading": "Regularisation",
+      "body": "L2 regularisation (C in scikit-learn is the inverse of λ) prevents overfitting and handles multicollinearity. L1 produces sparse coefficients. The regularised objective adds λ||β||₂² (L2) or λ||β||₁ (L1) to the cross-entropy loss. [1][2]"
+    },
+    {
+      "heading": "Multinomial Extension (Softmax)",
+      "body": "For K classes, the softmax function generalises the sigmoid: P(Y=k|x) = exp(βₖᵀx) / Σⱼ exp(βⱼᵀx). This is multinomial logistic regression. The loss is categorical cross-entropy. [1]",
+      "formula": "P(Y=k|x) = exp(βₖᵀx) / Σⱼ₌₁ᴷ exp(βⱼᵀx)"
+    }
+  ],
+  "youtubeLabel": "StatQuest: Logistic Regression",
+  "youtubeUrl": "https://www.youtube.com/embed/yIYKR4sgzI8",
+  "takeaways": [
+    "Logistic regression models log-odds as linear in x; the sigmoid maps this to a probability in [0,1]. [1]",
+    "Training maximises log-likelihood (minimises binary cross-entropy) — there is no closed-form solution, use iterative solvers. [1]",
+    "The decision boundary is linear in the original feature space; add polynomial features for non-linear boundaries. [2]",
+    "Coefficients are interpretable as log-odds ratios: exp(βⱼ) is the odds multiplier for a one-unit increase in xⱼ. [2]",
+    "L2 regularisation (default in scikit-learn) handles multicollinearity; L1 produces sparse, feature-selecting solutions. [1][2]",
+    "Multinomial logistic regression with softmax is the direct generalisation to K > 2 classes. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What is perfect separation and why does it cause problems?",
+      "a": "When a feature perfectly predicts the class label, the maximum likelihood estimate for the corresponding coefficient diverges to ±∞ — the algorithm never converges. This is called complete separation or the Hauck-Donner phenomenon. Fix by adding L2 regularisation, which keeps coefficients finite. [1]"
+    },
+    {
+      "q": "How do you interpret the coefficients?",
+      "a": "Each coefficient βⱼ is the change in the log-odds of the positive class for a one-unit increase in xⱼ, holding other features constant. Exponentiating gives the odds ratio: if βⱼ = 0.7, then a one-unit increase in xⱼ multiplies the odds by e^0.7 ≈ 2.01. [2]"
+    },
+    {
+      "q": "Can logistic regression handle multi-class problems?",
+      "a": "Yes. Two strategies: One-vs-Rest (OVR) trains K binary classifiers, one per class; Multinomial (Softmax) fits a single model over all K classes simultaneously. Multinomial is generally preferred when classes are not independent. [1]"
+    },
+    {
+      "q": "When does logistic regression fail?",
+      "a": "When the true decision boundary is non-linear, logistic regression will underfit. Also when features are not informative or when class probabilities are better modelled by a non-sigmoid shape. In these cases, use kernel-SVM, decision trees, or neural networks. [2]"
+    },
+    {
+      "q": "How is logistic regression related to neural networks?",
+      "a": "A logistic regression unit is a single-layer neural network with a sigmoid activation. A softmax regression unit is a single-layer network with a softmax output. Multi-layer neural networks stack these units with non-linear activations between layers, composing logistic regression into a universal approximator. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 4", "url": "https://hastie.su.domains/ElemStatLearn/" },
+    { "label": "James et al. — An Introduction to Statistical Learning, Ch. 4", "url": "https://www.statlearning.com/" }
+  ]
+}

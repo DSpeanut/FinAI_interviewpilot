@@ -1,0 +1,89 @@
+{
+  "eli3": [
+    "A decision tree regressor predicts a number by asking a series of yes/no questions about the input features. For example: 'Is square footage > 1500? Is the neighbourhood rating > 7?' Each question splits the data into two groups. At the end of all the questions, you reach a leaf — and the prediction is simply the average of all training examples that ended up in that leaf.",
+    "The algorithm builds the tree by greedily finding the single best question to ask at each step — the question that most reduces the spread (variance) of the target values in each resulting group. It keeps splitting until the leaves are pure enough or some stopping criterion is met.",
+    "Decision trees are easy to understand and visualise — you can literally draw the tree and explain every prediction. The downside is that they tend to memorise training data (overfit) unless you limit their depth or use them inside an ensemble like Random Forest or Gradient Boosting."
+  ],
+  "whenWhy": [
+    {
+      "title": "Interpretability is required",
+      "body": "A decision tree can be printed, drawn, or explained in plain English: 'If feature A > 5 and feature B < 2, predict 14.3.' No other model class offers this level of transparency. Shallow trees (depth ≤ 4) are commonly used in regulated industries where decisions must be auditable."
+    },
+    {
+      "title": "Features are a mix of types",
+      "body": "Decision trees handle numerical and categorical features natively without encoding or scaling. They also automatically discover non-linear relationships and interactions between features without any feature engineering."
+    },
+    {
+      "title": "As a building block for ensemble methods",
+      "body": "Decision trees are the base learner in Random Forest (bagged trees) and Gradient Boosting (XGBoost, LightGBM). A single deep tree overfits badly; hundreds of shallow trees in an ensemble often achieve state-of-the-art performance on tabular data."
+    },
+    {
+      "title": "Quick baseline for non-linear data",
+      "body": "A decision tree with max_depth=3–5 gives a fast, non-parametric baseline that requires no feature scaling, handles missing values (with some implementations), and runs in milliseconds even on large datasets."
+    }
+  ],
+  "visualizationType": "decision-tree-regressor",
+  "deepDiveIntro": [
+    "The tree partitions the feature space into rectangular regions (axis-aligned splits). Each leaf corresponds to one rectangle, and the prediction for any input is the mean of all training targets that fall in that rectangle.",
+    "The key question is: how do you choose which feature to split on, and at what threshold? The algorithm evaluates every possible split across every feature and picks the one that most reduces the sum of squared residuals across the two resulting child nodes."
+  ],
+  "deepDive": [
+    {
+      "heading": "Splitting Criterion: Variance Reduction",
+      "body": "At each node containing training set S, the algorithm searches over all features j and thresholds t to find the split that minimises the weighted sum of squared deviations in the two child nodes S_L and S_R. The prediction in each leaf is the mean of its training targets. [1][2]",
+      "formula": "min_{j,t}  Σ_{i∈S_L}(yᵢ−ȳ_L)² + Σ_{i∈S_R}(yᵢ−ȳ_R)²"
+    },
+    {
+      "heading": "Prediction",
+      "body": "Once the tree is built, every input x is routed through the binary decisions from root to leaf. The leaf's prediction is the mean of all training targets assigned to that leaf. With R leaf regions R₁, …, R_R, the model can be written as a sum of step functions weighted by the leaf means. [2]",
+      "formula": "f̂(x) = Σₘ ȳₘ · 𝟙(x ∈ Rₘ),  where ȳₘ = (1/|Rₘ|) Σᵢ∈Rₘ yᵢ"
+    },
+    {
+      "heading": "Complexity Control",
+      "body": "A fully grown tree memorises the training set (one leaf per point). Depth is controlled by: max_depth (hard limit on tree depth), min_samples_leaf (minimum training examples in a leaf), min_samples_split (minimum examples to attempt a split). These are hyperparameters tuned by cross-validation. Lower values → more complex tree → risk of overfitting. [2]"
+    },
+    {
+      "heading": "Cost-Complexity Pruning (α-Pruning)",
+      "body": "Introduced in the original CART paper: grow a full tree T₀, then remove subtrees to minimise a penalised loss Rα(T) = RSS(T) + α|T|, where |T| is the number of leaves and α ≥ 0 is the complexity penalty. As α increases, the optimal tree shrinks. sklearn's DecisionTreeRegressor implements this via ccp_alpha. [1]",
+      "formula": "Rα(T) = Σₘ Σᵢ∈Rₘ (yᵢ − ȳₘ)² + α · |T|"
+    },
+    {
+      "heading": "Instability (High Variance)",
+      "body": "Small changes in training data can produce completely different tree structures — a split near the root can shift, cascading changes through the entire tree. This high variance is the fundamental weakness of single decision trees. It is the motivation for bagging (Random Forest) and boosting (Gradient Boosting), which average many trees to reduce variance while preserving low bias. [2]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: Decision Trees for Regression",
+  "takeaways": [
+    "Splits are chosen greedily to minimise Σ(yᵢ − ȳ_L)² + Σ(yᵢ − ȳ_R)² — no global optimum is guaranteed. [1]",
+    "Prediction at a leaf = mean of training targets in that leaf: ȳₘ = (1/|Rₘ|)Σᵢ∈Rₘ yᵢ. [2]",
+    "Cost-complexity pruning minimises RSS(T) + α|T|; α is tuned by cross-validation. [1]",
+    "High variance is the core weakness — small data changes cause very different trees. [2]",
+    "Decision trees are most useful as base learners in ensembles (Random Forest, XGBoost) rather than as standalone models."
+  ],
+  "edgeCases": [
+    {
+      "q": "Why doesn't a decision tree find the globally optimal set of splits?",
+      "a": "The algorithm is greedy: it chooses the best split at each node without considering downstream effects. Finding the globally optimal binary tree is NP-hard, so the greedy approach is used in practice. This means the tree may miss a combination of splits that would together be much better than any single best split. Ensembles (Random Forest, boosting) compensate for this by averaging over many greedy trees. [1]"
+    },
+    {
+      "q": "Do decision trees require feature scaling?",
+      "a": "No. The splitting criterion compares a feature value to a threshold — only the order of values matters, not their magnitude. Scaling a feature by 1000× does not change which split is best. This is a genuine advantage over distance-based methods (KNN, SVR with RBF kernel) and gradient-based methods (linear regression, neural nets). [2]"
+    },
+    {
+      "q": "How does a decision tree handle missing values?",
+      "a": "The standard CART algorithm does not handle missing values natively — sklearn's DecisionTreeRegressor requires imputation first. Some implementations (XGBoost, LightGBM, CatBoost) learn optimal default directions for missing values during training, making them practical for real-world datasets with missingness. [1]"
+    },
+    {
+      "q": "What is the difference between max_depth and ccp_alpha for controlling tree size?",
+      "a": "max_depth is a hard structural constraint set before training — the tree cannot grow beyond that depth regardless of data. ccp_alpha performs post-hoc pruning on a fully grown tree, removing subtrees where the improvement in RSS does not justify the added complexity. ccp_alpha is more principled (data-driven) but requires fitting the full tree first; max_depth is simpler and faster. [2]"
+    },
+    {
+      "q": "Why do decision trees create axis-aligned (rectangular) boundaries?",
+      "a": "Each split tests a single feature against a single threshold: 'xⱼ ≤ t'. This produces an axis-aligned hyperplane, carving out rectangular regions. Diagonal or curved boundaries would require either oblique splits (which test linear combinations of features — much more expensive to search) or ensembles that mix many axis-aligned splits to approximate a curved boundary. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Breiman, Friedman, Olshen & Stone — Classification and Regression Trees (CART), CRC Press, 1984", "url": "https://www.taylorfrancis.com/books/mono/10.1201/9781315139470/classification-regression-trees-leo-breiman" },
+    { "label": "James et al. — An Introduction to Statistical Learning, Ch. 8.1", "url": "https://www.statlearning.com/" }
+  ]
+}

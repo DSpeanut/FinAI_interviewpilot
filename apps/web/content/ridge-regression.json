@@ -1,0 +1,90 @@
+{
+  "eli3": [
+    "Remember how linear regression finds the best straight line by minimising prediction errors? Ridge regression does the same thing — but it adds a penalty for making the coefficients too large. Think of it as linear regression with a \"stay small\" rule baked in.",
+    "Why would you want small coefficients? Because large coefficients are a sign that the model is overfitting — memorising noise in the training data rather than learning the true signal. Ridge shrinks all coefficients toward zero, making the model smoother and more generalisable.",
+    "The strength of the penalty is controlled by a parameter λ (lambda). When λ = 0, Ridge is identical to OLS. As λ → ∞, all coefficients shrink to zero. The right λ is found by cross-validation."
+  ],
+  "whenWhy": [
+    {
+      "title": "Multicollinearity in features",
+      "body": "When two or more features are highly correlated, OLS produces large, unstable coefficients with huge variance. Ridge stabilises this by adding λI to XᵀX before inverting — this is always invertible, even when XᵀX is near-singular."
+    },
+    {
+      "title": "Many features, small dataset (p ≫ n)",
+      "body": "When you have more features than observations, OLS is underdetermined (infinitely many solutions). Ridge uniquely determines the coefficients by adding a regularisation term, preventing the model from memorising the training set."
+    },
+    {
+      "title": "You want to keep all features",
+      "body": "Unlike Lasso, Ridge never sets coefficients exactly to zero — it shrinks them all proportionally. Use Ridge when you believe all features are genuinely relevant and want to reduce their influence rather than eliminate them."
+    },
+    {
+      "title": "As a baseline regularised model",
+      "body": "Ridge is computationally cheap (closed-form solution exists), numerically stable, and almost always beats plain OLS on out-of-sample data. It's the first regularisation method to try before more complex approaches."
+    }
+  ],
+  "deepDiveIntro": [
+    "OLS minimises only the residual sum of squares (RSS). Ridge adds a second term — a penalty proportional to the sum of squared coefficients. This is called L2 regularisation. The model must now trade off fitting the data well against keeping the weights small.",
+    "Geometrically, the OLS solution lives wherever the RSS contours are smallest. Ridge constrains the solution to lie within an L2 ball (a sphere in p dimensions). The optimal point is where the RSS contours first touch the sphere — always a smooth point, which means no coefficient is exactly zero."
+  ],
+  "visualizationType": "ridge-regression",
+  "deepDive": [
+    {
+      "heading": "The Objective",
+      "body": "Ridge minimises RSS plus a penalty on the squared L2 norm of the coefficients. λ ≥ 0 is the regularisation hyperparameter. Note: the intercept β₀ is conventionally not penalised — only the slope coefficients. [1]",
+      "formula": "min_β  Σᵢ(yᵢ − ŷᵢ)² + λ Σⱼβⱼ²"
+    },
+    {
+      "heading": "Closed-Form Solution",
+      "body": "Unlike other regularised models, Ridge has an analytic solution. Adding λI to XᵀX guarantees invertibility even when XᵀX is singular due to multicollinearity or p > n. The λI term is why Ridge is also called L2-penalised least squares or Tikhonov regularisation. [1]",
+      "formula": "β̂_ridge = (XᵀX + λI)⁻¹ Xᵀy"
+    },
+    {
+      "heading": "Effect on Coefficients via SVD",
+      "body": "Using the Singular Value Decomposition X = UDVᵀ, the Ridge solution can be written as a shrunken version of OLS. Each coefficient is multiplied by dⱼ²/(dⱼ² + λ), where dⱼ is the j-th singular value. Features with low variance (small dⱼ) are shrunk most aggressively. [1]",
+      "formula": "β̂_ridge = Σⱼ [ dⱼ²/(dⱼ² + λ) ] uⱼvⱼᵀ / dⱼ · y"
+    },
+    {
+      "heading": "Bias–Variance Trade-off",
+      "body": "OLS is unbiased but can have very high variance when features are correlated. Ridge introduces bias by shrinking coefficients, but dramatically reduces variance. For many real datasets the reduction in variance more than compensates for the bias, giving lower test MSE. The optimal λ balances these two forces. [2]"
+    },
+    {
+      "heading": "Choosing λ",
+      "body": "λ is a hyperparameter — it is not learned from the training loss. Select it via k-fold cross-validation: train Ridge with many λ values and pick the one with the lowest validation MSE. In practice, search over a logarithmic grid (e.g. 10⁻⁴ to 10⁴). sklearn's RidgeCV does this efficiently using the full path. [2]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: Ridge Regression",
+  "youtubeUrl": "https://www.youtube.com/embed/Q81RR3yKn30",
+  "takeaways": [
+    "Ridge adds an L2 penalty λΣβⱼ² to the OLS objective, shrinking all coefficients toward — but never to — zero. [1]",
+    "The closed-form solution β̂ = (XᵀX + λI)⁻¹Xᵀy is always unique and numerically stable, even with multicollinearity or p > n. [1]",
+    "Ridge shrinks low-variance features most aggressively (via SVD); high-variance features are shrunk less. [1]",
+    "It introduces bias but reduces variance — on correlated or high-dimensional data this trade-off almost always wins. [2]",
+    "Select λ by cross-validation; do not include the intercept in the penalty term."
+  ],
+  "edgeCases": [
+    {
+      "q": "Does Ridge perform feature selection?",
+      "a": "No. Ridge shrinks coefficients toward zero but never sets them exactly to zero. All features remain in the model with non-zero (though small) coefficients. If you need automatic feature selection, use Lasso (L1 penalty) which produces sparse solutions. [1]"
+    },
+    {
+      "q": "How does Ridge handle multicollinearity compared to OLS?",
+      "a": "In OLS, highly correlated features make XᵀX nearly singular, causing huge coefficient variance — small data changes can flip signs. Ridge adds λI to XᵀX before inversion, which dominates the near-zero eigenvalues and stabilises the solution. The price is biased (shrunk) coefficients, but the variance reduction is typically large. [1]"
+    },
+    {
+      "q": "Should you standardise features before applying Ridge?",
+      "a": "Yes, always. Ridge penalises large coefficients equally regardless of feature scale. If one feature is measured in kilometres and another in millimetres, the unscaled feature will have a naturally smaller coefficient and will be penalised less. Standardise to zero mean and unit variance so the penalty treats all features equally. [2]"
+    },
+    {
+      "q": "What happens when λ → 0 vs λ → ∞?",
+      "a": "λ = 0 recovers standard OLS (no regularisation). As λ → ∞, all slope coefficients → 0 and the model predicts the training mean for every input — maximum underfitting. The optimal λ is somewhere between these extremes and is found via cross-validation. [2]"
+    },
+    {
+      "q": "Can Ridge be used for classification?",
+      "a": "Not directly — Ridge is a regression method. For classification, the analogous approach is logistic regression with L2 regularisation (C=1/λ in sklearn's LogisticRegression). This penalises large weights in the same way and is the standard baseline for binary/multi-class classification. [2]"
+    }
+  ],
+  "sources": [
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 3.4", "url": "https://hastie.su.domains/ElemStatLearn/" },
+    { "label": "James et al. — An Introduction to Statistical Learning, Ch. 6.2", "url": "https://www.statlearning.com/" }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "eli3": [
+    "Linear regression draws a straight line through your data. But what if the real relationship is curved — like how a car's fuel efficiency peaks at a moderate speed and drops at both low and high speeds? Polynomial regression handles this by adding squared, cubed, and higher-power versions of the input as extra features.",
+    "The trick is that even though the relationship with the original feature is now curved, the model is still linear in the new features (x, x², x³, …). That means you can still use ordinary least squares to fit it — no new math required.",
+    "The degree m of the polynomial controls how bendy the curve can be: degree 1 is a straight line, degree 2 is a parabola, degree 3 can have one bend. Higher degrees can fit training data almost perfectly — but they often overfit and generalise poorly to new data."
+  ],
+  "whenWhy": [
+    {
+      "title": "The relationship between X and y is clearly non-linear",
+      "body": "If a residual plot against fitted values shows a systematic curve (not random scatter), a linear model is misspecified. Polynomial features can capture smooth non-linearity without requiring a different model class."
+    },
+    {
+      "title": "You want to stay within the linear regression framework",
+      "body": "Polynomial regression inherits all of linear regression's infrastructure — OLS solution, interpretable coefficients, t-tests, confidence intervals, R². You keep the tooling while gaining flexibility."
+    },
+    {
+      "title": "The domain has known polynomial structure",
+      "body": "Physics and engineering relationships are often polynomial (kinetic energy ∝ v², projectile motion, etc.). In these cases, adding x² is not a fishing expedition — it is encoding known domain knowledge."
+    },
+    {
+      "title": "As a stepping stone before splines or GAMs",
+      "body": "Polynomial regression is the conceptually simplest way to model non-linearity. If it works, great. If it requires very high degree (d > 4) to fit well, that is a signal to switch to splines or a generalised additive model, which are more local and stable."
+    }
+  ],
+  "deepDiveIntro": [
+    "The key idea is basis expansion: instead of fitting y on x, you create new features φ₁(x) = x, φ₂(x) = x², …, φₘ(x) = xᵐ, then fit y on the expanded feature matrix Φ. The model is non-linear in x but linear in the basis functions — so OLS still applies exactly.",
+    "The chart shows how increasing the polynomial degree changes the fit. Low degree underfits (high bias); very high degree overfits (high variance), passing through nearly every training point but oscillating wildly between them. Cross-validation selects the degree that minimises test error."
+  ],
+  "visualizationType": "polynomial-regression",
+  "deepDive": [
+    {
+      "heading": "Model & Basis Expansion",
+      "body": "For a single feature x, polynomial regression of degree m constructs m features and fits a standard linear model. The design matrix Φ (Vandermonde matrix) has Φᵢⱼ = xᵢʲ⁻¹ for j = 1, …, m+1. The OLS solution is identical to standard linear regression. [1]",
+      "formula": "ŷ = β₀ + β₁x + β₂x² + ··· + βₘxᵐ  =  Φβ"
+    },
+    {
+      "heading": "Fitting: OLS on Expanded Features",
+      "body": "Once Φ is constructed, β̂ = (ΦᵀΦ)⁻¹Φᵀy — the standard normal equations. No new algorithm is needed. All standard linear regression diagnostics (residual plots, VIF, confidence intervals) apply to the expanded model. Ridge or Lasso regularisation can be added to control overfitting at high degree. [1]",
+      "formula": "β̂ = (ΦᵀΦ)⁻¹ Φᵀy"
+    },
+    {
+      "heading": "Bias–Variance and Degree Selection",
+      "body": "Degree m is a hyperparameter controlling model complexity. Low m → high bias (underfitting). High m → high variance (overfitting). Cross-validation (or adjusted R², AIC, BIC) is used to select m. In practice, degrees above 4–5 are rarely justified — they produce erratic extrapolations and Runge's phenomenon near the boundaries of the data. [1][2]"
+    },
+    {
+      "heading": "Runge's Phenomenon",
+      "body": "At high polynomial degrees, the fitted curve oscillates wildly near the edges of the x-range — even if the fit is nearly perfect at interior points. This is the polynomial equivalent of overfitting and is especially severe with equally-spaced training points. Natural cubic splines (piecewise degree-3 polynomials with continuity constraints) avoid this and are preferred when m > 3 is needed. [2]"
+    },
+    {
+      "heading": "Extension to Multiple Features",
+      "body": "With p features, polynomial expansion includes all monomials up to degree d: x₁, x₂, x₁², x₁x₂, x₂², etc. The number of terms grows as O(pᵈ) — for p = 10, d = 3 this is over 200 terms. Interaction terms (x₁x₂) capture feature interactions. Regularise with Ridge or Lasso to control the combinatorial explosion; or use a kernel method (polynomial kernel in SVR/SVM) which implicitly computes the expansion without materialising it. [2]"
+  }
+  ],
+  "youtubeLabel": "StatQuest: Polynomial Regression",
+  "takeaways": [
+    "Polynomial regression adds xᵢ², xᵢ³, … as features and fits OLS — the model is non-linear in x but linear in parameters. [1]",
+    "β̂ = (ΦᵀΦ)⁻¹Φᵀy — the same normal equations as linear regression, applied to the Vandermonde design matrix. [1]",
+    "Choose degree m by cross-validation; degrees above 4–5 almost always overfit in practice. [1]",
+    "Runge's phenomenon causes high-degree polynomials to oscillate near data boundaries — use splines instead for high-flexibility needs. [2]",
+    "With multiple features, polynomial terms grow as O(pᵈ) — regularise aggressively or use a kernel trick to avoid dimensionality explosion. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you know what degree to use?",
+      "a": "Primarily, k-fold cross-validation: fit models with degree 1 through some maximum (typically 10) and pick the degree with the lowest validation MSE. As a sanity check, plot the fitted curve — if it oscillates or behaves bizarrely outside the training range, the degree is too high. Hypothesis tests on the highest-order coefficient (H₀: βₘ = 0) can also guide truncation. [1]"
+    },
+    {
+      "q": "Should polynomial features be standardised?",
+      "a": "Yes, especially for high degrees. x¹⁰ for x in [0,10] has values up to 10¹⁰, causing severe numerical ill-conditioning in ΦᵀΦ. Standardise x to zero mean and unit variance before expanding, so xᵏ stays in a manageable range. This also makes Ridge/Lasso regularisation act equally across all polynomial terms. [2]"
+    },
+    {
+      "q": "What is the difference between polynomial regression and splines?",
+      "a": "A polynomial of degree m is a single global curve — a wiggle anywhere affects the entire fit. Natural cubic splines are piecewise degree-3 polynomials that are joined smoothly at knot points. Splines are more local (a change in one region does not distort another), avoid Runge's phenomenon, and generally outperform global polynomials beyond degree 3. [2]"
+    },
+    {
+      "q": "Can polynomial regression extrapolate?",
+      "a": "Poorly. Outside the training range, high-degree polynomials diverge rapidly toward ±∞. Even low-degree polynomials extrapolate based on the tail behavior of the last term (e.g. xᵐ dominates). Never use polynomial regression to extrapolate — use domain-informed functional forms or constrained models instead. [1]"
+    },
+    {
+      "q": "Is polynomial regression the same as polynomial features + linear regression in sklearn?",
+      "a": "Yes, exactly. sklearn's PolynomialFeatures(degree=m) constructs Φ, and LinearRegression().fit(Φ, y) applies OLS. Adding Ridge() or Lasso() after PolynomialFeatures is equivalent to regularised polynomial regression. This pipeline approach is the standard implementation. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "James et al. — An Introduction to Statistical Learning, Ch. 7.1", "url": "https://www.statlearning.com/" },
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 5.1–5.2", "url": "https://hastie.su.domains/ElemStatLearn/" }
+  ]
+}

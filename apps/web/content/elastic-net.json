@@ -1,0 +1,86 @@
+{
+  "eli3": [
+    "Elastic Net is a blend of Ridge and Lasso regression. Ridge shrinks all coefficients but never zeros them out. Lasso zeros out coefficients but breaks down when features are correlated. Elastic Net does both at once — it can zero out irrelevant features (like Lasso) while handling correlated features gracefully (like Ridge).",
+    "Imagine you have 10 highly correlated features measuring the same thing slightly differently. Lasso will arbitrarily pick one and discard the rest — unstable and misleading. Elastic Net keeps the whole group and shrinks them together, which is both more stable and more honest.",
+    "The blend is controlled by a mixing ratio α (alpha): α = 1 gives pure Lasso, α = 0 gives pure Ridge, and anything in between is Elastic Net. A second parameter λ controls the overall strength of regularisation. In practice, both are tuned by cross-validation."
+  ],
+  "whenWhy": [
+    {
+      "title": "Correlated features that you still want to select from",
+      "body": "Lasso arbitrarily discards correlated features; Ridge keeps them all. Elastic Net achieves a grouping effect — it tends to select or discard correlated features together, which is more scientifically interpretable and numerically stable."
+    },
+    {
+      "title": "p ≫ n with groups of correlated predictors",
+      "body": "In genomics, text, or financial data where you have many correlated features and few observations, Elastic Net is the standard choice. The L2 term stabilises the solution when p > n (where pure Lasso can select at most n features), while the L1 term still produces a sparse model."
+    },
+    {
+      "title": "When you are unsure whether to use Ridge or Lasso",
+      "body": "Elastic Net is a safe default when you do not have strong prior knowledge about sparsity. Setting α ∈ [0.1, 0.9] and tuning by cross-validation almost always matches or beats either pure Ridge or pure Lasso."
+    },
+    {
+      "title": "You want sparse solutions but Lasso is unstable",
+      "body": "If Lasso gives erratic results across bootstrap samples or train/test splits — picking different features each time — that is a sign of correlated predictors. Switch to Elastic Net with α slightly below 1 to add stability without abandoning sparsity."
+    }
+  ],
+  "visualizationType": "elastic-net",
+  "deepDive": [
+    {
+      "heading": "The Objective",
+      "body": "Elastic Net adds both an L1 and an L2 penalty to the OLS loss. λ₁ controls sparsity (Lasso part) and λ₂ controls shrinkage of correlated groups (Ridge part). Setting λ₁ = 0 recovers Ridge; λ₂ = 0 recovers Lasso. [1]",
+      "formula": "min_β  ||y − Xβ||² + λ₁Σⱼ|βⱼ| + λ₂Σⱼβⱼ²"
+    },
+    {
+      "heading": "sklearn Parameterisation",
+      "body": "sklearn's ElasticNet uses two parameters: alpha (overall regularisation strength, equivalent to λ₁ + λ₂) and l1_ratio α ∈ [0, 1] (the fraction of the total penalty that is L1). This is the most common form in practice. When l1_ratio=1, ElasticNet reduces to Lasso; when l1_ratio=0, it reduces to Ridge. [2]",
+      "formula": "min_β  (1/2n)·RSS + alpha·[l1_ratio·Σ|βⱼ| + (1−l1_ratio)/2·Σβⱼ²]"
+    },
+    {
+      "heading": "The Grouping Effect",
+      "body": "If features xⱼ and xₖ are perfectly correlated (correlation = 1), the Elastic Net solution satisfies |β̂ⱼ − β̂ₖ| ≤ (1/λ₂)|β̂ⱼ − β̂ₖ|·0 = 0 in the limit — i.e. perfectly correlated features receive identical coefficients. More generally, highly correlated predictors are selected or excluded together and receive similar coefficient magnitudes. This is the key advantage over Lasso, which breaks this symmetry arbitrarily. [1]",
+      "formula": "|β̂ⱼ − β̂ₖ| ≤ (1/λ₂) · √(2·RSS) · √(1 − corr(xⱼ, xₖ))"
+    },
+    {
+      "heading": "Naive vs Corrected Elastic Net",
+      "body": "The naive Elastic Net applies both L1 and L2 shrinkage, but this causes double shrinkage — the final coefficients are too small. Zou & Hastie (2005) show the corrected solution multiplies the naive estimate by (1 + λ₂). sklearn implements the corrected version by default. [1]",
+      "formula": "β̂_elastic = (1 + λ₂) · β̂_naive"
+    },
+    {
+      "heading": "Choosing α and λ",
+      "body": "Both parameters must be tuned jointly. Use ElasticNetCV with a grid of l1_ratio values (e.g. [0.1, 0.5, 0.7, 0.9, 0.95, 0.99, 1.0]) and a logarithmic grid of alpha values. The two-dimensional cross-validation surface is usually flat near the optimum, so results are robust to small changes in the grid. [2]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: Elastic Net",
+  "takeaways": [
+    "Elastic Net combines L1 (Lasso) and L2 (Ridge) penalties: min ||y−Xβ||² + λ₁Σ|βⱼ| + λ₂Σβⱼ². [1]",
+    "The grouping effect ensures correlated features are selected or discarded together — Lasso does not guarantee this. [1]",
+    "When p > n, pure Lasso selects at most n features; Elastic Net's L2 term removes this hard limit. [1]",
+    "sklearn parameterises via alpha (overall strength) and l1_ratio (L1 fraction); tune both by cross-validation. [2]",
+    "Apply the (1 + λ₂) correction to the naive Elastic Net to avoid double shrinkage. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How is Elastic Net different from running Ridge and Lasso separately and combining their predictions?",
+      "a": "Elastic Net optimises a single joint objective — it is not an ensemble or averaging of two separate models. The L1 and L2 penalties interact during optimisation: the L2 term stabilises the solution when features are correlated, which allows the L1 term to then perform more principled selection. Running them separately and averaging would not produce the grouping effect. [1]"
+    },
+    {
+      "q": "When l1_ratio is very small (close to 0), is Elastic Net just Ridge?",
+      "a": "Effectively yes, but not exactly — a tiny L1 penalty will still zero out some very small coefficients if the regularisation is strong enough. In practice, l1_ratio < 0.01 behaves almost identically to Ridge. Use Ridge directly in that regime for clarity and efficiency (it has a closed-form solution; Elastic Net requires iterative coordinate descent). [2]"
+    },
+    {
+      "q": "Does Elastic Net always outperform both Ridge and Lasso?",
+      "a": "Not guaranteed. If the true model is truly sparse (few relevant features, independent), Lasso will match or beat Elastic Net. If all features are relevant and uncorrelated, Ridge may win. Elastic Net shines in the correlated/semi-sparse regime. Always compare all three via cross-validation on the specific dataset. [2]"
+    },
+    {
+      "q": "Can the grouping effect cause problems?",
+      "a": "Yes, if features are correlated but have very different true effects. Elastic Net may over-shrink the truly important one and retain the noise-correlated one. In that case, domain knowledge should guide feature selection before fitting, rather than relying entirely on the penalty. [1]"
+    },
+    {
+      "q": "How does Elastic Net scale to very high dimensions?",
+      "a": "Elastic Net is solved via coordinate descent — the same algorithm as Lasso — so it scales to p in the millions with sparse X (e.g. text data). sklearn's ElasticNetCV uses warm starts across the regularisation path, making the full cross-validated fit much cheaper than naive grid search. [2]"
+    }
+  ],
+  "sources": [
+    { "label": "Zou, H. & Hastie, T. — Regularization and Variable Selection via the Elastic Net (JRSS-B, 2005)", "url": "https://doi.org/10.1111/j.1467-9868.2005.00503.x" },
+    { "label": "James et al. — An Introduction to Statistical Learning, Ch. 6.2", "url": "https://www.statlearning.com/" }
+  ]
+}
