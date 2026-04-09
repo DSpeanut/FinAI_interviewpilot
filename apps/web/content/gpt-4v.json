@@ -1,0 +1,63 @@
+{
+  "eli3": [
+    "GPT-4V (GPT-4 with Vision, OpenAI 2023) extends GPT-4 to accept both images and text as input. You can show it a photo, chart, screenshot, or document and ask questions about it in natural language. GPT-4V can describe what's in an image, answer visual questions, extract text from images (OCR), analyze charts, understand diagrams, and reason about spatial relationships.",
+    "GPT-4V's architecture is not publicly disclosed, but it follows the general VLM pattern: images are processed by a visual encoder and converted to tokens that the language model can process alongside text tokens. Key capability: unlike earlier vision models that could only classify images, GPT-4V can engage in multi-turn conversations about visual content, follow complex instructions referencing specific image regions, and integrate visual understanding with world knowledge.",
+    "GPT-4V (now called GPT-4 Turbo with Vision) is accessible via the OpenAI API by including an image_url in the messages content array. It achieves state-of-the-art on multimodal benchmarks: MMMU (56.8%), MathVista (49.9%), ScienceQA (96.8%). It is widely used for: document analysis, accessibility (image descriptions), medical image consultation, code generation from wireframes, and multimodal RAG."
+  ],
+  "whenWhy": [
+    {
+      "title": "Document and image understanding in production",
+      "body": "GPT-4V can process invoices, receipts, contracts, screenshots, and scanned documents. Use cases: extract fields from invoices (vendor, amount, date) without custom OCR models; understand UI screenshots for automated testing; analyze medical forms; process handwritten notes. Compared to traditional OCR + text pipeline: GPT-4V understands layout, context, and implicit information (e.g., that an empty field means 'none'). Integration: via OpenAI API, pass image as base64 or URL in the messages array."
+    },
+    {
+      "title": "Code generation from wireframes and diagrams",
+      "body": "GPT-4V can convert: wireframe sketches → HTML/CSS code; ER diagrams → SQL schemas; flowcharts → Python code; architecture diagrams → infrastructure-as-code. This is a high-value use case for software development — designers can sketch UIs and get working code. Works best with clear, clean diagrams. Complex hand-drawn sketches may be misinterpreted. Combined with tools like LangChain or LlamaIndex, GPT-4V can be part of automated software design pipelines."
+    },
+    {
+      "title": "Accessibility and image description",
+      "body": "GPT-4V generates detailed natural language descriptions of images for: screen reader users (alt text generation), educational content (textbook figure explanations), and medical image reports (chest X-ray descriptions for non-radiologists). OpenAI's Be My Eyes integration uses GPT-4V as a real-time visual assistant for blind users. Image description quality from GPT-4V is significantly better than previous VLMs due to its ability to integrate visual understanding with world knowledge for contextual descriptions."
+    }
+  ],
+  "deepDiveIntro": [
+    "GPT-4V API usage: messages array accepts content blocks with type 'text' or 'image_url'. Image URL can be an HTTPS URL or base64-encoded data URI. Multiple images per message are supported. Resolution: 'low' detail (512×512, 65 tokens) or 'high' detail (tiles of 512×512 up to 2048×768, ~765 tokens per image). High detail is used for document understanding and tasks requiring fine-grained visual information.",
+    "GPT-4V limitations (disclosed by OpenAI safety card): (1) Cannot identify real people from photos — privacy safeguard; (2) Struggles with spatial reasoning tasks (left vs right, counting exact numbers); (3) Not reliable for medical diagnosis; (4) CAPTCHA solving is restricted; (5) Multilingual text in images is less reliable. Hallucination: GPT-4V can confidently describe visual content that isn't there — validation against ground truth is important for production use."
+  ],
+  "deepDive": [
+    {
+      "heading": "API Integration",
+      "body": "GPT-4V API call: POST /v1/chat/completions with model='gpt-4-turbo', messages=[{role: 'user', content: [{type: 'text', text: 'What is in this image?'}, {type: 'image_url', image_url: {url: 'https://...', detail: 'high'}}]}]. For base64: image_url.url = 'data:image/jpeg;base64,{base64_string}'. Pricing (April 2024): $0.01/image for low detail, ~$0.03/image for high detail (additional tokens charged at text rate). Max images per request: multiple images allowed up to the model's context window limit. Useful for batch document processing pipelines. [1]"
+    },
+    {
+      "heading": "Vision Benchmarks and Evaluation",
+      "body": "Key benchmarks for GPT-4V evaluation: MMMU (Massive Multidisciplinary Multimodal Understanding, Yue et al. 2024) — 11.5K questions across 57 subjects requiring domain knowledge + visual understanding. GPT-4V: 56.8%; best open model (InternVL 34B): 51.1%. MathVista (Lu et al. 2023) — mathematical reasoning with visual context (geometry, charts). GPT-4V: 49.9%. ScienceQA (Lu et al. 2022) — 21K multi-choice science questions with images. GPT-4V: 96.8%. TextVQA — reading text in natural images. GPT-4V: 78.0%. [1]"
+    },
+    {
+      "heading": "Comparison to Other Frontier VLMs",
+      "body": "Claude 3 Opus (Anthropic): comparable to GPT-4V on MMMU; excels at document understanding and long-form image analysis; 200K token context window. Gemini 1.5 Pro (Google): natively multimodal architecture (not VLM bolted on); handles video frames, audio, images; 1M context window. Open-source alternatives: LLaVA-1.6 34B (open weights, 51.1% MMMU); InternVL-Chat-V1.5 (52.5% MMMU); LLaVA-OneVision. For production: GPT-4V / Claude 3 for maximum quality; LLaVA-1.6 / InternVL for on-premise deployment. [1]"
+    },
+    {
+      "heading": "GPT-4V Safety Restrictions",
+      "body": "OpenAI has implemented specific restrictions for GPT-4V: (1) No facial recognition — will not identify specific individuals from photos (privacy); (2) Medical advice restriction — will not provide specific medical diagnoses from images; (3) CAPTCHA bypass — restricted from solving CAPTCHAs; (4) Dangerous content — will not describe how to create weapons from images. These restrictions are implemented at the alignment level (RLHF) and through output classifiers. The restrictions differ from GPT-4 text model — vision-specific policies are stricter due to privacy concerns with facial images and the potential for visual content to provide additional context for harmful requests. [1]"
+    }
+  ],
+  "takeaways": [
+    "GPT-4V: text + image input → text output via OpenAI API; low (65 tokens) or high detail tiling mode. [1]",
+    "MMMU: 56.8% (GPT-4V) — best multimodal benchmark for domain knowledge + visual reasoning. [1]",
+    "Restriction: no facial recognition, no medical diagnosis — privacy and safety safeguards. [1]",
+    "Gemini 1.5 Pro: natively multimodal, 1M context, video + audio + image; Claude 3: 200K context. [1]",
+    "Best open alternative: LLaVA-1.6 34B or InternVL for on-premise — ~51% MMMU vs GPT-4V's 57%. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle GPT-4V hallucinations in production document processing?",
+      "a": "GPT-4V can hallucinate visual content — confidently state something is in the image when it isn't. Mitigation strategies for production: (1) Structured output + validation: ask for JSON output and validate against expected schema; (2) Confidence prompting: 'Only extract fields you can clearly see. Mark uncertain fields as null'; (3) Cross-validation: process the same image twice with different prompts, compare outputs; (4) Human-in-the-loop: flag low-confidence outputs for human review using a separate classifier; (5) OCR grounding: use traditional OCR to extract raw text, then use GPT-4V only for structural understanding, not raw text extraction. For high-stakes applications (legal, financial), treat GPT-4V as an assistant that requires verification, not a ground truth source. [1]"
+    },
+    {
+      "q": "What is the token cost of including images in GPT-4V prompts?",
+      "a": "Low detail mode: any image size → 85 tokens. Fast and cheap, but loses fine-grained detail. High detail mode: image is tiled into 512×512px tiles, each costing 170 tokens + 85 base = 255 tokens per tile. A 1024×1024 image → 4 tiles = 4×170 + 85 = 765 tokens. A 2048×768 image → 6 tiles = 6×170 + 85 = 1105 tokens. For document processing with many images, cost accumulates quickly. Optimization: resize images to the minimum resolution that preserves necessary detail before sending. For text extraction from simple documents, low detail (85 tokens) is often sufficient and much cheaper. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "OpenAI (2023) — GPT-4V(ision) System Card", "url": "https://openai.com/research/gpt-4v-system-card" }
+  ]
+}

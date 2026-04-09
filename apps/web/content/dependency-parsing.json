@@ -1,0 +1,65 @@
+{
+  "eli3": [
+    "Dependency parsing analyzes the grammatical structure of a sentence by identifying binary head-dependent relations between words. Each word (except root) has exactly one head — the word it depends on — and a labeled dependency relation (subject, object, modifier, etc.). 'The dog chased the cat' → chased ← dog (nsubj), chased → cat (obj), dog ← The (det), cat ← the (det).",
+    "The dependency tree is a rooted directed tree covering all tokens. Universal Dependencies (UD) defines a cross-lingual tagset of ~40 relation types (nsubj, obj, iobj, nmod, amod, det, aux, cc, etc.) used across 100+ languages and 200+ treebanks. The UD representation focuses on content words as heads (unlike constituency-based phrase structure).",
+    "Modern dependency parsers use neural transition-based (spaCy, arc-eager/arc-standard automata) or graph-based (biaffine parser, Dozat & Manning 2017) approaches. Graph-based parsers score all possible arcs independently and find the maximum spanning tree (MST) — state-of-the-art. UAS (unlabeled attachment score) and LAS (labeled attachment score) are the standard metrics."
+  ],
+  "whenWhy": [
+    {
+      "title": "Extracting semantic relationships for IE",
+      "body": "Dependency parses make syntactic relationships explicit: 'The CEO of Apple, Tim Cook, announced…' → parsing reveals Tim Cook as nsubj of 'announced' and appositive of CEO. Open IE systems (Stanford OpenIE, AllenNLP) use dependency paths to extract (subject, relation, object) triples without predefined schemas. Biomedical relation extraction uses dependency paths between entity mentions."
+    },
+    {
+      "title": "Semantic role labeling prerequisite",
+      "body": "SRL (who did what to whom, when, where) uses dependency structure to identify argument spans. Dependency paths between a predicate and its arguments serve as features in SRL models. Syntactic structure constrains which noun phrases can be subjects or objects of a given verb — helping resolve argument ambiguity."
+    },
+    {
+      "title": "Cross-lingual NLP via Universal Dependencies",
+      "body": "UD's language-universal representation enables cross-lingual transfer: a parser trained on English UD can transfer to a new language using multilingual BERT features, even without target-language treebanks. UD also enables typological studies — comparing head-directionality (SVO vs SOV languages), relative clause placement, and adposition placement across language families."
+    }
+  ],
+  "deepDiveIntro": [
+    "Dependency graph formalization: G = (V, A) where V = {w₀, w₁, …, wₙ} (w₀ = artificial root), A = set of directed arcs (wᵢ, wⱼ, l) meaning wᵢ is the head of wⱼ with label l. Projectivity: a dependency arc (wᵢ, wⱼ) is projective if for all wₖ between wᵢ and wⱼ (i<k<j), there is a path from wᵢ to wₖ. Projective trees are fully captured by left-to-right transition systems; non-projective arcs (common in free word order languages) require more complex algorithms.",
+    "Arc-eager transition system (Nivre 2003): configuration = (stack, buffer, arcs). Transitions: SHIFT (push buffer front to stack), LEFT-ARC-l (add arc head=buffer-front, dep=stack-top, pop stack), RIGHT-ARC-l (add arc head=stack-top, dep=buffer-front, push to stack), REDUCE (pop stack, only if stack-top already has head). O(n) transitions for a sentence of n words."
+  ],
+  "deepDive": [
+    {
+      "heading": "Biaffine Graph-Based Parser (Dozat & Manning 2017)",
+      "body": "The biaffine attention parser scores every possible arc (i,j) and label l independently. Architecture: BiLSTM over word embeddings → two separate MLP heads (for arc scoring and label scoring). Arc score: s_arc(i,j) = hᵢᵀ W_arc hⱼ + hᵢᵀ u_arc (biaffine form). Find the maximum spanning tree (Chu-Liu/Edmonds algorithm for directed MST) over all arc scores. Label the arcs of the MST. Achieves LAS ~95 on English PTB. [1]",
+      "formula": "s_arc(i→j) = MLP_head(hᵢ)ᵀ W_arc MLP_dep(hⱼ)"
+    },
+    {
+      "heading": "Evaluation: UAS and LAS",
+      "body": "UAS (Unlabeled Attachment Score): fraction of tokens where the predicted head is correct. LAS (Labeled Attachment Score): fraction of tokens where both head AND dependency label are correct. Computed excluding punctuation (standard convention). State-of-the-art on UD English: UAS ≈ 95%, LAS ≈ 93%. Common errors: PP attachment ('I saw the man with the telescope'), coordination scope, and relative clause attachment — classic syntactic ambiguities that even humans disagree on. [1]"
+    },
+    {
+      "heading": "Transition-Based vs Graph-Based Parsers",
+      "body": "Transition-based (arc-eager, arc-standard): O(n) greedy decoding with a classifier choosing transitions. Fast: O(n) inference. Error propagation: early mistakes affect later decisions (no globally optimal decoding). Beam search mitigates this. Graph-based (biaffine MST): O(n²) arc scoring + O(n² log n) MST decoding. Globally optimal (within the MST framework). Better LAS on standard benchmarks. Transition-based preferred for speed (real-time applications); graph-based for accuracy. [1]"
+    },
+    {
+      "heading": "Dependency vs Constituency Parsing",
+      "body": "Constituency (phrase-structure) parsing groups words into nested phrases: (NP The dog) (VP (V chased) (NP the cat)). Dependency parsing captures binary head-dependent relations directly between words, without phrase nodes. Dependency trees are easier to interpret for semantic tasks (who did what to whom), more consistent cross-linguistically, and more compatible with word-level models. Constituency trees are useful for tasks requiring phrase boundaries (syntactic reordering in MT, span-based NER). [1]"
+    }
+  ],
+  "takeaways": [
+    "Dependency tree: each word has one head; labeled arc captures grammatical relation (nsubj, obj, amod…). [1]",
+    "Biaffine parser: scores all arcs with biaffine attention, finds MST — state-of-the-art (LAS ~93% English UD). [1]",
+    "Evaluation: UAS (head correct), LAS (head + label correct), excluding punctuation. [1]",
+    "Transition-based O(n): fast, greedy, error propagation; graph-based O(n²): globally optimal, slower. [1]",
+    "Universal Dependencies (UD): ~40 cross-lingual relation types, 200+ treebanks — enables cross-lingual transfer. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How does dependency parsing handle non-projective arcs?",
+      "a": "Non-projective arcs cross other arcs when drawn above the sentence — common in free word order languages (Czech, German) and in coordination. Transition-based arc-eager cannot produce non-projective trees; requires the SWAP transition (Nivre 2009) or Attardi's non-projective transition system. Graph-based MST parsers naturally handle non-projectivity since they score all arcs independently. For English (mostly projective), the projectivity assumption costs <1% LAS; for Czech, ~10% of arcs are non-projective. [1]"
+    },
+    {
+      "q": "What is the difference between dependency parsing and SRL?",
+      "a": "Dependency parsing is syntactic: it captures grammatical relations (nsubj = grammatical subject, not necessarily the agent). SRL is semantic: it identifies thematic roles (Agent, Patient, Instrument) relative to a predicate, following PropBank or FrameNet schemas. A word can be the nsubj of a passive verb but have the Patient role in SRL ('The cat was chased by the dog' → cat is nsubj syntactically but Patient semantically). Modern SRL models use dependency structure as features but ultimately make semantic predictions. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Jurafsky & Martin — Speech and Language Processing (3rd ed.), Ch. 18", "url": "https://web.stanford.edu/~jurafsky/slp3/" },
+    { "label": "Dozat & Manning (2017) — Deep Biaffine Attention for Neural Dependency Parsing, ICLR 2017", "url": "https://openreview.net/forum?id=Hk95PK9le" }
+  ]
+}

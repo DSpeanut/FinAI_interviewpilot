@@ -1,0 +1,82 @@
+{
+  "eli3": [
+    "Sort all the values in order. The median is the middle one. If there is an even number of values, take the average of the two middle values. Half the data lies below the median and half lies above.",
+    "Unlike the mean, the median ignores how extreme the extreme values are — only their rank matters. This makes it 'resistant': one very large outlier does not move the median at all (unless it crosses the middle).",
+    "The median minimises the sum of absolute deviations |xᵢ − c|. This is the connection between the median and MAE (mean absolute error) loss — the optimal prediction under MAE is the conditional median, not the conditional mean."
+  ],
+  "whenWhy": [
+    {
+      "title": "Skewed distributions and outlier resistance",
+      "body": "Median is the preferred measure of central tendency for right-skewed data (income, house prices, survival times). The US Census reports median household income precisely because extreme incomes would distort the arithmetic mean. The median is robust with breakdown point 0.5 — up to 50% of data can be corrupted without shifting it."
+    },
+    {
+      "title": "Median regression (quantile regression)",
+      "body": "Ordinary least squares minimises MSE and predicts the conditional mean. Median regression (Least Absolute Deviations, LAD) minimises MAE and predicts the conditional median. LAD is more robust to outliers in the response variable. Quantile regression generalises this to any quantile."
+    },
+    {
+      "title": "Ordinal data",
+      "body": "When data is ordinal (rankings, Likert scales), computing an arithmetic mean requires assuming interval spacing — an assumption often violated. The median is meaningful for ordinal data because it depends only on rank ordering."
+    },
+    {
+      "title": "Non-parametric hypothesis testing",
+      "body": "Many non-parametric tests (sign test, Wilcoxon signed-rank test) are tests about the population median rather than the mean. These tests are valid without normality assumptions, making them useful for small samples or heavy-tailed data."
+    }
+  ],
+  "deepDiveIntro": [
+    "For a sample x₁ ≤ x₂ ≤ … ≤ xₙ (sorted), the sample median is x₍ₙ₊₁₎/₂ for odd n, and (x₍ₙ/₂₎ + x₍ₙ/₂₊₁₎)/2 for even n. The population median m is defined as any value satisfying P(X ≤ m) ≥ 0.5 and P(X ≥ m) ≥ 0.5.",
+    "The sample median minimises Σ|xᵢ − c| over all c. Under regularity conditions, the sample median is a consistent, asymptotically normal estimator of the population median with asymptotic variance 1/(4n f(m)²), where f(m) is the density at the population median. This variance is generally larger than that of the sample mean (σ²/n) for normal data, reflecting the efficiency cost of robustness."
+  ],
+  "visualizationType": "median",
+  "deepDive": [
+    {
+      "heading": "Definition and Computation",
+      "body": "Sort x₁ ≤ x₂ ≤ … ≤ xₙ. Median = x₍ₙ₊₁₎/₂ if n is odd; (x₍ₙ/₂₎ + x₍ₙ/₂₊₁₎)/2 if n is even. For large datasets, algorithms based on partial sorting (quickselect, O(n) average) or counting (for integers) are more efficient than full sorting. [1]"
+    },
+    {
+      "heading": "Asymptotic Distribution",
+      "body": "Under regularity conditions (f(m) > 0 and continuous at m), √n(m̂ − m) →_d N(0, 1/(4f(m)²)), where f(m) is the population density at the true median m. Compare to the mean: √n(x̄−μ) →_d N(0, σ²). The asymptotic relative efficiency (ARE) of the median to the mean for the normal distribution is ARE = 2/π ≈ 0.637 — the median loses ~36% efficiency relative to the mean for normal data. [1]",
+      "formula": "Var(m̂) ≈ 1 / (4n f(m)²)"
+    },
+    {
+      "heading": "Breakdown Point and Robustness",
+      "body": "The breakdown point of the sample median is 0.5 — up to 50% of observations can be arbitrarily corrupted without the estimate becoming unbounded. The mean has breakdown point 0. The influence function of the median is IF(x; F, T) = sign(x−m)/(2f(m)) — bounded and finite, confirming robustness. [1][2]"
+    },
+    {
+      "heading": "Median as Optimal Predictor under MAE",
+      "body": "argmin_c E[|X − c|] = median(X). Proof: dE[|X−c|]/dc = −P(X > c) + P(X < c) = 0 → P(X ≤ c) = 0.5. This is the statistical basis for median regression (LAD): the optimal point prediction under L1 loss is the conditional median E_MAE[Y|X], not the conditional mean E_MSE[Y|X]. [1]",
+      "formula": "argmin_c E[|X − c|] = median(X)"
+    },
+    {
+      "heading": "Comparison: Mean vs Median vs Mode",
+      "body": "Symmetric unimodal distributions: mean = median = mode. Right-skewed: mean > median > mode (e.g. income). Left-skewed: mean < median < mode. For normal data: both mean and median are unbiased for μ, but mean is more efficient (lower variance). For heavy-tailed distributions: median is more robust and may be more practical. [1]"
+    }
+  ],
+  "youtubeLabel": "Mean vs Median — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/mk8tOD0t8M0",
+  "takeaways": [
+    "Median = middle value after sorting; minimises Σ|xᵢ−c| (L1 loss) — optimal predictor under MAE. [1]",
+    "Breakdown point 0.5 — up to 50% corrupted data cannot destabilise it; mean has breakdown point 0. [1]",
+    "Asymptotic variance of median is 1/(4nf(m)²); larger than σ²/n for normal data (ARE = 2/π ≈ 0.637). [1]",
+    "Preferred over mean for skewed distributions (income, house prices) and ordinal data. [1]",
+    "Conditional median = optimal prediction under MAE loss; conditional mean = optimal under MSE. [1]",
+    "Sign test and Wilcoxon signed-rank test are non-parametric tests about the population median. [1][2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Is the median always unique?",
+      "a": "For continuous distributions, the median is unique (assuming the CDF is strictly increasing). For discrete data or samples with even n, any value in [x₍ₙ/₂₎, x₍ₙ/₂₊₁₎] satisfies the definition. Convention takes the midpoint. For distributions with a flat section in the CDF at 0.5, the median is a whole interval. [1]"
+    },
+    {
+      "q": "Why is the median more efficient than the mean for heavy-tailed distributions?",
+      "a": "For distributions like the Laplace (double-exponential), the ARE of the median relative to the mean is 2 — the median is twice as efficient! For the Cauchy distribution, the sample mean does not even converge (infinite variance), while the median is a consistent, asymptotically normal estimator. The crossover point is at the normal distribution, where mean = 0.637 × median efficiency. [1]"
+    },
+    {
+      "q": "How does the median relate to quantile regression?",
+      "a": "Quantile regression at τ = 0.5 is exactly median regression. The check function ρ_τ(u) = u(τ − 1{u<0}) reduces to |u|/2 at τ = 0.5. Generalising to τ ∈ (0,1) allows estimating the full conditional distribution, not just the centre — useful when the relationship between X and Y differs across quantiles (heteroskedastic or non-linear data). [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 2 & 5", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" },
+    { "label": "Huber — Robust Statistics (2nd ed.), Ch. 2", "url": "https://www.wiley.com/en-us/Robust+Statistics%2C+2nd+Edition-p-9780470129906" }
+  ]
+}

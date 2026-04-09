@@ -1,0 +1,68 @@
+{
+  "eli3": [
+    "MCMC (Markov Chain Monte Carlo) is a family of algorithms for drawing samples from a probability distribution — specifically the posterior P(θ|x) — when direct sampling is impossible. Instead of sampling the posterior directly, MCMC constructs a Markov chain whose stationary distribution is the target posterior, then runs the chain long enough to collect samples from it.",
+    "Metropolis-Hastings is the foundational MCMC algorithm: at each step, propose a new state θ* from a proposal distribution q(θ*|θ_current). Accept it with probability min(1, [P(θ*|x)q(θ_current|θ*)] / [P(θ_current|x)q(θ*|θ_current)]). The normalizing constant P(x) cancels in the ratio — this is why MCMC only needs P(θ|x) up to proportionality.",
+    "Practical MCMC requires: (1) burn-in — discard early samples before the chain converges to stationarity; (2) thinning — keep every k-th sample to reduce autocorrelation; (3) diagnostics — check convergence with R̂ (Gelman-Rubin statistic, should be ≈ 1.0), effective sample size (ESS), and trace plots. Modern samplers (HMC, NUTS) are far more efficient than Metropolis for continuous parameters."
+  ],
+  "whenWhy": [
+    {
+      "title": "Computing intractable posteriors",
+      "body": "The posterior P(θ|x) = P(x|θ)P(θ)/P(x) requires computing P(x) = ∫P(x|θ)P(θ)dθ, which is analytically intractable for most non-conjugate models. MCMC bypasses this by sampling from P(θ|x) ∝ P(x|θ)P(θ) without computing the normalizing constant. This enables Bayesian inference for hierarchical models, generative models, and any complex probabilistic model."
+    },
+    {
+      "title": "Bayesian hierarchical models",
+      "body": "Hierarchical models with many latent variables (group-level parameters, random effects) have joint posteriors that cannot be computed analytically. MCMC samples from the full joint posterior P(θ₁,…,θₖ,φ|x), enabling inference on all parameters simultaneously. Stan (No-U-Turn Sampler) and PyMC3 are standard tools for MCMC in hierarchical models."
+    },
+    {
+      "title": "When variational inference is insufficient",
+      "body": "Variational Bayes (VB) approximates the posterior with a tractable family and systematically underestimates posterior variance. MCMC provides asymptotically exact samples without distributional assumptions. Use MCMC when accurate uncertainty quantification is critical (clinical decisions, risk assessment) or when the posterior is multimodal — VB may miss modes entirely."
+    }
+  ],
+  "deepDiveIntro": [
+    "A Markov chain {θ⁽ᵗ⁾} with transition kernel K(θ'|θ) is ergodic if it has a unique stationary distribution π. The detailed balance condition K(θ'|θ)π(θ) = K(θ|θ')π(θ') (reversibility) guarantees π is the stationary distribution. MCMC algorithms construct K to have detailed balance w.r.t. the target posterior π = P(θ|x). By the ergodic theorem, time averages converge to expectations under π: (1/T)Σ f(θ⁽ᵗ⁾) → E_π[f(θ)] as T→∞.",
+    "The mixing time of the chain (how long until samples look like draws from π) depends on the geometry of the posterior. Metropolis-Hastings mixes slowly in high dimensions and for correlated parameters. Gibbs sampling (sampling each parameter from its full conditional, conditional on all others) avoids proposal tuning but requires closed-form conditionals. HMC uses gradient information to make large, directed jumps across the posterior."
+  ],
+  "deepDive": [
+    {
+      "heading": "Metropolis-Hastings Algorithm",
+      "body": "1. Initialize θ⁽⁰⁾. 2. At step t: propose θ* ~ q(θ*|θ⁽ᵗ⁾). 3. Compute acceptance ratio α = min(1, [P(θ*|x)q(θ⁽ᵗ⁾|θ*)] / [P(θ⁽ᵗ⁾|x)q(θ*|θ⁽ᵗ⁾)]). Note: P(x) cancels. 4. Accept θ⁽ᵗ⁺¹⁾ = θ* with prob α, else θ⁽ᵗ⁺¹⁾ = θ⁽ᵗ⁾. For symmetric proposals q(θ*|θ) = q(θ|θ*) (Metropolis): α = min(1, P(θ*|x)/P(θ⁽ᵗ⁾|x)). Optimal acceptance rate for random walk MH in d dimensions: ≈ 23.4%. [1]",
+      "formula": "α = min(1,  P(θ*|x)·q(θ_t|θ*) / [P(θ_t|x)·q(θ*|θ_t)])"
+    },
+    {
+      "heading": "Gibbs Sampling",
+      "body": "A special case of MH with acceptance rate 1. For joint target P(θ₁,θ₂|x): cycle between θ₁⁽ᵗ⁺¹⁾ ~ P(θ₁|θ₂⁽ᵗ⁾,x) and θ₂⁽ᵗ⁺¹⁾ ~ P(θ₂|θ₁⁽ᵗ⁺¹⁾,x). Requires closed-form full conditional distributions — satisfied for exponential family models with conjugate priors. Mixes slowly when parameters are highly correlated (the chain zigzags). Blocked Gibbs (sampling correlated parameters jointly) improves mixing. [1]"
+    },
+    {
+      "heading": "Hamiltonian Monte Carlo (HMC) and NUTS",
+      "body": "HMC augments the target with auxiliary momentum variables p: joint distribution P(θ,p) ∝ exp(−U(θ) − K(p)), where U(θ) = −log P(θ|x) (potential energy) and K(p) = p'M⁻¹p/2 (kinetic energy). Hamiltonian dynamics (simulated with leapfrog integration) produce large, directed proposals that explore the posterior efficiently. NUTS (Hoffman & Gelman, 2014) automatically selects the trajectory length, avoiding manual tuning. Stan uses NUTS; it is 10–1000× more efficient than random walk MH for smooth posteriors. [2]",
+      "formula": "H(θ, p) = U(θ) + K(p) = −log P(θ|x) + p'M⁻¹p/2"
+    },
+    {
+      "heading": "Convergence Diagnostics",
+      "body": "R̂ (Gelman-Rubin): run M chains from overdispersed starts; R̂ = √(Var_between/Var_within). R̂ ≈ 1.0 indicates convergence; R̂ > 1.1 suggests non-convergence. Effective Sample Size (ESS): ESS = T / (1 + 2Σρₖ) where ρₖ is the lag-k autocorrelation. ESS << T indicates high autocorrelation (slow mixing). Trace plots should show no trend, good stationarity. Modern guidance (Vehtari et al., 2021): use rank-normalized R̂ and ESS > 400 (per chain). [1]"
+    }
+  ],
+  "youtubeLabel": "Markov Chain Monte Carlo — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/yCv2N7wGDCw",
+  "takeaways": [
+    "MCMC samples from P(θ|x) ∝ P(x|θ)P(θ) without computing the normalizing constant P(x). [1]",
+    "Metropolis-Hastings: propose θ*, accept with α = min(1, [π(θ*)q(θ|θ*)]/[π(θ)q(θ*|θ)]). [1]",
+    "Gibbs sampling: requires closed-form full conditionals; acceptance rate = 1; mixes poorly for correlated parameters. [1]",
+    "HMC/NUTS: uses gradient of log-posterior for efficient proposals; 10–1000× more efficient than random walk. [2]",
+    "Diagnose convergence with R̂ ≈ 1.0 (Gelman-Rubin) and high ESS; discard burn-in samples. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does MCMC still work if the proposal is rejected many times?",
+      "a": "Rejection keeps the chain at the current state θ⁽ᵗ⁾, which is still a valid sample from the stationary distribution. The algorithm is still valid — rejections just mean the effective sample size is lower (higher autocorrelation). Very low acceptance rates (e.g., < 5%) indicate the proposal variance is too large (proposals are in the tails of the posterior). Very high acceptance rates (> 80%) indicate the step size is too small (poor exploration). The optimal trade-off for random walk MH in d dimensions is ≈ 23.4% acceptance (Roberts et al., 1997). [1]"
+    },
+    {
+      "q": "Can MCMC get stuck in local modes?",
+      "a": "Yes. For multimodal posteriors, standard MCMC chains can get trapped in one mode for many iterations, producing samples that don't represent the full posterior. Solutions: (1) parallel tempering — run chains at different 'temperatures' and swap states; (2) simulated annealing — gradually lower temperature during sampling; (3) SMC (sequential Monte Carlo) — reweight and resample particles. HMC is especially prone to getting stuck at posterior modes with sharp boundaries. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Gelman et al. — Bayesian Data Analysis (3rd ed.), Ch. 11–12", "url": "http://www.stat.columbia.edu/~gelman/book/" },
+    { "label": "Hoffman & Gelman (2014) — The No-U-Turn Sampler, JMLR 15(1)", "url": "https://jmlr.org/papers/v15/hoffman14a.html" }
+  ]
+}

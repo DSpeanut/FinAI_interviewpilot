@@ -1,0 +1,66 @@
+{
+  "eli3": [
+    "GPT (Generative Pre-trained Transformer) is a decoder-only transformer that predicts the next token left-to-right. The architecture: token embeddings + positional embeddings → N transformer decoder blocks (masked self-attention + feed-forward) → linear head → softmax over vocabulary. Pre-trained on massive text with next-token prediction, then fine-tuned or prompted for downstream tasks.",
+    "GPT-1 (Radford et al. 2018) showed that a 117M-parameter transformer pre-trained on BooksCorpus transfers well to NLP tasks via fine-tuning. GPT-2 (2019, 1.5B) demonstrated that larger models are better zero-shot learners. GPT-3 (2020, 175B) showed in-context learning: provide a few examples in the prompt and the model performs the task without any gradient update. GPT-4 (2023) is multimodal (text + image input) and achieves near-human performance on professional exams.",
+    "The decoder-only design is simpler than encoder-decoder: no cross-attention, single forward pass handles both input and output. This simplicity scales well — just stack more layers, add more parameters, train on more data. The scaling law (Kaplan et al. 2020) shows predictable improvement with scale. All major generative LLMs (Llama, Mistral, Gemini, Claude) use the GPT decoder-only architecture."
+  ],
+  "whenWhy": [
+    {
+      "title": "Autoregressive text generation",
+      "body": "GPT is the standard architecture for any text generation task: chatbots, code completion, summarization, translation, creative writing. The causal attention mask means the model can generate indefinitely — each new token is appended to context and the model predicts the next. GitHub Copilot (Codex), ChatGPT (GPT-3.5/4), and Claude all use GPT-style causal decoder architectures. For generation-heavy applications, decoder-only models are preferred over encoder-decoder for simplicity and scalability."
+    },
+    {
+      "title": "In-context learning (zero/few-shot)",
+      "body": "GPT-3 showed that large decoder-only LMs can perform tasks by conditioning on examples in the prompt: [example 1] [example 2] [query] → [completion]. No gradient updates needed — the model adapts to the task via attention over the prompt. Few-shot ICL scales with model size: GPT-3 175B >> GPT-3 13B on most tasks. ICL is the basis of modern prompt engineering and is unique to large causal LMs — smaller or encoder models don't exhibit it to the same degree."
+    },
+    {
+      "title": "Foundation for instruction tuning and RLHF",
+      "body": "GPT pre-training produces a general text predictor. Supervised fine-tuning (SFT) on (instruction, response) pairs teaches the model to follow instructions. RLHF (Reinforcement Learning from Human Feedback): train a reward model on human preference data, then fine-tune the LM to maximize reward via PPO. This pipeline (pre-train → SFT → RLHF) produced InstructGPT and ChatGPT from base GPT-3. All current LLM assistants follow this paradigm."
+    }
+  ],
+  "deepDiveIntro": [
+    "GPT transformer block: for each layer l — LayerNorm → Masked Multi-Head Self-Attention → residual → LayerNorm → Feed-Forward (MLP) → residual. Pre-norm (LayerNorm before attention/FFN) is used in GPT-2+ for training stability vs. post-norm in original transformer. Attention: Q=XWQ, K=XWK, V=XWV; Attn(Q,K,V)=softmax(QKᵀ/√d_k + M)V where M is the causal mask. FFN: two linear layers with GELU activation — FFN(x) = W₂·GELU(W₁x + b₁) + b₂, hidden size = 4×model_dim.",
+    "GPT-3 architecture specifics: 175B parameters, 96 layers, 96 attention heads, d_model=12288, d_ff=49152 (4× model), context window=2048 tokens. Trained on 300B tokens from a filtered mix of Common Crawl (60%), WebText2 (22%), Books1 (8%), Books2 (8%), Wikipedia (3%). Training: Adam optimizer, batch size 3.2M tokens, learning rate 6×10⁻⁵ with cosine decay. Training compute: ~3.14×10²³ FLOPs."
+  ],
+  "deepDive": [
+    {
+      "heading": "Transformer Decoder Block",
+      "body": "Pre-norm block (GPT-2+): x ← x + Attn(LayerNorm(x)); x ← x + FFN(LayerNorm(x)). Causal multi-head attention: h heads each with dimension d_k = d_model/h. Concatenate heads: MultiHead(Q,K,V) = Concat(head₁,…,headₕ)Wᴼ. FFN: GELU is preferred over ReLU (smoother gradient). GPT-4 architecture is not fully disclosed but likely uses mixture-of-experts (MoE) with sparse gating for efficiency — each token routes to a subset of expert FFN layers. [1]",
+      "formula": "Attn(Q,K,V) = softmax((QKᵀ/√d_k) + M) · V"
+    },
+    {
+      "heading": "Positional Encoding",
+      "body": "GPT-1/2/3: learned absolute position embeddings — embedding table of size (context_length × d_model), added to token embeddings. Limitation: fixed context window — cannot extrapolate beyond pre-trained length. GPT-NeoX, Llama: Rotary Position Embeddings (RoPE, Su et al. 2021) — encode relative positions by rotating Q and K vectors in complex plane. RoPE naturally decays for long distances and enables context window extension. ALiBi (Press et al. 2022): add a linear bias −m·|i−j| to attention scores based on relative distance — even simpler, good length generalization. [1][2]"
+    },
+    {
+      "heading": "GPT-3 Scale and In-Context Learning",
+      "body": "GPT-3 (175B) exhibited qualitative emergence: few-shot prompting with 3–5 examples matched fine-tuned BERT on many tasks. Key insight: at sufficiently large scale, the model implicitly 'learns' to do gradient descent in its forward pass via attention (hypothesis: meta-learning via ICL). Few-shot performance scales with model size (power law). GPT-3 on SuperGLUE: few-shot accuracy = 71.8% (fine-tuned BERT-large = 89%). At GPT-4 scale, ICL performance approaches fine-tuning. [1]"
+    },
+    {
+      "heading": "GPT-4: Multimodal and Alignment",
+      "body": "GPT-4 (OpenAI 2023): accepts text and image inputs, text output. Architecture not fully disclosed. Key advances: (1) Multimodal encoder processes images into token embeddings, concatenated with text tokens; (2) RLHF alignment — PPO with reward model trained on human preference comparisons; (3) Constitutional AI / system prompt for safety; (4) Achieves 90th percentile on Bar exam (GPT-3.5: 10th percentile). Likely uses MoE with 8 experts of ~220B params each (community estimates: ~1.8T total params, ~220B active per token). [3]"
+    }
+  ],
+  "takeaways": [
+    "GPT: decoder-only transformer, causal attention mask, next-token prediction pre-training. [1]",
+    "Architecture: token emb + pos emb → N × (pre-norm + masked attention + FFN) → linear head. [1]",
+    "RoPE: encodes relative positions via Q/K rotation — enables context window extension. [2]",
+    "GPT-3 175B showed emergent ICL: few-shot prompting without fine-tuning. [1]",
+    "Pipeline: pre-train → SFT → RLHF = modern LLM assistants. [3]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why do most modern LLMs use pre-norm (LayerNorm before sublayer) rather than post-norm?",
+      "a": "Original transformer (Vaswani 2017) used post-norm: x = LayerNorm(x + Sublayer(x)). In deep networks (>12 layers), post-norm causes gradient vanishing — early layers receive very small gradients because the norm is applied after the residual, making the scale of residual contributions small. Pre-norm: x = x + Sublayer(LayerNorm(x)) — the residual path (x) bypasses the norm, giving O(1) gradient magnitude through the residual connection regardless of depth. GPT-2 switched to pre-norm for training stability at 48 layers. Modern LLMs (Llama, Mistral) use RMSNorm (simpler variant: no mean subtraction) instead of LayerNorm for further efficiency. [1]"
+    },
+    {
+      "q": "What is the difference between GPT-style and T5-style architectures?",
+      "a": "GPT (decoder-only): single transformer stack with causal mask. Input and output share the same sequence — generation is continuation. No cross-attention. Simpler, scales better for general generation, better ICL. T5 (encoder-decoder): separate encoder (bidirectional, no causal mask) + decoder (causal) with cross-attention to encoder outputs. Better for structured input→output mapping (translation, summarization with explicit source). Requires explicit input/output separation. Larger compute per parameter (two stacks). Modern trend: decoder-only wins at scale for general-purpose LLMs; encoder-decoder survives for structured seq2seq tasks with limited compute. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Brown et al. (2020) — Language Models are Few-Shot Learners (GPT-3), NeurIPS 2020", "url": "https://arxiv.org/abs/2005.14165" },
+    { "label": "Su et al. (2021) — RoFormer: Enhanced Transformer with Rotary Position Embedding", "url": "https://arxiv.org/abs/2104.09864" },
+    { "label": "OpenAI (2023) — GPT-4 Technical Report", "url": "https://arxiv.org/abs/2303.08774" }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "eli3": [
+    "Imagine you're photographing a 3D sculpture. You walk around it and find the angle where it looks most distinctive — where you can see the most variation in its shape. That's your first principal component: the direction in the data where variance is greatest. Your second photo is taken from the most informative remaining angle (perpendicular to the first).",
+    "PCA finds these best viewing angles mathematically. It rotates your data so the first new axis captures as much variance as possible, the second axis captures as much of the remaining variance as possible, and so on. These new axes are the principal components.",
+    "The magic: the last few axes usually capture barely any variance (noise), so you can throw them away and keep only the first k components. This compresses the data from p dimensions to k dimensions while losing as little information as possible."
+  ],
+  "whenWhy": [
+    {
+      "title": "Dimensionality reduction before modelling",
+      "body": "When features are highly correlated or p is large relative to n, PCA projects to a lower-dimensional uncorrelated representation. This reduces overfitting, speeds up downstream training, and removes multicollinearity — useful before linear regression, k-NN, or any distance-based algorithm."
+    },
+    {
+      "title": "Visualisation of high-dimensional data",
+      "body": "Project to 2–3 principal components to visualise clusters, outliers, and structure in high-dimensional data. PCA is the standard first step for visualisation before applying non-linear methods like t-SNE or UMAP, which are more expensive."
+    },
+    {
+      "title": "Noise reduction",
+      "body": "The last principal components (with smallest variance) often capture noise rather than signal. By discarding them and reconstructing from the top k components, PCA acts as a low-rank denoiser. Applications: image compression, microphone array noise reduction."
+    },
+    {
+      "title": "When you need an invertible, interpretable transformation",
+      "body": "PCA is a linear, orthogonal transformation with an exact inverse. You can reconstruct an approximation of the original data from the compressed representation. Unlike t-SNE/UMAP, you can embed new points using transform() without re-running the algorithm."
+    }
+  ],
+  "deepDiveIntro": [
+    "PCA finds the directions of maximum variance in the data by solving an eigenvalue problem on the sample covariance matrix. The eigenvectors (principal components) form an orthonormal basis; the eigenvalues measure the variance explained by each direction.",
+    "Equivalently, PCA minimises the reconstruction error of a rank-k linear approximation to the data matrix X — this is the connection to the Singular Value Decomposition (SVD), which is the numerically preferred algorithm."
+  ],
+  "visualizationType": "pca",
+  "deepDive": [
+    {
+      "heading": "The PCA Objective",
+      "body": "Centre the data: X̃ = X − μ̄ (subtract column means). Find the direction w₁ that maximises variance: w₁ = argmax_{||w||=1} wᵀSw, where S = (1/n)X̃ᵀX̃ is the sample covariance matrix. The solution is the eigenvector corresponding to the largest eigenvalue λ₁. Subsequent components are eigenvectors of the remaining eigenvalues, constrained to be orthogonal. [1][2]",
+      "formula": "w₁ = argmax_{‖w‖=1} wᵀSw,   Sw₁ = λ₁w₁"
+    },
+    {
+      "heading": "SVD Connection",
+      "body": "The numerically stable way to compute PCA is via Thin SVD of the centred data matrix: X̃ = UΣVᵀ. The principal components are the columns of V (right singular vectors). The scores (projected data) are Z = X̃V = UΣ. The eigenvalues of S are σᵢ²/n. SVD avoids explicitly forming X̃ᵀX̃, which is numerically preferable for tall-and-skinny matrices. [1]",
+      "formula": "X̃ = UΣVᵀ,    Z = X̃V = UΣ"
+    },
+    {
+      "heading": "Explained Variance & Scree Plot",
+      "body": "Variance explained by component k: λₖ / Σᵢ λᵢ. Cumulative explained variance at k components: Σᵢ₌₁ᵏ λᵢ / Σᵢ λᵢ. A scree plot shows eigenvalues vs component index — the 'elbow' suggests how many components to retain. A common rule: retain enough components to explain 90–95% of total variance. [1]",
+      "formula": "Explained variance ratio_k = λₖ / Σᵢ λᵢ"
+    },
+    {
+      "heading": "Reconstruction & Rank-k Approximation",
+      "body": "The rank-k PCA approximation of X̃ is: X̂ = ZₖVₖᵀ where Zₖ = X̃Vₖ and Vₖ contains the top k principal components. Eckart–Young theorem: among all rank-k matrices, X̂ minimises ||X̃ − X̂||²_F (Frobenius norm). Reconstruction error = Σᵢ₌ₖ₊₁ᵖ λᵢ (sum of discarded eigenvalues). [1]",
+      "formula": "X̂ = X̃Vₖ Vₖᵀ   (rank-k reconstruction)"
+    },
+    {
+      "heading": "Assumptions & Limitations",
+      "body": "PCA assumes: (1) the meaningful structure is captured by variance (directions of high variance are signal, not noise — not always true); (2) the relevant structure is linear; (3) features are on comparable scales (standardise before PCA unless they are already in the same units). PCA cannot capture non-linear manifold structure — use t-SNE or UMAP for that. [1][2]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: PCA Step-by-Step",
+  "youtubeUrl": "https://www.youtube.com/embed/FgakZw6K1QQ",
+  "takeaways": [
+    "PCA finds orthogonal directions of maximum variance; the k-th principal component is the k-th eigenvector of the covariance matrix. [1]",
+    "Compute PCA via SVD of the centred data matrix — numerically stable and avoids forming X̃ᵀX̃ explicitly. [1]",
+    "Explained variance ratio = λₖ/Σλᵢ; choose k to explain 90–95% of total variance or at the scree plot elbow. [1]",
+    "Standardise features before PCA if they are on different scales — otherwise high-variance features dominate. [1]",
+    "PCA is linear — use t-SNE or UMAP for non-linear structure. [1][2]",
+    "New points can be projected via transform(): z = (x − μ̄)Vₖ — PCA is a parametric transformation. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Should you always standardise before PCA?",
+      "a": "Yes, if features are on different scales (e.g. age in years vs income in thousands). Without standardisation, high-variance features dominate the first principal components regardless of their importance. Use StandardScaler before PCA. Exception: if all features are in the same units (e.g. pixel intensities in an image), standardisation is not needed and may actually hurt by equalising informative and noisy dimensions. [1]"
+    },
+    {
+      "q": "What is the difference between PCA and Factor Analysis?",
+      "a": "PCA: rotates coordinates to maximise explained variance; components are linear combinations of all original features; assumes variance = signal. Factor Analysis: assumes each feature = linear combination of latent factors + unique noise; factors explain correlations, not total variance. Factor Analysis is more appropriate for psychological/survey data where measured variables are noisy proxies of latent constructs. [1]"
+    },
+    {
+      "q": "Why can PCA fail for classification tasks?",
+      "a": "PCA maximises variance — it doesn't know about class labels. The direction of maximum variance may be orthogonal to the direction that best separates classes. Example: two elongated Gaussian clusters oriented perpendicular to the line between their means. PCA would project onto the elongation axis (high variance) and merge the clusters. LDA, which maximises between-class separation, is more appropriate when class separation is the goal. [1][2]"
+    },
+    {
+      "q": "How do you choose the number of components k?",
+      "a": "Three strategies: (1) Scree plot elbow — look for the bend where adding more components stops paying off significantly. (2) Cumulative explained variance threshold — retain k such that Σᵢ₌₁ᵏ λᵢ/Σλᵢ ≥ 0.95. (3) Cross-validation — select k that maximises performance of the downstream model. For visualisation, k = 2 or 3 is fixed; for preprocessing, use the cross-validation approach. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 14.5", "url": "https://hastie.su.domains/ElemStatLearn/" },
+    { "label": "James et al. — An Introduction to Statistical Learning, Ch. 12", "url": "https://www.statlearning.com/" }
+  ]
+}

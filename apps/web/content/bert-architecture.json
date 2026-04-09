@@ -1,0 +1,66 @@
+{
+  "eli3": [
+    "BERT (Bidirectional Encoder Representations from Transformers, Devlin et al. 2019) is an encoder-only transformer pre-trained with Masked Language Modeling (MLM) and Next Sentence Prediction (NSP). Unlike GPT (left-to-right), BERT's self-attention is fully bidirectional — every token attends to every other token. This makes BERT excellent at understanding tasks but incapable of autoregressive generation.",
+    "Architecture: token embeddings (WordPiece) + segment embeddings + positional embeddings → N transformer encoder blocks (full self-attention + FFN) → task head. BERT-base: 12 layers, 12 heads, d_model=768, 110M parameters. BERT-large: 24 layers, 16 heads, d_model=1024, 340M parameters. Pre-trained on BooksCorpus + Wikipedia (16GB). Fine-tuning: add a task-specific head (linear classifier, span predictor) and fine-tune all parameters on labeled data.",
+    "BERT established the pre-train → fine-tune paradigm for NLP. On GLUE release (2019), BERT-large outperformed previous state-of-the-art by 7.6 points. It showed that bidirectional context is crucial for understanding tasks. Key variants: RoBERTa (better training), ALBERT (parameter sharing), DistilBERT (distillation, 40% smaller), DeBERTa (disentangled attention) — all remain widely used for NLU in production."
+  ],
+  "whenWhy": [
+    {
+      "title": "Text classification and NLU tasks",
+      "body": "BERT fine-tuning for classification: take the [CLS] token representation from the final layer, pass through a linear classifier, fine-tune end-to-end. The [CLS] token attends to all other tokens and aggregates the full sequence meaning. Outperforms LSTM and CNN classifiers by large margins because: (1) bidirectional context; (2) pre-trained world knowledge; (3) full sequence context from attention. Used for: sentiment analysis, intent classification, document routing, topic classification."
+    },
+    {
+      "title": "Question answering and span extraction",
+      "body": "SQuAD-style extractive QA: given (question, context) pair, predict start and end token positions of the answer span. BERT approach: concatenate [CLS] + question + [SEP] + context + [SEP] → BERT encoder → for each context token, compute start score = hᵢ·w_start and end score = hᵢ·w_end → argmax start and end. BERT-large achieves 93.2 F1 on SQuAD 2.0. The bidirectional attention allows question tokens to directly attend to context tokens in the same pass."
+    },
+    {
+      "title": "Semantic similarity and sentence embeddings",
+      "body": "BERT sentence embeddings for semantic similarity: either use [CLS] or mean-pool token embeddings. However, vanilla BERT sentence embeddings have poor cosine similarity alignment (Reimers & Gurevych 2019). Sentence-BERT (SBERT): fine-tune BERT with siamese network on NLI and STS tasks to produce semantically meaningful sentence embeddings — cosine similarity between SBERT embeddings correlates strongly with human similarity judgments. SBERT is the standard choice for semantic search and sentence similarity in production."
+    }
+  ],
+  "deepDiveIntro": [
+    "BERT tokenization: WordPiece (Schuster & Nakamura 2012) — learned vocabulary of 30K subwords. Rare words split: 'unhappiness' → 'un', '##happiness'. Special tokens: [CLS] (prepended, used for classification), [SEP] (separates sequences), [MASK] (for MLM). Input representation: token_embedding + segment_embedding (sentence A vs B) + positional_embedding (learned, absolute, max 512 positions). All three embedding types have dimension d_model=768 and are summed.",
+    "BERT pre-training tasks: (1) MLM — mask 15% of tokens (80% [MASK], 10% random, 10% unchanged), train to predict originals. Loss only on masked positions. (2) NSP — binary classification: given (A, B) pairs, predict if B is the actual next sentence of A (50%) or a random sentence (50%). Used for tasks that require reasoning across sentences (QA, NLI). Later work (RoBERTa, ALBERT) showed NSP is harmful — dropped in subsequent models."
+  ],
+  "deepDive": [
+    {
+      "heading": "Transformer Encoder Block",
+      "body": "Full (bidirectional) self-attention: no causal mask — token i attends to all tokens j. Post-norm architecture (original BERT): x = LayerNorm(x + Attn(x)); x = LayerNorm(x + FFN(x)). Multi-head attention: d_model=768, h=12 heads, d_k=64 per head. FFN: 2-layer MLP with GELU, hidden_dim=3072 (4×768). Parameter count per layer: attention (4×768²) + FFN (2×768×3072) ≈ 7.1M params. BERT-base: 12 layers × 7.1M + embeddings ≈ 110M total. [1]",
+      "formula": "FFN(x) = W₂ · GELU(W₁x + b₁) + b₂,  d_ff = 4 × d_model"
+    },
+    {
+      "heading": "Fine-tuning Protocol",
+      "body": "Classification: input [CLS] + text → h_{[CLS]} → Wh + b → cross-entropy. Pair tasks (NLI, STS): [CLS] A [SEP] B [SEP] → h_{[CLS]} → classify. Token classification (NER): all hᵢ → linear → per-token label → CRF optional. SQuAD: [CLS] Q [SEP] Context [SEP] → start_score=hᵢᵀw_s, end_score=hᵢᵀw_e → argmax span. Fine-tuning hyperparameters: LR=2–5×10⁻⁵ (with linear warmup over 6% of steps), batch=16–32, epochs=2–4. BERT is sensitive to fine-tuning instability with very small LRs or too many epochs — use early stopping. [1]"
+    },
+    {
+      "heading": "RoBERTa: Better Training of BERT",
+      "body": "Liu et al. (2019) showed BERT was significantly undertrained. RoBERTa improvements: (1) Removed NSP objective — hurts downstream performance; (2) Dynamic masking: re-mask each epoch instead of static masks; (3) Larger batches: 8K vs 256; (4) More data: 160GB vs 16GB (CC-News, Stories, OpenWebText added); (5) Longer training: 500K steps vs 1M with smaller batches. Result: RoBERTa-large outperforms BERT-large by 4–5 points on GLUE (90.2 vs 86.6). These findings became the blueprint for training BERT variants. [2]"
+    },
+    {
+      "heading": "DistilBERT and Model Distillation",
+      "body": "DistilBERT (Sanh et al. 2019): distill BERT-base into a 6-layer model (66M params, 40% fewer). Knowledge distillation: train student to match teacher's soft label probabilities (temperature softmax), hidden states, and attention matrices. DistilBERT retains 97% of BERT-base performance on GLUE, runs 60% faster. Distillation loss: L = α·L_CE(student_logits, labels) + (1−α)·L_KL(student_logits/T, teacher_logits/T) with T=2. Used in production when latency matters. [1]",
+      "formula": "L_distil = α·L_CE + (1−α)·T²·L_KL(softmax(z_s/T), softmax(z_t/T))"
+    }
+  ],
+  "takeaways": [
+    "BERT: encoder-only, bidirectional attention, pre-trained with MLM (15% masking) + NSP. [1]",
+    "Fine-tuning: [CLS] for classification, all tokens for NER, start/end scores for SQuAD QA. [1]",
+    "RoBERTa: no NSP, more data, larger batches, dynamic masking — best encoder for NLU. [2]",
+    "DistilBERT: 40% smaller, 60% faster, 97% performance via knowledge distillation. [1]",
+    "SBERT: siamese fine-tuning of BERT on NLI/STS produces meaningful sentence embeddings. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why is BERT's max sequence length 512 tokens?",
+      "a": "BERT uses learned absolute position embeddings of size (512 × d_model). The position embedding table has a fixed maximum of 512 positions — inputs longer than 512 tokens have no pre-trained positional encoding for positions > 512. Processing longer documents requires: (1) truncation (most common); (2) sliding window with overlap; (3) hierarchical models (chunk → sentence embedding → document model); (4) Longformer / BigBird — sparse attention patterns that extend to 4096–8192 tokens. The 512-token limit was a design choice to fit pre-training in reasonable memory; modern encoders (DeBERTa-v3) use relative position encodings with no fixed maximum. [1]"
+    },
+    {
+      "q": "What is DeBERTa and why does it outperform RoBERTa?",
+      "a": "DeBERTa (He et al. 2021) introduces disentangled attention: each token is represented by two vectors — one for content, one for position. The attention score between tokens i and j includes four terms: content-to-content, content-to-position, position-to-content, and position-to-position interactions. Standard attention only computes content-to-content. This disentanglement allows the model to separately learn how content and position relate — more expressive than adding position embeddings to content. DeBERTa-v3-large (304M params) achieves 91.86 on GLUE, outperforming RoBERTa-large (125M, 90.2) despite similar parameter count. Also uses enhanced mask decoder (EMD) and virtual adversarial training. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Devlin et al. (2019) — BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding, NAACL 2019", "url": "https://aclanthology.org/N19-1423/" },
+    { "label": "Liu et al. (2019) — RoBERTa: A Robustly Optimized BERT Pretraining Approach", "url": "https://arxiv.org/abs/1907.11692" }
+  ]
+}

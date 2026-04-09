@@ -1,0 +1,66 @@
+{
+  "eli3": [
+    "An N-gram is a contiguous sequence of N items (words, characters, or tokens) from a text. Unigrams are single words, bigrams are pairs ('machine learning'), trigrams are triples. N-gram language models estimate the probability of the next word given the previous N−1 words — a simple Markov assumption that the next word depends only on the last few words.",
+    "N-gram probability estimation: P(wₙ|w₁,…,wₙ₋₁) ≈ P(wₙ|wₙ₋(N-1),…,wₙ₋₁) = C(wₙ₋(N-1)…wₙ) / C(wₙ₋(N-1)…wₙ₋₁). Count-based estimation from a corpus. The data sparsity problem: most N-grams never appear in training data — solved by smoothing (Laplace, Kneser-Ney). N-grams are also used as features in text classification (bag-of-ngrams extends BoW with bigrams, trigrams).",
+    "N-grams remain useful despite neural language models: (1) character N-grams are the basis of FastText embeddings and subword tokenization; (2) word N-gram features improve text classification (capturing 'not good', 'very fast'); (3) N-gram overlap is used in NLP evaluation metrics (BLEU for MT, ROUGE for summarization). Kneser-Ney smoothed trigram LMs were the state of the art before neural LMs."
+  ],
+  "whenWhy": [
+    {
+      "title": "Text classification features (bag-of-N-grams)",
+      "body": "Adding bigrams and trigrams to BoW captures local context: 'not bad' as a bigram means something very different from its component unigrams. In scikit-learn: TfidfVectorizer(ngram_range=(1,3)) adds unigrams, bigrams, trigrams as features. For sentiment analysis, bigrams are particularly useful (negation patterns). Bag-of-bigrams often improves accuracy by 1–3% over pure unigrams at modest vocabulary size cost."
+    },
+    {
+      "title": "NLP evaluation metrics (BLEU, ROUGE)",
+      "body": "BLEU (Bilingual Evaluation Understudy) measures machine translation quality as precision of N-gram overlaps between hypothesis and reference (N=1..4), with a brevity penalty. ROUGE (Recall-Oriented Understudy for Gisting Evaluation) measures recall of N-gram overlaps for summarization. Both metrics have limitations (no semantic similarity), but they are the standard automatic evaluation metrics in MT and summarization."
+    },
+    {
+      "title": "Statistical language models and smoothing",
+      "body": "Before neural LMs, smoothed N-gram LMs (interpolated Kneser-Ney trigrams) were the backbone of speech recognition, machine translation, and spelling correction. Kneser-Ney smoothing — the best-performing classical method — uses modified counts and backed-off lower-order distributions. N-gram LMs are still used in hybrid neural/n-gram systems, and understanding them is essential for understanding perplexity and language model evaluation."
+    }
+  ],
+  "deepDiveIntro": [
+    "N-gram LM probability: P(w₁,…,wₙ) = ΠᵢP(wᵢ|wᵢ₋₍N₋₁₎,…,wᵢ₋₁) (chain rule + Markov assumption). Maximum likelihood estimate: P_MLE(wₙ|context) = C(context, wₙ)/C(context). Sparsity: MLE assigns P=0 to unseen N-grams → undefined log-probability for evaluation. Smoothing redistributes probability mass to unseen N-grams.",
+    "Kneser-Ney smoothing: uses the continuation count — how many unique words follow a given context — rather than the raw count. This captures the intuition that a word that appears in many different contexts (like 'Francisco' only after 'San') has low continuation probability. Interpolated KN: P_KN(wₙ|context) = max(C(context,wₙ)−d, 0)/C(context) + λ(context)·P_KN(wₙ|shorter context), where d ≈ 0.75 is the discount."
+  ],
+  "deepDive": [
+    {
+      "heading": "N-gram Probability Estimation and Sparsity",
+      "body": "Bigram LM: P(wᵢ|wᵢ₋₁) = C(wᵢ₋₁,wᵢ)/C(wᵢ₋₁). For V=50K vocabulary: possible bigrams = V² = 2.5B — most never appear in any corpus. Trigrams: V³ = 125T possible, astronomically sparse. Data sparsity grows exponentially with N. Larger N captures more context but is sparser. In practice: N≤5 for word N-grams (beyond N=5 almost no gain). Character N-grams: N=3–6, much smaller character vocabulary makes them denser. [1]",
+      "formula": "P(wₙ|wₙ₋₁) = C(wₙ₋₁, wₙ) / C(wₙ₋₁)"
+    },
+    {
+      "heading": "Smoothing Methods",
+      "body": "Laplace (add-1): add 1 to all counts — P(wₙ|context) = (C(context,wₙ)+1)/(C(context)+V). Simple but poor — too much mass to unseen N-grams. Good-Turing: replace count c with c* = (c+1)·N_{c+1}/N_c (N_c = number of N-grams with count c). Interpolated Kneser-Ney (best): P_KN(w|context) = max(C(context,w)−d,0)/C(context) + λ·P_KN(w|backoff_context). Continuation probability: P_KN(w) = |{v: C(v,w)>0}|/|{(u,v): C(u,v)>0}|. [1]"
+    },
+    {
+      "heading": "BLEU and ROUGE Metrics",
+      "body": "BLEU (Papineni et al. 2002): BLEU = BP · exp(Σₙwₙ·log pₙ), where pₙ = modified N-gram precision (clipped by reference counts), BP = brevity penalty (exp(1−r/c) if c<r). Uniform weights wₙ=0.25 for N=1..4 is standard (BLEU-4). ROUGE-N: recall of N-gram overlaps. ROUGE-L: longest common subsequence. BLEU correlates with human judgment for MT, ROUGE for summarization — both have weaknesses (no synonyms, no semantics). BERTScore uses contextual embeddings for semantic similarity. [2]",
+      "formula": "BLEU = BP · exp(Σₙ₌₁⁴ 0.25·log pₙ)"
+    },
+    {
+      "heading": "Character N-grams and Subword Models",
+      "body": "Character N-grams (n=3–6) form the basis of FastText word embeddings and have advantages over word N-grams: no OOV problem, robust to misspellings, language-agnostic (same approach for any writing system). In subword tokenization (BPE, WordPiece), the fundamental units are subword tokens — essentially learned character N-grams. BPE starts from characters and iteratively merges the most frequent adjacent pair. Character N-gram LMs (trained character by character) were the state of the art before transformers for morphologically rich languages. [1]"
+    }
+  ],
+  "takeaways": [
+    "N-gram LM: P(wₙ|context) ≈ C(context,wₙ)/C(context) — Markov assumption, MLE from counts. [1]",
+    "Data sparsity grows exponentially with N; smoothing (Kneser-Ney) redistributes mass to unseen N-grams. [1]",
+    "Kneser-Ney uses continuation counts (unique contexts per word) — best classical smoothing method. [1]",
+    "BLEU (MT): modified N-gram precision × brevity penalty. ROUGE (summarization): N-gram recall. [2]",
+    "Character N-grams: no OOV, robust to noise — basis of FastText and subword tokenization. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What is the difference between backoff and interpolation smoothing?",
+      "a": "Backoff (stupid backoff, Katz backoff): use the highest-order N-gram if count > threshold; otherwise 'back off' to lower order (multiply by discount λ). Uses lower-order LM only as fallback. Interpolation: always combine all orders — P_interp(w|context) = λ₁P(w|N-gram) + λ₂P(w|(N-1)-gram) + … + λₙP(w). Interpolated KN outperforms backoff KN because all orders contribute even when higher-order counts are available. Stupid backoff (Brants et al. 2007, used at Google scale): no proper probability — just use count/total or back off with factor 0.4. Surprisingly competitive at very large scales. [1]"
+    },
+    {
+      "q": "Why does BLEU often fail as an MT evaluation metric?",
+      "a": "BLEU has several known failure modes: (1) It treats all N-gram matches equally regardless of content words vs. function words; (2) Synonyms get zero credit — 'automobile' vs 'car'; (3) It requires multiple reference translations for reliable correlation with humans (one reference gives noisy estimates); (4) It correlates poorly with human judgment at the sentence level (better at corpus level); (5) BLEU can be gamed by producing short, high-precision output (brevity penalty partially fixes this). Modern alternatives: METEOR (handles synonyms via WordNet), BERTScore (contextual embedding similarity), COMET (neural metric trained on human judgments). [2]"
+    }
+  ],
+  "sources": [
+    { "label": "Jurafsky & Martin — Speech and Language Processing (3rd ed.), Ch. 3: N-gram Language Models", "url": "https://web.stanford.edu/~jurafsky/slp3/" },
+    { "label": "Papineni et al. (2002) — BLEU: a Method for Automatic Evaluation of Machine Translation, ACL 2002", "url": "https://aclanthology.org/P02-1040/" }
+  ]
+}

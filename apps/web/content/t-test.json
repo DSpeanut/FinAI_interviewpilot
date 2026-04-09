@@ -1,0 +1,75 @@
+{
+  "eli3": [
+    "The t-test is a z-test but with the population standard deviation σ replaced by the sample standard deviation s. Because s is estimated from the data, there is extra uncertainty — the t-distribution has heavier tails than the normal, especially for small samples. As sample size grows, the t-distribution converges to the normal.",
+    "There are three versions: one-sample (is this sample mean different from a fixed value?), two-sample independent (do two groups have different means?), and paired (do matched measurements differ on average?). The paired t-test is just a one-sample t-test on the differences dᵢ = xᵢ − yᵢ.",
+    "The t-test assumes the data is drawn from a normal distribution — but by the CLT, it is approximately valid for any distribution when n is large (≥ 30). For small non-normal samples, use non-parametric alternatives like the Mann-Whitney U or Wilcoxon signed-rank test."
+  ],
+  "whenWhy": [
+    {
+      "title": "Most common test for comparing two group means",
+      "body": "The independent two-sample t-test is the standard tool for comparing means of two groups (treatment vs control, A vs B). It accounts for both group means AND their variability. The Welch t-test (unequal variances) is more robust than the Student t-test (pooled variance) and should be the default."
+    },
+    {
+      "title": "Paired comparisons: before-after, matched samples",
+      "body": "When each observation in group 1 is matched to an observation in group 2 (same subject measured twice, or matched pairs), the paired t-test is more powerful than the two-sample test — it removes between-subject variability from the error. Example: testing a drug by measuring each patient before and after treatment."
+    },
+    {
+      "title": "Small samples from normal populations",
+      "body": "The t-test is exact for normal data regardless of sample size (no CLT approximation needed). For small n (5–30) with approximately normal data, the t-test is the appropriate parametric test. For n < 5 or clearly non-normal small samples, non-parametric tests are recommended."
+    },
+    {
+      "title": "A/B testing for continuous metrics",
+      "body": "For A/B tests measuring continuous outcomes (revenue, session duration, NPS scores), the Welch two-sample t-test is the standard approach. Unlike the proportion z-test, it handles non-binary outcomes and naturally accounts for variance differences between groups."
+    }
+  ],
+  "deepDiveIntro": [
+    "One-sample t-test: T = (x̄ − μ₀)/(s/√n) where s = √[Σ(xᵢ−x̄)²/(n−1)] is the sample standard deviation. Under H₀: μ = μ₀ with X₁,…,Xₙ ~ N(μ,σ²), T ~ t(n−1) (Student's t-distribution with n−1 degrees of freedom). The t-distribution arises because T = Z/√(χ²_{n−1}/(n−1)) where Z = (x̄−μ)/(σ/√n) ~ N(0,1) and (n−1)s²/σ² ~ χ²(n−1) are independent.",
+    "The Welch two-sample t-test (Welch 1947) handles unequal variances: T = (x̄₁−x̄₂)/√(s₁²/n₁ + s₂²/n₂) with degrees of freedom given by the Welch-Satterthwaite approximation. It is the recommended default over Student's t-test, which assumes equal variances."
+  ],
+  "visualizationType": "t-test",
+  "deepDive": [
+    {
+      "heading": "One-Sample t-Test",
+      "body": "H₀: μ = μ₀. Statistic: T = (x̄ − μ₀)/(s/√n) ~ t(n−1) under H₀. Two-sided critical region: |T| > t_{n−1, α/2}. As n→∞, t(n−1) → N(0,1). The 95% CI for μ is x̄ ± t_{n−1, 0.025} · s/√n. [1]",
+      "formula": "T = (x̄ − μ₀) / (s / √n)  ~  t(n−1)"
+    },
+    {
+      "heading": "Two-Sample Welch t-Test (unequal variances)",
+      "body": "H₀: μ₁ = μ₂. Statistic: T = (x̄₁−x̄₂)/√(s₁²/n₁ + s₂²/n₂). Degrees of freedom (Welch-Satterthwaite): ν = (s₁²/n₁ + s₂²/n₂)² / [(s₁²/n₁)²/(n₁−1) + (s₂²/n₂)²/(n₂−1)]. Under H₀: T ~ t(ν) approximately. Default over pooled (Student's) t-test — pooling assumes σ₁² = σ₂², Welch does not. [1]",
+      "formula": "T = (x̄₁ − x̄₂) / √(s₁²/n₁ + s₂²/n₂)"
+    },
+    {
+      "heading": "Paired t-Test",
+      "body": "For matched pairs (x₁,y₁), …, (xₙ,yₙ), compute dᵢ = xᵢ − yᵢ and apply the one-sample t-test to d: T = d̄/(s_d/√n). By focusing on within-pair differences, it eliminates between-subject variability — the error variance is Var(d) = Var(x) + Var(y) − 2Cov(x,y), which can be much smaller than Var(x) + Var(y) when pairs are positively correlated. [1]",
+      "formula": "T = d̄ / (s_d / √n),   dᵢ = xᵢ − yᵢ"
+    },
+    {
+      "heading": "Assumptions and Robustness",
+      "body": "Strict assumption: X ~ N(μ, σ²). In practice, t-test is robust to non-normality for n ≥ 30 by the CLT. It is NOT robust to extreme outliers (which violate the normality assumption and inflate s). Sensitivity to outliers is the main practical failure mode. For small non-normal samples: Wilcoxon signed-rank (one-sample/paired) or Mann-Whitney U (two-sample). [1]"
+    }
+  ],
+  "youtubeLabel": "t-test Explained — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/0Pd3dc1GcHc",
+  "takeaways": [
+    "T = (x̄−μ₀)/(s/√n) ~ t(n−1) under H₀; heavier tails than normal due to estimating σ. [1]",
+    "Welch t-test (unequal σ) is the recommended default over Student's pooled t-test. [1]",
+    "Paired t-test = one-sample t-test on differences dᵢ = xᵢ−yᵢ; more powerful for matched data. [1]",
+    "t(n−1) → N(0,1) as n→∞; for n ≥ 30, t-test ≈ z-test numerically. [1]",
+    "Robust to non-normality for large n; NOT robust to outliers. Use Mann-Whitney for small, non-normal samples. [1]",
+    "Welch-Satterthwaite approximation for degrees of freedom when σ₁² ≠ σ₂². [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What happens if you use a paired t-test when data is not actually paired?",
+      "a": "You lose efficiency. The paired test divides by s_d = √(s_x² + s_y² − 2s_{xy}). If x and y are independent (s_{xy} = 0), s_d² = s_x² + s_y² — same as the two-sample test denominator. But you also halve the degrees of freedom (n−1 instead of 2(n−1)), making the critical value larger and the test less powerful. Only use paired when the pairing is real (same subject, matched design). [1]"
+    },
+    {
+      "q": "How large must the sample be for the t-test to be valid under non-normality?",
+      "a": "Heuristic: n ≥ 30 per group for moderately non-normal data; n ≥ 50–100 for highly skewed data. For very non-normal distributions (e.g. heavily skewed, bimodal), even n=50 may be insufficient — the CLT convergence depends on the distribution's kurtosis. In such cases, bootstrap confidence intervals or non-parametric tests (Mann-Whitney, permutation test) are more reliable. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 8 & 9", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" },
+    { "label": "Welch (1947) — The Generalization of Student's Problem, Biometrika 34(1-2)", "url": "https://doi.org/10.2307/2332510" }
+  ]
+}

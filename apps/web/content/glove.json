@@ -1,0 +1,65 @@
+{
+  "eli3": [
+    "GloVe (Global Vectors for Word Representation, Pennington et al. 2014) learns word embeddings by directly factorizing the word co-occurrence matrix. Unlike Word2Vec which trains on individual context windows, GloVe first counts how often each word pair (i, j) co-occurs across the entire corpus, then trains vectors so that the dot product of two word vectors approximates the log of their co-occurrence count.",
+    "The key insight of GloVe: the ratio of co-occurrence probabilities captures meaning. P(ice|solid)/P(steam|solid) is high (ice co-occurs with solid more than steam does). P(ice|gas)/P(steam|gas) is low. The ratio differentiates 'ice' from 'steam' relative to 'solid' and 'gas'. Training vectors so that vᵢ · vⱼ ≈ log X_{ij} (co-occurrence count) encodes this information.",
+    "GloVe and Word2Vec produce qualitatively similar embeddings and perform comparably on benchmarks. GloVe explicitly uses global corpus statistics (co-occurrence matrix), while Word2Vec implicitly factorizes the shifted PMI matrix — they are mathematically related. Pre-trained GloVe embeddings (trained on 840B-token Common Crawl, 300d) are available and widely used."
+  ],
+  "whenWhy": [
+    {
+      "title": "Alternative to Word2Vec with global statistics",
+      "body": "Word2Vec only uses local context windows — each training step sees one (center, context) pair. GloVe uses global co-occurrence counts from the entire corpus. This means GloVe training is more stable and efficient once the co-occurrence matrix is built, and GloVe embeddings often perform slightly better on syntactic analogy tasks. In practice, the difference between GloVe and Word2Vec is small; the training corpus size matters more."
+    },
+    {
+      "title": "Pre-trained embeddings for low-resource tasks",
+      "body": "Stanford distributes GloVe pre-trained on Common Crawl (840B tokens, 2.2M vocabulary, 300d vectors). These can be used as frozen features or fine-tuned initializations. On tasks with small labeled datasets, pre-trained GloVe provides substantial gains over random initialization. FastText (character n-grams) is preferred when OOV coverage matters; GloVe when vocabulary coverage is sufficient."
+    },
+    {
+      "title": "Relationship interpretation via vector offsets",
+      "body": "GloVe embeddings support the same analogy arithmetic as Word2Vec: king − man + woman ≈ queen. The geometric offset vking − vman represents the 'royalty gender' relation. GloVe was the first to provide a formal theoretical motivation (via co-occurrence ratio analysis) for why this linear structure emerges — it's a consequence of factorizing log co-occurrence probabilities."
+    }
+  ],
+  "deepDiveIntro": [
+    "GloVe objective: minimize J = ΣᵢΣⱼ f(Xᵢⱼ)·(vᵢᵀṽⱼ + bᵢ + b̃ⱼ − log Xᵢⱼ)², where Xᵢⱼ = co-occurrence count of words i and j within a window, vᵢ and ṽⱼ are the word and context vectors, bᵢ and b̃ⱼ are biases, and f is a weighting function that caps the influence of very frequent co-occurrences: f(x) = (x/x_max)^α if x < x_max else 1, with x_max = 100, α = 3/4.",
+    "The final embedding for word i is typically the average of its word vector and context vector: wᵢ = vᵢ + ṽᵢ. This reduces noise. Training: build the co-occurrence matrix X (O(C·w²) where C = corpus size, w = window size), then minimize J by AdaGrad SGD. The matrix X is sparse — only co-occurring pairs contribute. For large vocabularies, only pairs with X_{ij} > 0 are trained on."
+  ],
+  "deepDive": [
+    {
+      "heading": "GloVe Objective and Weighting Function",
+      "body": "J = ΣᵢΣⱼ f(Xᵢⱼ)·(vᵢᵀṽⱼ + bᵢ + b̃ⱼ − log Xᵢⱼ)². Target: vᵢᵀṽⱼ ≈ log Xᵢⱼ − bᵢ − b̃ⱼ. Weighting function f: downweights very frequent pairs (stop-word co-occurrences dominate X) — f(x) = (x/100)^{0.75} for x < 100, 1 otherwise. This is a weighted least-squares problem on the log co-occurrence matrix. Optimization: AdaGrad SGD with adaptive learning rate per parameter. Training is fully parallelizable by randomly shuffling (i,j) pairs. [1]",
+      "formula": "J = Σᵢⱼ f(Xᵢⱼ) · (vᵢᵀṽⱼ + bᵢ + b̃ⱼ − log Xᵢⱼ)²"
+    },
+    {
+      "heading": "Co-occurrence Matrix Construction",
+      "body": "Co-occurrence count Xᵢⱼ: number of times word j appears within a window of size L around word i across the entire corpus. Symmetric window (L words on each side). Harmonic weighting: co-occurring at distance d contributes 1/d to Xᵢⱼ (words closer to center word contribute more). Matrix is V×V — for V = 400K: too large to store in dense form. Sparse storage (hash map of (i,j) pairs with Xᵢⱼ > threshold). Building X is the most memory-intensive part. [1]"
+    },
+    {
+      "heading": "GloVe vs Word2Vec: Theory and Practice",
+      "body": "Levy & Goldberg (2014): SGNS implicitly factorizes the PMI matrix shifted by log k. GloVe explicitly factorizes log X_{ij}. Both methods learn similar representations and perform comparably on benchmarks. Empirical finding: with equal training data and hyperparameter tuning, SGNS slightly outperforms GloVe on semantic tasks; GloVe outperforms on syntactic tasks. The dominant factor is training data size, not the algorithm. Pre-trained GloVe on Common Crawl (840B tokens) outperforms Word2Vec on Wikipedia. [1]"
+    },
+    {
+      "heading": "Evaluation: Word Analogy and Similarity Benchmarks",
+      "body": "Google analogy dataset (Mikolov 2013): 19,544 analogy questions in semantic (capital-country, person-gender) and syntactic (base-comparative, singular-plural) categories. Evaluation: for query 'A is to B as C is to ?', find D = argmax_{w≠A,B,C} cos(vA−vB+vC, vw). GloVe 300d on Common Crawl: ~80% accuracy on semantic, ~70% on syntactic analogies. SimLex-999: correlation with human similarity judgments — Spearman ρ ≈ 0.40 (room for improvement vs human ρ ≈ 0.67). [1]"
+    }
+  ],
+  "takeaways": [
+    "GloVe: minimize (vᵢᵀṽⱼ + bᵢ + b̃ⱼ − log Xᵢⱼ)² weighted by f(Xᵢⱼ) — factorizes log co-occurrence matrix. [1]",
+    "Weighting function f caps frequent co-occurrence pairs to reduce stop-word dominance. [1]",
+    "Final embedding = vᵢ + ṽᵢ (average word and context vectors) to reduce noise. [1]",
+    "GloVe ≈ Word2Vec (SGNS implicitly factorizes shifted PMI); training data size dominates both. [1]",
+    "Pre-trained 300d Common Crawl GloVe achieves ~80% on Google semantic analogies. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How does GloVe handle words not in its pre-trained vocabulary?",
+      "a": "GloVe produces fixed-vocabulary static embeddings — OOV words have no representation. Common strategies: (1) Map OOV to <UNK> vector (usually the mean of all embeddings); (2) Use the character-level or subword representation (FastText composes embeddings from character n-grams — no OOV problem); (3) Fine-tune a new GloVe model on domain-specific data; (4) Use BERT tokenization instead (subword-based, no OOV). For production NLP, BERT or fastText is preferred over GloVe when OOV handling is critical. [1]"
+    },
+    {
+      "q": "Why does GloVe use a weighting function rather than training on all co-occurrence pairs equally?",
+      "a": "Without weighting, very frequent pairs (stop-word co-occurrences: 'the-of', 'a-the') dominate the objective — they have massive Xᵢⱼ values and would overwhelm informative but rare semantic pairs. The weighting function f(x) = min(1, (x/x_max)^α) caps frequent pairs at weight 1 and gives low weight to very infrequent pairs (X_{ij}=1 pairs have f=0.01^{0.75}≈0.018). This balances the contribution of common and rare co-occurrences — similar in spirit to subsampling in Word2Vec. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Pennington, Socher & Manning (2014) — GloVe: Global Vectors for Word Representation, EMNLP 2014", "url": "https://aclanthology.org/D14-1162/" },
+    { "label": "Jurafsky & Martin — Speech and Language Processing (3rd ed.), Ch. 6", "url": "https://web.stanford.edu/~jurafsky/slp3/" }
+  ]
+}

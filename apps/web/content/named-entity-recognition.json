@@ -1,0 +1,67 @@
+{
+  "eli3": [
+    "Named Entity Recognition (NER) identifies and classifies named entities in text into predefined categories: PERSON (Barack Obama), ORGANIZATION (Google), LOCATION (New York), DATE (January 2024), MONEY ($500), etc. 'Apple released its new iPhone in San Francisco' → [Apple: ORG] released its new [iPhone: PRODUCT] in [San Francisco: LOC].",
+    "NER is a sequence labeling task. Each token gets a tag in BIO format: B-PER (beginning of person entity), I-PER (inside person entity), O (outside any entity). 'Barack Obama' → B-PER I-PER; 'lives in' → O O; 'New York' → B-LOC I-LOC. The B/I distinction prevents adjacent entities of the same type from merging.",
+    "Modern NER uses fine-tuned transformers (BERT, RoBERTa) that achieve F1 > 92 on CoNLL-2003 (English news NER). spaCy and Stanza provide production-ready NER. The hardest cases: ambiguous entities ('Apple' — company or fruit?), nested entities (a person within an organization), and domain-specific entities (genes, chemicals, legal citations) not covered by general-domain training data."
+  ],
+  "whenWhy": [
+    {
+      "title": "Information extraction pipelines",
+      "body": "NER is the first step in relation extraction (find entities, then classify relations between them), knowledge graph population (extract (subject, relation, object) triples from text), and question answering (identify answer entity type from the question). Used in financial news monitoring (extract company names, stock tickers, executives), medical record processing (drugs, diseases, genes), and legal document analysis."
+    },
+    {
+      "title": "Search and recommendation systems",
+      "body": "Entity recognition enables entity-aware search: queries for 'Apple stock' vs 'apple recipe' are disambiguated by recognizing ORG vs not-an-entity. E-commerce search uses NER to identify product brands, attributes, and sizes in queries. News recommendation tags articles by entities mentioned — enabling personalization based on user's entity interests."
+    },
+    {
+      "title": "Anonymization and PII detection",
+      "body": "GDPR compliance and data privacy require detecting and redacting PII (Personal Identifying Information): names, addresses, phone numbers, email addresses, social security numbers. NER models trained for PII detection identify these spans for redaction before data is shared or stored. The challenge: PII detection requires very high recall (missing one instance is costly) — false negative cost >> false positive cost."
+    }
+  ],
+  "deepDiveIntro": [
+    "BIO tagging scheme: B-X (Begin entity of type X), I-X (Inside entity of type X), O (Outside). BIOES extends this: E-X (End of entity), S-X (Single-token entity). For nested entities (e.g., 'New York Times' contains LOC 'New York'), standard flat NER cannot represent the nesting — nested NER requires different architectures (span-based, hypergraph).",
+    "Evaluation: precision = TP/(TP+FP), recall = TP/(TP+FN), F1 = 2PR/(P+R), computed at the entity level (an entity is correct only if both its span and type are correct). CoNLL-2003 English benchmark: BERT-large achieves F1 ≈ 93.5 on test set. OntoNotes 5.0 (18 entity types, news + web + broadcast): F1 ≈ 89–91 for transformer-based models."
+  ],
+  "deepDive": [
+    {
+      "heading": "BIO/BIOES Tagging and CRF Decoding",
+      "body": "Linear-chain CRF over BERT token representations: P(y|x) = (1/Z(x)) exp(ΣₜΣₖλₖfₖ(yₜ₋₁,yₜ,x,t)). Features: BERT contextualized representation at each position, transition scores between tag pairs. CRF enforces valid tag sequences (no I-PER after O or B-LOC). Viterbi decodes the optimal tag sequence. Without CRF, an independently classified softmax can produce invalid sequences like [O, I-PER]. [1]",
+      "formula": "BIO: B-TYPE (begin),  I-TYPE (inside),  O (outside)"
+    },
+    {
+      "heading": "BERT Fine-tuning for NER",
+      "body": "Architecture: BERT encoder → token-level linear layer → (optional CRF). Fine-tuning: subword tokens get individual predictions; entity prediction uses the first subword token of each word (or average across subwords). Handling of subword tokenization: 'Washington' may be ['Washington'] (single token) or ['Wash', '##ington'] — only the first subword gets the entity label; others get 'X' (ignored in loss). BERT-large achieves 93.5 F1 on CoNLL-2003 (Devlin et al. 2019). [2]"
+    },
+    {
+      "heading": "Domain Adaptation and Few-Shot NER",
+      "body": "General-domain NER (news text) transfers poorly to scientific (biomedical: genes, proteins, diseases), legal (case citations, acts), and financial (tickers, metrics) domains. Approaches: (1) Fine-tune on domain-specific annotated data (BioBERT, SciBERT, FinBERT); (2) Few-shot NER using prototype networks or prompt-based methods (GPT-3 in-context NER); (3) Gazetteer augmentation — entity dictionaries as soft features. The key bottleneck: annotation cost is high for domain NER, especially for nested or overlapping entities. [1]"
+    },
+    {
+      "heading": "Nested and Overlapping NER",
+      "body": "Flat NER cannot represent nested entities: in 'Bank of China', 'Bank of China' (ORG) contains 'China' (GPE). Span-based NER: enumerate all spans up to length L, classify each independently. Hypergraph NER (Lu & Roth 2015): represents overlapping/nested mentions in a graph structure. SentSpan (Wan et al. 2022): transformer-based span enumeration with biaffine attention for scoring. Nested NER is common in biomedical text (disease within protein binding site description). [1]"
+    }
+  ],
+  "youtubeLabel": "Named Entity Recognition — Lena Voita",
+  "youtubeUrl": "https://www.youtube.com/embed/ORgDGm_1B_s",
+  "takeaways": [
+    "NER: sequence labeling in BIO format — B-TYPE, I-TYPE, O; entity correct only if span AND type match. [1]",
+    "BERT fine-tuning with CRF layer achieves F1 >93 on CoNLL-2003; CRF enforces valid tag transitions. [2]",
+    "Evaluation at entity level (span + type must both be correct); precision, recall, F1 standard metrics. [1]",
+    "Flat NER cannot represent nested entities — span-based or hypergraph approaches needed. [1]",
+    "Domain adaptation critical: general-domain models fail on biomedical, legal, financial entities. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How does NER handle entity boundaries for subword tokenization?",
+      "a": "BERT tokenizes words into subwords; NER labels are assigned at word level (not subword). Standard approach: assign the entity label to the first subword of each word; mark continuation subwords with a special 'X' label that is ignored in loss computation. Alternative: average subword representations before classification. The mismatch between tokenization and word-level annotation is a subtle implementation detail that significantly affects model performance if handled incorrectly. [2]"
+    },
+    {
+      "q": "Why is NER F1 not sufficient as the sole evaluation metric?",
+      "a": "F1 is averaged over entity types, which masks per-type performance. Rare entity types (e.g., PRODUCT in CoNLL-2003 has few examples) have high variance F1 estimates. For imbalanced datasets, macro-F1 (average across types) vs micro-F1 (weighted by support) give different pictures. For high-stakes applications (PII detection), recall on specific entity types (PERSON, EMAIL) matters more than overall F1. Always report per-type F1 and support counts alongside overall scores. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Jurafsky & Martin — Speech and Language Processing (3rd ed.), Ch. 8", "url": "https://web.stanford.edu/~jurafsky/slp3/" },
+    { "label": "Devlin et al. (2019) — BERT: Pre-training of Deep Bidirectional Transformers, NAACL 2019", "url": "https://aclanthology.org/N19-1423/" }
+  ]
+}

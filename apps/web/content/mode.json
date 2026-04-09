@@ -1,0 +1,74 @@
+{
+  "eli3": [
+    "The mode is the value that appears most often in a dataset. If you have {1, 2, 2, 3, 4}, the mode is 2 — it shows up twice while every other number shows up once.",
+    "A dataset can have more than one mode (bimodal, multimodal) if multiple values tie for highest frequency. A dataset where every value is unique has no mode. For continuous data, you estimate the mode from the peak of a density curve.",
+    "The mode is the only measure of centre that applies to categorical (nominal) data. You can ask 'what is the most common eye colour?' but not 'what is the mean eye colour?' — mode is the right tool for categorical distributions."
+  ],
+  "whenWhy": [
+    {
+      "title": "Categorical data — only valid measure of centre",
+      "body": "For nominal data (eye colour, product category, survey responses), mean and median are undefined. The mode — the most frequent category — is the only meaningful measure of central tendency. In classification, a majority-vote ensemble uses the modal class."
+    },
+    {
+      "title": "Identifying the most likely outcome",
+      "body": "The mode is the maximum a posteriori (MAP) estimate of a distribution. If you need a single 'best guess' that maximises the probability of being exactly correct, the mode is the answer — unlike the mean or median which minimise squared or absolute error respectively."
+    },
+    {
+      "title": "Detecting bimodality and mixture distributions",
+      "body": "A dataset with two modes suggests the data may come from two different subpopulations (a mixture distribution). Identifying bimodality via kernel density estimation and locating the two modes is an exploratory step before fitting Gaussian Mixture Models."
+    },
+    {
+      "title": "Robust in the presence of outliers",
+      "body": "The mode ignores magnitude entirely — only frequency matters. It is immune to outliers in the same way as the median. However, it can be unstable for continuous data: a small perturbation can shift which value is most frequent."
+    }
+  ],
+  "deepDiveIntro": [
+    "For a discrete distribution, the mode is argmax_x P(X = x). For a continuous distribution with density f(x), the mode is argmax_x f(x). The mode is the MAP estimator under a uniform prior — the value that maximises the likelihood.",
+    "Unlike mean and median, the mode need not be unique. A distribution with two equal maxima is bimodal; with k equal maxima, k-modal. For unimodal symmetric distributions (normal, uniform), mean = median = mode. For right-skewed distributions, mode < median < mean."
+  ],
+  "visualizationType": "mode",
+  "deepDive": [
+    {
+      "heading": "Discrete Mode",
+      "body": "Mode = argmax_x P(X = x) or equivalently argmax_x count(x). For a Bernoulli(p): mode = 1 if p > 0.5, mode = 0 if p < 0.5, both if p = 0.5. For a Binomial(n,p): mode = ⌊(n+1)p⌋ or ⌊(n+1)p⌋−1. For a Poisson(λ): mode = ⌊λ⌋ or ⌊λ⌋−1 if λ is integer, else ⌊λ⌋. [1]",
+      "formula": "Mode = argmax_x P(X = x)"
+    },
+    {
+      "heading": "Continuous Mode and Kernel Density Estimation",
+      "body": "For continuous data, estimate the density via KDE: f̂(x) = (1/nh)Σᵢ K((x−xᵢ)/h). The mode is the peak of f̂(x). Bandwidth h controls smoothness — too small: spiky estimate with many local maxima; too large: over-smoothed, bimodality masked. Silverman's rule-of-thumb: h = 1.06 σ̂ n^{−1/5}. [1]"
+    },
+    {
+      "heading": "Mode as MAP Estimator",
+      "body": "In Bayesian inference, the MAP estimate is θ_MAP = argmax_θ p(θ|data) = argmax_θ [p(data|θ)p(θ)]. With a uniform prior, MAP = MLE. The mode of the posterior is the MAP point estimate — it maximises the probability density, unlike the posterior mean which minimises posterior expected squared error. [2]",
+      "formula": "θ_MAP = argmax_θ p(θ|data)"
+    },
+    {
+      "heading": "Mode in Skewed Distributions",
+      "body": "For unimodal right-skewed distributions, mode < median < mean. The relationship is approximate: mean − mode ≈ 3(mean − median) (Pearson's empirical rule — not exact, but a useful heuristic). This ordering also holds for the log-normal distribution: mode = e^{μ−σ²}, median = e^μ, mean = e^{μ+σ²/2}. [1]"
+    }
+  ],
+  "youtubeLabel": "Mean, Median, Mode — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/mk8tOD0t8M0",
+  "takeaways": [
+    "Mode = most frequent value; argmax of the probability mass/density function. [1]",
+    "Only measure of centre valid for nominal (categorical) data. [1]",
+    "MAP estimator = mode of the posterior; with uniform prior, MAP = MLE. [2]",
+    "Bimodality in data suggests a mixture of two subpopulations — diagnose before modelling. [1]",
+    "For right-skewed distributions: mode < median < mean. [1]",
+    "For continuous data, estimate the mode from the peak of a kernel density estimate. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What does it mean for a distribution to be multimodal, and why does it matter?",
+      "a": "A multimodal distribution has multiple local maxima in its density. Practically, it suggests the data is a mixture of subpopulations (e.g. height data pooling men and women is bimodal). Fitting a single-mode model (like a Gaussian) to multimodal data produces poor predictions. Always visualise with a histogram or KDE before choosing a model. [1]"
+    },
+    {
+      "q": "Is the mode a consistent estimator of the population mode?",
+      "a": "For discrete distributions: yes, the sample mode converges to the population mode as n→∞ under mild conditions. For continuous distributions: the mode of the empirical distribution is undefined (every observation appears exactly once), so you must use a KDE-based estimator, which is consistent but converges slowly — at rate n^{-2/5} (slower than n^{-1/2} for mean and median). [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 2", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" },
+    { "label": "DeGroot & Schervish — Probability and Statistics (4th ed.), Ch. 7", "url": "https://www.pearson.com/en-us/subject-catalog/p/probability-and-statistics/P200000006158" }
+  ]
+}

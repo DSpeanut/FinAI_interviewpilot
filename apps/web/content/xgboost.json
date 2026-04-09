@@ -1,0 +1,90 @@
+{
+  "eli3": [
+    "XGBoost is a heavily engineered version of gradient boosting. The core idea is the same — build trees one at a time, each correcting the mistakes of the last — but XGBoost adds three things: a mathematical regularisation term to prevent overfitting, a second-order Taylor approximation of the loss that makes finding the best splits more principled, and a highly optimised C++ implementation that is much faster than standard gradient boosting.",
+    "The regularisation term penalises both the number of leaves in each tree and the size of the leaf weights. This acts like pruning every tree automatically, keeping the model from memorising noise.",
+    "XGBoost also introduces several practical tricks: approximate split finding for large datasets, sparsity-aware computation (handles missing values natively), column subsampling, and built-in cross-validation with early stopping."
+  ],
+  "whenWhy": [
+    {
+      "title": "Winning tabular ML competitions",
+      "body": "XGBoost dominated Kaggle from 2014–2017 and remains a top performer on structured data. Its regularisation, second-order gradients, and approximate split finding give it an edge over vanilla gradient boosting on most real-world datasets."
+    },
+    {
+      "title": "Large datasets requiring speed",
+      "body": "XGBoost's parallel tree construction (splits evaluated in parallel across features), histogram-based split finding, and out-of-core computation make it feasible on datasets that would be impractical for scikit-learn's GradientBoosting. Its GPU support (device='cuda') provides further 10-50× speedup."
+    },
+    {
+      "title": "Missing value handling",
+      "body": "XGBoost learns which direction to send missing values at each split (left or right) based on which direction reduces loss more during training. No imputation needed — a significant practical advantage."
+    },
+    {
+      "title": "When you need built-in regularisation",
+      "body": "L1 (alpha) and L2 (lambda) penalties on leaf weights and tree complexity (gamma) are built into the objective. This gives fine-grained control over regularisation that vanilla GBM does not provide."
+    }
+  ],
+  "deepDiveIntro": [
+    "XGBoost (Chen & Guestrin, 2016) reformulates gradient boosting using a second-order Taylor expansion of the loss function at each step. This allows an exact closed-form solution for leaf weights and a principled split scoring criterion — without numerically searching for the best leaf prediction.",
+    "The regularised objective adds Ω(f) = γT + ½λΣⱼwⱼ² to the loss at each boosting step, where T is the number of leaves, wⱼ is the j-th leaf weight, and γ, λ are hyperparameters. This penalises tree complexity and large weights simultaneously."
+  ],
+  "visualizationType": "xgboost",
+  "deepDive": [
+    {
+      "heading": "Second-Order Taylor Approximation",
+      "body": "At step m, XGBoost approximates the loss for adding tree f as: ℓ_approx = Σᵢ [gᵢ f(xᵢ) + ½hᵢ f(xᵢ)²] + Ω(f), where gᵢ = ∂L(yᵢ,ŷᵢ)/∂ŷᵢ is the first-order gradient (same as GBM) and hᵢ = ∂²L(yᵢ,ŷᵢ)/∂ŷᵢ² is the second-order Hessian. Using the Hessian makes the update adaptive to local curvature of the loss. [1]",
+      "formula": "ℒ_approx = Σᵢ [ gᵢ f(xᵢ) + ½hᵢ f(xᵢ)² ] + Ω(f)"
+    },
+    {
+      "heading": "Optimal Leaf Weights & Split Score",
+      "body": "For a fixed tree structure (which samples go to which leaves), the optimal leaf weight for leaf j is: w*ⱼ = −Gⱼ/(Hⱼ + λ), where Gⱼ = Σᵢ∈leaf_j gᵢ and Hⱼ = Σᵢ∈leaf_j hᵢ. The gain from splitting a leaf into left/right children is: Gain = ½[G²_L/(H_L+λ) + G²_R/(H_R+λ) − (G_L+G_R)²/(H_L+H_R+λ)] − γ. Only accept splits with Gain > 0. [1]",
+      "formula": "w*ⱼ = −Gⱼ / (Hⱼ + λ),    Gain = ½[G²_L/(H_L+λ) + G²_R/(H_R+λ) − (G_L+G_R)²/(H_L+H_R+λ)] − γ"
+    },
+    {
+      "heading": "Regularisation Parameters",
+      "body": "γ (min_split_loss): minimum gain required to make a split. Increase γ to prune more aggressively. λ (reg_lambda, default 1): L2 penalty on leaf weights — smoothes predictions. α (reg_alpha, default 0): L1 penalty on leaf weights — induces sparsity. max_depth and min_child_weight (minimum Hessian sum in a leaf) provide additional tree-level regularisation. [1]"
+    },
+    {
+      "heading": "Approximate Split Finding",
+      "body": "Exact split finding requires sorting all feature values for each split — O(n log n) per feature. For large n, XGBoost uses an approximate algorithm: bin feature values into quantile-based buckets, evaluate splits only at bucket boundaries. This reduces O(n) to O(bins) ≈ O(256) per feature without meaningful accuracy loss. [1]"
+    },
+    {
+      "heading": "Sparsity-Aware Split Assignment",
+      "body": "For missing values and one-hot encoded sparse features, XGBoost learns a default direction (left or right) for each split based on which direction reduces training loss more. This allows it to handle missing values natively and process sparse matrices efficiently — critical for high-dimensional categorical data. [1]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: XGBoost",
+  "youtubeUrl": "https://www.youtube.com/embed/OtD8wVaFm6E",
+  "takeaways": [
+    "XGBoost uses a second-order Taylor approximation of the loss, giving a closed-form for optimal leaf weights: w*ⱼ = −Gⱼ/(Hⱼ+λ). [1]",
+    "Regularisation: γ penalises number of splits, λ penalises leaf weight magnitudes, α adds L1 sparsity. [1]",
+    "Gain formula determines split quality; only accept splits with Gain > 0 (controlled by γ). [1]",
+    "Approximate split finding bins features into quantiles — faster than exact search for large n. [1]",
+    "Missing values are handled natively via learned default directions at each split. [1]",
+    "Key tuning: n_estimators + early stopping, learning_rate, max_depth (3–10), min_child_weight, subsample, colsample_bytree. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What is the difference between XGBoost, LightGBM, and CatBoost?",
+      "a": "All three are regularised gradient boosting implementations. XGBoost: level-wise tree growth, second-order Taylor expansion, solid baseline. LightGBM: leaf-wise (best-first) growth — faster and often more accurate on large datasets. CatBoost: ordered boosting to prevent target leakage, superior native categorical handling. In practice, LightGBM is fastest, CatBoost is best for heavy categorical features, XGBoost has the most mature ecosystem. [1]"
+    },
+    {
+      "q": "How does min_child_weight affect regularisation?",
+      "a": "min_child_weight is the minimum sum of instance Hessians required in a leaf. For MSE loss, Hessians are all 1, so it equals minimum number of samples per leaf. For log-loss, Hessians are p(1−p) ≤ 0.25, so min_child_weight = 10 requires ~40 samples in a leaf. Increasing min_child_weight is equivalent to restricting splits to regions with enough curvature information. [1]"
+    },
+    {
+      "q": "What is monotone constraint and why use it?",
+      "a": "XGBoost supports monotone constraints: force a feature's effect to be non-decreasing or non-increasing across all leaf values. This injects domain knowledge (e.g. 'higher credit score should never decrease approval probability') and prevents the model from learning spurious inversions caused by noise. Set monotone_constraints=(1, 0, -1, ...) per feature. [1]"
+    },
+    {
+      "q": "How do you prevent overfitting in XGBoost?",
+      "a": "Primary controls: (1) reduce learning_rate and increase n_estimators with early stopping; (2) reduce max_depth (3–6 typically sufficient); (3) increase min_child_weight; (4) add subsampling (subsample=0.8, colsample_bytree=0.8); (5) increase reg_alpha and reg_lambda; (6) increase gamma. Use cross-validation with early stopping (nrounds, early_stopping_rounds) to find optimal n_estimators. [1]"
+    },
+    {
+      "q": "Can XGBoost handle multi-output or survival tasks?",
+      "a": "Yes via custom objectives. XGBoost accepts any loss function where you can provide the gradient (gᵢ) and Hessian (hᵢ) vectors. This enables survival regression (Cox partial likelihood), learning-to-rank (LambdaMART-style gradients), and multi-label classification. The objective='reg:squaredlogerror', 'rank:pairwise', and 'survival:cox' are built-in examples. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Chen & Guestrin — XGBoost: A Scalable Tree Boosting System (2016)", "url": "https://arxiv.org/abs/1603.02754" },
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 10", "url": "https://hastie.su.domains/ElemStatLearn/" }
+  ]
+}

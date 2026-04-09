@@ -1,0 +1,73 @@
+{
+  "eli3": [
+    "A 95% confidence interval (CI) does NOT mean there is a 95% probability the true parameter lies inside a particular computed interval. The true parameter is fixed (not random); it either is or isn't in the interval. The correct interpretation: if you repeated this procedure on many independent samples, 95% of the resulting intervals would contain the true parameter.",
+    "The CI is built by inverting a hypothesis test. For a two-sided test of H₀: μ = μ₀ at level α, the set of all μ₀ values not rejected is exactly the (1−α) CI. This duality means a 95% CI excludes exactly the values that would be rejected at α = 0.05.",
+    "Wider CIs mean more uncertainty (smaller sample, higher variability, or higher confidence level). The z-interval [x̄ ± z_{α/2} σ/√n] uses known σ; the t-interval [x̄ ± t_{n−1, α/2} s/√n] uses estimated σ and has heavier-tailed critical values — especially important for small n."
+  ],
+  "whenWhy": [
+    {
+      "title": "Reporting uncertainty in parameter estimates",
+      "body": "CIs are the primary tool for communicating estimation uncertainty. A point estimate alone (e.g., 'the effect is 3.2 units') gives no sense of precision. A CI ('3.2 ± 1.1 units, 95% CI [2.1, 4.3]') immediately conveys how confident you are. Journals and reporting guidelines (APA, AMA) require CIs alongside effect estimates."
+    },
+    {
+      "title": "Equivalence to hypothesis testing",
+      "body": "A parameter value θ₀ is rejected at level α if and only if it lies outside the (1−α) CI. This duality is exact for standard tests. Use CIs instead of p-values when you care about effect magnitude, not just whether an effect is nonzero. A CI that excludes 0 corresponds to a significant test, but also tells you the plausible range."
+    },
+    {
+      "title": "Proportion CIs: Wilson over Wald",
+      "body": "For binary outcomes (proportion p̂ = k/n), the standard Wald CI [p̂ ± z_{α/2}√(p̂(1−p̂)/n)] has poor coverage when p is near 0 or 1, or n is small. The Wilson (score) interval has much better coverage and should be the default. Use exact (Clopper-Pearson) CI when exact coverage is critical."
+    },
+    {
+      "title": "Bootstrap CIs for complex estimators",
+      "body": "When the sampling distribution of an estimator is analytically intractable (median, correlation, model predictions), bootstrap CIs provide a nonparametric alternative. The BCa (bias-corrected and accelerated) bootstrap CI has better coverage properties than the naive percentile interval."
+    }
+  ],
+  "deepDiveIntro": [
+    "A (1−α) confidence interval for θ is a random interval [L(X), U(X)] constructed from the data such that P(L(X) ≤ θ ≤ U(X)) = 1−α for all θ. The key: [L(X), U(X)] is random (varies with the sample); θ is fixed. Coverage probability is a pre-experiment property of the procedure, not a post-experiment probability for a specific interval.",
+    "For a single observation X ~ N(θ, σ²) with σ known, a 95% CI is [X − 1.96σ, X + 1.96σ] because P(|X−θ|/σ ≤ 1.96) = 0.95. The pivot (X−θ)/σ ~ N(0,1) has a distribution free of the unknown parameter θ — this pivot-based construction generalizes to other settings."
+  ],
+  "deepDive": [
+    {
+      "heading": "z-interval (known σ)",
+      "body": "With X₁,…,Xₙ iid N(μ,σ²) and σ known: x̄ ~ N(μ, σ²/n). Pivot: Z = (x̄−μ)/(σ/√n) ~ N(0,1). 95% CI: x̄ ± 1.96·σ/√n. By CLT, this is approximately valid for large n from any distribution. Width = 2·z_{α/2}·σ/√n → to halve the width, quadruple n. [1]",
+      "formula": "CI: x̄ ± z_{α/2} · σ/√n"
+    },
+    {
+      "heading": "t-interval (unknown σ)",
+      "body": "With σ unknown, replace σ with sample std s: T = (x̄−μ)/(s/√n) ~ t(n−1). 95% CI: x̄ ± t_{n−1,0.025}·s/√n. For n = 10, t_{9,0.025} = 2.262 (wider than 1.96). For n > 30, t ≈ z. The t-interval is exact for normal data; approximately valid for large n from non-normal distributions by the CLT. [1]",
+      "formula": "CI: x̄ ± t_{n−1,α/2} · s/√n"
+    },
+    {
+      "heading": "Wilson CI for Proportions",
+      "body": "Wald CI: p̂ ± z_{α/2}√(p̂(1−p̂)/n) — poorly calibrated near p = 0 or 1. Wilson (score) CI inverts the score test statistic and has near-nominal coverage for all p and moderate n: center = (p̂ + z²/2n)/(1 + z²/n), half-width = z/(1+z²/n) · √(p̂(1−p̂)/n + z²/4n²), where z = z_{α/2}. Default recommendation for binary data. [1]"
+    },
+    {
+      "heading": "Common Misconceptions",
+      "body": "WRONG: 'There is a 95% probability that μ is in [2.1, 4.3].' μ is fixed; probability doesn't apply to it post hoc. WRONG: 'This specific interval [2.1, 4.3] was constructed by a procedure that is correct 95% of the time.' RIGHT: 'If this procedure were repeated many times, 95% of the resulting intervals would contain μ.' — Neyman (1937). The Bayesian credible interval IS a probability statement about the parameter, but requires a prior. [2]"
+    }
+  ],
+  "youtubeLabel": "Confidence Intervals — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/TqOeMYtOc1w",
+  "takeaways": [
+    "95% CI: if repeated, 95% of such intervals would contain θ. NOT a probability about θ being in this specific interval. [1]",
+    "z-interval (σ known): x̄ ± z_{α/2}·σ/√n; t-interval (σ unknown): x̄ ± t_{n−1,α/2}·s/√n. [1]",
+    "CI width ∝ 1/√n — quadruple n to halve the width. [1]",
+    "For proportions, Wilson (score) CI outperforms Wald CI, especially near p = 0 or 1. [1]",
+    "Duality: θ₀ is outside the (1−α) CI ↔ H₀: θ = θ₀ is rejected at significance level α. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Can a 95% CI contain values with p-value > 0.05?",
+      "a": "No — the duality is exact for standard tests. Every value inside the (1−α) CI corresponds to a hypothesis not rejected at level α; every value outside is rejected. However, this duality only holds for the same test statistic used to construct both. If you compute a t-interval but evaluate significance via a different test (e.g., permutation test), the duality may not hold exactly. [1]"
+    },
+    {
+      "q": "What does 'confidence level' mean for a single computed interval?",
+      "a": "Once you observe data and compute a specific interval [2.1, 4.3], the frequentist framework gives no probability statement about that specific interval — the unknown μ either is or isn't in it, and we cannot know. The 95% refers to the procedure, not the realization. If you want a probability statement ('P(μ ∈ [2.1, 4.3] | data) = 0.95'), you need a Bayesian credible interval with a prior on μ. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 9", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" },
+    { "label": "Neyman (1937) — Outline of a Theory of Statistical Estimation, Phil. Trans. Royal Soc. A 236", "url": "https://doi.org/10.1098/rsta.1937.0005" },
+    { "label": "Wilson (1927) — Probable Inference, the Law of Succession, and Statistical Inference, JASA 22(158)", "url": "https://doi.org/10.2307/2276774" }
+  ]
+}

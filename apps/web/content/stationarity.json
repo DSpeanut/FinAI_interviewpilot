@@ -1,0 +1,65 @@
+{
+  "eli3": [
+    "A time series {Yₜ} is weakly (covariance) stationary if its mean, variance, and autocovariances are constant over time and depend only on the lag between observations, not on absolute time. Formally: E[Yₜ] = μ (constant), Var(Yₜ) = σ² (constant), Cov(Yₜ, Yₜ₋ₖ) = γ(k) depends only on lag k, not on t. Stationarity is the key assumption for most time series analysis.",
+    "Non-stationary series include: random walks (Yₜ = Yₜ₋₁ + εₜ, which has a time-varying variance: Var(Yₜ) = tσ²), series with trends (mean changes over time), and series with seasonal effects. Spurious regression is the classic danger: regressing two independent random walks gives a significant R² and t-statistic purely by chance, because both wander together over time.",
+    "Many non-stationary series can be made stationary by differencing. An ARIMA(p,d,q) model applies d differences to achieve stationarity. A series that requires d differences is said to be integrated of order d, or I(d). Most economic and financial time series are I(1) — one difference suffices. Two I(1) series that share a long-run equilibrium are cointegrated."
+  ],
+  "whenWhy": [
+    {
+      "title": "Prerequisite for standard time series models",
+      "body": "ARMA models (AR, MA, ARMA) are only valid for stationary series. Their parameters (AR coefficients φ, MA coefficients θ) are well-defined and estimation via Yule-Walker or MLE is valid only under stationarity. Applying ARMA to a non-stationary series produces misleading parameter estimates and forecasts that diverge."
+    },
+    {
+      "title": "Avoiding spurious regression",
+      "body": "Regressing two independent I(1) random walks in OLS: R² and t-statistics indicate a strong relationship purely by chance — as n→∞, the t-statistic diverges and R²→1 regardless of whether the variables are truly related. Granger & Newbold (1974) documented this phenomenon. Solution: test for stationarity first; if series are I(1), either difference them (ARIMA) or test for cointegration before regression."
+    },
+    {
+      "title": "Cointegration: modeling long-run relationships",
+      "body": "Two I(1) series Yₜ and Xₜ are cointegrated if there exists β such that Yₜ − βXₜ is I(0) (stationary). The series share a long-run equilibrium relationship. Engle-Granger: test the residuals eₜ = Yₜ − β̂Xₜ for stationarity. Johansen procedure tests for multiple cointegrating vectors. Error correction models (VECM) model both short-run dynamics and the long-run reversion to equilibrium."
+    }
+  ],
+  "deepDiveIntro": [
+    "Weak stationarity: (1) E[Yₜ] = μ for all t; (2) Var(Yₜ) = σ² < ∞ for all t; (3) Cov(Yₜ,Yₜ₋ₖ) = γ(k) for all t. The autocorrelation function (ACF): ρ(k) = γ(k)/γ(0) = Corr(Yₜ,Yₜ₋ₖ). Strict stationarity: the joint distribution of (Yₜ₁,…,Yₜₘ) is invariant to time shifts — stronger than weak stationarity; for Gaussian processes they coincide.",
+    "The random walk Yₜ = Yₜ₋₁ + εₜ (εₜ ~ WN(0,σ²)) is a special case of an AR(1) with φ₁ = 1 (unit root). It is I(1): ΔYₜ = εₜ ~ WN (stationary). Properties: E[Yₜ] = Y₀, Var(Yₜ) = tσ² (grows without bound), Cov(Yₜ,Yₛ) = min(t,s)σ² (depends on t and s, not just |t−s|). Impulse responses: effects of shocks are permanent (no mean reversion)."
+  ],
+  "deepDive": [
+    {
+      "heading": "Stationarity Conditions for AR(1)",
+      "body": "AR(1): Yₜ = φ₁Yₜ₋₁ + εₜ. Stationarity condition: |φ₁| < 1. Under stationarity: E[Yₜ] = 0, Var(Yₜ) = σ²/(1−φ₁²), γ(k) = φ₁ᵏ·σ²/(1−φ₁²). For |φ₁| = 1: random walk (unit root, non-stationary). For |φ₁| > 1: explosive (unstable). For AR(p): Yₜ = φ₁Yₜ₋₁+…+φₚYₜ₋ₚ+εₜ. Stationarity ↔ all roots of the characteristic polynomial φ(z) = 1−φ₁z−…−φₚzᵖ lie outside the unit circle |z| > 1. [1]",
+      "formula": "AR(1) stationary ↔ |φ₁| < 1;  AR(p) stationary ↔ roots of φ(z)=0 lie outside unit circle"
+    },
+    {
+      "heading": "Unit Root and Integration",
+      "body": "A series is I(0) (integrated of order 0) if stationary. I(1): ΔYₜ = Yₜ − Yₜ₋₁ is I(0). I(d): d-th difference is I(0). Most macro/financial time series are I(1): GDP, prices, interest rates (level), stock prices. I(2) series (e.g., price level with accelerating inflation) are rarer. The order of integration determines the appropriate transformation: for I(1), use first differences; for I(d), apply d differences before fitting ARMA. [1]"
+    },
+    {
+      "heading": "Trend Stationarity vs Difference Stationarity",
+      "body": "Trend stationary (TS): Yₜ = μ + βt + εₜ where εₜ is stationary. The series has a deterministic trend; detrending (subtracting β̂t) renders it stationary. Difference stationary (DS, unit root): Yₜ = Yₜ₋₁ + εₜ (random walk with or without drift). Differencing renders it stationary. TS and DS have different implications: TS — shocks are transitory (series returns to trend); DS — shocks are permanent. Distinguishing TS vs DS requires unit root tests (ADF) — the choice affects forecasting behavior dramatically. [1]"
+    },
+    {
+      "heading": "Cointegration and Error Correction",
+      "body": "If Yₜ and Xₜ are I(1) and cointegrated with β: Yₜ − βXₜ = uₜ ~ I(0). The error correction model (ECM): ΔYₜ = α(Yₜ₋₁ − βXₜ₋₁) + γΔXₜ₋₁ + εₜ. The term α(Yₜ₋₁ − βXₜ₋₁) is the error correction term: when the series deviates from equilibrium, it is pulled back at rate α. Engle & Granger (1987, Nobel Prize 2003): spurious regression is avoided by testing for cointegration before modeling the long-run relationship. [1]"
+    }
+  ],
+  "takeaways": [
+    "Weak stationarity: constant mean, variance, and autocovariance γ(k) depending only on lag k. [1]",
+    "AR(1) stationary iff |φ₁| < 1; random walk (φ₁ = 1) is I(1) with variance growing as tσ². [1]",
+    "Spurious regression: two independent I(1) series yield significant R² and t by chance — always test stationarity first. [1]",
+    "TS (trend stationary) vs DS (difference stationary): different shock persistence, different correction method. [1]",
+    "Cointegration: two I(1) series with stable long-run relationship; model with ECM (error correction model). [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Is a stationary series always mean-reverting?",
+      "a": "Yes — stationarity implies mean reversion in the sense that the series cannot drift arbitrarily far from its mean. For an AR(1) with |φ₁| < 1: after a shock, Yₜ converges back to μ at geometric rate φ₁ᵏ. For |φ₁| close to 1 (near unit root): mean reversion is very slow — the series looks non-stationary over short horizons. The distinction between I(0) with φ₁ = 0.99 and a true unit root (I(1)) is nearly undetectable in finite samples — this is the low power problem of unit root tests. [1]"
+    },
+    {
+      "q": "Can a non-stationary series have a constant mean?",
+      "a": "Yes — a random walk with drift: Yₜ = μ + Yₜ₋₁ + εₜ has E[Yₜ] = Y₀ + μt (a time-varying mean despite the constant drift term μ). More subtly, a stationary AR process centered at a non-zero mean (E[Yₜ] = μ ≠ 0) is still stationary because the mean is constant, even though it is non-zero. Non-stationarity is about the mean/variance/autocovariance changing over time — not about having a non-zero mean. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Hamilton — Time Series Analysis, Ch. 15–17", "url": "https://press.princeton.edu/books/hardcover/9780691042893/time-series-analysis" },
+    { "label": "Box, Jenkins, Reinsel & Ljung — Time Series Analysis: Forecasting and Control (5th ed.), Ch. 2", "url": "https://www.wiley.com/en-us/Time+Series+Analysis%3A+Forecasting+and+Control%2C+5th+Edition-p-9781118675021" }
+  ]
+}

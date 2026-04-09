@@ -1,0 +1,65 @@
+{
+  "eli3": [
+    "Masked Language Modeling (MLM) is a pre-training objective where random tokens in a sentence are replaced with a [MASK] token, and the model must predict the original tokens. Unlike autoregressive LMs that predict left-to-right, MLM lets the model see the full sentence in both directions (except the masked positions), learning richer bidirectional representations.",
+    "BERT (Devlin et al. 2019) introduced MLM as its primary pre-training task. Strategy: randomly select 15% of tokens; replace 80% of those with [MASK], 10% with a random token, 10% keep unchanged. The 10%/10% trick prevents the model from only learning to predict [MASK] tokens — all tokens must be correctly represented. The encoder sees the full (partially masked) sentence, making representations bidirectional.",
+    "MLM produces better representations than autoregressive LM for understanding tasks (classification, NER, QA) because each token's representation benefits from both left and right context. The trade-off: MLM models cannot directly generate text (no left-to-right factorization). They excel as encoders: take the [CLS] token representation for classification, or token representations for token-level tasks (NER, SQuAD)."
+  ],
+  "whenWhy": [
+    {
+      "title": "Pre-training encoders for understanding tasks",
+      "body": "MLM pre-training produces powerful encoder representations. Fine-tuning protocol: take pre-trained BERT, add a task-specific head (linear classifier on [CLS] for classification, token-level classifier for NER), fine-tune on labeled data. This transfer learning approach achieves state-of-the-art on GLUE benchmark tasks (SST-2, MNLI, SQuAD) with relatively small labeled datasets. MLM encoders outperform autoregressive models on most NLU tasks due to bidirectional context."
+    },
+    {
+      "title": "Named entity recognition and span tasks",
+      "body": "For token-level tasks (NER, POS tagging, coreference), bidirectional context is critical: whether 'Apple' refers to the company or fruit depends on surrounding words. BERT-style MLM produces a contextualized representation for each token that already incorporates full sentence context. Fine-tuning: add a linear layer on top of each token representation, train on labeled NER data. Outperforms LSTM-CRF and other sequence labeling models that use only left context."
+    },
+    {
+      "title": "Variants: RoBERTa, DeBERTa, ALBERT",
+      "body": "MLM became the dominant pre-training paradigm for encoders with many variants. RoBERTa (Liu et al. 2019): larger batches, more data, no NSP, dynamic masking (re-mask each epoch) — significant gains over BERT. ALBERT (Lan et al. 2020): parameter sharing across layers + sentence-order prediction instead of NSP — 89× fewer parameters than BERT-large with similar performance. DeBERTa (He et al. 2021): disentangled attention for position and content separately — best encoder on many GLUE tasks."
+    }
+  ],
+  "deepDiveIntro": [
+    "MLM objective: L_MLM = −Σ_{i ∈ M} log P(wᵢ | w_{[M]\\i}; θ), where M is the set of masked positions and w_{[M]\\i} is the sequence with all masked tokens replaced (by [MASK] or random). Only masked positions contribute to the loss — the model predicts the vocabulary distribution at each masked position using a linear head + softmax over vocabulary.",
+    "Architecture for MLM: transformer encoder (bidirectional self-attention). Unlike GPT (causal mask), BERT uses full attention — token i attends to all other tokens j ≠ i. This is why the representations are bidirectional. Pretraining scale: BERT-base was pre-trained on 16GB (BooksCorpus + Wikipedia), 1M steps, batch size 256. RoBERTa was pre-trained on 160GB, 500K steps, batch size 8192. Scale matters significantly for MLM quality."
+  ],
+  "deepDive": [
+    {
+      "heading": "Masking Strategy and Token Selection",
+      "body": "15% token selection: chosen uniformly at random (original BERT) or using whole-word masking (SpanBERT, RoBERTa-WWM). Of selected: 80% → [MASK], 10% → random vocab token, 10% → unchanged. Rationale: the model cannot know which tokens are [MASK] vs. random vs. unchanged at test time (no [MASK] tokens in fine-tuning). This forces the model to build good representations for ALL tokens, not just [MASK] positions. Whole word masking (WWM): mask all subword tokens of a selected word — prevents easy reconstruction from partial word context. [1]",
+      "formula": "L = −(1/|M|) Σ_{i ∈ M} log P(wᵢ | x_{masked}; θ)"
+    },
+    {
+      "heading": "Span Masking Variants (SpanBERT, T5)",
+      "body": "SpanBERT (Joshi et al. 2020): mask contiguous spans rather than individual tokens. Span length sampled from geometric distribution (mean ≈ 3.8 tokens). Span Boundary Objective (SBO): predict each masked token using only the boundary token representations (first and last visible tokens on each side of span) — forces encoding of span-level information. Improves on coreference resolution and QA. T5 (Raffel et al. 2020): sentinel tokens replace masked spans — model must predict the full masked spans as a sequence (generative MLM). [1][2]"
+    },
+    {
+      "heading": "MLM vs. NSP and Sentence-Level Objectives",
+      "body": "BERT uses Next Sentence Prediction (NSP) alongside MLM: given (A, B) sentence pair, predict if B follows A in the original text (50% positive, 50% random). RoBERTa found NSP harmful — hurts MLM because NSP encourages shorter sequences. Sentence-Order Prediction (SOP, ALBERT): predict whether two sentences are in correct order (positive) or swapped (negative) — harder than NSP, more useful signal. ELECTRA: replaced token detection instead of MLM — discriminator classifies each token as real or generated by a generator network. More efficient than MLM (all tokens contribute, not just 15%). [1]"
+    },
+    {
+      "heading": "Fine-tuning BERT for Downstream Tasks",
+      "body": "Classification: input [CLS] + sentence → [CLS] token representation h_[CLS] → linear + softmax → label. Pair tasks (NLI, STS): input [CLS] + sentence A + [SEP] + sentence B + [SEP] → classify. Token classification (NER, POS): all token representations hᵢ → linear + softmax → per-token label. Span extraction (SQuAD QA): predict start/end positions of answer span — dot product of each token representation with learned start/end vectors. Fine-tuning hyperparameters: learning rate 2e-5 to 5e-5, batch size 16–32, 2–4 epochs. BERT fine-tuning is sensitive to learning rate — use linear warmup + decay. [1]"
+    }
+  ],
+  "takeaways": [
+    "MLM: mask 15% tokens (80% [MASK], 10% random, 10% original); train to predict originals — bidirectional encoder. [1]",
+    "MLM produces richer representations than causal LM for NLU tasks; cannot directly generate text. [1]",
+    "Whole-word masking and span masking improve over token-level masking for span-level tasks. [1]",
+    "RoBERTa: more data, larger batches, no NSP, dynamic masking — significantly outperforms BERT. [1]",
+    "ELECTRA: replaced token detection is more efficient than MLM (all tokens contribute to loss). [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does BERT use 80/10/10 masking rather than replacing all selected tokens with [MASK]?",
+      "a": "If 100% of selected tokens were [MASK]: (1) During fine-tuning, the model never sees [MASK] tokens (they don't appear in real text) — train/test mismatch. The model's representations for non-masked tokens might be poorly calibrated. (2) The model could learn to treat [MASK] as a special token with no effort on other tokens. The 10% random token forces the model to build good representations for every token in the vocabulary (since any token could be randomly replaced). The 10% unchanged trains the model to predict the correct token even when nothing looks masked. [1]"
+    },
+    {
+      "q": "What is ELECTRA's replaced token detection and why is it more efficient than MLM?",
+      "a": "ELECTRA (Clark et al. 2020): two-model setup. Generator (small MLM): predicts masked tokens (standard MLM). Discriminator (same-size or larger): for each token, binary classify whether it was replaced by the generator or is original. Key insight: all tokens contribute to the discriminator's loss (not just 15% as in MLM) — 15.3× more efficient signal per training step. Generator is trained to produce plausible (not obviously wrong) replacements — harder for discriminator. After pre-training, only the discriminator is fine-tuned for downstream tasks. ELECTRA-large matches RoBERTa performance with 1/4 the compute. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Devlin et al. (2019) — BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding, NAACL 2019", "url": "https://aclanthology.org/N19-1423/" },
+    { "label": "Raffel et al. (2020) — Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer (T5), JMLR 2020", "url": "https://jmlr.org/papers/v21/20-074.html" }
+  ]
+}

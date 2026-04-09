@@ -1,0 +1,66 @@
+{
+  "eli3": [
+    "The jackknife (Quenouille 1949, Tukey 1958) estimates the variance and bias of a statistic by systematically leaving out one observation at a time. Compute the statistic on each of the n leave-one-out samples of size n−1, then combine the resulting n jackknife estimates to estimate SE and bias — without any resampling randomness.",
+    "The jackknife bias estimate: Bias_jack = (n−1)(θ̄₋ − θ̂), where θ̄₋ = (1/n)Σθ̂₋ᵢ is the mean of the leave-one-out estimates. The bias-corrected jackknife estimate: θ̂_jack = nθ̂ − (n−1)θ̄₋ = θ̂ − Bias_jack. This reduces the O(1/n) bias term in many estimators to O(1/n²).",
+    "The jackknife is deterministic (no random resampling), computationally cheaper than bootstrap (only n leave-one-out evaluations vs B), and historically important. Its main limitation: it fails for non-smooth statistics (median, quantiles, max) because removing one observation may not change the statistic at all — the jackknife variance estimate is zero or misleading."
+  ],
+  "whenWhy": [
+    {
+      "title": "Bias correction for smooth estimators",
+      "body": "For estimators with O(1/n) bias (MLE of variance, correlation coefficient, many nonlinear estimators), the jackknife bias correction eliminates the leading bias term. Quenouille's original application was bias reduction for ratio estimators in survey sampling. The jackknife is exact for linear statistics and consistent for smooth nonlinear statistics."
+    },
+    {
+      "title": "Variance estimation for survey statistics",
+      "body": "The jackknife is the standard variance estimation method for complex survey designs (delete-a-group jackknife, JK1, JKn). For stratified multi-stage designs: delete one PSU from each stratum in turn and compute the survey statistic on the reduced sample. The jackknife properly accounts for stratification and clustering in variance estimation — used in NHANES, NAEP, and most national surveys."
+    },
+    {
+      "title": "Acceleration estimation for BCa bootstrap CI",
+      "body": "The acceleration constant â in the BCa bootstrap CI is estimated via the jackknife: â = (1/6)Σᵢ(θ̄₋ − θ̂₋ᵢ)³ / [Σᵢ(θ̄₋ − θ̂₋ᵢ)²]^{3/2}. The jackknife provides a computationally efficient way to estimate the rate at which the SE of θ̂ changes with the true parameter value — a key component of the BCa correction."
+    }
+  ],
+  "deepDiveIntro": [
+    "Define θ̂₋ᵢ = T(x₁,…,xᵢ₋₁,xᵢ₊₁,…,xₙ) as the estimator with observation i removed, for i = 1,…,n. The jackknife estimate of variance: Var_jack(θ̂) = [(n−1)/n]Σᵢ(θ̂₋ᵢ − θ̄₋)², where θ̄₋ = (1/n)Σθ̂₋ᵢ. The n pseudovalues are θ̃ᵢ = nθ̂ − (n−1)θ̂₋ᵢ; then Var_jack(θ̂) = (1/(n(n−1)))Σᵢ(θ̃ᵢ − θ̂_jack)².",
+    "For a smooth functional T with influence function ℓ(xᵢ;F): θ̂₋ᵢ ≈ θ̂ − ℓ(xᵢ)/n. So θ̂₋ᵢ − θ̄₋ ≈ −(ℓ(xᵢ) − ℓ̄)/n and Var_jack(θ̂) ≈ (1/n²)Σᵢ(ℓ(xᵢ) − ℓ̄)² — the variance of the influence function divided by n. This is the sandwich estimator for nonparametric variance."
+  ],
+  "deepDive": [
+    {
+      "heading": "Jackknife Variance Estimator",
+      "body": "Var_jack(θ̂) = [(n−1)/n]Σᵢ₌₁ⁿ (θ̂₋ᵢ − θ̄₋)². The factor (n−1)/n corrects for the reduced sample size in each leave-one-out estimate. For the sample mean x̄: θ̂₋ᵢ = (nx̄ − xᵢ)/(n−1); θ̄₋ = x̄; Var_jack = [(n−1)/n]·Σ(x̄ − (nx̄−xᵢ)/(n−1))²/n = s²/n — exactly the standard variance formula. Jackknife is exact for linear statistics. [1]",
+      "formula": "Var_jack(θ̂) = [(n−1)/n] Σᵢ (θ̂₋ᵢ − θ̄₋)²"
+    },
+    {
+      "heading": "Bias Reduction via Jackknife",
+      "body": "If E[θ̂] = θ + a₁/n + a₂/n² + …, then E[θ̂₋ᵢ] = θ + a₁/(n−1) + …. The jackknife estimate θ̂_jack = nθ̂ − (n−1)θ̄₋ has E[θ̂_jack] = θ + O(1/n²) — the O(1/n) bias is removed. Example: sample variance σ̂² = Σ(xᵢ−x̄)²/n has bias −σ²/n; the jackknife-corrected estimate = Σ(xᵢ−x̄)²/(n−1) = s² (the unbiased version). [1]",
+      "formula": "θ̂_jack = n·θ̂ − (n−1)·θ̄₋"
+    },
+    {
+      "heading": "Jackknife vs Bootstrap",
+      "body": "Jackknife: deterministic (no randomness), n evaluations, first-order accurate, fails for non-smooth statistics. Bootstrap: randomized (B evaluations), flexible, BCa is second-order accurate, can handle any statistic. For smooth statistics and large n: jackknife SE ≈ bootstrap SE. For the median (non-smooth): jackknife gives Var_jack = 0 (removing any one observation doesn't change the median for a large n), while bootstrap correctly estimates the variance. Default recommendation: use bootstrap; use jackknife for survey variance estimation and the BCa acceleration constant. [1]"
+    },
+    {
+      "heading": "Delete-d Jackknife",
+      "body": "Delete-d jackknife (Wu, 1990): remove d > 1 observations at a time. With d = 1: standard jackknife. With d → n: approaches bootstrap behavior. For d growing with n (e.g., d = n^{2/3}), the delete-d jackknife is consistent for non-smooth statistics like quantiles where delete-1 jackknife fails. The m-out-of-n bootstrap achieves similar goals via resampling m << n observations. [1]"
+    }
+  ],
+  "takeaways": [
+    "Jackknife: leave out one observation at a time; Var_jack = [(n−1)/n]Σ(θ̂₋ᵢ − θ̄₋)². [1]",
+    "Bias correction: θ̂_jack = nθ̂ − (n−1)θ̄₋; removes O(1/n) bias term. [1]",
+    "Deterministic and requires only n evaluations; cheaper than bootstrap. [1]",
+    "Fails for non-smooth statistics (median, quantiles, max) — use bootstrap instead. [1]",
+    "Key use case: survey variance estimation (delete-a-group jackknife) and BCa acceleration constant. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does the jackknife fail for the sample median?",
+      "a": "The sample median θ̂ = x_(⌈n/2⌉) is not a smooth functional of the empirical distribution. Removing one observation typically doesn't change the median value at all (for odd n, the median is unchanged unless the removed observation was the median itself). So θ̂₋ᵢ ≈ θ̂ for most i, giving Var_jack ≈ 0. This is incorrect — the true sampling variance of the median is π/(2n) · (1/f(θ))² where f is the density at the median. The bootstrap correctly estimates this via the distribution of bootstrap medians. [1]"
+    },
+    {
+      "q": "What is the relationship between the jackknife and the influence function?",
+      "a": "The influence function IF(x;T,F) = lim_{ε→0} (T(F_ε) − T(F))/ε measures the effect of an infinitesimal contamination at point x on the estimator T, where F_ε = (1−ε)F + εδ_x. The empirical influence value for observation i is approximately: (n−1)(θ̂₋ᵢ − θ̂) ≈ −IF(xᵢ;T,F̂). So the jackknife provides finite-sample approximations to influence values, connecting it to robust statistics and the sandwich variance estimator. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Efron & Hastie — Computer Age Statistical Inference, Ch. 11", "url": "https://hastie.su.domains/CASI/" },
+    { "label": "Davison & Hinkley — Bootstrap Methods and Their Application, Ch. 2", "url": "https://doi.org/10.1017/CBO9780511802843" }
+  ]
+}

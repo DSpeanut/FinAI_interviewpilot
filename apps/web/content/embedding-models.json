@@ -1,0 +1,66 @@
+{
+  "eli3": [
+    "Embedding models convert text (words, sentences, documents) into dense numerical vectors that capture semantic meaning. Similar texts have vectors that are close together in the embedding space (high cosine similarity). 'dog' and 'puppy' have similar embeddings; 'dog' and 'quantum mechanics' do not. These vectors are the foundation of semantic search, RAG retrieval, and clustering.",
+    "Modern embedding models are typically transformer encoders (like BERT) trained with contrastive learning: push similar (query, document) pairs closer together and dissimilar pairs apart in the vector space. The output is a fixed-size vector (e.g., 768d, 1536d) regardless of input length. The embedding captures the full semantic meaning of the text in a dense vector for fast similarity lookup.",
+    "Key embedding models for RAG: OpenAI text-embedding-3-small/large (API, best quality but paid), E5 and BGE (open-source, competitive quality), sentence-transformers/all-MiniLM-L6-v2 (small, fast, good general purpose). Evaluating embeddings: MTEB (Massive Text Embedding Benchmark) leaderboard ranks models on retrieval, clustering, classification, and semantic similarity tasks — the standard reference for embedding model selection."
+  ],
+  "whenWhy": [
+    {
+      "title": "Semantic search and RAG retrieval",
+      "body": "Keyword search (BM25) misses synonyms and paraphrases. Semantic search using embedding models finds documents that mean the same thing even with different words: 'automobile accident' matches 'car crash'. In RAG, the query is embedded and compared against all chunk embeddings using cosine similarity — ANN search returns the k most semantically similar chunks. The quality of the embedding model directly determines RAG retrieval quality: better embeddings → more relevant chunks → better answers."
+    },
+    {
+      "title": "Sentence similarity and semantic clustering",
+      "body": "Sentence BERT (SBERT, Reimers & Gurevych 2019): the first widely-used model producing high-quality sentence embeddings. Fine-tuned on NLI and STS datasets with siamese networks to ensure cosine similarity correlates with human semantic similarity judgments. Applications: duplicate detection, customer support ticket clustering, semantic deduplication of training data, topic modeling via k-means on embeddings. Sentence embeddings outperform TF-IDF for any task requiring semantic understanding."
+    },
+    {
+      "title": "Cross-lingual retrieval",
+      "body": "Multilingual embedding models (multilingual-e5-large, mE5, LaBSE) embed text from different languages into a shared space: a French query can retrieve English documents because semantically similar sentences have similar embeddings regardless of language. This enables multilingual RAG: a single vector index covers documents in multiple languages, and queries in any language retrieve relevant results across all languages. Critical for global enterprise applications."
+    }
+  ],
+  "deepDiveIntro": [
+    "Embedding model training: contrastive learning with in-batch negatives. Given a batch of (query, positive_document) pairs, the loss is InfoNCE: L = −log exp(sim(q,d+)/τ) / Σⱼ exp(sim(q,dⱼ)/τ). This pushes query-positive pairs close (high similarity) and query-negative pairs apart. Hard negative mining: include challenging negatives (documents that look similar but aren't the right answer) — critical for high-quality embeddings. Models like E5 and BGE use hard negatives from BM25 retrieval: the top-k BM25 results that are NOT the answer.",
+    "Architecture: transformer encoder (BERT or larger) → pool token representations into a single vector. Pooling methods: [CLS] token, mean pooling over all tokens, or weighted mean. Mean pooling generally outperforms [CLS] for sentence embeddings. Dimensionality: standard is 768d (BERT-base size), but models like text-embedding-3-large use 3072d for higher quality. Matryoshka representation learning (MRL, Kusupati et al. 2022): train embeddings that are good at multiple dimensionalities — you can truncate to 256d and still have reasonable quality, enabling speed-quality trade-offs."
+  ],
+  "deepDive": [
+    {
+      "heading": "Bi-encoder vs Cross-encoder",
+      "body": "Bi-encoder (embedding model): encode query and document independently → similarity = cosine(embed(q), embed(d)). Fast: pre-compute all document embeddings offline, compute query embedding at runtime, single dot product. O(1) per candidate after indexing. Suitable for large-scale first-stage retrieval (millions of documents). Cross-encoder (re-ranker): concatenate query + document → transformer → relevance score. Slower: O(n) full transformer passes for n candidates — cannot pre-compute. Much more accurate than bi-encoder. Standard pipeline: bi-encoder retrieval (top-100) → cross-encoder re-ranking (select top-5). [1]",
+      "formula": "Bi-encoder: score(q,d) = cosine(f(q), f(d));  Cross-encoder: score(q,d) = g([q;d])"
+    },
+    {
+      "heading": "MTEB Benchmark and Model Selection",
+      "body": "MTEB (Massive Text Embedding Benchmark, Muennighoff et al. 2023): 56 datasets across 8 tasks (retrieval, clustering, STS, classification, summarization, re-ranking, pair classification, bitext mining). The standard leaderboard for embedding model comparison. Top models (2024): text-embedding-3-large (OpenAI, closed), E5-mistral-7B (open, large), BGE-M3 (open, multilingual). For most RAG applications: text-embedding-3-small or BGE-base offer the best quality/cost/speed trade-off. Check MTEB Retrieval task specifically for RAG use cases. [2]"
+    },
+    {
+      "heading": "Matryoshka Embeddings and Dimensionality",
+      "body": "Standard embeddings: fixed dimension (768d), must use full vector for comparison. Matryoshka Representation Learning (MRL, Kusupati et al. 2022): train a single model where the first d' dimensions of the embedding (for any d' < d) are themselves good embeddings — nested quality. OpenAI text-embedding-3 supports MRL: you can use 256d, 512d, 1536d, or 3072d dimensions — shorter dimensions are cheaper to store and faster to compare. Use case: store 256d in a small vector DB for fast coarse retrieval, then re-score with full 3072d for precision. [2]"
+    },
+    {
+      "heading": "Late Interaction Models (ColBERT)",
+      "body": "ColBERT (Khattab & Zaharia 2020): instead of pooling into a single vector, store all token embeddings for each document. At query time, compute MaxSim: for each query token, find the maximum similarity to any document token. Final score = sum of MaxSim scores across query tokens. Much more expressive than single-vector bi-encoder. Cost: storage is 128× (one 128d vector per token vs per document). ColBERTv2: compress token vectors with product quantization — reduces storage 6–10×. Used in production when retrieval quality is critical and storage overhead is acceptable. [1]",
+      "formula": "ColBERT score(q,d) = Σ_{i∈q} max_{j∈d} cos(Eᵢ_q, Eⱼ_d)"
+    }
+  ],
+  "takeaways": [
+    "Embedding models: contrastive learning (InfoNCE) to push similar pairs close, dissimilar apart. [1]",
+    "Bi-encoder: fast pre-computed retrieval; cross-encoder: accurate but slow — use both in two-stage pipeline. [1]",
+    "MTEB leaderboard: standard benchmark for embedding model selection — check Retrieval task for RAG. [2]",
+    "Matryoshka (MRL): truncatable embeddings — trade dimensionality for speed/storage at query time. [2]",
+    "ColBERT: per-token embeddings + MaxSim — highest retrieval quality, larger storage cost. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Should the embedding model for indexing and querying be the same?",
+      "a": "Yes — always use the same embedding model for both document indexing and query embedding. The embedding space is model-specific: cosine similarity only means 'semantically similar' within the same model's space. A vector from text-embedding-3-small is not comparable to a vector from BGE-base — they live in different spaces with different geometry. If you switch embedding models, you must re-embed all documents. Asymmetric embeddings are allowed within the same model: some models are fine-tuned with task-specific prefixes (E5: prepend 'query: ' for queries, 'passage: ' for documents) — both use the same underlying model but with different prompts. [1]"
+    },
+    {
+      "q": "What is the difference between sentence embeddings and document embeddings?",
+      "a": "Sentence embeddings: short (1–3 sentences) → single-concept dense vector. Optimized for: sentence similarity, semantic search at the sentence level. Document embeddings: full document → single vector. Problem: 1000-token documents have many topics; a single vector averages over all of them — loses specificity. For RAG: chunk documents into sentences or paragraphs and embed each chunk separately, rather than embedding the full document. Late interaction models (ColBERT) address this by storing per-token embeddings — no need to choose a single granularity. For document-level tasks (document classification, near-duplicate detection), document embeddings with mean pooling or hierarchical methods work well. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Reimers & Gurevych (2019) — Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks, EMNLP 2019", "url": "https://aclanthology.org/D19-1410/" },
+    { "label": "Muennighoff et al. (2023) — MTEB: Massive Text Embedding Benchmark, EACL 2023", "url": "https://arxiv.org/abs/2210.07316" }
+  ]
+}

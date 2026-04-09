@@ -1,0 +1,89 @@
+{
+  "eli3": [
+    "CatBoost solves two problems that other gradient boosting libraries struggle with: categorical features and target leakage. For categories, instead of one-hot encoding, CatBoost computes a running average of the target variable for each category — but does it in a clever order to prevent cheating (looking at the future to predict the future).",
+    "The 'ordered boosting' idea is like this: when training on the 1000th example, pretend you only saw the first 999 examples. This ensures residuals are truly independent — eliminating the subtle overfitting that affects XGBoost and LightGBM when trees are trained on the same data used to compute the gradients.",
+    "The result is a model that requires minimal preprocessing (no manual encoding), is robust to overfitting on small datasets, and often outperforms other GBM libraries on data with many categorical features — all with few hyperparameters to tune."
+  ],
+  "whenWhy": [
+    {
+      "title": "Datasets with many categorical features",
+      "body": "CatBoost's ordered categorical statistics avoid one-hot encoding entirely, handling high-cardinality categoricals (hundreds of categories) natively and efficiently. It often outperforms LightGBM and XGBoost on datasets where manual categorical encoding is difficult or lossy."
+    },
+    {
+      "title": "Small to medium datasets prone to overfitting",
+      "body": "Ordered boosting eliminates gradient bias on training data, making CatBoost significantly less prone to overfitting than standard GBM on small datasets. Less aggressive regularisation tuning is required."
+    },
+    {
+      "title": "Minimal preprocessing pipelines",
+      "body": "CatBoost accepts raw categorical strings directly. No one-hot, target encoding, or label encoding needed. This simplifies production pipelines and reduces the risk of preprocessing bugs (e.g. test set leakage from target encoding)."
+    },
+    {
+      "title": "When reproducibility matters",
+      "body": "CatBoost uses deterministic GPU and CPU algorithms by default. Results are reproducible across platforms without setting random seeds explicitly, which is valuable for regulated applications."
+    }
+  ],
+  "deepDiveIntro": [
+    "CatBoost (Prokhorenkova et al., 2018) introduces two key innovations: Ordered Target Statistics for categorical encoding and Ordered Boosting to eliminate prediction shift (gradient bias on training data).",
+    "Prediction shift is a form of target leakage: when computing residuals for a training example xᵢ, the current model F was trained on data including xᵢ. This means the residual is systematically underestimated — the model already 'knows' xᵢ. CatBoost uses a separate model for each example, breaking this circular dependency."
+  ],
+  "visualizationType": "catboost",
+  "deepDive": [
+    {
+      "heading": "Ordered Target Statistics (Categorical Encoding)",
+      "body": "For a categorical feature, CatBoost estimates P(target | category) using a random permutation σ of training examples. For example xσ(i), the estimate uses only the first i−1 examples in the permutation: cat_stat(σ(i)) = (Σⱼ<ᵢ 𝟙[catⱼ=catᵢ]·yⱼ + a·p) / (Σⱼ<ᵢ 𝟙[catⱼ=catᵢ] + a), where p is the global target mean and a is a smoothing constant. Multiple permutations are averaged for stability. [1]",
+      "formula": "cat_stat(xᵢ) = (Σⱼ<ᵢ 𝟙[xⱼ=xᵢ]·yⱼ + a·p̄) / (Σⱼ<ᵢ 𝟙[xⱼ=xᵢ] + a)"
+    },
+    {
+      "heading": "Ordered Boosting",
+      "body": "In standard GBM, tree tₘ is trained on residuals rᵢₘ = −∂L/∂F_{m-1}(xᵢ), where F_{m-1} was fit on the full training set including xᵢ. This introduces bias (prediction shift). CatBoost uses a separate model F^(i)_{m-1} for each point xᵢ, trained without xᵢ. Residuals rᵢₘ = yᵢ − F^(i)_{m-1}(xᵢ) are then unbiased estimates. This is implemented efficiently using a set of models trained on growing prefixes of a random permutation. [1]"
+    },
+    {
+      "heading": "Symmetric (Oblivious) Decision Trees",
+      "body": "CatBoost uses oblivious trees: the same feature and threshold are applied at every node of the same depth level. This creates balanced binary trees where each depth level is a single (feature, threshold) decision. Oblivious trees are faster to evaluate (a depth-d tree requires exactly d comparisons), more regularised, and easier to implement on GPU. [1]"
+    },
+    {
+      "heading": "Feature Combinations",
+      "body": "CatBoost automatically considers combinations of categorical features (e.g. [country, browser] together) as new composite features. Combinations are added greedily: after each tree, the most informative two-feature combination is added to the feature set for the next tree. This captures interaction effects without manual feature engineering. [1]"
+    },
+    {
+      "heading": "Key Hyperparameters",
+      "body": "iterations (n_estimators). learning_rate (default 0.03 — conservative). depth (default 6, max 16 for oblivious trees). l2_leaf_reg (L2 regularisation). border_count (num bins for numerical features, default 254). cat_features (list of categorical column indices). od_type and od_wait: overfitting detector (early stopping type and patience). [1]"
+    }
+  ],
+  "youtubeLabel": "CatBoost: Categorical Encoding Explained",
+  "youtubeUrl": "https://www.youtube.com/embed/usdEWSDisS0",
+  "takeaways": [
+    "Ordered target statistics encode categorical features using only 'past' examples in a random permutation — preventing target leakage. [1]",
+    "Ordered boosting computes residuals with a leave-one-out model, eliminating prediction shift (gradient bias). [1]",
+    "Oblivious (symmetric) trees split on the same feature/threshold at each depth level — fast inference, strong regularisation. [1]",
+    "Automatic feature combinations discover categorical interaction effects without manual engineering. [1]",
+    "CatBoost requires minimal preprocessing — pass raw categorical strings via the cat_features parameter. [1]",
+    "Default learning_rate = 0.03 is conservative; increase iterations with early stopping for optimal performance. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What is prediction shift and why does it matter?",
+      "a": "In standard GBM, when you compute the residual for training point xᵢ, the model F was trained on data that includes xᵢ — so F is biased toward predicting xᵢ well, making the residual too small. This is prediction shift. It causes the model to underfit (gradients are systematically underestimated). CatBoost's ordered boosting eliminates this by using F^(i) which has never seen xᵢ. [1]"
+    },
+    {
+      "q": "Why use oblivious trees rather than standard CART trees?",
+      "a": "Oblivious trees use the same split at every node of a given depth, creating a balanced binary tree. This (1) reduces overfitting — fewer distinct thresholds to memorise; (2) speeds up inference — a depth-d tree requires exactly d comparisons rather than up to 2^d; (3) enables efficient GPU parallelism. The trade-off is lower expressiveness per tree — CatBoost compensates with more trees. [1]"
+    },
+    {
+      "q": "How does CatBoost's categorical encoding compare to target encoding?",
+      "a": "Standard target encoding uses P(y|category) computed on all training data including the current example — this causes target leakage and can cause massive overfitting. CatBoost's ordered statistics use only past examples in a random permutation, eliminating leakage. When using target encoding in other libraries, always use out-of-fold estimates (e.g. sklearn's TargetEncoder with cross-fitting). [1]"
+    },
+    {
+      "q": "Does CatBoost handle missing values?",
+      "a": "Yes. For numerical features, CatBoost treats missing values as a separate category and learns the optimal split direction for them. For categorical features, missing values are treated as a separate category string. No imputation is needed. This is similar to XGBoost's learned default directions. [1]"
+    },
+    {
+      "q": "When should you choose CatBoost over LightGBM?",
+      "a": "Prefer CatBoost when: (1) dataset has many high-cardinality categorical features — CatBoost's ordered statistics are usually better than manual encoding; (2) dataset is small (< 100K rows) — ordered boosting prevents overfitting more robustly; (3) minimal preprocessing is a requirement. Prefer LightGBM when: (1) dataset is very large (> 1M rows) — LightGBM is faster; (2) features are mostly numerical. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Prokhorenkova et al. — CatBoost: unbiased boosting with categorical features (NeurIPS 2018)", "url": "https://papers.nips.cc/paper_files/paper/2018/hash/14491b756b3a51daac0a53a49a1d4d49-Abstract.html" },
+    { "label": "Dorogush et al. — CatBoost: gradient boosting with categorical features support (2018)", "url": "https://arxiv.org/abs/1810.11363" }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "eli3": [
+    "A language model (LM) assigns a probability to any sequence of words: P(w₁, w₂, …, wₙ). Equivalently, it models P(next word | previous words). A good LM assigns high probability to grammatical, coherent text and low probability to garbled text. Language modeling is the fundamental pre-training task behind GPT (autoregressive LM) and BERT (masked LM).",
+    "Two main paradigms: (1) Causal (autoregressive) LM — predict the next token given all previous tokens, left to right. Used by GPT, Llama. (2) Masked LM (MLM) — mask random tokens and predict them from both left and right context. Used by BERT. Autoregressive LMs can generate text; MLMs cannot directly generate (no left-to-right factorization), but excel at representation learning.",
+    "Language models are evaluated by perplexity: lower perplexity = better. Pre-training on massive text corpora (web, books, code) produces models that 'internalize' language statistics. Fine-tuning or prompting then adapts these representations for downstream tasks. The transformer architecture (Vaswani et al. 2017) replaced N-gram and LSTM LMs by learning long-range dependencies via self-attention."
+  ],
+  "whenWhy": [
+    {
+      "title": "Foundation of modern NLP pre-training",
+      "body": "Language modeling is the pre-training objective for virtually all modern NLP models. GPT-style autoregressive LM pre-training: train on next-token prediction over terabytes of text, then fine-tune or prompt for tasks. BERT-style masked LM: mask 15% of tokens, train on reconstruction. The intuition: predicting missing words forces the model to understand syntax, semantics, and world knowledge. Pre-trained LMs transfer well to classification, QA, summarization, and generation."
+    },
+    {
+      "title": "Text generation",
+      "body": "Autoregressive LMs generate text by sampling from P(next token | context) repeatedly: sample w₁, then w₂|w₁, then w₃|w₁,w₂, etc. Decoding strategies: greedy (argmax), beam search (top-K beams), top-K sampling, nucleus (top-p) sampling, temperature scaling. Nucleus sampling (Holtzman et al. 2020): sample from the smallest set of tokens whose cumulative probability exceeds p — avoids repetition while maintaining coherence."
+    },
+    {
+      "title": "Measuring language model quality",
+      "body": "Perplexity measures how surprised a LM is by held-out text: PPL(W) = P(w₁,…,wₙ)^{−1/n}. Lower PPL = better model. Perplexity is used to compare LMs on the same test set (e.g., Penn Treebank, Wikitext-103). Absolute perplexity values depend on vocabulary and tokenization — comparison across models requires the same tokenizer. Modern LLMs achieve perplexity < 10 on Wikitext-103."
+  ],
+  "deepDiveIntro": [
+    "Autoregressive LM: P(w₁,…,wₙ) = Πᵢ P(wᵢ|w₁,…,wᵢ₋₁) by chain rule (exact, no approximation). Transformer LM: each token attends to all previous tokens via causal (masked) self-attention. Training objective: minimize cross-entropy loss — equivalently, maximize log-likelihood of the training corpus. This is equivalent to minimizing perplexity on the training data.",
+    "Masked LM (BERT): sample 15% of tokens to mask; of these, replace 80% with [MASK], 10% with a random token, 10% keep unchanged. Train to predict original tokens at masked positions. MLM is not an autoregressive model — it is a denoising objective. MLM produces bidirectional representations (each token sees full context), making BERT better than GPT for understanding tasks but incapable of direct generation."
+  ],
+  "deepDive": [
+    {
+      "heading": "Autoregressive Language Modeling",
+      "body": "Training: minimize L = −Σᵢ log P(wᵢ|w₁,…,wᵢ₋₁; θ). Causal attention mask: transformer at position i can only attend to positions ≤ i (upper triangle of attention matrix is −∞ before softmax). Teacher forcing: during training, use ground truth previous tokens rather than model's own predictions — avoids exposure bias. Inference: autoregressive sampling — each step takes model's previous output as next input. GPT-2, GPT-3, GPT-4, Llama all use this paradigm. [1]",
+      "formula": "L = −(1/T) Σᵢ log P(wᵢ | w₁,…,wᵢ₋₁; θ)"
+    },
+    {
+      "heading": "Masked Language Modeling (BERT-style)",
+      "body": "MLM masking strategy: 15% of tokens selected. Of those: 80% replaced with [MASK], 10% random token, 10% unchanged. The 10% random and 10% unchanged prevent the model from only learning to predict [MASK] tokens — forces representation of all tokens. Next Sentence Prediction (NSP): BERT also predicts whether sentence B follows sentence A (binary classification). NSP was later found to be unhelpful (RoBERTa dropped it). Whole word masking (WWM): mask all subwords of a word together — better than subword-level masking. [2]",
+      "formula": "L_MLM = −Σ_{i∈masked} log P(wᵢ | w₁,…,w_{i-1}, [MASK], w_{i+1},…,wₙ; θ)"
+    },
+    {
+      "heading": "Decoding Strategies for Text Generation",
+      "body": "Greedy: argmax at each step — fast but repetitive. Beam search (width B): maintain top-B partial sequences — standard for MT, but degenerate for open-ended generation. Top-K sampling: sample from top-K tokens by probability — K=40 typical. Nucleus (top-p) sampling: sample from minimum set with cumulative probability ≥ p — p=0.9 typical. Temperature: P'(w) ∝ P(w)^{1/T}; T<1 concentrates distribution (more deterministic), T>1 flattens (more random). Chain-of-thought prompting uses greedy decoding for reproducibility. [1]"
+    },
+    {
+      "heading": "LSTM vs Transformer Language Models",
+      "body": "LSTM LMs: sequential processing — hidden state carries information. O(n) steps for context of length n. Vanishing gradient limits effective context to ~200 tokens. Transformer LMs: O(1) steps — all tokens attend to each other in parallel. O(n²) attention — quadratic in context length. Transformer advantage: long-range dependencies, parallelizable training. LSTM advantage: O(n) inference time (no attention), constant memory per step. Modern LLMs are all transformers; LSTM LMs are used in edge/streaming settings. [1]"
+    }
+  ],
+  "takeaways": [
+    "Autoregressive LM: P(w₁,…,wₙ) = Πᵢ P(wᵢ|w<ᵢ); training minimizes cross-entropy. [1]",
+    "Masked LM (BERT): predict masked tokens from bidirectional context — better representations, no generation. [2]",
+    "Perplexity: PPL = exp(cross-entropy) — lower is better; vocabulary-dependent, same tokenizer required for comparison. [1]",
+    "Nucleus sampling (top-p): sample from minimum token set with cumulative probability ≥ p — best for open-ended generation. [1]",
+    "Transformers replaced LSTMs: parallel O(1) steps, O(n²) attention — better long-range modeling. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why can't BERT generate text directly?",
+      "a": "BERT is trained with masked LM — it can predict masked tokens given the full context (bidirectional). To generate text autoregressively, a model must predict P(wₙ|w₁,…,wₙ₋₁) using only left context. BERT has no such factorization — its attention is bidirectional, so at generation step i, position i would 'see' future positions i+1,i+2,… which are not yet generated. You could mask future positions in BERT, but then you'd just have GPT. Attempts like BERT-gen and UniLM condition parts of the input bidirectionally and parts causally, but autoregressive GPT-style models remain the standard for generation. [1][2]"
+    },
+    {
+      "q": "What is the exposure bias problem in autoregressive LMs?",
+      "a": "During training, teacher forcing feeds ground truth tokens as context for each next-token prediction. During inference, the model conditions on its own (potentially wrong) predictions. If the model makes an error at step t, the error propagates — the context at step t+1 is now out-of-distribution. This train/test mismatch is called exposure bias. Solutions: scheduled sampling (gradually replace ground truth with model predictions during training), minimum risk training (RL on sequence-level reward), or simply accepting the bias (it's mild for high-quality LMs). RLHF (Reinforcement Learning from Human Feedback) also mitigates this through sequence-level reward optimization. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Jurafsky & Martin — Speech and Language Processing (3rd ed.), Ch. 3 & Ch. 9", "url": "https://web.stanford.edu/~jurafsky/slp3/" },
+    { "label": "Devlin et al. (2019) — BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding, NAACL 2019", "url": "https://aclanthology.org/N19-1423/" }
+  ]
+}

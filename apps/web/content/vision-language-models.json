@@ -1,0 +1,64 @@
+{
+  "eli3": [
+    "Vision-Language Models (VLMs) are neural networks that jointly understand both images and text. Given an image and a text query, a VLM can answer questions about the image, describe it, or reason about visual content. They are built by connecting a vision encoder (which converts images to embeddings) with a language model (which processes text and generates responses).",
+    "Architecture: image → Vision Encoder (ViT or CNN) → visual embeddings → projection layer → token embeddings → Language Model (GPT/Llama-style) → text output. The projection layer (MLP or cross-attention) maps visual embeddings into the same space as text token embeddings, so the LLM sees image features as 'visual tokens'. The LLM then generates text conditioned on both visual and textual input.",
+    "Modern VLMs include: GPT-4V (OpenAI), Claude 3 (Anthropic), Gemini (Google), LLaVA (open-source), InstructBLIP, Idefics2. They enable multimodal tasks: image captioning, visual QA, document understanding, chart analysis, medical image interpretation. VLMs are increasingly used in production: customer service (analyze product photos), document processing (extract data from invoices/forms), accessibility (image descriptions for screen readers)."
+  ],
+  "whenWhy": [
+    {
+      "title": "Visual question answering and document understanding",
+      "body": "VLMs answer natural language questions about images: 'What is the person doing?', 'What does the graph show?', 'What is the total on this invoice?'. For documents (PDFs, invoices, forms), VLMs read both the visual layout and text — outperforming OCR + text-only approaches because they understand the spatial relationships between elements. GPT-4V and Claude 3 can process screenshots, charts, tables, and handwritten text."
+    },
+    {
+      "title": "Medical and scientific image analysis",
+      "body": "Domain-specific VLMs (Med-Flamingo, LLaVA-Med) are fine-tuned on medical images (X-rays, histology, dermatology) and text. They can: identify abnormalities, answer clinical questions about images, generate radiology-style reports. In scientific contexts: analyze microscopy images, understand plots and experimental figures. These models supplement (not replace) expert analysis, but reduce manual review burden."
+    },
+    {
+      "title": "Multimodal RAG and document search",
+      "body": "Traditional RAG only indexes text. Multimodal RAG: index images alongside text. Approach: (1) use a VLM to generate text descriptions of images, index descriptions as text; or (2) use a joint image-text embedding model (CLIP) to embed images and queries in the same space. Given a query, retrieve relevant images by embedding similarity. This enables search over slide decks, product catalogs, and image-heavy documents where key information is in figures."
+    }
+  ],
+  "deepDiveIntro": [
+    "VLM architecture components: (1) Vision Encoder: ViT (Vision Transformer) — split image into patches (14×14 or 16×16 pixels), embed each patch, apply transformer self-attention. ViT-L produces 256 patch embeddings of size 1024d. (2) Language Model: GPT/Llama-style decoder. (3) Modality connector: maps visual embeddings to LLM token space. Types: linear projection (LLaVA), Q-Former cross-attention (BLIP-2, InstructBLIP), or direct token concat after MLP.",
+    "LLaVA (Liu et al. 2023): simple but effective VLM. Architecture: CLIP ViT-L/14 visual encoder + Vicuna 13B LLM + simple linear projection W ∈ ℝ^{1024×4096} that maps each of the 256 visual tokens from CLIP's 1024d space to Vicuna's 4096d embedding space. Training: (1) pre-train the projection on 595K image-caption pairs (freeze encoder and LLM); (2) fine-tune the projection + LLM on 150K visual instruction following examples. Surprisingly competitive with much larger models."
+  ],
+  "deepDive": [
+    {
+      "heading": "Vision Encoder: ViT and CLIP",
+      "body": "ViT (Dosovitskiy et al. 2021): divide image into N patches of size p×p. Flatten each patch → linear embedding → add positional embeddings → transformer encoder. For a 224×224 image with 16×16 patches: N = (224/16)² = 196 patches. ViT-L/14 (CLIP): 24 transformer layers, 1024d, 336×336 input → 576 patches. CLIP (Contrastive Language-Image Pre-training, Radford et al. 2021): train ViT + text transformer together with contrastive loss on 400M image-text pairs — aligns visual and text spaces. CLIP ViT-L/14 is the most common visual backbone for VLMs. [1]"
+    },
+    {
+      "heading": "Modality Connector Architectures",
+      "body": "Linear projection (LLaVA): map each visual token directly to LLM embedding space. Simple, fast, but limited expressiveness. Q-Former (BLIP-2, Li et al. 2023): N learnable query tokens attend to visual features via cross-attention — compress visual features into a fixed number of tokens (32 query tokens regardless of image size). More flexible but adds model complexity. MLP connector (LLaVA 1.5): two-layer MLP with GELU activation — better than linear, simpler than Q-Former. MLP connector is the current standard for open-source VLMs. [2]"
+    },
+    {
+      "heading": "Training Pipeline: Pre-training and Instruction Tuning",
+      "body": "Stage 1 — Feature alignment: train only the connector on image-caption pairs (595K LAION-CC-SBU for LLaVA). Visual encoder and LLM are frozen — only teach the connector to translate visual features into the LLM's space. Stage 2 — Visual instruction tuning: train connector + LLM (unfreeze LLM) on visual instruction following data (visual QA, captioning, reasoning tasks phrased as instructions). LLaVA uses GPT-4 to generate visual instruction data from COCO image-caption pairs — synthetic data for fine-tuning. This two-stage pipeline is standard for VLMs. [2]"
+    },
+    {
+      "heading": "Evaluation Benchmarks",
+      "body": "VQA v2 (visual question answering): 1.1M questions about COCO images — accuracy metric. GQA (compositional reasoning over scene graphs): tests spatial and relational understanding. ScienceQA: multi-choice science QA with images. TextVQA: read and reason about text in images. MMBench: comprehensive multimodal benchmark (180 capability types). MMMU (Massive Multidisciplinary Multimodal Understanding): 11.5K questions from 57 university-level subjects requiring domain knowledge + image understanding. GPT-4V: 56.8% on MMMU; LLaVA-1.6 34B: 51.1% (comparable open-source). [2]"
+    }
+  ],
+  "takeaways": [
+    "VLM = ViT visual encoder + projection layer + LLM — images are 'visual tokens' in the LLM's context. [1]",
+    "CLIP ViT-L/14: most common visual backbone — trained on 400M image-text pairs with contrastive loss. [1]",
+    "Two-stage training: align connector (frozen LLM) → instruction tune (unfreeze LLM). [2]",
+    "MLP connector is the current standard — simple, effective, better than linear projection. [2]",
+    "MMMU: rigorous multimodal benchmark requiring domain knowledge + image understanding. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How does a VLM handle multiple images in a single prompt?",
+      "a": "Multi-image VLMs: each image is processed by the visual encoder independently, producing a set of visual tokens. The tokens from each image are concatenated (with optional separator tokens) and combined with text tokens in the LLM context. Context length constraint: 576 visual tokens per image (LLaVA ViT-L/14 at 336px) × multiple images quickly fills the context window. Solutions: (1) dynamic resolution — resize smaller images to fewer patches; (2) Q-Former to compress each image to a fixed 32 tokens regardless of resolution; (3) image slicing — divide high-res images into tiles, process each tile + a downsampled global view. LLaVA-HD and InternVL use tiling for high-resolution multi-image input. [2]"
+    },
+    {
+      "q": "What are the limitations of current VLMs for document understanding?",
+      "a": "Current VLM limitations for documents: (1) Resolution — most VLMs process 336×448px images; a full-page document at that resolution has illegible small text. High-res models (LLaVA-HD) process 672×1344px; still challenging for complex forms; (2) Long documents — a 100-page PDF requires processing 100 images, far exceeding most VLMs' context window; (3) Table and chart understanding — precise extraction of numerical values from charts is still error-prone; (4) Layout understanding — multi-column layouts, nested tables confuse models trained on natural images. Specialized document understanding models (Donut, LayoutLMv3, Nougat) are often better for structured document tasks than general-purpose VLMs. [2]"
+    }
+  ],
+  "sources": [
+    { "label": "Radford et al. (2021) — Learning Transferable Visual Models From Natural Language Supervision (CLIP), ICML 2021", "url": "https://arxiv.org/abs/2103.00020" },
+    { "label": "Liu et al. (2023) — Visual Instruction Tuning (LLaVA), NeurIPS 2023", "url": "https://arxiv.org/abs/2304.08485" }
+  ]
+}

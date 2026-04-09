@@ -1,0 +1,73 @@
+{
+  "eli3": [
+    "A point estimator is a function of sample data that produces a single number as a guess for an unknown population parameter. For example, the sample mean x̄ = (1/n)Σxᵢ is a point estimator for the population mean μ. The value produced from a particular sample is called an estimate.",
+    "A good estimator is unbiased (on average it hits the true parameter: E[θ̂] = θ), has low variance (estimates cluster tightly around the true value), and is consistent (as n→∞, θ̂→θ in probability). These goals trade off: the biased sample variance s² = Σ(xᵢ−x̄)²/n has lower MSE than the unbiased version in some settings.",
+    "Maximum Likelihood Estimation (MLE) finds the parameter value that makes the observed data most probable: θ̂_MLE = argmax L(θ) = argmax Σ log p(xᵢ|θ). MLE is asymptotically unbiased, efficient (achieves Cramér-Rao lower bound), and consistent under regularity conditions."
+  ],
+  "whenWhy": [
+    {
+      "title": "Estimating population parameters from samples",
+      "body": "Whenever a population parameter (mean, proportion, variance, regression coefficient) must be inferred from a finite sample, a point estimator provides a single best guess. This is the foundation of almost all statistical inference — parameter estimation precedes confidence intervals and hypothesis tests."
+    },
+    {
+      "title": "MLE for parametric models",
+      "body": "MLE is the default estimation strategy for parametric models (logistic regression, Poisson regression, mixed models). It has desirable large-sample properties: consistency, asymptotic normality, and efficiency. The score equations ∂ log L/∂θ = 0 are solved numerically (e.g., Newton-Raphson, EM algorithm) when closed-form solutions don't exist."
+    },
+    {
+      "title": "Method of Moments as a quick alternative",
+      "body": "Method of Moments (MOM) sets population moments equal to sample moments to solve for parameters. For an exponential distribution: E[X] = 1/λ, so λ̂_MOM = 1/x̄. MOM is simple and often yields closed-form estimators, but is generally less efficient than MLE. Used when MLE is computationally intractable."
+    },
+    {
+      "title": "Bias-variance tradeoff in estimation",
+      "body": "MSE(θ̂) = Var(θ̂) + [Bias(θ̂)]². A biased estimator can have lower MSE than an unbiased one if its variance is much smaller. Ridge regression deliberately introduces bias to reduce variance. In ML, regularized estimators trade some bias for substantial variance reduction — this is the bias-variance tradeoff."
+    }
+  ],
+  "deepDiveIntro": [
+    "A point estimator δ(X₁,…,Xₙ) is a statistic used to estimate θ. Its quality is measured by: Bias(δ) = E[δ] − θ, Var(δ) = E[(δ−E[δ])²], and MSE(δ) = E[(δ−θ)²] = Var(δ) + Bias(δ)². An estimator is unbiased if Bias(δ) = 0 for all θ.",
+    "The Cramér-Rao Lower Bound (CRLB) gives the minimum variance any unbiased estimator can achieve: Var(δ) ≥ 1/I(θ), where I(θ) = E[(∂ log p(X|θ)/∂θ)²] is the Fisher information. An unbiased estimator achieving this bound is called efficient. MLE is asymptotically efficient."
+  ],
+  "deepDive": [
+    {
+      "heading": "Bias, Variance, and MSE",
+      "body": "For the sample variance with divisor n: Bias = −σ²/n (biased), Var = 2σ⁴(n−1)/n². For divisor n−1 (unbiased): Bias = 0, Var = 2σ⁴/(n−1). The biased version has smaller MSE for small n because the variance reduction outweighs the squared bias. Unbiasedness is not always optimal under MSE. [1]",
+      "formula": "MSE(θ̂) = Var(θ̂) + [Bias(θ̂)]²"
+    },
+    {
+      "heading": "Maximum Likelihood Estimation",
+      "body": "Given iid sample X₁,…,Xₙ ~ f(x|θ), the likelihood is L(θ|x) = Πᵢ f(xᵢ|θ). The log-likelihood ℓ(θ) = Σᵢ log f(xᵢ|θ) is maximized via ∂ℓ/∂θ = 0. For Normal(μ,σ²): μ̂_MLE = x̄ (unbiased), σ̂²_MLE = Σ(xᵢ−x̄)²/n (biased). Invariance property: if θ̂ is MLE of θ, then g(θ̂) is MLE of g(θ). [1]",
+      "formula": "θ̂_MLE = argmax_θ  Σᵢ log f(xᵢ | θ)"
+    },
+    {
+      "heading": "Cramér-Rao Lower Bound",
+      "body": "For any unbiased estimator δ(X) of θ, under regularity conditions: Var(δ) ≥ 1/I(θ), where I(θ) = −E[∂² log f(X|θ)/∂θ²] is the Fisher information. The MLE achieves this bound asymptotically: √n(θ̂_MLE − θ) →ᵈ N(0, 1/I(θ)). An estimator achieving CRLB exactly for all n is called uniformly minimum variance unbiased (UMVUE). [1]",
+      "formula": "Var(δ) ≥ 1 / I(θ),   I(θ) = E[(∂ log f(X|θ) / ∂θ)²]"
+    },
+    {
+      "heading": "Consistency and Asymptotic Normality of MLE",
+      "body": "Under standard regularity conditions (identifiability, differentiable log-likelihood, finite Fisher information), MLE is: (1) consistent — θ̂_MLE →ᵖ θ as n→∞; (2) asymptotically normal — √n(θ̂_MLE − θ) →ᵈ N(0, I(θ)⁻¹); (3) asymptotically efficient — achieves CRLB in the limit. These properties justify using MLE for large-sample inference and standard error computation. [1]"
+    }
+  ],
+  "youtubeLabel": "MLE Explained — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/XepXtl9YKwc",
+  "takeaways": [
+    "Point estimator δ(X₁,…,Xₙ) approximates unknown θ; quality measured by bias, variance, and MSE = Var + Bias². [1]",
+    "MLE: θ̂ = argmax Σ log f(xᵢ|θ); consistent, asymptotically normal, achieves Cramér-Rao lower bound. [1]",
+    "CRLB: Var(unbiased estimator) ≥ 1/I(θ); MLE achieves this asymptotically (efficient). [1]",
+    "MOM sets E[Xᵏ] = m̂ₖ to solve for parameters — simpler but generally less efficient than MLE. [1]",
+    "Biased estimators can have lower MSE than unbiased ones when variance reduction outweighs squared bias. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "When does MLE fail or give unreliable estimates?",
+      "a": "MLE fails when: (1) the likelihood is unbounded (e.g., Normal with σ→0 when a data point equals the mean), producing a degenerate MLE; (2) the model is not identifiable (multiple θ values give the same likelihood); (3) regularity conditions break down (e.g., Uniform(0,θ), where MLE = max(xᵢ) is consistent but the standard asymptotic theory doesn't apply because the support depends on θ); (4) small samples in high-dimensional settings — MLE overfits. [1]"
+    },
+    {
+      "q": "Is an unbiased estimator always better?",
+      "a": "No. Unbiasedness only guarantees E[θ̂] = θ but says nothing about variance. The James-Stein estimator shows that the sample mean vector in ℝᵖ (p ≥ 3) is inadmissible under MSE — a biased shrunken estimator has lower MSE uniformly over all θ. In practice, regularized (biased) estimators like Ridge regression often outperform unbiased OLS on new data due to reduced variance. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 7", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" },
+    { "label": "DeGroot & Schervish — Probability and Statistics (4th ed.), Ch. 7", "url": "https://www.pearson.com/en-us/subject-catalog/p/probability-and-statistics/P200000006215" }
+  ]
+}

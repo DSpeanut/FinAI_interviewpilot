@@ -1,0 +1,72 @@
+{
+  "eli3": [
+    "Bayesian inference is the process of updating beliefs about unknown quantities using data via Bayes' theorem. Start with a prior P(θ), observe data x, compute the posterior P(θ|x) ∝ P(x|θ)P(θ). All inference — point estimates, intervals, predictions, model comparison — flows from the posterior.",
+    "The posterior predictive distribution P(x̃|x) = ∫ P(x̃|θ)P(θ|x)dθ predicts new observations x̃ by averaging the likelihood over the posterior. This automatically propagates parameter uncertainty into predictions — unlike plug-in methods that substitute a point estimate for θ and ignore estimation uncertainty.",
+    "Bayesian model comparison uses the Bayes factor BF₁₂ = P(x|M₁)/P(x|M₂), where each marginal likelihood integrates out parameters. Unlike p-values, Bayes factors directly quantify evidence for one model over another, can support H₀ (BF < 1/3 is evidence for H₀), and penalize model complexity automatically via Occam's razor."
+  ],
+  "whenWhy": [
+    {
+      "title": "Full uncertainty propagation into predictions",
+      "body": "When downstream decisions depend on predictions, propagating parameter uncertainty matters. The posterior predictive P(x̃|x) = ∫P(x̃|θ)P(θ|x)dθ averages over all plausible parameter values, producing calibrated prediction uncertainty. Plug-in estimates (using θ̂_MLE) underestimate predictive uncertainty, especially in small samples."
+    },
+    {
+      "title": "Hierarchical models for grouped data",
+      "body": "Bayesian hierarchical (multilevel) models estimate group-specific parameters while sharing information across groups via a common prior — partial pooling. For K groups with sparse data per group, complete pooling (one global estimate) ignores group differences; no pooling (separate estimates) overfits. Partial pooling shrinks group estimates toward the grand mean, reducing MSE. This is Stein's phenomenon rediscovered in a Bayesian framework."
+    },
+    {
+      "title": "Bayesian model selection and averaging",
+      "body": "The Bayes factor BF₁₂ = P(x|M₁)/P(x|M₂) compares models. Jeffreys' scale: BF > 100 (decisive evidence for M₁), 10–100 (strong), 3–10 (moderate), 1–3 (anecdotal). Bayesian model averaging (BMA) weights predictions from multiple models by their posterior model probabilities, avoiding the need to select a single model."
+    },
+    {
+      "title": "Decision-making under uncertainty",
+      "body": "In Bayesian decision theory, the optimal action a* minimizes expected loss: a* = argmin_a ∫ L(a,θ)P(θ|x)dθ. The posterior replaces the unknown distribution with a probability-weighted average over plausible values. This framework unifies inference and decision-making and is the basis for medical decision analysis, reinforcement learning (POMDP), and bandit algorithms."
+    }
+  ],
+  "deepDiveIntro": [
+    "The posterior is P(θ|x) = P(x|θ)P(θ)/P(x), where the marginal likelihood P(x) = ∫P(x|θ)P(θ)dθ is often intractable in closed form. For non-conjugate models, computation requires approximation: MCMC (exact in the limit), variational Bayes (approximate but fast), Laplace approximation (Gaussian approximation at the MAP).",
+    "The Bernstein-von Mises (BvM) theorem: under regularity conditions, as n→∞, the posterior P(θ|x) concentrates in an O(1/√n) neighborhood of the true θ₀ and is approximately N(θ₀, I(θ₀)⁻¹/n), regardless of the prior. This justifies large-sample Bayesian analysis and shows frequentist and Bayesian inference converge for large samples."
+  ],
+  "deepDive": [
+    {
+      "heading": "Posterior Predictive Distribution",
+      "body": "The posterior predictive for new data x̃: P(x̃|x) = ∫P(x̃|θ)P(θ|x)dθ. For the Normal model with unknown μ (known σ²) and prior μ ~ N(μ₀,τ²): the posterior predictive is N(μₙ, σ² + τₙ²), where τₙ² is the posterior variance of μ. The extra τₙ² term reflects parameter uncertainty. Compare to the plug-in predictive N(x̄, σ²), which ignores estimation uncertainty. [1]",
+      "formula": "P(x̃ | x) = ∫ P(x̃ | θ) P(θ | x) dθ"
+    },
+    {
+      "heading": "Marginal Likelihood and Occam's Razor",
+      "body": "P(x|M) = ∫P(x|θ,M)P(θ|M)dθ is the marginal likelihood (evidence) for model M. It penalizes overly complex models: a complex model spreads its prior mass over a large parameter space, most of which predicts the data poorly, so its average likelihood P(x|M) is lower than a simpler, well-specified model. This automatic Occam's razor favors simpler explanations without explicit regularization. The log of the ratio is the log Bayes factor. [1]"
+    },
+    {
+      "heading": "Laplace Approximation",
+      "body": "Approximates the posterior with a Gaussian centered at the MAP estimate θ̂_MAP: P(θ|x) ≈ N(θ̂_MAP, [−H]⁻¹), where H = ∂²ℓ/∂θ² is the Hessian of the log posterior at the MAP. The log marginal likelihood is approximated as: log P(x) ≈ ℓ(θ̂_MAP) + log P(θ̂_MAP) + (d/2)log(2π) − ½log|−H|. Setting log P(θ) = const gives the BIC approximation. [1]",
+      "formula": "P(θ|x) ≈ N(θ̂_MAP,  [−∇² log P(θ|x)|_{θ̂_MAP}]⁻¹)"
+    },
+    {
+      "heading": "Hierarchical Bayesian Models",
+      "body": "For K groups, each with data xₖ and group-level parameter θₖ, a two-level model: θₖ ~ P(θ|φ) (hyperprior on φ), xₖ|θₖ ~ P(x|θₖ). The joint posterior P(θ₁,…,θₖ,φ|x) is computed via MCMC. Group estimates are shrunk toward the pooled mean: groups with little data are pulled more strongly. This partial pooling reduces total estimation error vs no pooling (Stein's result). [1]"
+    }
+  ],
+  "youtubeLabel": "Bayesian Inference Fundamentals — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/3OJEae7Qb_o",
+  "takeaways": [
+    "Posterior P(θ|x) ∝ P(x|θ)P(θ); inference (estimates, intervals, predictions) flows from the posterior. [1]",
+    "Posterior predictive P(x̃|x) = ∫P(x̃|θ)P(θ|x)dθ propagates parameter uncertainty into predictions. [1]",
+    "BvM theorem: posterior → N(θ₀, I(θ₀)⁻¹/n) for large n, regardless of prior. [1]",
+    "Bayes factor = P(x|M₁)/P(x|M₂): direct model comparison; automatically penalizes complexity. [1]",
+    "Hierarchical models achieve partial pooling, shrinking group estimates toward a common mean. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "When does the BvM theorem fail?",
+      "a": "BvM fails when: (1) the model is misspecified (the true distribution is not in the model family); (2) the parameter is infinite-dimensional (nonparametric models); (3) the parameter is on the boundary of the parameter space; (4) the parameter is not identifiable. In misspecified models, the posterior concentrates at the parameter minimizing KL divergence to the true distribution, not at the true parameter — valid but not the data-generating parameter. [1]"
+    },
+    {
+      "q": "What is variational Bayes and when is it preferred to MCMC?",
+      "a": "Variational Bayes (VB) approximates the posterior by minimizing KL(q(θ) || P(θ|x)) over a tractable family q (e.g., mean-field: q(θ) = ∏ qᵢ(θᵢ)). VB is much faster than MCMC for large datasets and high-dimensional models (deep learning, large-scale topic models) but underestimates posterior variance (due to the forward KL). MCMC provides asymptotically exact samples but is slower. Use VB for exploration/scale; MCMC for accurate posterior characterization. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Gelman et al. — Bayesian Data Analysis (3rd ed.), Ch. 4, 6", "url": "http://www.stat.columbia.edu/~gelman/book/" },
+    { "label": "Bishop — Pattern Recognition and Machine Learning, Ch. 10", "url": "https://www.microsoft.com/en-us/research/uploads/prod/2006/01/Bishop-Pattern-Recognition-and-Machine-Learning-2006.pdf" }
+  ]
+}

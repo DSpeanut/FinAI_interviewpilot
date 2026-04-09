@@ -1,0 +1,68 @@
+{
+  "eli3": [
+    "Logistic regression models the log-odds of a binary outcome Y ∈ {0,1} as a linear function of predictors: log(p/(1−p)) = β₀ + β₁X₁ + … + βₚXₚ, where p = P(Y=1|X). This ensures predicted probabilities stay in [0,1] without truncation. The logistic (sigmoid) function maps log-odds back to probability: p = 1/(1+e^{−Xβ}).",
+    "Coefficients are estimated by Maximum Likelihood — there is no closed-form solution (unlike OLS). MLE maximizes ℓ(β) = Σ[yᵢ log pᵢ + (1−yᵢ)log(1−pᵢ)]. This is solved iteratively with Newton-Raphson or IRLS. The log-likelihood is globally concave (no local optima) for logistic regression, guaranteeing convergence.",
+    "The key output is the odds ratio (OR): OR = e^{β̂ⱼ}. An OR of 1.5 means the odds of Y=1 increase by 50% for each unit increase in Xⱼ, holding other predictors constant. ORs are NOT risk ratios — they overestimate RR when the outcome is common (> 10%). For rare outcomes, OR ≈ RR."
+  ],
+  "whenWhy": [
+    {
+      "title": "Binary outcome with linear predictors",
+      "body": "When the response is binary (disease/no disease, default/no default, click/no click) and you want to model the probability as a function of predictors, logistic regression is the standard parametric approach. It directly models P(Y=1|X) ∈ [0,1] without truncation problems of linear probability models (which can give P > 1 or P < 0)."
+    },
+    {
+      "title": "Inference on predictor effects via odds ratios",
+      "body": "The exponentiated coefficient e^{β̂ⱼ} is the adjusted odds ratio — the multiplicative change in odds for a unit increase in Xⱼ, controlling for other predictors. This is the standard quantity reported in epidemiology and clinical research. Wald 95% CI for OR: exp(β̂ⱼ ± 1.96·SE(β̂ⱼ)). Note: OR is the appropriate effect measure for matched case-control studies where incidence cannot be estimated."
+    },
+    {
+      "title": "Model fit assessment",
+      "body": "The deviance D = −2ℓ(β̂) replaces SS_res from OLS. Null deviance D₀ = −2ℓ(null model with only intercept). McFadden's pseudo-R² = 1 − ℓ(β̂)/ℓ(null). Hosmer-Lemeshow test checks calibration (agreement between predicted probabilities and observed proportions across deciles). AUC-ROC measures discrimination."
+    }
+  ],
+  "deepDiveIntro": [
+    "The logistic regression model: P(Y=1|X) = σ(Xβ) = 1/(1+exp(−Xβ)), where σ(·) is the logistic function. Log-likelihood: ℓ(β) = Σᵢ [yᵢ(Xᵢβ) − log(1+exp(Xᵢβ))] = Σᵢ [yᵢ log pᵢ + (1−yᵢ)log(1−pᵢ)]. Score (gradient): ∂ℓ/∂β = X'(y−p) where pᵢ = σ(Xᵢβ). Hessian: ∂²ℓ/∂β² = −X'WX where W = diag(p₁(1−p₁),…,pₙ(1−pₙ)) — negative definite, confirming global concavity.",
+    "IRLS (Iteratively Reweighted Least Squares): at each step, compute working response z = Xβ⁽ᵗ⁾ + W⁻¹(y−p) and weight matrix W, then solve the WLS problem β⁽ᵗ⁺¹⁾ = (X'WX)⁻¹X'Wz. This is Newton-Raphson applied to the log-likelihood and converges in a few iterations for well-conditioned problems."
+  ],
+  "deepDive": [
+    {
+      "heading": "Logit Link and Odds Ratio Interpretation",
+      "body": "The logit link: logit(p) = log(p/(1−p)) = Xβ. For a binary predictor X ∈ {0,1}: log-odds difference = β₁; OR = exp(β₁) = odds(Y=1|X=1)/odds(Y=1|X=0). For a continuous predictor: OR = exp(β₁) is the multiplicative change in odds per unit increase in X. Critically: OR ≠ RR when the outcome is common. RR = p₁/p₀; OR = [p₁/(1−p₁)]/[p₀/(1−p₀)]. OR overestimates RR when outcome prevalence > 10%. [1]",
+      "formula": "log(p / (1−p)) = β₀ + β₁X₁ + … + βₚXₚ"
+    },
+    {
+      "heading": "Likelihood Ratio Test (LRT) and Wald Test",
+      "body": "For H₀: βⱼ = 0: Wald test: W = (β̂ⱼ/SE(β̂ⱼ))² ~ χ²(1). LRT: G² = −2(ℓ(restricted) − ℓ(full)) ~ χ²(q) for q constraints. LRT is generally preferred to Wald for logistic regression — Wald test can be unreliable when β̂ is large (Hauck-Donner effect: Wald test statistic decreases for very large effects, causing conservative inference). [1]",
+      "formula": "G² = −2[ℓ(β_restricted) − ℓ(β_full)]  ~  χ²(q)"
+    },
+    {
+      "heading": "Complete Separation and Convergence Issues",
+      "body": "Complete separation: a linear combination of predictors perfectly predicts Y (one group has all Y=0, other all Y=1). MLE is undefined (β̂→∞). Symptoms: very large SE, extreme OR, slow convergence. Solutions: Firth's penalized likelihood (penalizes by −½log|I(β)|), Ridge-penalized logistic regression, or reducing predictor dimensionality. Quasi-complete separation (some perfect prediction) is more common and shows similar symptoms. [1]"
+    },
+    {
+      "heading": "Model Evaluation",
+      "body": "Discrimination: AUC-ROC (area under ROC curve) — probability that a random case scores higher than a random control. AUC = 0.5 (no better than chance), 0.7–0.8 (adequate), > 0.8 (good). Calibration: Hosmer-Lemeshow test — group observations into deciles of predicted probability, compare observed vs expected counts. A non-significant H-L test indicates good calibration. Brier score = (1/n)Σ(ŷᵢ−yᵢ)² measures both discrimination and calibration. [1]"
+    }
+  ],
+  "youtubeLabel": "Logistic Regression — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/yIYKR4sgzI8",
+  "takeaways": [
+    "logit(p) = Xβ; coefficient e^{β̂ⱼ} is the adjusted odds ratio for Xⱼ. [1]",
+    "MLE via IRLS (Newton-Raphson); log-likelihood is globally concave — no local optima. [1]",
+    "OR ≠ RR when prevalence > 10%; OR overestimates RR. OR ≈ RR for rare outcomes. [1]",
+    "LRT preferred over Wald test (Hauck-Donner effect: Wald is unreliable for large β̂). [1]",
+    "Complete separation: β̂→∞; use Firth's penalized likelihood or Ridge logistic. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Can logistic regression handle class imbalance?",
+      "a": "The MLE for logistic regression is consistent under any class ratio — the slope coefficients are unbiased. However, the intercept β₀ is affected by sampling: in case-control studies (deliberately oversampling cases), β₀ needs correction: β̂₀_corrected = β̂₀ + log(π/(1−π)) − log(ρ/(1−ρ)), where π is the true prevalence and ρ is the case fraction in the sample. Slopes are case-control invariant — a key advantage of logistic regression for retrospective studies. [1]"
+    },
+    {
+      "q": "What is the linear probability model and why not use it instead?",
+      "a": "The linear probability model (LPM): E[Y|X] = Xβ, estimated by OLS. It's simple and coefficients have a direct probability interpretation (β̂ⱼ = marginal probability change per unit Xⱼ). Problems: predicted P(Y=1) can be outside [0,1]; heteroscedasticity by construction (Var(Y|X) = p(1−p) depends on X); estimated coefficients are inconsistent for nonlinear P(Y=1|X). For description and A/B testing where X is binary, LPM with robust SE is often acceptable. For prediction or continuous X, logistic regression is better calibrated. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Hosmer, Lemeshow & Sturdivant — Applied Logistic Regression (3rd ed.), Ch. 1–5", "url": "https://www.wiley.com/en-us/Applied+Logistic+Regression%2C+3rd+Edition-p-9780470582473" },
+    { "label": "McCullagh & Nelder — Generalized Linear Models (2nd ed.), Ch. 4", "url": "https://www.routledge.com/Generalized-Linear-Models/McCullagh-Nelder/p/book/9780412317606" }
+  ]
+}

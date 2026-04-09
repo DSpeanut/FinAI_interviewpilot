@@ -1,0 +1,68 @@
+{
+  "eli3": [
+    "ARIMA(p,d,q) stands for AutoRegressive Integrated Moving Average. AR(p): the current value depends on the last p values. MA(q): the current value depends on the last q error terms. I(d): the series is differenced d times to achieve stationarity. ARIMA combines these: first difference d times, then fit ARMA(p,q) to the differenced series.",
+    "The AR component captures autocorrelation through lagged Y: Yₜ = φ₁Yₜ₋₁ + … + φₚYₜ₋ₚ + εₜ. The MA component captures the effect of past shocks: Yₜ = εₜ − θ₁εₜ₋₁ − … − θqεₜ₋q. Combined: Yₜ = φ₁Yₜ₋₁ + … + φₚYₜ₋ₚ + εₜ − θ₁εₜ₋₁ − … − θqεₜ₋q. Using backshift operator B: φ(B)Yₜ = θ(B)εₜ.",
+    "The Box-Jenkins methodology for fitting ARIMA: (1) Identify: check stationarity (ADF test), difference if needed, plot ACF/PACF to guess p and q; (2) Estimate: MLE or conditional least squares for AR and MA parameters; (3) Diagnose: check residual ACF (Ljung-Box test), residuals should be white noise; (4) Forecast: generate point forecasts and prediction intervals. AIC/BIC compare competing models."
+  ],
+  "whenWhy": [
+    {
+      "title": "Forecasting univariate time series",
+      "body": "ARIMA is the benchmark univariate forecasting model. It captures persistence (AR component), shock propagation (MA component), and non-stationarity (differencing). ARIMA(0,1,1) = exponential smoothing. ARIMA(0,2,2) = Holt's double exponential smoothing. For monthly data with seasonality: SARIMA(P,D,Q)(p,d,q)_s extends ARIMA with seasonal components."
+    },
+    {
+      "title": "Removing serial correlation from regression residuals",
+      "body": "When regression residuals show autocorrelation, including an ARIMA structure for the error term (ARIMAX or dynamic regression) properly accounts for the time series structure. This gives correct standard errors and more efficient parameter estimates than OLS with Newey-West correction."
+    },
+    {
+      "title": "Baseline model for forecast evaluation",
+      "body": "ARIMA forecasts serve as a competitive baseline that complex models (ML, neural networks, Prophet) must beat. Hyndman & Khandakar (2008)'s auto.arima algorithm automatically selects p, d, q via AIC with a step-wise search over candidate models — widely used for benchmark forecasts in production."
+    }
+  ],
+  "deepDiveIntro": [
+    "Backshift operator B: BYₜ = Yₜ₋₁, B²Yₜ = Yₜ₋₂. Difference operator ∇ = 1−B: ∇Yₜ = Yₜ − Yₜ₋₁. ARIMA(p,d,q): φ(B)∇ᵈYₜ = θ(B)εₜ, where φ(B) = 1−φ₁B−…−φₚBᵖ (AR polynomial), θ(B) = 1−θ₁B−…−θqBq (MA polynomial, note sign convention varies), εₜ ~ WN(0,σ²).",
+    "Stationarity: roots of φ(B) outside unit circle. Invertibility: roots of θ(B) outside unit circle — needed for unique MA representation and infinite AR expansion. For ARMA(1,1): φ(B) = 1−φB, θ(B) = 1−θB. Stationary if |φ| < 1; invertible if |θ| < 1. MLE estimation: Kalman filter computes the exact likelihood for ARIMA models; conditional MLE assumes presample values at their expectations."
+  ],
+  "deepDive": [
+    {
+      "heading": "ARIMA(p,d,q) Model and Backshift Notation",
+      "body": "ARIMA(p,d,q): φ(B)(1−B)ᵈYₜ = c + θ(B)εₜ. For d=1 (ARIMA(p,1,q)): φ(B)ΔYₜ = c + θ(B)εₜ. Special cases: ARIMA(0,1,0) = random walk with drift; ARIMA(1,1,0) = differenced AR(1); ARIMA(0,1,1) = IMA(1,1) = exponential smoothing (Holt 1957 showed equivalence). Parameters: φ₁,…,φₚ (AR), θ₁,…,θq (MA), c (constant/drift), σ² (noise variance). Estimated by MLE via Kalman filter. [1]",
+      "formula": "φ(B) · (1−B)ᵈ · Yₜ = c + θ(B) · εₜ"
+    },
+    {
+      "heading": "Box-Jenkins Model Selection",
+      "body": "Step 1 — Stationarity: ADF test. If non-stationary, determine d (usually d=1 for most series). Step 2 — Identify (p,q): plot ACF and PACF of ΔᵈYₜ. AR(p) signature: PACF cuts off at p, ACF decays. MA(q) signature: ACF cuts off at q, PACF decays. ARMA: both decay. Step 3 — Estimate multiple candidate models by MLE. Step 4 — Select via AIC = −2ℓ + 2k or BIC = −2ℓ + k·log(n) (k = p+q+1+d; BIC penalizes more heavily). Step 5 — Diagnose residuals: Ljung-Box test, residual ACF, Q-Q plot. [1]"
+    },
+    {
+      "heading": "ARIMA Forecasting and Prediction Intervals",
+      "body": "h-step ahead forecast: Ŷₜ₊ₕ|ₜ = E[Yₜ₊ₕ | Y₁,…,Yₜ]. For AR(1): Ŷₜ₊ₕ|ₜ = φ₁ʰYₜ → 0 as h→∞ (stationary AR). For ARIMA(0,1,0): Ŷₜ₊ₕ|ₜ = Yₜ (random walk — last value is optimal forecast). Prediction interval: Ŷₜ₊ₕ|ₜ ± z_{α/2}·√(Var(eₜ₊ₕ)), where Var(eₜ₊ₕ) = σ²·Σⱼ₌₀ʰ⁻¹ψⱼ² and ψⱼ are the MA(∞) coefficients of Yₜ. PI widens with forecast horizon h. [1]",
+      "formula": "Ŷₜ₊ₕ|ₜ = E[Yₜ₊ₕ | Y₁,…,Yₜ]"
+    },
+    {
+      "heading": "Seasonal ARIMA (SARIMA)",
+      "body": "SARIMA(p,d,q)(P,D,Q)_s: Φ(Bˢ)φ(B)∇ˢᴰ∇ᵈYₜ = Θ(Bˢ)θ(B)εₜ, where s is the seasonal period (s=12 for monthly, s=4 for quarterly), Φ(Bˢ) and Θ(Bˢ) are seasonal AR and MA polynomials of order P and Q in Bˢ, ∇ˢ = 1−Bˢ is the seasonal difference. Standard for monthly economic series: SARIMA(0,1,1)(0,1,1)₁₂ (airline model, Box-Jenkins 1976). Seasonal differencing ∇ˢYₜ = Yₜ − Yₜ₋ₛ removes seasonal non-stationarity. [1]"
+    }
+  ],
+  "youtubeLabel": "ARIMA Models — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/3UmyHed0iYE",
+  "takeaways": [
+    "ARIMA(p,d,q): φ(B)(1−B)ᵈYₜ = c + θ(B)εₜ; d differences for stationarity, AR(p), MA(q). [1]",
+    "Box-Jenkins: identify (ADF + ACF/PACF) → estimate (MLE) → diagnose (residual ACF, Ljung-Box) → forecast. [1]",
+    "Model selection: AIC = −2ℓ + 2k; BIC = −2ℓ + k·log(n); BIC tends to select smaller models. [1]",
+    "ARIMA(0,1,1) = exponential smoothing; ARIMA(0,1,0) = random walk forecast. [1]",
+    "SARIMA extends ARIMA with seasonal AR and MA polynomials and seasonal differencing. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Can ARIMA overfit? How do you prevent it?",
+      "a": "Yes — fitting ARIMA with too many parameters (large p+q) will fit the training data well but forecast poorly. Prevention: (1) Use BIC (stronger penalty than AIC) to prefer parsimonious models; (2) hold out the last H observations as a test set and evaluate RMSE; (3) limit the search space (auto.arima limits to p,q ≤ 5 by default); (4) check that the MA and AR polynomials have no near-common factors (parameter redundancy — indicates overfitting). [1]"
+    },
+    {
+      "q": "What is the unit root in ARIMA and why does it matter for forecasting?",
+      "a": "In ARIMA(p,d,q) with d ≥ 1, the AR polynomial φ(B)(1−B)ᵈ has d roots on the unit circle. This means forecasts do not revert to a fixed mean — they continue at the level of recent observations (or grow with drift). For d=1: long-horizon forecasts converge to a straight line (the last known level plus drift). For d=2: to a quadratic. This is why ARIMA is appropriate for trending series: the unit roots capture the trending behavior without explicit time trend terms. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Box, Jenkins, Reinsel & Ljung — Time Series Analysis (5th ed.), Ch. 3–7", "url": "https://www.wiley.com/en-us/Time+Series+Analysis%3A+Forecasting+and+Control%2C+5th+Edition-p-9781118675021" },
+    { "label": "Hyndman & Athanasopoulos — Forecasting: Principles and Practice (3rd ed.), Ch. 9", "url": "https://otexts.com/fpp3/" }
+  ]
+}

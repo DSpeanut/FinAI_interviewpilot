@@ -1,0 +1,74 @@
+{
+  "eli3": [
+    "A z-test asks: if the null hypothesis were true, how surprising is the data we observed? It standardises the test statistic by subtracting the null-hypothesis mean and dividing by the known standard error — converting the result to a z-score on the standard normal distribution.",
+    "You use a z-test when you know the population standard deviation σ (rare in practice) or when the sample is large enough (n ≥ 30) that the CLT guarantees x̄ is approximately normal and s ≈ σ. In practice, the t-test is almost always used instead — it accounts for estimating σ from the data.",
+    "The one-sample z-test: z = (x̄ − μ₀) / (σ/√n). The p-value is the probability of observing |z| or more extreme under H₀. Reject H₀ if |z| > 1.96 (two-sided, α=0.05) or if p-value < 0.05."
+  ],
+  "whenWhy": [
+    {
+      "title": "Testing a population mean when σ is known",
+      "body": "The classical setting: test H₀: μ = μ₀ with known σ. Example: a factory knows the historical σ of weights and wants to test whether a new batch has a different mean. The z-test is the most powerful test in this setting by the Neyman-Pearson lemma (UMP test for the normal family)."
+    },
+    {
+      "title": "Large-sample approximation (σ estimated)",
+      "body": "For n ≥ 30, s ≈ σ and the z-test is approximately valid even with estimated σ (by CLT + Slutsky's theorem). Many online A/B testing calculators use the z-test for conversion rates (proportion test) because with millions of observations, σ is essentially known from the proportion itself: σ = √(p(1−p))."
+    },
+    {
+      "title": "Two-proportion z-test for A/B testing",
+      "body": "H₀: p₁ = p₂ (e.g. two versions of a webpage have equal conversion rates). Pooled SE = √[p̂(1−p̂)(1/n₁ + 1/n₂)] where p̂ = (x₁+x₂)/(n₁+n₂). z = (p̂₁−p̂₂)/SE. For very large n (millions of users), normal approximation is exact and z-test is the right tool."
+    },
+    {
+      "title": "Benchmark: teaches core logic of hypothesis testing",
+      "body": "The z-test introduces all concepts used in every subsequent test: null hypothesis, test statistic, sampling distribution, p-value, significance level, rejection region, Type I and Type II errors, one-sided vs two-sided tests. Mastering the z-test is the foundation for understanding ANOVA, chi-square, and likelihood ratio tests."
+    }
+  ],
+  "deepDiveIntro": [
+    "Suppose X₁,…,Xₙ ~ N(μ, σ²) iid with σ² known. Test H₀: μ = μ₀ vs H₁: μ ≠ μ₀. The test statistic Z = (x̄ − μ₀)/(σ/√n) ~ N(0,1) under H₀. Reject H₀ if |Z| > z_{α/2} (two-sided) or Z > z_α (one-sided right) or Z < −z_α (one-sided left).",
+    "The z-test is the uniformly most powerful (UMP) test for H₀: μ = μ₀ vs H₁: μ > μ₀ in the normal location family with known σ, by the Neyman-Pearson lemma applied via Karlin-Rubin. The power function is β(μ) = P(reject H₀ | μ) = Φ(z_{α/2} − (μ−μ₀)√n/σ) + Φ(−z_{α/2} − (μ−μ₀)√n/σ)."
+  ],
+  "visualizationType": "z-test",
+  "deepDive": [
+    {
+      "heading": "One-Sample Z-Test",
+      "body": "Test H₀: μ = μ₀, σ known. Statistic: Z = (x̄ − μ₀)/(σ/√n). Under H₀: Z ~ N(0,1). Two-sided p-value: p = 2·Φ(−|Z|). Reject at level α if p < α, equivalently if |Z| > z_{α/2}. Critical values: z_{0.025} = 1.96 (α=0.05), z_{0.005} = 2.576 (α=0.01). [1]",
+      "formula": "Z = (x̄ − μ₀) / (σ / √n) ~ N(0,1) under H₀"
+    },
+    {
+      "heading": "Two-Sample Z-Test",
+      "body": "H₀: μ₁ = μ₂, both σᵢ known. Statistic: Z = (x̄₁ − x̄₂) / √(σ₁²/n₁ + σ₂²/n₂). Under H₀: Z ~ N(0,1). Assumptions: independent samples from normal populations with known variances. For proportions: Z = (p̂₁−p̂₂)/√[p̂(1−p̂)(1/n₁+1/n₂)]. [1]",
+      "formula": "Z = (x̄₁ − x̄₂) / √(σ₁²/n₁ + σ₂²/n₂)"
+    },
+    {
+      "heading": "Type I Error, Type II Error, and Power",
+      "body": "Type I error (α): P(reject H₀ | H₀ true) — false positive rate, set by the researcher. Type II error (β): P(fail to reject H₀ | H₁ true) — false negative. Power = 1−β = P(reject H₀ | H₁ true). For the one-sample z-test: β = Φ(z_{α/2} − δ√n/σ) − Φ(−z_{α/2} − δ√n/σ) where δ = μ₁−μ₀ is the true effect size. Power increases with n, effect size, and α. [1]"
+    },
+    {
+      "heading": "p-value Interpretation",
+      "body": "The p-value is P(|Z| ≥ |z_obs| | H₀ true) — the probability of observing a test statistic at least as extreme as observed, assuming H₀ is true. It is NOT: the probability that H₀ is true, the probability the result is due to chance, or a measure of effect size. p < α means the result is 'statistically significant' at level α — it says nothing about practical significance. [1][2]"
+    }
+  ],
+  "youtubeLabel": "Z-test vs t-test — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/0zZYBALbZgg",
+  "takeaways": [
+    "Z = (x̄−μ₀)/(σ/√n) ~ N(0,1) under H₀; requires known σ or n ≥ 30 by CLT. [1]",
+    "Two-sided test: reject if |Z| > z_{α/2} (1.96 at α=0.05); p = 2·Φ(−|Z|). [1]",
+    "UMP test for normal location family with known σ by Neyman-Pearson lemma. [1]",
+    "Power = 1−β increases with sample size, effect size (δ), and significance level α. [1]",
+    "p-value ≠ P(H₀ is true); it is P(data this extreme | H₀ true). [1][2]",
+    "In practice, use t-test instead (σ unknown); z-test is appropriate for A/B testing with very large n. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "When exactly should you use a z-test vs a t-test?",
+      "a": "Use z-test when: σ is truly known (rare), or n is very large (≥1000 in practice) and you're comfortable treating s as σ. Use t-test whenever: σ must be estimated from the data, or n < 30. For n ≥ 30 with estimated σ, both give nearly identical results — the t-distribution approaches the normal as degrees of freedom → ∞. In practice, default to the t-test. [1]"
+    },
+    {
+      "q": "What is the connection between the z-test and confidence intervals?",
+      "a": "Duality: the hypothesis H₀: μ = μ₀ is rejected at level α by a two-sided z-test ⟺ μ₀ falls outside the 100(1−α)% CI [x̄ ± z_{α/2}·σ/√n]. The CI inverts the test: it is the set of all null hypothesis values not rejected by the z-test. This duality holds generally for any pivotal test statistic. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 8", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" },
+    { "label": "Wasserstein & Lazar (2016) — ASA Statement on p-values, The American Statistician 70(2)", "url": "https://doi.org/10.1080/00031305.2016.1154108" }
+  ]
+}

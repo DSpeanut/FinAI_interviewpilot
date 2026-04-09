@@ -1,0 +1,65 @@
+{
+  "eli3": [
+    "Retrieval-Augmented Generation (RAG, Lewis et al. 2020) combines a retrieval system with a language model: given a question, first retrieve relevant documents from a knowledge base, then feed them as context to the LLM to generate an answer. This grounds the LLM in retrieved facts, reducing hallucination and enabling up-to-date knowledge without retraining.",
+    "RAG pipeline: (1) Index: chunk documents, embed each chunk with an embedding model, store in a vector database. (2) Retrieve: embed the query, find the k most similar chunks by cosine similarity (ANN search). (3) Generate: concatenate the query + retrieved chunks as the LLM prompt, generate an answer grounded in the retrieved content. The LLM is not modified — only its input changes.",
+    "RAG solves the core LLM limitation of stale knowledge (training cutoff) and hallucination on specific facts (company policies, product specs, research papers). It's the standard architecture for enterprise LLM applications: chatbots over internal documents, customer support over product manuals, research assistants. RAG is more practical than full retraining or fine-tuning when the knowledge base is large, dynamic, or proprietary."
+  ],
+  "whenWhy": [
+    {
+      "title": "Grounding LLMs in proprietary or up-to-date knowledge",
+      "body": "Base LLMs only know what was in their training data (cutoff date). RAG enables: (1) answering questions about documents added after the training cutoff; (2) domain-specific knowledge (internal HR policies, legal contracts, medical records) that was never in training data; (3) private/confidential knowledge that cannot be sent to an LLM vendor for fine-tuning. RAG adds this knowledge at query time via retrieval — no training required. The retrieval step ensures the LLM sees the relevant document, not just its (possibly incorrect) recollection."
+    },
+    {
+      "title": "Reducing hallucination with citations",
+      "body": "LLMs hallucinate facts when asked about specific entities, numbers, or events. RAG forces the LLM to answer from retrieved text, reducing hallucination on the retrieved content. Attribution: the LLM can cite the exact source documents used. Example: 'According to [Document X, page 3]: ...' — verifiable by the user. This is critical for legal, medical, and financial applications where citing sources is required and hallucinated facts are dangerous. RAG doesn't eliminate hallucination but restricts its domain to the retrieved context."
+    },
+    {
+      "title": "Cost-effective alternative to fine-tuning for knowledge injection",
+      "body": "Fine-tuning on a large document corpus: expensive (GPU time), brittle (requires retraining when documents change), may not inject specific facts reliably. RAG: index documents once (embed + store), query at inference time. Updating the knowledge base: add/remove documents without any model training. Cost: embedding + ANN search + LLM inference per query — much cheaper than fine-tuning. Fine-tuning is better for style/format changes; RAG is better for factual knowledge grounding."
+    }
+  ],
+  "deepDiveIntro": [
+    "RAG architecture (Lewis et al. 2020): the retriever (DPR — Dense Passage Retrieval) retrieves top-k passages from Wikipedia using dense vector similarity. The generator (BART) conditions on the question + retrieved passages to generate the final answer. Two model variants: RAG-Sequence (uses the same passage for the full answer) and RAG-Token (marginalizes over different passages per token). Modern RAG replaces DPR with embedding models (text-embedding-ada-002, E5, BGE) and uses any LLM as the generator.",
+    "Vector database for RAG: stores document chunk embeddings (typically 768d or 1536d vectors). At query time, embed the query with the same model, perform approximate nearest neighbor (ANN) search using algorithms like HNSW (Hierarchical Navigable Small World) or IVF-PQ. Popular vector databases: Pinecone, Weaviate, Milvus, Chroma, pgvector (Postgres extension). ANN search returns top-k candidates with cosine or dot-product similarity in milliseconds even over millions of vectors."
+  ],
+  "deepDive": [
+    {
+      "heading": "RAG Pipeline Components",
+      "body": "Indexing: (1) Document loading (PDF, HTML, Markdown, database); (2) Chunking (split into ~512-token segments with overlap); (3) Embedding each chunk (text-embedding-3-small or BGE-base); (4) Store in vector DB. Retrieval: (1) Embed query; (2) ANN search (top-k=5 by default); (3) Optional re-ranking. Generation: (1) Format prompt: 'Answer based on the following passages: [chunks]. Question: [query]'; (2) LLM generates grounded answer. Latency: embedding + ANN ≈ 50–200ms; LLM generation ≈ 500ms–3s. Total: < 5s for most RAG queries. [1]",
+      "formula": "score(q, d) = cosine(embed(q), embed(d)) = (embed(q)·embed(d)) / (||embed(q)|| · ||embed(d)||)"
+    },
+    {
+      "heading": "Advanced RAG: Hybrid Search and Re-ranking",
+      "body": "Naive RAG limitation: dense retrieval misses exact keyword matches (BM25 strength). Hybrid RAG: combine dense (semantic) + sparse (BM25) retrieval, merge results with Reciprocal Rank Fusion (RRF). Re-ranking: after retrieving top-k=20 candidates, apply a cross-encoder model (BERT-based) that jointly encodes query+document and scores their relevance — more accurate than bi-encoder similarity but too slow for initial retrieval. Re-ranker returns top-5 from the 20 candidates. Two-stage pipeline: fast bi-encoder retrieval (recall) + slow cross-encoder re-ranking (precision). [2]"
+    },
+    {
+      "heading": "Chunking Strategy Impact on RAG Quality",
+      "body": "Chunk size trade-off: small chunks (128 tokens) → precise retrieval but incomplete context. Large chunks (1024 tokens) → more context but diluted relevance, fewer chunks per context window. Overlap: 20-50 token overlap between adjacent chunks prevents splitting key sentences at chunk boundaries. Semantic chunking: split at paragraph or section boundaries rather than fixed token counts. Sentence-window retrieval: embed individual sentences, but retrieve the surrounding paragraph for context. Parent-child chunking: embed small child chunks for retrieval, return the larger parent document for generation — balances retrieval precision with context richness. [2]"
+    },
+    {
+      "heading": "RAG Evaluation: RAGAS Framework",
+      "body": "RAGAS (Es et al. 2023): evaluation framework for RAG pipelines. Metrics: (1) Faithfulness — are the LLM's claims supported by the retrieved context? (LLM-judged); (2) Answer Relevancy — is the answer relevant to the question? (embedding similarity); (3) Context Precision — are the retrieved chunks relevant to the question? (precision of retrieved context); (4) Context Recall — do retrieved chunks cover all necessary information? (recall vs. ground truth). RAGAS provides automated evaluation without human annotation, enabling rapid iteration on RAG pipeline design. [1]"
+    }
+  ],
+  "takeaways": [
+    "RAG: embed documents → vector DB → embed query → ANN search → LLM generates from retrieved context. [1]",
+    "Reduces hallucination on specific facts; enables citation of source documents. [1]",
+    "Hybrid search: dense (semantic) + sparse (BM25) retrieval + re-ranking — best recall + precision. [2]",
+    "Parent-child chunking: small chunks for retrieval precision, larger parent for generation context. [2]",
+    "RAGAS: automated RAG evaluation — faithfulness, answer relevancy, context precision, context recall. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "When should you use RAG vs fine-tuning?",
+      "a": "RAG: use when knowledge is dynamic (changes frequently), proprietary (can't share with LLM vendor for fine-tuning), large (>1M tokens — too large for context), or factual (need citation and verifiability). RAG fails when: the required knowledge is not in the retrieved documents, queries require complex multi-hop reasoning over many documents, or the latency budget is very tight (< 200ms). Fine-tuning: use when the model needs to learn new behaviors (format, style, domain vocabulary), the task pattern is consistent and learnable, you have 500+ labeled examples, and knowledge injection is secondary. Many production systems combine both: fine-tune for style/behavior, RAG for knowledge. [1]"
+    },
+    {
+      "q": "How do you handle questions that cannot be answered from the retrieved context?",
+      "a": "Failure modes: (1) Relevant documents exist but weren't retrieved (recall failure); (2) No documents cover the query (out-of-scope). Mitigations: (1) Confidence gating — use a threshold on retrieval similarity scores; if max_score < threshold, answer 'I don't have information on this' rather than hallucinating; (2) Re-retrieval with query rewriting — if first retrieval fails, have the LLM rephrase the query and retry; (3) Out-of-scope detection — a classifier that detects whether the query is within the knowledge base's scope; (4) Fallback to LLM base knowledge with disclosure — 'Based on my general knowledge (not retrieved documents): ...'. Always distinguish between retrieved knowledge and model prior knowledge in the answer. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Lewis et al. (2020) — Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks, NeurIPS 2020", "url": "https://arxiv.org/abs/2005.11401" },
+    { "label": "Gao et al. (2023) — Retrieval-Augmented Generation for Large Language Models: A Survey", "url": "https://arxiv.org/abs/2312.10997" }
+  ]
+}

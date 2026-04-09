@@ -1,0 +1,74 @@
+{
+  "eli3": [
+    "ANOVA (Analysis of Variance) tests whether the means of three or more groups are equal. Instead of doing multiple t-tests (which inflates Type I error), ANOVA performs a single F-test by decomposing total variability into two parts: variance between groups (signal) and variance within groups (noise).",
+    "The F-statistic = between-group variance / within-group variance. If all groups have the same mean, both numerator and denominator estimate the same σ², so F ≈ 1. If the groups have different means, the numerator becomes large relative to the denominator, and F is large — evidence against H₀.",
+    "A significant ANOVA tells you 'at least one group mean differs' — but not which one. Post-hoc tests (Tukey's HSD, Bonferroni correction) identify which specific pairs differ while controlling the family-wise error rate."
+  ],
+  "whenWhy": [
+    {
+      "title": "Comparing more than two group means simultaneously",
+      "body": "Conducting k(k−1)/2 pairwise t-tests inflates the Type I error: with 5 groups and α=0.05 per test, the probability of at least one false rejection is 1−(0.95)^10 ≈ 40%. ANOVA controls Type I error at α across all group comparisons by making a single omnibus test."
+    },
+    {
+      "title": "Experimental design: analysing randomised trials",
+      "body": "ANOVA is the standard analysis for randomised controlled experiments with categorical treatment variables. One-way ANOVA: single factor. Two-way ANOVA: two factors plus their interaction. Repeated-measures ANOVA: same subjects across conditions (equivalent to multivariate t-test). These form the foundation of experimental statistics."
+    },
+    {
+      "title": "Feature importance in regression (Analysis of Variance table)",
+      "body": "The ANOVA table decomposes SST = SSR + SSE (total = regression + residual sum of squares). The F-test for the overall regression model (H₀: all β = 0) is exactly an ANOVA F-test. R² = SSR/SST is the fraction of variance explained. Every regression summary output includes an ANOVA table."
+    },
+    {
+      "title": "Pre-modelling feature screening",
+      "body": "One-way ANOVA F-test between a continuous feature and a categorical target is a fast, interpretable feature selection criterion. Scikit-learn's f_classif uses the ANOVA F-test to rank continuous features by their association with a categorical target. High F = feature discriminates between classes."
+    }
+  ],
+  "deepDiveIntro": [
+    "One-way ANOVA with k groups and nᵢ observations in group i (total n = Σnᵢ). Model: Xᵢⱼ = μ + αᵢ + εᵢⱼ where αᵢ is the group effect (Σnᵢαᵢ=0) and εᵢⱼ ~ N(0,σ²) iid. H₀: α₁=…=αₖ=0 (all group means equal). H₁: at least one αᵢ ≠ 0.",
+    "Variance partition: SST = SSB + SSW. SST = Σᵢⱼ(xᵢⱼ−x̄)²; SSB = Σᵢnᵢ(x̄ᵢ−x̄)² (between); SSW = Σᵢⱼ(xᵢⱼ−x̄ᵢ)² (within). Under H₀: SSB/σ² ~ χ²(k−1), SSW/σ² ~ χ²(n−k), and they are independent. F = (SSB/(k−1))/(SSW/(n−k)) ~ F(k−1, n−k)."
+  ],
+  "visualizationType": "anova",
+  "deepDive": [
+    {
+      "heading": "Variance Decomposition",
+      "body": "SST = SSB + SSW where SST = Σᵢⱼ(xᵢⱼ−x̄)², SSB = Σᵢnᵢ(x̄ᵢ−x̄)² (Between-group), SSW = Σᵢⱼ(xᵢⱼ−x̄ᵢ)² (Within-group). MSB = SSB/(k−1), MSW = SSW/(n−k). Under H₀, both MSB and MSW estimate σ². Under H₁, E[MSB] = σ² + Σnᵢαᵢ²/(k−1) > σ² = E[MSW]. [1]",
+      "formula": "SST = SSB + SSW"
+    },
+    {
+      "heading": "F-Statistic and F-Distribution",
+      "body": "F = MSB / MSW = [SSB/(k−1)] / [SSW/(n−k)] ~ F(k−1, n−k) under H₀. Reject H₀ if F > F_{k−1, n−k, α}. The F-distribution is the ratio of two independent chi-squared variables divided by their degrees of freedom. It is always non-negative and right-skewed. Note: for k=2, F = t² where t is the two-sample t statistic — one-way ANOVA with two groups = two-sample t-test. [1]",
+      "formula": "F = MSB / MSW = [SSB/(k−1)] / [SSW/(n−k)]"
+    },
+    {
+      "heading": "Assumptions",
+      "body": "1. Independence: observations are independent within and across groups. 2. Normality: within each group, data ~ N(μᵢ, σ²). Robust to mild non-normality for n ≥ 30 per group by CLT. 3. Homoscedasticity (equal variances): σ₁²=…=σₖ²=σ². Test with Levene's test or Bartlett's test. If violated, use Welch's ANOVA (does not assume equal variances). [1]"
+    },
+    {
+      "heading": "Post-Hoc Tests",
+      "body": "A significant F-test rejects H₀ but does not identify which means differ. Post-hoc tests for pairwise comparisons: Tukey's HSD (controls family-wise error rate for all pairwise comparisons), Bonferroni correction (most conservative, divide α by number of comparisons), Scheffé (most flexible, controls for all possible contrasts), and Dunnett (comparisons to a single control group). [1][2]"
+    }
+  ],
+  "youtubeLabel": "ANOVA — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/0Vj2V2qRU10",
+  "takeaways": [
+    "F = MSB/MSW; under H₀ ~ F(k−1,n−k); large F → reject equal-means hypothesis. [1]",
+    "SST = SSB + SSW: total variance = between-group + within-group. [1]",
+    "Assumptions: independence, normality (robust for large n), equal variances (use Welch's ANOVA if violated). [1]",
+    "Significant ANOVA → 'at least one mean differs'; post-hoc tests (Tukey's HSD) identify which pairs. [1][2]",
+    "For k=2 groups: F = t² — ANOVA is the direct generalisation of the t-test. [1]",
+    "ANOVA F-test in regression: H₀: all slope coefficients = 0; R² = SSR/SST = proportion of variance explained. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What is Welch's ANOVA and when should you use it?",
+      "a": "Welch's ANOVA (Welch 1951) relaxes the equal-variance assumption. It uses group-specific variance estimates and computes a modified F-statistic with corrected degrees of freedom (Brown-Forsythe or Welch-Satterthwaite). Use it whenever Levene's test is significant (p < 0.05) or when group sizes are very unequal with different spread. In practice, Welch's ANOVA is a safer default than the classic equal-variance ANOVA. [1]"
+    },
+    {
+      "q": "What is the difference between one-way and two-way ANOVA?",
+      "a": "One-way ANOVA: one categorical factor. Two-way ANOVA: two factors, decomposing SST = SS_A + SS_B + SS_AB + SSW where SS_AB is the interaction term. The interaction captures whether the effect of factor A depends on the level of factor B. If the interaction is not significant, you can interpret main effects directly; if significant, main effects must be interpreted conditionally. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 11", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" },
+    { "label": "Montgomery — Design and Analysis of Experiments (10th ed.), Ch. 3–5", "url": "https://www.wiley.com/en-us/Design+and+Analysis+of+Experiments%2C+10th+Edition-p-9781119492443" }
+  ]
+}

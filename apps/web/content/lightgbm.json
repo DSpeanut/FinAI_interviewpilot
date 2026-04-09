@@ -1,0 +1,89 @@
+{
+  "eli3": [
+    "LightGBM is a gradient boosting library built for speed and large datasets. The key innovation is how it grows trees: instead of expanding all leaves at the same level (level-wise, like XGBoost), it always expands the single leaf that gives the biggest loss reduction (leaf-wise). This is like always fixing your biggest mistake first.",
+    "Leaf-wise growth creates deeper, less symmetric trees and reaches the same accuracy with fewer leaves — meaning less memory and faster training. On many large datasets, LightGBM is 10–20× faster than XGBoost with comparable or better accuracy.",
+    "It also introduces two algorithmic tricks: GOSS (Gradient-based One-Side Sampling) which focuses sampling on hard examples, and EFB (Exclusive Feature Bundling) which compresses sparse features. Together these make LightGBM the go-to choice for very large tabular datasets."
+  ],
+  "whenWhy": [
+    {
+      "title": "Very large datasets (millions of rows)",
+      "body": "LightGBM uses histogram-based split finding (bin features into 256 buckets) and leaf-wise tree growth to achieve massive speed improvements over XGBoost. For datasets with >500K rows, LightGBM is typically the fastest option."
+    },
+    {
+      "title": "High-dimensional sparse features",
+      "body": "Exclusive Feature Bundling (EFB) merges mutually exclusive sparse features (e.g. one-hot encoded categoricals) into single dense features, reducing dimensionality without information loss. This dramatically speeds up training on high-cardinality categorical datasets."
+    },
+    {
+      "title": "Native categorical feature support",
+      "body": "LightGBM handles categorical features directly via optimal many-to-two splits without one-hot encoding. This is faster and often more accurate than manual encoding, especially for features with many categories."
+    },
+    {
+      "title": "GPU training for even larger scale",
+      "body": "LightGBM's GPU implementation achieves 10–50× speedup over CPU for histogram-based split finding. Combined with its already-fast CPU implementation, it is the go-to library when training budget is a constraint."
+    }
+  ],
+  "deepDiveIntro": [
+    "LightGBM (Ke et al., 2017) introduces two innovations beyond XGBoost: leaf-wise (best-first) tree growth and histogram-based approximate split finding. These changes give substantial speedups — 10–20× over XGBoost in benchmarks — while maintaining or improving accuracy.",
+    "The leaf-wise growth strategy expands the leaf with the maximum delta loss at each step, creating asymmetric trees. Combined with GOSS sampling and EFB feature compression, LightGBM is optimised for large-scale industrial applications."
+  ],
+  "visualizationType": "lightgbm",
+  "deepDive": [
+    {
+      "heading": "Leaf-Wise vs Level-Wise Tree Growth",
+      "body": "Level-wise (XGBoost default): at each step, split all leaves at the current depth — balanced tree. Leaf-wise (LightGBM default): at each step, split the single leaf with the largest loss reduction — asymmetric tree. Leaf-wise reaches lower loss with the same number of leaves, but can overfit on small datasets. Control with num_leaves (default 31) and min_data_in_leaf. [1]"
+    },
+    {
+      "heading": "Histogram-Based Split Finding",
+      "body": "Instead of sorting all feature values, LightGBM bins each feature into at most 256 discrete buckets (max_bin default). Split finding scans only 256 thresholds per feature instead of n. The gradient sum per bin is cached after the first pass. This reduces memory from O(n) to O(bins) and speeds up split finding dramatically. [1]",
+      "formula": "bin split cost: O(num_bins) vs exact cost: O(n log n)"
+    },
+    {
+      "heading": "GOSS: Gradient-Based One-Side Sampling",
+      "body": "The key insight: instances with large gradients (poorly fitted by current model) contribute most to information gain. GOSS keeps all large-gradient instances and randomly samples a fraction of small-gradient instances (multiplying them by a compensation factor to preserve the distribution). This reduces data size without losing gradient information from hard examples. [1]"
+    },
+    {
+      "heading": "EFB: Exclusive Feature Bundling",
+      "body": "In high-dimensional sparse data (e.g. one-hot encoded features), many features are mutually exclusive — they are never non-zero simultaneously. EFB merges such features into a single bundle by assigning each original feature a different bin offset. The resulting bundled feature is dense, reducing the effective number of features from p to much fewer. [1]"
+    },
+    {
+      "heading": "Key Hyperparameters",
+      "body": "num_leaves (default 31): main complexity control — increase for more complex models. learning_rate (0.05–0.1). n_estimators with early stopping. min_data_in_leaf: minimum samples per leaf (regularisation). feature_fraction and bagging_fraction: column/row subsampling. lambda_l1, lambda_l2: regularisation. max_bin: histogram resolution. [1]"
+    }
+  ],
+  "youtubeLabel": "LightGBM Explained",
+  "youtubeUrl": "https://www.youtube.com/embed/n_ZMQj09S6w",
+  "takeaways": [
+    "Leaf-wise tree growth expands the best leaf at each step — more efficient than level-wise but needs regularisation (num_leaves, min_data_in_leaf). [1]",
+    "Histogram binning (max_bin=256) reduces split finding from O(n) to O(bins) — the core speed advantage. [1]",
+    "GOSS focuses computation on high-gradient (hard) examples while sampling low-gradient ones. [1]",
+    "EFB compresses mutually exclusive sparse features — key for high-cardinality categorical data. [1]",
+    "num_leaves is the primary complexity hyperparameter (analogous to max_depth in level-wise methods). [1]",
+    "LightGBM handles missing values and categorical features natively — minimal preprocessing needed. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "When does leaf-wise growth overfit compared to level-wise?",
+      "a": "Leaf-wise creates deep asymmetric trees which can overfit on small datasets (n < 10,000) — the best leaf may be a statistical fluke. Regularise with min_data_in_leaf (set higher for small datasets) and reduce num_leaves. For small datasets, XGBoost with max_depth or even Random Forest may generalise better. For large datasets, leaf-wise almost always wins. [1]"
+    },
+    {
+      "q": "How is LightGBM's categorical encoding different from one-hot?",
+      "a": "LightGBM finds optimal many-to-two partitions of categorical values at each split by sorting categories by their average gradient (similar to target encoding). This is provably optimal for gradient boosted trees and can handle high-cardinality features (hundreds of categories) efficiently. One-hot would require hundreds of binary splits to achieve the same effect. Specify categorical_feature in the dataset. [1]"
+    },
+    {
+      "q": "What is the difference between num_leaves and max_depth in LightGBM?",
+      "a": "In level-wise trees, depth d → at most 2^d leaves. In leaf-wise trees, LightGBM controls complexity via num_leaves directly (default 31). Setting max_depth also works as an additional constraint. For leaf-wise growth, num_leaves is the primary knob — a tree with num_leaves=31 can have depth up to 30 (a linear chain) or depth 5 (2^5=32), depending on data. [1]"
+    },
+    {
+      "q": "How does LightGBM compare to CatBoost?",
+      "a": "LightGBM: fastest for large datasets, excellent histogram-based split finding, good categorical support. CatBoost: superior native categorical handling via ordered target statistics (prevents leakage), ordered boosting reduces overfitting, slower but more robust on moderate-sized datasets with many categoricals. For pure speed and scalability, LightGBM wins. For categorical-heavy datasets, CatBoost is often better with less tuning. [1]"
+    },
+    {
+      "q": "What is the impact of max_bin on accuracy vs speed?",
+      "a": "Lower max_bin (e.g. 64): faster training and lower memory, but coarser splits — may miss fine decision boundaries, slight accuracy loss. Higher max_bin (e.g. 512): finer splits, potentially better accuracy, slower. Default of 255 is a good balance. For categorical features with many values, max_bin should be at least as large as the number of categories. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Ke et al. — LightGBM: A Highly Efficient Gradient Boosting Decision Tree (NeurIPS 2017)", "url": "https://papers.nips.cc/paper_files/paper/2017/hash/6449f44a102fde848669bdd9eb6b76fa-Abstract.html" },
+    { "label": "Chen & Guestrin — XGBoost: A Scalable Tree Boosting System (2016)", "url": "https://arxiv.org/abs/1603.02754" }
+  ]
+}

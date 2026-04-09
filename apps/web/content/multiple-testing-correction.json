@@ -1,0 +1,74 @@
+{
+  "eli3": [
+    "If you flip a fair coin 20 times, chance alone will give you a run of 5 heads somewhere — even though nothing special happened. Multiple testing is the same problem: if you test 100 independent hypotheses at α=0.05, you expect 5 false rejections even if every H₀ is true.",
+    "Multiple testing correction methods control this inflation. The Bonferroni correction is the simplest: divide α by the number of tests m, so each test uses α/m. To get an overall 5% error rate with 100 tests, each test uses α=0.0005. This is conservative — it controls the probability of ANY false rejection.",
+    "The Benjamini-Hochberg (FDR) procedure is less conservative: instead of controlling the probability of any false positive (FWER), it controls the expected fraction of rejections that are false (FDR). It rejects more hypotheses — more power — and is the standard in genomics and large-scale ML experiments."
+  ],
+  "whenWhy": [
+    {
+      "title": "Genomics and high-dimensional testing",
+      "body": "A GWAS (genome-wide association study) tests ~10⁶ SNPs simultaneously. Without correction, α=0.05 gives 50,000 expected false positives. The Bonferroni threshold is ~5×10⁻⁸. The Benjamini-Hochberg FDR procedure at q=0.05 is used in differential gene expression — it ensures at most 5% of significant findings are false."
+    },
+    {
+      "title": "A/B testing with multiple metrics",
+      "body": "Testing 10 business metrics in one experiment (revenue, clicks, time-on-site, etc.) at α=0.05 gives a 40% chance of at least one false positive. Apply Bonferroni (α/10) or Holm-Bonferroni (less conservative) to control FWER. Alternatively, pre-register a single primary metric and treat others as exploratory."
+    },
+    {
+      "title": "Post-hoc comparisons after ANOVA",
+      "body": "After a significant ANOVA F-test, all k(k−1)/2 pairwise comparisons need correction. Tukey's HSD is exact for balanced designs and controls FWER optimally among all pairwise contrasts. Bonferroni correction is simpler and generally more conservative. Scheffé correction is the most conservative but controls ALL possible contrasts, not just pairwise ones."
+    },
+    {
+      "title": "Feature selection: p-value thresholds in ML",
+      "body": "When using statistical tests (ANOVA F-test, chi-square) for feature selection across hundreds of features, unadjusted p-values will select many spurious features. Applying BH-FDR or Bonferroni correction ensures the selected features have meaningful evidence of association with the target, not just noise."
+    }
+  ],
+  "deepDiveIntro": [
+    "Let m be the number of hypotheses tested. Let V be the number of false rejections (Type I errors) and R the total rejections. Family-Wise Error Rate (FWER) = P(V ≥ 1) — probability of at least one false rejection. False Discovery Rate (FDR) = E[V/R | R>0]·P(R>0) = E[V/max(R,1)] — expected proportion of rejections that are false.",
+    "FWER methods: Bonferroni (reject if pᵢ ≤ α/m), Holm-Bonferroni (step-down, less conservative), Hochberg (step-up). FDR methods: Benjamini-Hochberg (BH, 1995) for independent tests, Benjamini-Yekutieli (BY, 2001) for arbitrary dependence. FDR control is strictly less conservative than FWER control."
+  ],
+  "visualizationType": "multiple-testing-correction",
+  "deepDive": [
+    {
+      "heading": "FWER: Bonferroni Correction",
+      "body": "Reject Hᵢ if pᵢ ≤ α/m. Controls FWER ≤ α for any dependence structure among tests (by Boole's inequality: P(∪ᵢAᵢ) ≤ ΣP(Aᵢ)). Conservative when tests are correlated — assumes worst-case independence. Effective number of tests may be much less than m for correlated tests (e.g. gene expression on same pathway). [1]",
+      "formula": "Reject Hᵢ if pᵢ ≤ α / m"
+    },
+    {
+      "heading": "Holm-Bonferroni Step-Down Procedure",
+      "body": "Sort p-values: p₍₁₎ ≤ p₍₂₎ ≤ … ≤ p₍ₘ₎. Reject H₍ᵢ₎ if p₍ⱼ₎ ≤ α/(m−j+1) for all j ≤ i (step-down: stop at first non-rejection, retain all H₀ beyond). Controls FWER ≤ α for any dependence. Uniformly more powerful than Bonferroni — always rejects at least as many hypotheses. Should be used instead of Bonferroni whenever possible. [1]"
+    },
+    {
+      "heading": "Benjamini-Hochberg FDR Procedure",
+      "body": "Sort p-values: p₍₁₎ ≤ … ≤ p₍ₘ₎. Find largest k such that p₍ₖ₎ ≤ k·q/m. Reject all H₍₁₎,…,H₍ₖ₎. Controls FDR ≤ q for independent tests (BH 1995). Under arbitrary positive dependence (PRDS condition), also valid. Controls FDR, not FWER — allows some false positives in expectation. Much more powerful than Bonferroni when m is large and many H₁ are true. [1]",
+      "formula": "Reject H₍ᵢ₎ if p₍ᵢ₎ ≤ i · q / m"
+    },
+    {
+      "heading": "FWER vs FDR: Which to Use",
+      "body": "Use FWER control (Bonferroni/Holm) when false positives are very costly — drug trials, safety decisions, confirmatory studies where any false finding could mislead. Use FDR control (BH) when you accept some false positives in exchange for more discoveries — exploratory genomics, feature screening, scientific hypothesis generation. FDR = 0.05 means 5% of your reported significant findings are expected to be noise. [1][2]"
+    }
+  ],
+  "youtubeLabel": "FDR and Benjamini-Hochberg — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/K8LQSvtjcEo",
+  "takeaways": [
+    "FWER = P(any false rejection); Bonferroni: reject if p ≤ α/m — controls FWER for any dependence. [1]",
+    "Holm-Bonferroni is always at least as powerful as Bonferroni while still controlling FWER. [1]",
+    "FDR = E[false rejections / total rejections]; BH procedure: reject up to k where p₍ₖ₎ ≤ k·q/m. [1]",
+    "BH controls FDR ≤ q for independent tests; far more powerful than Bonferroni for large m. [1]",
+    "Use FWER control for confirmatory, high-stakes decisions; FDR for exploratory large-scale screening. [1][2]",
+    "Without any correction: expected false positives = m × α (e.g. 100 tests × 0.05 = 5 false positives). [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Does FDR control guarantee that any specific finding is true?",
+      "a": "No. FDR = E[V/R] ≤ q means on average 5% of your rejections are false. In any single experiment, you don't know which specific findings are false. FDR is a property of the procedure over many repeated applications, not a per-hypothesis guarantee. For individual hypothesis certainty, use FWER control, Bayesian posterior probabilities, or replicate the finding in an independent experiment. [1]"
+    },
+    {
+      "q": "What happens if you apply multiple testing correction to correlated tests?",
+      "a": "Bonferroni is valid (conservative) for any dependence — it over-corrects for correlated tests. Holm is also valid for any dependence. BH controls FDR ≤ q when tests are independent or have positive regression dependence (PRDS). For arbitrary negative dependence, use the Benjamini-Yekutieli (BY) procedure, which multiplies the BH threshold by Σ1/j ≈ ln(m) — very conservative. In practice, BH is often applied to correlated tests (e.g. genomics) despite the assumption, and empirically performs well. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Benjamini & Hochberg (1995) — Controlling the False Discovery Rate, JRSS-B 57(1)", "url": "https://doi.org/10.1111/j.2517-6161.1995.tb02031.x" },
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 8", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" }
+  ]
+}

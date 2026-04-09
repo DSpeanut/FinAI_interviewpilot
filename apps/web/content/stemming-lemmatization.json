@@ -1,0 +1,64 @@
+{
+  "eli3": [
+    "Stemming and lemmatization both reduce words to a base form to group inflected variants together. Stemming is a crude heuristic that chops off affixes using rules (Porter stemmer: 'running' → 'run', 'studies' → 'studi'). Lemmatization uses vocabulary and morphological analysis to return the dictionary base form (lemma): 'running' → 'run', 'better' → 'good', 'studies' → 'study'.",
+    "Stemming is fast but produces non-words ('studi', 'comput'). Lemmatization is slower (requires a lexicon and POS tagger to resolve 'meeting' as noun or verb) but produces valid words. Both techniques normalize text to reduce vocabulary size and help match semantically related words in bag-of-words models and TF-IDF. They are less useful for neural models that learn from subwords directly.",
+    "The Porter stemmer (1980) is the most widely used English stemmer — 5 cascaded rule sets that strip common suffixes. The Snowball stemmer generalizes Porter to 15+ languages. NLTK's WordNetLemmatizer and spaCy's lemmatizer use WordNet and morphological lexicons. Neither stemming nor lemmatization captures derivational morphology: 'nation'/'national'/'nationality' may or may not share the same stem/lemma."
+  ],
+  "whenWhy": [
+    {
+      "title": "Vocabulary reduction in classical IR and NLP",
+      "body": "In TF-IDF and BM25 retrieval, 'run', 'running', 'runs', 'ran' are different vocabulary terms but should contribute to the same document relevance. Stemming/lemmatization collapses these into one form, reducing vocabulary size (typically by 30–50%) and improving recall — queries for 'run' also retrieve documents containing 'running'. Essential for keyword search systems without neural embeddings."
+    },
+    {
+      "title": "Language-agnostic text normalization",
+      "body": "In morphologically rich languages (German, Turkish, Finnish), the same root word can have dozens of inflected forms. Without lemmatization, vocabulary size explodes and data sparsity is severe. German 'Haus' (house) has genitive 'Hauses', plural 'Häuser', etc. Lemmatization collapses these, crucial for classical NLP pipelines in non-English languages."
+    },
+    {
+      "title": "When NOT to use: sentiment and named entities",
+      "body": "Stemming/lemmatization can hurt when the base form loses meaning. 'Better' → 'good' loses the comparative degree relevant for sentiment analysis. 'Meeting' → 'meet' loses the nominal vs verbal distinction. Named entities (New York, Apple Inc.) should not be lemmatized. Modern neural models (BERT, GPT) handle inflections through subword tokenization without explicit normalization."
+    }
+  ],
+  "deepDiveIntro": [
+    "Porter Stemmer (Porter 1980): 5 sequential rule phases. Phase 1: SSES→SS, IES→I, SS→SS, S→∅. Phase 2–5: suffix stripping conditioned on word length metric m (syllable count of the remaining stem). Example: 'generalization' → 'general' (remove 'ization'). Overstemming: 'universe' and 'university' both stem to 'univers' even though they are semantically distinct. Understemming: 'alumnus' and 'alumni' may not share a stem.",
+    "Lemmatization via morphological analysis: given word form and POS tag, look up the lemma in a morphological lexicon (WordNet for English, Morpheus for classical languages). For irregular forms: 'went' → 'go', 'mice' → 'mouse', 'better' → 'good'. Modern lemmatizers (spaCy, Stanza) use trained neural models that jointly predict POS and lemma, achieving high accuracy on ambiguous forms."
+  ],
+  "deepDive": [
+    {
+      "heading": "Porter Stemmer Algorithm",
+      "body": "The stemmer applies rules in 5 phases, each stripping one suffix class. Phase 1a: SSES→SS, IES→I, SS→SS, S→∅ ('caresses'→'caress', 'ponies'→'poni', 'cats'→'cat'). Phase 1b: (m>0) EED→EE, (*v*) ED→∅, (*v*) ING→∅. Phase 1c: (*v*Y) Y→I. Phases 2–5 strip common derivational suffixes conditioned on m (length of remaining stem). Fast — O(n) in word length. Error rate: ~5% understemming, ~8% overstemming on English. [1]"
+    },
+    {
+      "heading": "Lemmatization: WordNet + POS",
+      "body": "WordNet-based lemmatization: use POS to determine inflectional rules. Nouns: strip plural suffixes using exception lists + rules. Verbs: strip tense/agreement suffixes. Adjectives/adverbs: use WordNet's morphological exception lists for irregulars. Example: morphy('better', 'JJR') → 'good' (using WordNet adjective comparison list). Without POS, 'meeting' cannot be unambiguously lemmatized (noun: lemma='meeting'; verb: lemma='meet'). spaCy predicts POS jointly, achieving >98% lemma accuracy on standard benchmarks. [1]"
+    },
+    {
+      "heading": "Stemming vs Lemmatization: Practical Comparison",
+      "body": "Speed: stemming is O(word_length), rule-based, no lexicon needed. Lemmatization requires POS tagging + lexicon lookup — 10–100× slower. Quality: lemmatization preserves real words and handles irregulars correctly; stemming may produce non-words. Use case: IR/search → stemming adequate and fast; downstream NLP tasks with semantic sensitivity → lemmatization. Neural models (BERT, fastText) → neither (tokenization handles morphology implicitly). [1]"
+    },
+    {
+      "heading": "Evaluation: Precision and Recall Impact",
+      "body": "In IR evaluation: stemming typically increases recall (more relevant docs returned) at the cost of precision (some false positives). On TREC benchmarks, Porter stemming improves MAP by 5–15% for English queries with morphological variation. Lemmatization yields similar gains with higher precision for morphologically complex queries. Over-stemming (conflating unrelated words) is the main failure mode — reduces precision. Under-stemming (failing to conflate inflected variants) reduces recall. [1]"
+    }
+  ],
+  "takeaways": [
+    "Stemming: fast heuristic suffix stripping; produces non-words (Porter: 5 cascaded rule phases). [1]",
+    "Lemmatization: returns valid dictionary form using POS + lexicon; handles irregulars ('went'→'go'). [1]",
+    "Stemming improves recall in IR by collapsing inflections; lemmatization also improves precision. [1]",
+    "Both are less useful for neural models (BERT, GPT) — subword tokenization handles morphology implicitly. [1]",
+    "Overstemming (false conflation) hurts precision; understemming (missed inflections) hurts recall. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Does lemmatization always require a POS tagger?",
+      "a": "Without POS, many words are ambiguous: 'meeting' can lemmatize to 'meeting' (noun) or 'meet' (verb); 'flies' can be 'fly' (noun/verb). NLTK's WordNetLemmatizer defaults to noun lemmatization when no POS is provided, giving incorrect results for verbs. spaCy and Stanza predict POS jointly with lemmatization, achieving high accuracy. For applications where speed matters more than accuracy, defaulting to noun lemmatization is a common pragmatic choice. [1]"
+    },
+    {
+      "q": "How do stemming and lemmatization interact with compound words?",
+      "a": "Neither handles compound words well without pre-processing. German compounds ('Donaudampfschifffahrtsgesellschaft') are single tokens that should be split into components before lemmatization. English closed compounds ('football', 'blackboard') are typically left as-is. Hyphenated compounds ('well-known', 'state-of-the-art') may be split by tokenization before lemmatization is applied. Compound splitting is a separate NLP component, required before stemming/lemmatization for German and other compounding languages. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Jurafsky & Martin — Speech and Language Processing (3rd ed.), Ch. 2", "url": "https://web.stanford.edu/~jurafsky/slp3/" },
+    { "label": "Porter (1980) — An Algorithm for Suffix Stripping, Program 14(3)", "url": "https://doi.org/10.1108/eb046814" }
+  ]
+}

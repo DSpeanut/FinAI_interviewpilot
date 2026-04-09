@@ -1,0 +1,66 @@
+{
+  "eli3": [
+    "Simple Random Sampling (SRS) selects n observations from a population of N so that every possible sample of size n is equally likely to be chosen. SRS without replacement (SRSWOR) — each unit selected at most once — is the standard; SRS with replacement (SRSWR) allows repeated selection and is the basis for bootstrap methods.",
+    "The sample mean x̄ is an unbiased estimator of the population mean μ for SRSWOR: E[x̄] = μ. Its variance is Var(x̄) = σ²/n · (1 − n/N) — the factor (1−n/N) is the finite population correction (FPC). For large populations (n/N < 0.05), the FPC ≈ 1 and Var(x̄) ≈ σ²/n, the same as iid sampling. For large sampling fractions, the FPC substantially reduces variance.",
+    "In practice, true SRS is hard — it requires a complete sampling frame (list of all population members). Systematic sampling (select every k-th unit after a random start) and cluster sampling (randomly select clusters, then sample within clusters) are practical alternatives that approximate SRS under certain conditions."
+  ],
+  "whenWhy": [
+    {
+      "title": "Foundation for all probability sampling",
+      "body": "SRS is the theoretical benchmark against which other sampling designs are compared. Stratified and cluster sampling are evaluated by how their variance compares to SRS variance at the same total n. The Central Limit Theorem applies to sample means under SRS, justifying normal-based confidence intervals for large samples."
+    },
+    {
+      "title": "When a complete sampling frame exists",
+      "body": "SRS is feasible when you can list all population members (e.g., employee records, voter rolls, product database). For online experiments (A/B tests), users can be randomly assigned to conditions — effectively SRS with replacement from the user population. When no complete frame exists, alternatives (cluster sampling, respondent-driven sampling) are necessary."
+    },
+    {
+      "title": "Baseline for design effect calculations",
+      "body": "The design effect (DEFF) = Var(estimator under complex design)/Var(estimator under SRS) measures efficiency loss from departing from SRS. DEFF > 1 for cluster sampling (within-cluster homogeneity increases variance); DEFF < 1 for stratified sampling (between-strata heterogeneity is removed). Survey weights and design-based inference use SRS as the baseline."
+    }
+  ],
+  "deepDiveIntro": [
+    "Under SRSWOR: sample mean x̄ has E[x̄] = μ (population mean), Var(x̄) = σ²(1−f)/n where f = n/N is the sampling fraction and σ² = Σ(yᵢ−μ)²/(N−1) is the population variance. Standard error: SE(x̄) = s·√(1−f)/√n where s² = Σ(xᵢ−x̄)²/(n−1) estimates σ². Under SRSWR (with replacement): Var(x̄) = σ²/n (no FPC) — each draw is independent.",
+    "The Horvitz-Thompson estimator for general probability sampling: Ȳ_HT = (1/N)·Σᵢ∈s yᵢ/πᵢ, where πᵢ is the inclusion probability of unit i. For SRSWOR: πᵢ = n/N for all i, so Ȳ_HT = x̄ — SRS is a special case. The HT estimator is design-unbiased for any probability sampling design."
+  ],
+  "deepDive": [
+    {
+      "heading": "Variance of Sample Mean Under SRSWOR",
+      "body": "E[x̄] = μ (unbiased). Var(x̄) = σ²(1−f)/n where f = n/N (sampling fraction). Estimated variance: Var̂(x̄) = s²(1−f)/n. FPC = (1−f) = (N−n)/(N−1) ≈ (N−n)/N. For n/N < 0.05: FPC ≈ 1, and the estimator behaves like iid sampling. 95% CI: x̄ ± 1.96·s·√(1−f)/√n (for large n). [1]",
+      "formula": "Var(x̄) = σ²(1 − n/N) / n   [SRSWOR]"
+    },
+    {
+      "heading": "Required Sample Size for Desired Margin of Error",
+      "body": "For a target MOE e at 95% confidence: n₀ = (z_{0.025}·σ/e)² (ignoring FPC). With FPC adjustment for large f: n = n₀/(1 + n₀/N). For proportions: use σ² = p(1−p) ≤ 0.25 (maximum variance at p = 0.5) for a conservative n. Example: for e = 0.03, 95% CI: n₀ = (1.96/0.03)² × 0.25 = 1068. [1]",
+      "formula": "n₀ = (z_{α/2} · σ / e)²,   n = n₀ / (1 + n₀/N)"
+    },
+    {
+      "heading": "Systematic Sampling",
+      "body": "Select a random start r ∈ {1,…,k} where k = ⌊N/n⌋, then select units r, r+k, r+2k, …. This gives exactly n units and is operationally simple (traverse a list, select every k-th). Under random ordering, it's approximately as efficient as SRS. Problems: if the list has periodicity matching the interval k, systematic sampling can be very biased (e.g., alternating high/low values). A random sort before applying systematic sampling eliminates this. [1]"
+    },
+    {
+      "heading": "Cluster Sampling and Design Effect",
+      "body": "Cluster sampling selects M clusters (e.g., schools) from C total, then samples all or some units within each cluster. More practical (one contact point per cluster) but less efficient: within-cluster homogeneity means units in the same cluster provide redundant information. DEFF ≈ 1 + (m−1)·ICC, where m is the cluster size and ICC (intraclass correlation) measures within-cluster similarity. ICC = 0.05 with m = 20 → DEFF ≈ 1.95: need 1.95× the SRS sample size for the same precision. [1]"
+    }
+  ],
+  "takeaways": [
+    "SRSWOR: E[x̄] = μ, Var(x̄) = σ²(1−f)/n; FPC = (1−n/N) reduces variance for large sampling fractions. [1]",
+    "Required n: n₀ = (z_{α/2}·σ/e)² for desired MOE e, adjusted to n = n₀/(1+n₀/N) with FPC. [1]",
+    "Systematic sampling is operationally efficient; beware periodicity matching the selection interval. [1]",
+    "Cluster sampling: DEFF = 1+(m−1)·ICC; increases needed n by the design effect factor. [1]",
+    "HT estimator: Ȳ_HT = (1/N)Σyᵢ/πᵢ is design-unbiased for any probability sampling design. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What happens if the sampling frame is incomplete (coverage error)?",
+      "a": "Coverage error occurs when some population members have no chance of being selected (under-coverage) or some non-members are included (over-coverage). Under-coverage is more common and causes bias: excluded subpopulations are not represented in estimates. Example: telephone surveys undercover households without phones. Solutions: frame augmentation (add missing units), multiplicity sampling, or post-stratification weighting to known population totals via calibration. [1]"
+    },
+    {
+      "q": "Can SRS produce extreme samples?",
+      "a": "Yes — SRS guarantees unbiasedness in expectation, but a specific sample can be unrepresentative. With probability 1, SRS produces a range of possible samples, some more representative than others. Restriction sampling (balanced sampling) can constrain samples to be more representative on auxiliary variables known for all units, but at the cost of randomization-based inference. Stratified sampling is the standard way to guarantee representation of important subgroups. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Cochran — Sampling Techniques (3rd ed.), Ch. 2–4", "url": "https://www.wiley.com/en-us/Sampling+Techniques%2C+3rd+Edition-p-9780471162407" },
+    { "label": "Lohr — Sampling: Design and Analysis (2nd ed.), Ch. 2", "url": "https://www.routledge.com/Sampling-Design-and-Analysis/Lohr/p/book/9780367279509" }
+  ]
+}

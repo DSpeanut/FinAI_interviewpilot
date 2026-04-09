@@ -1,0 +1,69 @@
+{
+  "eli3": [
+    "Simple linear regression models the relationship between one predictor X and a response Y as Y = β₀ + β₁X + ε, where ε ~ N(0,σ²). The OLS estimators β̂₀ and β̂₁ minimize Σ(yᵢ − β̂₀ − β̂₁xᵢ)² — the sum of squared residuals. They are the Gauss-Markov BLUE (Best Linear Unbiased Estimators) under the classical assumptions.",
+    "The key assumptions (Gauss-Markov): (1) linearity: E[Y|X] = β₀ + β₁X; (2) homoscedasticity: Var(ε) = σ² constant; (3) no autocorrelation: Cov(εᵢ,εⱼ) = 0; (4) exogeneity: E[ε|X] = 0. Normality of ε is needed for exact finite-sample inference (t and F tests) but not for OLS consistency. Adding outlier plots, residuals vs fitted, Q-Q plots diagnoses these assumptions.",
+    "R² = 1 − SS_res/SS_tot measures the proportion of variance in Y explained by X. R² ∈ [0,1]; R² = 1 means a perfect fit; R² = 0 means the model explains nothing more than the mean. Importantly, R² says nothing about whether the relationship is causal, whether the model is correctly specified, or whether predictions are reliable out-of-sample."
+  ],
+  "whenWhy": [
+    {
+      "title": "Quantifying the linear relationship between two variables",
+      "body": "SLR provides a formal estimate of how Y changes per unit increase in X: β̂₁ with standard error, t-statistic, and confidence interval. This goes beyond correlation (which only measures direction and strength) by providing a directional effect estimate in units of Y. Use for: dose-response, price-demand, salary-experience relationships."
+    },
+    {
+      "title": "Prediction of new observations",
+      "body": "The fitted model ŷ = β̂₀ + β̂₁x provides predictions for new x values. The prediction interval (PI) accounts for both uncertainty in the mean estimate and individual residual variability: PI = ŷ ± t_{n−2,α/2}·s·√(1 + 1/n + (x−x̄)²/Sxx). The PI is always wider than the CI for the mean. Extrapolation (predicting outside the range of training X) is risky."
+    },
+    {
+      "title": "Hypothesis testing about the slope",
+      "body": "H₀: β₁ = 0 (X has no linear effect on Y). Under OLS assumptions: T = β̂₁/SE(β̂₁) ~ t(n−2). Rejecting H₀ provides evidence of a linear association. The F-test for overall fit (F = MS_reg/MS_res) is equivalent to the t-test for β₁ in SLR (F = T²) but generalizes to multiple regression."
+    }
+  ],
+  "deepDiveIntro": [
+    "OLS estimators: β̂₁ = Sxy/Sxx = Σ(xᵢ−x̄)(yᵢ−ȳ) / Σ(xᵢ−x̄)², β̂₀ = ȳ − β̂₁x̄. Properties: unbiased (E[β̂₁] = β₁), variance Var(β̂₁) = σ²/Sxx. The Gauss-Markov theorem says OLS is the Best Linear Unbiased Estimator — no linear unbiased estimator has lower variance, without requiring normality.",
+    "Under normality of ε: β̂₁ ~ N(β₁, σ²/Sxx). Estimated σ² = s² = SS_res/(n−2). t-statistic: T = (β̂₁−β₁)/(s/√Sxx) ~ t(n−2). 95% CI for β₁: β̂₁ ± t_{n−2, 0.025}·s/√Sxx."
+  ],
+  "deepDive": [
+    {
+      "heading": "OLS Estimators and Gauss-Markov",
+      "body": "Minimizing Q = Σ(yᵢ−β₀−β₁xᵢ)² yields normal equations. Solution: β̂₁ = Sxy/Sxx, β̂₀ = ȳ − β̂₁x̄, where Sxy = Σ(xᵢ−x̄)(yᵢ−ȳ), Sxx = Σ(xᵢ−x̄)². Gauss-Markov: under E[ε|X] = 0 and Var(ε) = σ²I, OLS is BLUE — minimum variance among all linear unbiased estimators. Normality not required for BLUE property; only needed for exact t/F distributions. [1]",
+      "formula": "β̂₁ = Sxy / Sxx = Σ(xᵢ−x̄)(yᵢ−ȳ) / Σ(xᵢ−x̄)²"
+    },
+    {
+      "heading": "Variance Decomposition and R²",
+      "body": "SS_tot = Σ(yᵢ−ȳ)² = SS_reg + SS_res, where SS_reg = Σ(ŷᵢ−ȳ)² and SS_res = Σ(yᵢ−ŷᵢ)². R² = SS_reg/SS_tot = 1 − SS_res/SS_tot = r²_{xy} (squared Pearson correlation in SLR). Note: R² always increases when adding predictors, even irrelevant ones — use adjusted R² = 1−(SS_res/(n−p−1))/(SS_tot/(n−1)) for multiple regression. [1]",
+      "formula": "R² = 1 − SS_res / SS_tot = SS_reg / SS_tot"
+    },
+    {
+      "heading": "Inference on β₁ and β₀",
+      "body": "Under normality: β̂₁ ~ N(β₁, σ²/Sxx). t-test: T = β̂₁/(s/√Sxx) ~ t(n−2) under H₀: β₁ = 0. 95% CI: β̂₁ ± t_{n−2,0.025}·(s/√Sxx). CI for E[Y|X=x*]: ŷ ± t_{n−2,0.025}·s·√(1/n + (x*−x̄)²/Sxx). Prediction interval for a new Y at X=x*: ŷ ± t_{n−2,0.025}·s·√(1 + 1/n + (x*−x̄)²/Sxx) — extra 1 under the radical accounts for residual variance. [1]",
+      "formula": "PI(x*) = ŷ* ± t_{n−2,α/2} · s · √(1 + 1/n + (x* − x̄)² / Sxx)"
+    },
+    {
+      "heading": "Residual Diagnostics",
+      "body": "Plot 1: Residuals vs. Fitted — should show no pattern (checks linearity and homoscedasticity). Plot 2: Q-Q plot of residuals — should be approximately linear (checks normality). Plot 3: Scale-Location (√|residuals| vs fitted) — flat trend confirms homoscedasticity. Plot 4: Residuals vs. Leverage — identifies high-leverage points (far from x̄) and influential observations (Cook's distance > 4/(n−p−1)). Violation patterns: fan shape → heteroscedasticity (use WLS or robust SE); curve → non-linearity (add polynomial term or transform). [1]"
+    }
+  ],
+  "youtubeLabel": "Linear Regression — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/nk2CQITm_eo",
+  "takeaways": [
+    "β̂₁ = Sxy/Sxx, β̂₀ = ȳ − β̂₁x̄; Gauss-Markov: OLS is BLUE under linearity, homoscedasticity, exogeneity. [1]",
+    "R² = 1 − SS_res/SS_tot = r²_{xy}; R² alone does not validate the model. [1]",
+    "Inference: T = β̂₁/(s/√Sxx) ~ t(n−2); CI vs PI — PI always wider due to residual variance term. [1]",
+    "Residual diagnostics (residuals vs fitted, Q-Q, Cook's distance) check OLS assumptions. [1]",
+    "Extrapolation outside training X range is unreliable even with high in-sample R². [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What happens if X is random (not fixed by design)?",
+      "a": "Gauss-Markov still holds conditional on X — conditioning on observed X values. If X is random, OLS estimators are still BLUE conditioned on X, and under joint normality of (X,Y), the t and F distributions are exact. The key assumption shifts from 'X is non-random' to E[ε|X] = 0 (strict exogeneity). If this fails (endogeneity: X is correlated with ε), OLS is biased and inconsistent — requires IV estimation. [1]"
+    },
+    {
+      "q": "Can R² be negative?",
+      "a": "In OLS with an intercept, R² ∈ [0,1] because OLS always improves over the mean. However, if you impose β₀ = 0 (no intercept), or compute R² on a test set, R² can be negative — indicating the model predicts worse than the simple mean. Never compare R² between models with and without intercept, or between training and test sets without adjustment. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Montgomery, Peck & Vining — Introduction to Linear Regression Analysis (5th ed.), Ch. 2–3", "url": "https://www.wiley.com/en-us/Introduction+to+Linear+Regression+Analysis%2C+5th+Edition-p-9780470542811" },
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 11", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "eli3": [
+    "Multiple linear regression extends SLR to p predictors: Y = β₀ + β₁X₁ + … + βₚXₚ + ε = Xβ + ε in matrix form, where X is the n×(p+1) design matrix. The OLS estimator β̂ = (X'X)⁻¹X'y minimizes the sum of squared residuals simultaneously across all coefficients.",
+    "Each coefficient βⱼ is the partial effect of Xⱼ on Y, holding all other predictors constant. This is the key difference from SLR: βⱼ controls for confounding by the other X variables. Omitting an important predictor that is correlated with Xⱼ causes omitted variable bias — the coefficient on Xⱼ absorbs the effect of the omitted variable.",
+    "Multicollinearity — high correlation among predictors — inflates the variance of OLS estimates (Var(β̂ⱼ) = σ²[(X'X)⁻¹]ⱼⱼ). Variance Inflation Factor VIFⱼ = 1/(1−Rⱼ²) where Rⱼ² is the R² from regressing Xⱼ on all other predictors. VIF > 10 is a common warning threshold. Multicollinearity makes individual coefficient estimates unstable but does not affect prediction accuracy."
+  ],
+  "whenWhy": [
+    {
+      "title": "Controlling for confounders in observational studies",
+      "body": "In observational data, a predictor of interest X₁ may be correlated with other variables X₂,…,Xₚ that also affect Y. Including X₂,…,Xₚ in the regression adjusts for these confounders and isolates the partial effect of X₁. Example: estimating the effect of education on wages while controlling for experience, industry, and geography. This is the primary use of multiple regression in econometrics and epidemiology."
+    },
+    {
+      "title": "Model selection: which predictors to include?",
+      "body": "Including irrelevant predictors increases variance (lower power) but doesn't bias estimates. Omitting relevant predictors that are correlated with included ones biases estimates. Selection methods: forward stepwise, backward elimination, LASSO (data-driven). AIC = n·log(SS_res/n) + 2p and BIC = n·log(SS_res/n) + p·log(n) penalize complexity; lower is better. R² increases with every added predictor — use adjusted R² or cross-validated RMSE instead."
+    },
+    {
+      "title": "Testing groups of predictors: partial F-test",
+      "body": "To test whether a subset of q predictors (H₀: β_{p−q+1} = … = βₚ = 0) contributes beyond the reduced model, use the partial F-test: F = [(SS_res(reduced) − SS_res(full))/q] / [SS_res(full)/(n−p−1)] ~ F(q, n−p−1) under H₀. This is more powerful than testing each coefficient individually with multiple t-tests."
+    }
+  ],
+  "deepDiveIntro": [
+    "Model: Y = Xβ + ε, X is n×(p+1) (including intercept column of 1s), β is (p+1)×1, ε ~ N(0,σ²I). OLS estimator: β̂ = (X'X)⁻¹X'y (exists when X'X is invertible, i.e., no perfect multicollinearity, n > p+1). Fitted values: ŷ = Xβ̂ = Hy where H = X(X'X)⁻¹X' is the hat matrix. Residuals: ê = y − ŷ = (I−H)y. ê'ê = SS_res, and s² = SS_res/(n−p−1) is an unbiased estimator of σ².",
+    "Gauss-Markov generalizes: β̂ is BLUE under E[ε|X] = 0, Var(ε|X) = σ²I. Under normality: β̂ ~ N(β, σ²(X'X)⁻¹). t-test for H₀: βⱼ = 0: Tⱼ = β̂ⱼ/(s·√[(X'X)⁻¹]ⱼⱼ) ~ t(n−p−1). Overall F-test: F = [SS_reg/p]/[SS_res/(n−p−1)] ~ F(p, n−p−1) under H₀: β₁ = … = βₚ = 0."
+  ],
+  "deepDive": [
+    {
+      "heading": "OLS in Matrix Form",
+      "body": "β̂ = (X'X)⁻¹X'y. Var(β̂) = σ²(X'X)⁻¹, estimated by s²(X'X)⁻¹. The hat matrix H = X(X'X)⁻¹X' is symmetric and idempotent (H² = H), projecting y onto the column space of X. Leverage hᵢᵢ = [H]ᵢᵢ ∈ [1/n, 1] measures how influential observation i is in determining ŷᵢ. High leverage (hᵢᵢ > 2(p+1)/n) means the point can have large influence on estimates even with moderate residuals. [1]",
+      "formula": "β̂ = (X'X)⁻¹ X'y,   Var(β̂) = σ²(X'X)⁻¹"
+    },
+    {
+      "heading": "Omitted Variable Bias",
+      "body": "Suppose the true model is Y = Xβ + Zγ + ε but we omit Z. The OLS estimator of β becomes β̂_OVB = (X'X)⁻¹X'y = β + (X'X)⁻¹X'Zγ + (X'X)⁻¹X'ε. Bias = (X'X)⁻¹X'Zγ ≠ 0 when X and Z are correlated (X'Z ≠ 0) AND Z affects Y (γ ≠ 0). Direction of bias: if Z is positively correlated with X and positively affects Y, β̂ is upward biased. Controlling for Z by including it removes this bias. [1]",
+      "formula": "Bias(β̂_OVB) = (X'X)⁻¹ X'Z · γ"
+    },
+    {
+      "heading": "Variance Inflation Factor (VIF)",
+      "body": "VIFⱼ = 1/(1−Rⱼ²), where Rⱼ² is the R² from regressing Xⱼ on all other predictors. VIF = 1: no multicollinearity; VIF = 10: Rⱼ² = 0.9 (Xⱼ is 90% explained by other predictors), inflating SE(β̂ⱼ) by √10 ≈ 3.16×. Remedies: remove one of the correlated predictors, use PCA to form orthogonal components, or apply Ridge regression (explicit regularization). VIF affects inference (wider CIs) but NOT prediction accuracy if X in training and test are similarly distributed. [1]"
+    },
+    {
+      "heading": "Influential Observations: Cook's Distance",
+      "body": "Cook's distance Dᵢ = (β̂₋ᵢ − β̂)'X'X(β̂₋ᵢ − β̂)/(p+1)s² measures the change in β̂ when observation i is deleted. Dᵢ can be computed without refitting: Dᵢ = (êᵢ²·hᵢᵢ)/[(p+1)s²(1−hᵢᵢ)²]. Rule of thumb: Dᵢ > 4/(n−p−1) or Dᵢ > 1 flags influential points. Combine with leverage (hᵢᵢ) and standardized residual to characterize the type of influence. [1]"
+    }
+  ],
+  "youtubeLabel": "Multiple Linear Regression — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/EkAQAi3a4js",
+  "takeaways": [
+    "β̂ = (X'X)⁻¹X'y; each βⱼ is the partial effect of Xⱼ holding other predictors constant. [1]",
+    "Omitted variable bias: omitting Z correlated with X biases β̂ unless Cov(X,Z) = 0 or γ = 0. [1]",
+    "VIFⱼ = 1/(1−Rⱼ²); VIF > 10 indicates severe multicollinearity and inflated SE(β̂ⱼ). [1]",
+    "Partial F-test for nested models: F = [(SS_res(R) − SS_res(F))/q] / [SS_res(F)/(n−p−1)]. [1]",
+    "AIC/BIC for model selection; adjusted R² (penalizes added predictors) over plain R². [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What if X'X is singular (perfect multicollinearity)?",
+      "a": "(X'X)⁻¹ does not exist when X has perfectly collinear columns (e.g., X₃ = X₁ + X₂, or a dummy variable trap). The OLS solution is not unique — infinitely many β values minimize SS_res. Software typically drops one column or adds a small ridge penalty. In practice, use Ridge regression or check for linearly dependent columns (e.g., including all K dummies for a K-category variable without dropping one). [1]"
+    },
+    {
+      "q": "Does standardizing predictors affect OLS estimates?",
+      "a": "Standardizing (z-scoring) predictors makes coefficients comparable in magnitude: β̂ⱼ_std = β̂ⱼ · SD(Xⱼ)/SD(Y) is the expected change in Y (in SDs) per 1-SD change in Xⱼ. This doesn't change model fit (R², F-test, residuals) or significance of t-tests but makes multicollinearity-induced VIFs slightly smaller for correlated predictors. Standardization does not fix fundamental multicollinearity — the VIF formula is scale-invariant. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Montgomery, Peck & Vining — Introduction to Linear Regression Analysis (5th ed.), Ch. 3–10", "url": "https://www.wiley.com/en-us/Introduction+to+Linear+Regression+Analysis%2C+5th+Edition-p-9780470542811" },
+    { "label": "Greene — Econometric Analysis (8th ed.), Ch. 3–4", "url": "https://www.pearson.com/en-us/subject-catalog/p/econometric-analysis/P200000006223" }
+  ]
+}

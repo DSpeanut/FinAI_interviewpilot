@@ -1,0 +1,66 @@
+{
+  "eli3": [
+    "A confounder is a variable that is associated with both the exposure (treatment/predictor) and the outcome, and is not on the causal pathway from exposure to outcome. Confounders create spurious associations: they make it appear that X causes Y when the apparent association is actually due to both being caused by or correlated with Z. Classic example: ice cream sales are correlated with drowning deaths — the confounder is temperature (hot weather → more ice cream AND more swimming).",
+    "Directed Acyclic Graphs (DAGs) are the formal language for confounding. A confounder Z creates a backdoor path from X to Y: X ← Z → Y. Closing backdoor paths by conditioning on Z (regression adjustment, matching, stratification) removes confounding. The backdoor criterion (Pearl, 1995) formalizes which variables to adjust for: a set S blocks all backdoor paths without opening new paths through colliders.",
+    "Confounding bias = E[Y|X=1] − E[Y|X=0] − ATE (the difference between the observed association and the true causal effect). It can be positive (bias away from null) or negative (bias toward null). When confounders are unmeasured, even perfect regression adjustment is impossible — this is the fundamental limitation of observational studies."
+  ],
+  "whenWhy": [
+    {
+      "title": "Identifying confounders for adjustment",
+      "body": "Use domain knowledge and DAGs to identify confounders — not statistical tests. Including a variable in a regression because it has a significant coefficient is wrong (post-treatment variables, colliders will bias the estimate). The correct criterion: Z is a confounder if it affects both X and Y and is not a mediator or collider. Draw the DAG, identify all backdoor paths, and find a minimal adjustment set that blocks all of them."
+    },
+    {
+      "title": "Omitted variable bias in regression",
+      "body": "In multiple regression, omitting a confounder Z that is correlated with X introduces omitted variable bias (OVB): β̂_X is biased by the product of the effect of Z on Y (controlling for X) × the correlation of Z with X. OVB = (coefficient of Z in the full model) × (coefficient of X in the regression of X on Z). This is the quantitative analog of confounding in the regression framework."
+    },
+    {
+      "title": "Collider bias: adjusting for the wrong variable",
+      "body": "A collider is a variable C where both X and Y have directed paths into C: X → C ← Y. Unlike confounders, conditioning on a collider OPENS a spurious association between X and Y — adjusting for a collider introduces bias even when none exists. Example: conditioning on hospitalization (which is caused by both disease severity and the treatment) creates spurious associations between disease severity and treatment. Identifying colliders requires a DAG."
+    }
+  ],
+  "deepDiveIntro": [
+    "DAG notation: nodes (variables), directed edges (direct causal effects). A path from X to Y is active (opens association) if no non-collider on the path is conditioned on, and no collider is conditioned on. The backdoor criterion: a set S of variables satisfies the backdoor criterion relative to (X,Y) if: (1) no element of S is a descendant of X; (2) S blocks every path from X to Y that has an arrow into X (backdoor paths). If S satisfies the backdoor criterion, adjusting for S identifies the average causal effect: E[Y|do(X=x)] = Σ_s E[Y|X=x,S=s]P(S=s).",
+    "The front-door criterion (Pearl, 1995): when all confounders are unobserved but there exists a mediator M (X → M → Y with X→M and M→Y unconfounded, and no direct X→Y path): ATE = ΣₘP(M=m|X=x)·Σₓ' E[Y|X=x',M=m]P(X=x'). This allows identifying causal effects despite unobserved confounders — requires specific causal structure."
+  ],
+  "deepDive": [
+    {
+      "heading": "Types of Variables in DAGs",
+      "body": "Confounder: Z → X, Z → Y (backdoor path X ← Z → Y). Adjust for Z to remove confounding. Mediator: X → M → Y. Do NOT adjust for M if you want the total effect of X on Y; adjust for M to estimate the direct effect of X on Y not through M. Collider: X → C ← Y. Do NOT adjust for C — conditioning on a collider opens a spurious path. Instrument: IV → X → Y with IV ⊥ Y | X and IV affects Y only through X. [1]",
+      "formula": "Backdoor criterion: E[Y|do(X=x)] = Σ_s E[Y|X=x,S=s]·P(S=s)"
+    },
+    {
+      "heading": "Regression Adjustment for Confounders",
+      "body": "Adding Z to the regression Y ~ X + Z removes confounding by Z if Z is measured correctly and the regression model is correctly specified (linear relationship, no interactions missed). Key assumption: no residual confounding — all common causes of X and Y are included. The regression coefficient β_X estimates the average direct effect of X on Y, with Z held constant. This only works for measured confounders; unmeasured confounders remain a threat. [1]"
+    },
+    {
+      "heading": "Propensity Score Methods",
+      "body": "Propensity score e(Z) = P(X=1|Z) (probability of treatment given measured confounders Z). Rosenbaum & Rubin (1983): conditioning on e(Z) blocks all backdoor paths through measured confounders — the same adjustment as conditioning on Z itself but in a single scalar. Propensity score methods: (1) matching — match treated and control with similar e(Z); (2) IPW — weight observations by 1/e(Z) for treated, 1/(1−e(Z)) for control; (3) stratification — stratify on quintiles of e(Z). Assumption: no unmeasured confounding (conditional exchangeability). [1]",
+      "formula": "e(Z) = P(X=1 | Z)   [propensity score]"
+    },
+    {
+      "heading": "Sensitivity Analysis for Unmeasured Confounding",
+      "body": "When unmeasured confounders exist, sensitivity analysis quantifies how strong an unmeasured confounder would need to be to explain away the observed association. Cornfield conditions (1959): an unmeasured confounder U must be at least as strongly associated with both X and Y as the observed association to explain it away. E-value (VanderWeele & Ding, 2017): E-value = RR + √(RR(RR−1)) — if all unmeasured confounders have associations weaker than the E-value, the observed effect is robust. [1]"
+    }
+  ],
+  "takeaways": [
+    "Confounder Z: Z→X and Z→Y (backdoor path). Adjust for Z to remove confounding. [1]",
+    "Collider C: X→C←Y. DO NOT adjust for C — conditioning introduces spurious association. [1]",
+    "Backdoor criterion: adjust for S that blocks all backdoor paths and contains no descendants of X. [1]",
+    "Propensity score e(Z) = P(X=1|Z): conditioning on e(Z) adjusts for all measured confounders simultaneously. [1]",
+    "E-value quantifies how strong unmeasured confounding must be to explain away the observed association. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Can adjusting for a mediator ever be appropriate?",
+      "a": "Yes — when you want to estimate the direct effect of X on Y not mediated through M (the controlled direct effect, CDE). This requires adjusting for M. However, if M is also affected by unmeasured confounders of the M→Y relationship, then adjusting for M introduces collider stratification bias. Mediation analysis (natural direct and indirect effects) requires additional assumptions beyond the backdoor criterion and is more technically demanding. [1]"
+    },
+    {
+      "q": "How do you identify confounders without a DAG?",
+      "a": "Without a DAG, you cannot reliably identify confounders — this is the core argument of Pearl's causal inference framework. Purely data-driven approaches (selecting variables based on significance) can include colliders (introducing bias) or exclude important confounders. Domain knowledge is required to construct the DAG. In practice: include known risk factors for the outcome that are also associated with the exposure (but not caused by it); conduct sensitivity analysis for potential unmeasured confounders. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Pearl — Causality: Models, Reasoning, and Inference (2nd ed.), Ch. 3", "url": "https://doi.org/10.1017/CBO9780511803161" },
+    { "label": "Hernán & Robins — Causal Inference: What If (2020)", "url": "https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/" }
+  ]
+}

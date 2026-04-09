@@ -1,0 +1,72 @@
+{
+  "eli3": [
+    "In Bayesian statistics, the prior distribution P(θ) encodes your belief about the parameter θ before seeing any data. The posterior distribution P(θ|x) encodes your updated belief after observing data x. Bayes' theorem connects them: P(θ|x) ∝ P(x|θ) · P(θ) — posterior is proportional to likelihood times prior.",
+    "Conjugate priors are mathematically convenient: the posterior is in the same family as the prior. For a Binomial likelihood, the Beta prior is conjugate — if θ ~ Beta(α,β) and X|θ ~ Binomial(n,θ), then θ|X ~ Beta(α+k, β+n−k) where k is the number of successes. The hyperparameters α and β can be thought of as prior 'pseudo-counts'.",
+    "The posterior summarizes all information about θ after data. From it you read off: point estimates (MAP = mode, posterior mean), uncertainty (credible intervals, posterior variance), and probability of hypotheses (P(θ > 0 | x)). Unlike frequentist CIs, Bayesian credible intervals are genuine probability statements: P(θ ∈ [a,b] | x) = 0.95."
+  ],
+  "whenWhy": [
+    {
+      "title": "Incorporating prior knowledge",
+      "body": "When genuine prior information exists (previous studies, expert knowledge, physical constraints like θ > 0), a prior encodes it formally. A weakly informative prior (e.g., N(0,10) for a regression coefficient) regularizes the model and prevents overfitting in small samples — corresponding to ridge-like shrinkage. A non-informative prior (Jeffreys', flat) lets the data dominate."
+    },
+    {
+      "title": "Small-sample inference",
+      "body": "Frequentist methods rely on asymptotics (CLT, chi-square approximations) that break down for small n. Bayesian posteriors are exact for any sample size given the model and prior. For rare events (k = 0 successes in n = 10 trials), a Bayesian estimate with Beta(1,1) prior gives θ̂ = 1/12 ≈ 0.083, whereas MLE = 0 (uninformative). This regularization reflects uncertainty better."
+    },
+    {
+      "title": "Sequential updating",
+      "body": "Bayesian inference is naturally sequential: the posterior from one analysis becomes the prior for the next. This is ideal for streaming data, clinical trials with interim analyses, and online learning. Frequentist approaches require careful correction for multiple looks (sequential testing, alpha-spending); Bayesian posteriors are automatically valid at any stopping point given a proper prior."
+    },
+    {
+      "title": "Full uncertainty quantification",
+      "body": "The posterior provides the full distribution of θ, not just a point estimate. This enables direct probability statements: 'P(effect > 0 | data) = 0.92' or 'P(drug reduces risk by > 20% | data) = 0.73'. Frequentist methods cannot make these statements. In Bayesian decision theory, the posterior is combined with a loss function to make optimal decisions under uncertainty."
+    }
+  ],
+  "deepDiveIntro": [
+    "Bayes' theorem: P(θ|x) = P(x|θ)P(θ)/P(x), where P(x) = ∫ P(x|θ)P(θ)dθ is the marginal likelihood (normalizing constant). Since P(x) does not depend on θ, inference uses P(θ|x) ∝ P(x|θ)P(θ). For conjugate models, this proportion becomes equality in closed form — no integral required.",
+    "Hyperparameters are the parameters of the prior distribution. For Beta(α,β): α−1 and β−1 act as pseudo-successes and pseudo-failures. Choosing α = β = 1 gives a uniform (flat) prior; α = β = 0.5 gives Jeffreys' prior for the Binomial (invariant under reparametrization). The effective sample size of the prior is α + β — a Beta(10,10) prior has the same weight as 20 observations."
+  ],
+  "deepDive": [
+    {
+      "heading": "Beta-Binomial Conjugate Model",
+      "body": "Prior: θ ~ Beta(α,β). Likelihood: X|θ ~ Binomial(n,θ). Posterior: θ|X=k ~ Beta(α+k, β+n−k). Posterior mean: (α+k)/(α+β+n) — a weighted average of prior mean α/(α+β) and MLE k/n. As n→∞, the prior is overwhelmed and the posterior concentrates at k/n. Jeffreys' prior for Binomial: Beta(0.5, 0.5). [1]",
+      "formula": "θ | X=k  ~  Beta(α + k,  β + n − k)"
+    },
+    {
+      "heading": "Normal-Normal Conjugate Model",
+      "body": "Known variance σ²: Prior μ ~ N(μ₀, τ²). Likelihood X̄|μ ~ N(μ, σ²/n). Posterior: μ|X̄ ~ N(μₙ, τₙ²) where posterior mean μₙ = (μ₀/τ² + n·X̄/σ²)/(1/τ² + n/σ²) — a precision-weighted average of prior mean and MLE. Posterior precision 1/τₙ² = 1/τ² + n/σ². As n→∞, τₙ²→0 and μₙ→X̄. [1]",
+      "formula": "μₙ = (μ₀/τ² + nX̄/σ²) / (1/τ² + n/σ²)"
+    },
+    {
+      "heading": "Credible Intervals vs Confidence Intervals",
+      "body": "A 95% Bayesian credible interval [a,b] satisfies P(θ ∈ [a,b] | x) = 0.95 — a direct probability statement about θ. For the Beta posterior: the 95% HPD (highest posterior density) interval is the shortest interval containing 95% of the posterior mass. By contrast, a frequentist 95% CI is defined by the procedure, not by a probability about θ given this data. For symmetric, unimodal posteriors, HPD ≈ equal-tails interval. [1]"
+    },
+    {
+      "heading": "Choosing Priors: Informative vs Non-informative",
+      "body": "Non-informative priors: flat (improper: ∝ 1), Jeffreys' (invariant under reparametrization: P(θ) ∝ √I(θ)), reference priors. Weakly informative priors (Gelman et al.): regularize without strong prior claims, e.g. N(0,1) for standardized coefficients in logistic regression. Strongly informative priors: encode genuine domain knowledge. Prior predictive checks (simulate data from prior and assess plausibility) help validate prior choices. [1]"
+    }
+  ],
+  "youtubeLabel": "Bayesian Statistics: Prior, Likelihood & Posterior — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/BcvLAw-JRss",
+  "takeaways": [
+    "P(θ|x) ∝ P(x|θ)·P(θ): posterior ∝ likelihood × prior. [1]",
+    "Beta-Binomial: θ|X=k ~ Beta(α+k, β+n−k); conjugate, closed-form. [1]",
+    "Posterior mean = precision-weighted average of prior mean and MLE; prior is overwhelmed as n→∞. [1]",
+    "95% credible interval: P(θ ∈ [a,b] | x) = 0.95 — a true probability statement about θ. [1]",
+    "Jeffreys' prior is invariant under reparametrization and serves as a principled non-informative choice. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Can improper priors (integrating to infinity) give proper posteriors?",
+      "a": "Yes, in many cases. The flat prior P(θ) ∝ 1 on ℝ is improper (∫dθ = ∞), but for the Normal likelihood with known σ², the posterior N(x̄, σ²/n) is proper. However, improper priors can cause problems: in multiparameter models, certain improper priors lead to improper posteriors (non-integrable), making inference invalid. Always check that the posterior is proper before using an improper prior. [1]"
+    },
+    {
+      "q": "How sensitive are posterior conclusions to the prior?",
+      "a": "Prior sensitivity depends on the ratio of sample information to prior information. For large n, the likelihood dominates and posteriors from different priors converge to the same answer (Bernstein-von Mises theorem). For small n or rare events, prior choice matters substantially. Conduct sensitivity analysis: report posteriors under multiple plausible priors. If conclusions change drastically, acknowledge the prior-dependence. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Gelman et al. — Bayesian Data Analysis (3rd ed.), Ch. 1–3", "url": "http://www.stat.columbia.edu/~gelman/book/" },
+    { "label": "DeGroot & Schervish — Probability and Statistics (4th ed.), Ch. 7", "url": "https://www.pearson.com/en-us/subject-catalog/p/probability-and-statistics/P200000006215" }
+  ]
+}

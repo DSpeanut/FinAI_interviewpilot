@@ -1,0 +1,84 @@
+{
+  "eli3": [
+    "The mean is the balancing point of a dataset — if you placed all values on a number line and tried to balance it like a see-saw, the fulcrum would sit at the mean. Add up all the numbers and divide by how many there are.",
+    "For the set {2, 4, 6}, the mean is (2+4+6)/3 = 4. Every value contributes equally — extreme values pull the mean toward them, which is why the mean is sensitive to outliers.",
+    "There are three flavours: arithmetic (most common), geometric (for growth rates: take the nth root of the product), and harmonic (for rates: n divided by the sum of reciprocals). The arithmetic mean minimises the sum of squared deviations — it is the least-squares centre of a distribution."
+  ],
+  "whenWhy": [
+    {
+      "title": "Summarising a symmetric, unimodal distribution",
+      "body": "For roughly symmetric data without extreme outliers (e.g. heights, test scores), the arithmetic mean is the single most informative summary statistic. It is also the sufficient statistic for the mean of a normal distribution — no other summary of the data adds information about μ."
+    },
+    {
+      "title": "Computing expected values and loss functions",
+      "body": "Expected value is the theoretical mean. MSE regression minimises E[(Y−ŷ)²], whose solution is the conditional mean E[Y|X]. Understanding the arithmetic mean is prerequisite to understanding bias, variance, and the bias–variance tradeoff."
+    },
+    {
+      "title": "Geometric mean for compound growth",
+      "body": "If a portfolio returns +50% then −50%, the arithmetic mean is 0% — misleadingly positive. The geometric mean is √(1.5 × 0.5) − 1 = −13.4%, which correctly reflects the actual loss. Use geometric mean whenever quantities multiply across periods."
+    },
+    {
+      "title": "Harmonic mean for rates and speeds",
+      "body": "If you drive 60 km/h one way and 40 km/h back, the average speed is NOT (60+40)/2 = 50. It is the harmonic mean: 2/(1/60+1/40) = 48 km/h. Use harmonic mean when averaging ratios or rates where the denominator (time, distance) is fixed."
+    }
+  ],
+  "deepDiveIntro": [
+    "The arithmetic mean of a sample x₁, …, xₙ is x̄ = (1/n)Σᵢxᵢ. For a random variable X with density f(x), the population mean is μ = E[X] = ∫x f(x)dx. The sample mean x̄ is an unbiased estimator of μ: E[x̄] = μ. Its variance is Var(x̄) = σ²/n, which decreases with sample size — the formal basis for the law of large numbers.",
+    "The mean uniquely minimises the sum of squared deviations: argmin_c Σ(xᵢ−c)² = x̄. In contrast, the median minimises the sum of absolute deviations, and the mode is the most probable value. This geometric property connects the mean directly to least-squares estimation and MSE loss."
+  ],
+  "visualizationType": "mean",
+  "deepDive": [
+    {
+      "heading": "Arithmetic Mean",
+      "body": "x̄ = (1/n) Σᵢ₌₁ⁿ xᵢ. The sample mean is the UMVUE (uniformly minimum variance unbiased estimator) of μ for the normal distribution by the Lehmann-Scheffé theorem. For non-normal distributions, it remains unbiased but may not be efficient. [1]",
+      "formula": "x̄ = (1/n) Σᵢ₌₁ⁿ xᵢ"
+    },
+    {
+      "heading": "Geometric Mean",
+      "body": "G = (∏ᵢ xᵢ)^{1/n} = exp((1/n)Σ log xᵢ). Always ≤ arithmetic mean (AM-GM inequality: G ≤ x̄, with equality iff all xᵢ are equal). Defined only for positive values. Used for growth rates, log-normally distributed data, and index numbers. [1]",
+      "formula": "G = (x₁·x₂·…·xₙ)^{1/n}"
+    },
+    {
+      "heading": "Harmonic Mean",
+      "body": "H = n / Σᵢ(1/xᵢ). Always ≤ geometric mean ≤ arithmetic mean (HM ≤ GM ≤ AM). Appropriate when the values are rates and the denominator quantity is fixed across observations. The F1 score in classification is the harmonic mean of precision and recall. [1]",
+      "formula": "H = n / Σᵢ (1/xᵢ)"
+    },
+    {
+      "heading": "Sensitivity to Outliers",
+      "body": "The arithmetic mean has a breakdown point of 0 — a single extreme value can shift it arbitrarily. The influence function of the mean is unbounded: IF(x; F, T) = x − μ. For skewed distributions or data with heavy tails, the trimmed mean (discard the top and bottom α fraction before averaging) or the median is preferred for robust central tendency estimation. [1][2]"
+    },
+    {
+      "heading": "Mean vs Expected Value",
+      "body": "E[X] = Σₖ xₖ P(X=xₖ) (discrete) or ∫ x f(x)dx (continuous) is the theoretical population mean. The sample mean x̄ is a realisation of the estimator T(X₁,…,Xₙ) = (1/n)ΣXᵢ. By the Law of Large Numbers, x̄ →ₚ μ. By the CLT, √n(x̄ − μ)/σ →_d N(0,1). [1]",
+      "formula": "E[X] = ∫ x f(x) dx"
+    }
+  ],
+  "youtubeLabel": "Mean, Median, Mode — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/mk8tOD0t8M0",
+  "takeaways": [
+    "Arithmetic mean x̄ = (1/n)Σxᵢ minimises sum of squared deviations — connects directly to MSE and least squares. [1]",
+    "Mean is the UMVUE for μ under normality; unbiased for any distribution with finite mean. [1]",
+    "Geometric mean G = (∏xᵢ)^{1/n}: use for growth rates and multiplicative processes (always ≤ AM). [1]",
+    "Harmonic mean H = n/Σ(1/xᵢ): use for rates; F1 = harmonic mean of precision and recall. [1]",
+    "Mean has breakdown point 0 — a single outlier can shift it arbitrarily; use trimmed mean or median for robustness. [1][2]",
+    "By CLT, √n(x̄−μ)/σ →_d N(0,1), enabling z-tests and confidence intervals for the mean. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "When is the mean misleading as a summary?",
+      "a": "For skewed distributions (income, house prices, survival times), the mean is pulled toward the tail and does not represent a 'typical' value. The median is more informative. For bimodal distributions, the mean may fall in a low-density region between modes. Always plot the distribution before choosing a summary statistic. [1]"
+    },
+    {
+      "q": "Why does the geometric mean equal the arithmetic mean on the log scale?",
+      "a": "log(G) = (1/n)Σ log(xᵢ) — the log of the geometric mean equals the arithmetic mean of the log-transformed values. This means: fit a model on log(x), back-transform predictions with exp(), and you get the geometric mean prediction. This is why log transformation is natural for multiplicative processes. [1]"
+    },
+    {
+      "q": "What is a weighted mean and when is it needed?",
+      "a": "x̄_w = Σwᵢxᵢ / Σwᵢ where wᵢ ≥ 0. Needed when observations have unequal importance — e.g. combining strata in stratified sampling (weight by stratum size), computing portfolio returns (weight by allocation), or reweighting datasets to correct for covariate shift. [2]"
+    }
+  ],
+  "sources": [
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 2", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" },
+    { "label": "DeGroot & Schervish — Probability and Statistics (4th ed.), Ch. 4", "url": "https://www.pearson.com/en-us/subject-catalog/p/probability-and-statistics/P200000006158" }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "eli3": [
+    "ReAct (Reasoning + Acting, Yao et al. 2023) is a prompting framework where the LLM alternates between generating reasoning thoughts and taking actions (tool calls) to complete a task. Thought: 'I need to find the population of France.' Action: search('population of France'). Observation: 'France has 68 million people.' Thought: 'Now I can answer.' Action: finish('68 million'). The model reasons about what to do, acts, observes the result, and repeats.",
+    "ReAct combines the benefits of chain-of-thought (reasoning traces) with external tool use (search, calculator, code execution, APIs). Without tools, LLMs hallucinate facts they don't know. With ReAct, the model can retrieve real-time information, execute code for exact computation, and interact with external systems. This makes LLMs useful for tasks requiring up-to-date knowledge or deterministic computation.",
+    "ReAct is the foundation of modern LLM agents (AutoGPT, LangChain agents, OpenAI Assistants). An LLM agent uses ReAct-style reasoning to orchestrate: (1) which tool to use; (2) what input to give the tool; (3) how to interpret the tool's output; (4) whether the task is complete. The 'agentic' loop runs until the model decides to call finish() with the final answer."
+  ],
+  "whenWhy": [
+    {
+      "title": "Question answering with real-time information",
+      "body": "LLMs have a training cutoff — they can't answer questions about recent events from memory alone. ReAct + web search: the model searches for current information, reads the results, and synthesizes an answer. Hotpot QA, multi-hop questions: 'Who is the mother of the current US president?' requires knowing who the current president is (requires search) and then looking up their mother. ReAct's interleaved reasoning and search achieves 68.6% exact match on HotpotQA vs CoT-only 29.4%."
+    },
+    {
+      "title": "Code generation and execution in a loop",
+      "body": "Code interpreter tool: the model writes code, executes it, observes the output (or error), and iterates. This is how ChatGPT's Advanced Data Analysis works. ReAct-style: Thought: 'I need to compute the correlation' → Action: code_exec('import pandas as pd; df.corr()') → Observation: 'Error: NameError df' → Thought: 'I need to load the data first' → Action: code_exec('df = pd.read_csv(...)') → ... This iterative loop handles debugging autonomously and produces correct code even when the first attempt fails."
+    },
+    {
+      "title": "Multi-step task completion with diverse tools",
+      "body": "Complex tasks require multiple tools in sequence: 'Create a report on the top 5 tech companies by revenue, with a chart.' This needs: search (revenue data), calculator (rankings), code_exec (matplotlib chart), file_write (save report). ReAct orchestrates this sequence: the model decides which tool at each step, interprets the output, and passes results to subsequent steps. This is the basis of LLM agent frameworks: LangChain, LlamaIndex, Semantic Kernel, OpenAI Assistants API."
+    }
+  ],
+  "deepDiveIntro": [
+    "ReAct prompt format (few-shot): provide k demonstrations of (question, thought-action-observation trajectories, answer). Each step: Thought: [reasoning about current state and next action]. Action: [tool_name(input)]. Observation: [tool_output]. Repeat until Action: finish(answer). The model learns this trajectory format from demonstrations and applies it to new questions.",
+    "Tool definition: each tool has a name, description, and input/output schema. Modern implementations use function calling (OpenAI) or tool use (Anthropic Claude API): structured JSON schemas define available tools. The model outputs a structured tool_call object rather than free-text action. This is more reliable than parsing free-text action strings: tool_call = {name: 'search', arguments: {query: 'population of France'}}."
+  ],
+  "deepDive": [
+    {
+      "heading": "ReAct Framework and Prompt Structure",
+      "body": "Each ReAct step is a (Thought, Action, Observation) triplet. Thought: free-form natural language reasoning — 'I need to search for X because Y'. Action: structured tool call — 'Search[query]' or in modern APIs, a JSON tool_call. Observation: tool output returned to the model as part of context. The model generates the next Thought based on accumulated context (question + all previous Thought/Action/Observation triplets). This continues until the model generates Action: Finish[answer]. ReAct's key insight: interleaving reasoning with grounding (observations from tools) reduces hallucination. [1]",
+      "formula": "Loop: Thought_t → Action_t → Observation_t → Thought_{t+1} → ... → Finish(answer)"
+    },
+    {
+      "heading": "Tool Types and Integration",
+      "body": "Common ReAct tools: (1) Search — web search API (Bing, Google, Tavily); (2) Calculator — Python eval for arithmetic; (3) Code interpreter — execute Python in sandbox; (4) Database — SQL query execution; (5) File read/write — file system access; (6) API call — weather, maps, financial data. Modern LLM APIs: OpenAI function calling, Anthropic tool use, Google Vertex AI function calling. The model receives tool schemas as JSON and outputs structured tool calls. The application layer executes the tool and returns the result as a new user message. [1]"
+    },
+    {
+      "heading": "Failure Modes and Mitigation",
+      "body": "ReAct failure modes: (1) Hallucinated tool outputs — model invents observations instead of waiting for real ones; mitigated by strict tool call parsing and explicit observation injection. (2) Infinite loops — model keeps searching without converging; mitigated by maximum steps limit and explicit loop detection. (3) Wrong tool selection — calls calculator when search is needed; mitigated by clear tool descriptions and few-shot examples. (4) Context overflow — long trajectories exceed context window; mitigated by trajectory summarization or sliding window. Reflexion (Shinn et al. 2023): add a reflection step after each failed attempt — model reasons about what went wrong and adjusts strategy. [1]"
+    },
+    {
+      "heading": "ReAct vs Chain-of-Thought vs Pure Tool Use",
+      "body": "CoT only: reasons but can't access external knowledge — hallucinates for factual questions. Tool use only: calls tools without reasoning — inefficient, poor multi-step planning. ReAct: reasoning guides tool use, tool results ground reasoning. Advantage: (1) Interpretable — reasoning traces show decision process; (2) Adaptive — model adjusts based on observations; (3) Grounded — tool outputs prevent hallucination. Yao et al. (2023) HotpotQA: CoT=29.4%, Act-only=25.7%, ReAct=35.1% exact match. On Fever (fact verification): CoAct=56%, React=60% — modest but consistent gains. [1]"
+    }
+  ],
+  "takeaways": [
+    "ReAct: interleave Thought (reasoning) → Action (tool call) → Observation (result) until Finish. [1]",
+    "Grounding via tools reduces hallucination vs pure CoT — critical for factual tasks. [1]",
+    "HotpotQA: ReAct 68.6% vs CoT-only 29.4% — 2× improvement from real-time retrieval. [1]",
+    "Modern implementation: OpenAI function calling / Anthropic tool use with JSON schemas. [1]",
+    "Reflexion: reflection step after failures improves multi-step agent performance. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How does ReAct differ from standard function calling in LLM APIs?",
+      "a": "Standard function calling: the model outputs a single tool call, the application executes it and returns the result — one round trip. ReAct: the model reasons about which tool to call (Thought), calls it (Action), receives the result (Observation), reasons again, and may call another tool — multiple round trips in a loop. ReAct is a prompting strategy that orchestrates multi-step tool use; function calling is the underlying API mechanism. Modern frameworks (LangChain, LlamaIndex) implement ReAct-style loops on top of function calling APIs, automatically feeding tool outputs back to the model and continuing until the model signals completion. The key difference is the reasoning trace that makes each action explainable. [1]"
+    },
+    {
+      "q": "What is the difference between ReAct and AutoGPT-style agents?",
+      "a": "ReAct: single LLM generates interleaved thoughts and actions for one task, stops when the task is complete. Typically short trajectories (5–20 steps). AutoGPT-style (general agents): an LLM orchestrator plans multi-step tasks, spawns sub-agents, maintains persistent state across tasks, and runs until a high-level goal is achieved — potentially unlimited steps. AutoGPT uses ReAct-style reasoning but adds: (1) long-term memory (vector database); (2) internet access; (3) sub-agent spawning; (4) persistent goal state. Limitation: very long autonomous agent loops are unreliable — compound errors over many steps make it hard to complete complex tasks reliably. Current best practice: use bounded ReAct loops with human-in-the-loop checkpoints for reliability. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Yao et al. (2023) — ReAct: Synergizing Reasoning and Acting in Language Models, ICLR 2023", "url": "https://arxiv.org/abs/2210.03629" }
+  ]
+}

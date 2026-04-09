@@ -1,0 +1,64 @@
+{
+  "eli3": [
+    "CLIP (Contrastive Language-Image Pre-training, Radford et al. 2021) learns to align images and text in a shared embedding space using contrastive learning. For 400 million (image, text) pairs scraped from the internet, CLIP trains an image encoder and a text encoder so that matching (image, caption) pairs have high cosine similarity and non-matching pairs have low similarity. After training, 'a photo of a dog' has a similar embedding to an image of a dog.",
+    "CLIP training: given a batch of N (image, text) pairs, compute N×N similarity matrix between all image and text embeddings. Contrastive loss (InfoNCE): maximize the N diagonal similarities (matched pairs) and minimize the N²-N off-diagonal similarities (mismatched pairs). Temperature parameter τ scales the logits. After training, the embedding space is shared — you can compare image and text embeddings directly with cosine similarity.",
+    "CLIP's key capability: zero-shot classification without any task-specific training. Given K class names, create K text prompts ('a photo of a {class}'), embed all prompts, embed the image, find the class with maximum cosine similarity. CLIP ViT-L/14 achieves 75.3% zero-shot accuracy on ImageNet — matching the original ResNet-50 trained on ImageNet labels, despite never seeing ImageNet during training. This launched the era of foundation vision models."
+  ],
+  "whenWhy": [
+    {
+      "title": "Zero-shot image classification",
+      "body": "CLIP enables zero-shot classification for any set of categories you can describe in text — no labeled training images needed. Create text prompts for each class, embed all prompts and the image, argmax cosine similarity. Applications: content moderation (detect categories of harmful content), product classification (route items to categories by description), NSFW detection (text-described content policies). CLIP generalizes across domains unseen during training: medical images, satellite imagery, artwork."
+    },
+    {
+      "title": "Multimodal search and image retrieval",
+      "body": "Since CLIP embeds images and text in the same space, you can search images with natural language queries. 'Find all images of people wearing red hats' → embed the query → cosine search over image embedding index. No image labeling required — images are indexed as embeddings. Used for: stock photo search (Getty, Adobe), product search (search by photo or description), content discovery. Also works in reverse: given an image, find text documents describing similar content."
+    },
+    {
+      "title": "Visual backbone for downstream VLMs",
+      "body": "CLIP's visual encoder (ViT-L/14) has become the default backbone for VLMs (LLaVA, InstructBLIP, BLIP-2). Because CLIP's visual features are already aligned with text, they transfer better to language model spaces than features from a purely visual model (supervised ImageNet classification). The CLIP encoder is typically frozen when training VLMs — its rich text-aligned visual representations are a strong prior that reduces the visual instruction tuning data required."
+    }
+  ],
+  "deepDiveIntro": [
+    "CLIP architecture: (1) Image encoder — ViT variants (ViT-B/32, ViT-L/14) or ResNet (RN50, RN101); (2) Text encoder — GPT-2 style transformer, 12 layers, 512d, 77-token max length. Both encoders project to a shared embedding space of dimension 512 (ViT-B/32) or 768 (ViT-L/14). Final text embedding: [EOS] token representation. Final image embedding: global average pool over patch embeddings (ViT) or attention pool (RN).",
+    "CLIP training objective: InfoNCE contrastive loss. For a batch of N pairs: image embeddings I ∈ ℝ^{N×d}, text embeddings T ∈ ℝ^{N×d}. Logit matrix: L = (I @ T.T) / τ (temperature τ ≈ 0.07). Loss = symmetric cross-entropy: (CE(L, labels) + CE(L.T, labels)) / 2, where labels = identity permutation (pair i is positive for both row i and column i). Training: 400M pairs, batch size 32768, trained on 256 V100s for ~18 days."
+  ],
+  "deepDive": [
+    {
+      "heading": "Contrastive Training and InfoNCE Loss",
+      "body": "InfoNCE loss for a single (image, text) pair: L = −log exp(sim(I,T)/τ) / Σⱼ exp(sim(I,Tⱼ)/τ). Symmetric: also maximize P(T matched with I). Large batch size is critical: more negatives per step → harder contrastive task → better representations. CLIP uses batch size 32,768 — each step has 32,767 negatives per positive. Temperature τ: learned parameter starting at 1/0.07 ≈ 14.3. Lower τ sharpens the distribution (more confident). Hard negatives: in-batch negatives include semantically similar but mismatched pairs — this is why large batches improve CLIP more than other methods. [1]",
+      "formula": "L = −(1/N) Σᵢ [log softmax(L/τ)ᵢᵢ + log softmax(L.T/τ)ᵢᵢ] / 2"
+    },
+    {
+      "heading": "Zero-Shot Classification Protocol",
+      "body": "Prompt engineering for CLIP classification: class name → text prompt. 'dog' → 'a photo of a dog'. Template: 'a photo of a {class}' outperforms just '{class}' by significant margins. Ensemble of prompts: CLIP paper uses 80 templates ('a photo of a {class}', 'a photo of the {class}', 'a dark photo of a {class}', etc.) and averages the text embeddings — ensemble improves ImageNet accuracy from 76.2% (single template) to 76.4%. Context matters: 'a photo of a stingray, a type of fish' outperforms 'a photo of a stingray' by describing the class. [1]"
+    },
+    {
+      "heading": "CLIP Variants and Successors",
+      "body": "OpenCLIP (LAION): open reproduction of CLIP trained on LAION-400M and LAION-5B. ViT-H/14 trained on LAION-2B: 78.0% zero-shot ImageNet — outperforms original CLIP. SigLIP (Zhai et al. 2023): replace InfoNCE with sigmoid loss — compute pairwise sigmoid instead of softmax over full batch. More memory-efficient: no need for all-gather over full batch. Achieves better performance at smaller batch sizes. CoCa (Yu et al. 2022): CLIP + image captioning decoder — dual objective trains both contrastive and generative losses. ALIGN (Jia et al. 2021): 1.8B image-text pairs (noisy web data) — scale compensates for noise. [1]"
+    },
+    {
+      "heading": "CLIP Limitations and Failure Modes",
+      "body": "Known CLIP limitations: (1) Bag-of-words behavior: 'a dog bites a man' and 'a man bites a dog' have similar embeddings — CLIP doesn't capture fine-grained spatial or relational semantics; (2) Counting: 'three dogs' vs 'two dogs' poorly distinguished; (3) Unusual attribute binding: 'red car next to blue truck' may be confused with 'blue car next to red truck'; (4) Distribution shift: specialized domains (X-rays, satellite) not in pre-training data perform poorly; (5) Max 77 tokens: long text captions are truncated. Addressing these: LLaVA adds a language model for reasoning; FLAVA, ViLBERT train with more fine-grained alignment. [1]"
+    }
+  ],
+  "takeaways": [
+    "CLIP: contrastive training on 400M (image, text) pairs — shared embedding space for image-text similarity. [1]",
+    "InfoNCE loss: maximize diagonal of N×N similarity matrix, large batch (32K) critical for quality. [1]",
+    "Zero-shot classification: 'a photo of a {class}' text prompts + cosine similarity — 75.3% ImageNet. [1]",
+    "SigLIP: sigmoid loss replaces softmax — more efficient, better at small batch sizes. [1]",
+    "Limitation: bag-of-words behavior — poor spatial/relational reasoning, counting, unusual attribute binding. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does CLIP use a separate text encoder rather than reusing a pre-trained language model?",
+      "a": "CLIP trains both encoders from scratch jointly with the contrastive objective — this ensures both encode information in a shared, compatible space. Reusing a pre-trained LM (GPT-2) as the text encoder: the LM's embedding space is not aligned with visual features; the contrastive training would need to significantly shift it. CLIP's text encoder is much smaller than GPT-2 (transformer with 63M params vs 117M) — it only needs to produce a single embedding per caption, not generate text. Using a full LM is overpowered for this task and would slow training. Later models (CoCa, LLaVA) do use pre-trained LMs as the decoder for caption generation, not as the CLIP text encoder. [1]"
+    },
+    {
+      "q": "How does CLIP compare to supervised ImageNet pre-training for transfer learning?",
+      "a": "For standard visual tasks (ImageNet classification, COCO object detection), supervised ImageNet pre-training is still competitive or better than CLIP — supervised training on labeled data is highly optimized for the specific task. CLIP advantages: (1) Zero-shot transfer to novel categories without any labeled examples; (2) Better robustness to distribution shift (CLIP trained on diverse web images generalizes better to out-of-distribution benchmarks); (3) Natural language interface — fine-grained control over what features to extract via text prompts. Empirical finding (Radford et al. 2021): CLIP ViT-L/14 trained on 400M pairs achieves better robustness on ImageNet distribution shift benchmarks than ResNet-101 trained on ImageNet, despite similar in-distribution accuracy. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Radford et al. (2021) — Learning Transferable Visual Models From Natural Language Supervision (CLIP), ICML 2021", "url": "https://arxiv.org/abs/2103.00020" }
+  ]
+}

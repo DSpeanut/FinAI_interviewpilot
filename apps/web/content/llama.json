@@ -1,0 +1,67 @@
+{
+  "eli3": [
+    "Llama (Large Language Model Meta AI, Touvron et al. 2023) is a family of open-weight decoder-only transformer LLMs from Meta. Key design philosophy: train smaller models on more data than Kaplan scaling laws suggest — following Chinchilla principles. Llama 1 (7B–65B parameters, 1–1.4T tokens) outperformed GPT-3 (175B) on most benchmarks at a fraction of the size. Released weights enabled the open-source LLM ecosystem.",
+    "Llama architecture improvements over vanilla GPT: (1) Pre-normalization with RMSNorm (simpler than LayerNorm); (2) SwiGLU activation in the FFN (better than GELU); (3) Rotary Position Embeddings (RoPE) instead of absolute learned positions; (4) No bias terms in attention and FFN; (5) Grouped-Query Attention (GQA) in Llama 2+ for faster inference. These choices became the blueprint for virtually all open-source LLMs.",
+    "Llama 2 (2023) added chat fine-tuning via RLHF, making Llama 2-chat competitive with ChatGPT. Llama 3 (2024) used 15T training tokens (Llama 3 8B is trained on 15T tokens — far beyond Chinchilla-optimal for efficiency at inference) and introduced a new 128K-vocabulary tokenizer. Llama's open release catalyzed the open-source LLM ecosystem: Alpaca, Vicuna, Mistral, WizardLM, and hundreds of fine-tuned variants."
+  ],
+  "whenWhy": [
+    {
+      "title": "Open-weight base for fine-tuning and research",
+      "body": "Llama's open weights (model weights downloadable, not just API access) enable: (1) full fine-tuning on domain-specific data; (2) LoRA/QLoRA parameter-efficient fine-tuning on consumer hardware; (3) deployment on-premise (HIPAA-compliant medical, legal, financial applications); (4) research on LLM internals, alignment, and interpretability. This is impossible with API-only models (GPT-4, Claude). Llama 2 license allows commercial use for organizations with < 700M monthly active users."
+    },
+    {
+      "title": "Efficient inference for production deployment",
+      "body": "Llama 7B can run on a single RTX 4090 GPU (24GB VRAM) in 4-bit quantization (GGUF format, llama.cpp). Llama 13B on 2× A100 40GB. Llama 70B on 4× A100 80GB. Compared to GPT-3.5/4 API: on-premise Llama offers lower latency, no API cost per token, data privacy. llama.cpp (Gerganov) enables CPU inference — Llama 7B at ~20 tokens/sec on M2 MacBook. This democratized LLM deployment to personal hardware."
+    },
+    {
+      "title": "Benchmark reference point for LLM comparisons",
+      "body": "Llama has become the reference open-weight model family for academic benchmarks. Most papers report results relative to Llama: 'our method improves over Llama 2 70B by X%'. Llama 3 8B outperforms Llama 2 70B on most benchmarks (15T tokens vs 2T). Standard benchmarks: MMLU (knowledge), GSM8K (math), HumanEval (code), ARC-Challenge (reasoning), Hellaswag (commonsense). Llama 3 8B MMLU: 66.6% (Llama 2 70B: 68.9%)."
+    }
+  ],
+  "deepDiveIntro": [
+    "Llama architecture (Llama 1, 7B): 32 transformer decoder layers, 32 attention heads, d_model=4096, FFN hidden=11008 (uses SwiGLU with 2/3 × 4 × d_model), context window=2048 (Llama 1) / 4096 (Llama 2) / 8192 (Llama 3). Tokenizer: Llama 1/2 uses SentencePiece BPE with 32K vocabulary; Llama 3 uses tiktoken with 128K vocabulary (better multilingual and code coverage). No bias in attention projections or FFN.",
+    "RMSNorm: g · x / RMS(x) where RMS(x) = sqrt(mean(x²)). Simpler than LayerNorm (no mean subtraction) — equivalent normalization effect, 7–64% faster. SwiGLU FFN: FFN_SwiGLU(x) = (Swish(W₁x) ⊙ W₃x) W₂. Uses 3 weight matrices instead of 2 (W₁, W₂, W₃) — hidden_dim = 2/3 × 4 × d_model to keep total params similar to 2-matrix FFN. Empirically outperforms GELU and ReLU activations."
+  ],
+  "deepDive": [
+    {
+      "heading": "Llama Architecture Differences from GPT-2",
+      "body": "Llama vs GPT-2: (1) RMSNorm instead of LayerNorm — no mean centering, simpler and faster; (2) SwiGLU instead of GELU in FFN — gated activation for better gradient flow; (3) RoPE instead of learned absolute positions — generalizes to any context length; (4) No bias in QKV projection, FFN, or output linear layers — slight regularization, reduces parameters; (5) Pre-norm (same as GPT-2+). These 4 changes (RMSNorm, SwiGLU, RoPE, no bias) are now the standard for open-source LLMs: Mistral, Qwen, Falcon, Gemma all use this template. [1]",
+      "formula": "RMSNorm(x) = g ⊙ (x / sqrt(mean(x²) + ε));  SwiGLU(x) = Swish(W₁x) ⊙ W₃x"
+    },
+    {
+      "heading": "Grouped-Query Attention (GQA)",
+      "body": "Multi-Head Attention (MHA, GPT-3): each head has its own Q, K, V projections — n_heads sets of K and V. KV-cache grows as O(n_heads). Multi-Query Attention (MQA, Shazeer 2019): all heads share a single K, V projection — minimal KV-cache, faster inference, slight quality loss. Grouped-Query Attention (GQA, Ainslie et al. 2023): G groups of heads share K, V projections (G < n_heads). Llama 2 70B: 64 attention heads, 8 KV heads (GQA with G=8). KV-cache 8× smaller than MHA. Llama 3: uses GQA across all model sizes. GQA is the standard in modern LLMs — good balance of quality and inference efficiency. [2]",
+      "formula": "MHA: n_kv = n_heads; MQA: n_kv = 1; GQA: n_kv = G (e.g. 8)"
+    },
+    {
+      "heading": "Llama 2 Fine-tuning Pipeline (RLHF)",
+      "body": "Llama 2-chat training: (1) Pre-train Llama 2 base on 2T tokens; (2) SFT on 27,540 curated (prompt, response) pairs; (3) Reward Model (RM): train two RMs on human preference pairs — a 'helpful' RM and a 'safety' RM; (4) RLHF with PPO: optimize Llama against the RM while adding a KL-divergence penalty from the SFT model (prevents over-optimization). Ghost Attention (GAtt): fine-tuning trick to maintain instruction following across long conversations. Llama 2-chat 70B: comparable to ChatGPT on helpfulness benchmarks. [1]"
+    },
+    {
+      "heading": "Llama 3: Scale and Tokenizer Improvements",
+      "body": "Llama 3 (2024) key improvements: (1) 128K BPE vocabulary (vs 32K) — 4× vocabulary size improves tokenization efficiency for non-English, code, and special characters; (2) Training data: 15T tokens for 8B, 15T for 70B — far beyond Chinchilla for inference efficiency; (3) Instruction fine-tuning pipeline: combines SFT, rejection sampling, PPO, and DPO (Direct Preference Optimization); (4) Context window: 8K for base, 128K for Llama 3.1+ via RoPE scaling. Llama 3 8B outperforms Llama 2 70B — 9× fewer parameters, same quality from 7× more training tokens. [3]"
+    }
+  ],
+  "takeaways": [
+    "Llama architecture: RMSNorm + SwiGLU + RoPE + no bias — the open-source LLM blueprint. [1]",
+    "GQA (Grouped-Query Attention): n_kv < n_heads — smaller KV-cache, faster inference. [2]",
+    "Llama 2-chat: SFT → two RMs → PPO with KL penalty — open RLHF pipeline. [1]",
+    "Llama 3 8B trained on 15T tokens — inference-optimal (overtrained vs Chinchilla). [3]",
+    "128K vocabulary (Llama 3) improves non-English and code tokenization over 32K (Llama 1/2). [3]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What is LoRA fine-tuning and why is it used with Llama?",
+      "a": "LoRA (Low-Rank Adaptation, Hu et al. 2022): instead of updating all model parameters during fine-tuning, inject trainable low-rank matrices into each attention layer — W_new = W_0 + ΔW = W_0 + BA where B ∈ ℝ^{d×r}, A ∈ ℝ^{r×k}, r << d. Only A and B are trained — typically 0.1–1% of parameters. QLoRA (Dettmers et al. 2023): quantize base model to 4-bit (NF4 format), apply LoRA on top — fine-tune Llama 65B on a single 48GB GPU. LoRA/QLoRA enables: (1) fine-tuning on consumer hardware; (2) multiple task-specific adapters with one shared base model; (3) rapid domain adaptation. Alpaca, Vicuna, and most open Llama fine-tunes used LoRA. [1]"
+    },
+    {
+      "q": "What is the difference between Llama and Mistral 7B?",
+      "a": "Mistral 7B (Jiang et al. 2023) uses the same Llama-style architecture (RMSNorm, SwiGLU, RoPE) but introduces: (1) Sliding Window Attention (SWA): each token attends to at most W=4096 previous tokens — reduces attention memory from O(n²) to O(nW), enabling longer contexts; (2) Grouped-Query Attention (GQA): n_kv=8 like Llama 2 70B; (3) Byte-Pair Encoding with 32K vocab (same as Llama 2); (4) Better training data curation and optimization recipe. Mistral 7B outperforms Llama 2 13B on all benchmarks and Llama 1 34B on most — achieving better performance per parameter than Llama 2 7B through better data and training, not architectural innovation. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Touvron et al. (2023) — Llama 2: Open Foundation and Fine-Tuned Chat Models", "url": "https://arxiv.org/abs/2307.09288" },
+    { "label": "Ainslie et al. (2023) — GQA: Training Generalized Multi-Query Transformer Models, EMNLP 2023", "url": "https://arxiv.org/abs/2305.13245" },
+    { "label": "Meta AI (2024) — Meta Llama 3 Model Card", "url": "https://github.com/meta-llama/llama3" }
+  ]
+}

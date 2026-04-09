@@ -1,0 +1,64 @@
+{
+  "eli3": [
+    "The fundamental difference: frequentists treat probability as the long-run frequency of events in repeated experiments — a parameter θ is a fixed unknown number, not a random variable. Bayesians treat probability as a degree of belief — θ is uncertain, modeled with a distribution P(θ) that gets updated via Bayes' theorem as data arrives.",
+    "Frequentist CIs and Bayesian credible intervals are computed differently and mean different things. A 95% frequentist CI: 'If I repeated this experiment many times, 95% of such intervals would contain θ.' A 95% Bayesian credible interval: 'Given my prior and this data, P(θ ∈ [a,b]) = 0.95.' For large samples and weak priors, the two often coincide numerically but differ philosophically.",
+    "Neither framework dominates the other in practice. Frequentist methods (t-tests, ANOVA, MLE) are standard in regulatory settings (FDA, clinical trials) due to their strict control of Type I error. Bayesian methods excel for hierarchical models, sequential analysis, incorporating prior knowledge, and providing direct probability statements about parameters."
+  ],
+  "whenWhy": [
+    {
+      "title": "When frequentist methods are preferred",
+      "body": "Regulatory contexts (FDA drug approval, clinical trials): frequentist Type I error control is legally required. Situations where the prior is genuinely unknown and any prior would be controversial. A/B testing at scale where speed (no prior specification) and interpretability of p-values to non-statisticians matter. Large samples where both methods give essentially identical results."
+    },
+    {
+      "title": "When Bayesian methods are preferred",
+      "body": "Hierarchical models with structured dependencies (patients within hospitals, students within schools). Sequential analysis (Bayesian posteriors are valid at any stopping point; frequentist methods need stopping rule corrections). Incorporating domain knowledge (phase III trial uses phase II results as informative prior). Direct probability statements about parameters are needed. Small samples where priors provide critical regularization."
+    },
+    {
+      "title": "Bayes factors vs p-values for hypothesis testing",
+      "body": "P-values only quantify evidence against H₀, not for H₀. Bayes factors BF₁₂ = P(x|H₁)/P(x|H₀) quantify evidence for H₁ relative to H₀ and can support H₀ (BF < 1/3). Jeffreys' scale: BF > 100 (decisive for H₁), 10–100 (strong), 3–10 (moderate). Unlike p-values, Bayes factors require specifying a prior on effect size under H₁ — which makes them sensitive to this specification."
+    }
+  ],
+  "deepDiveIntro": [
+    "Core philosophical difference: Kolmogorov's axioms define probability mathematically but not its interpretation. Frequentists (von Mises, Neyman, Pearson): probability = limiting relative frequency in a long sequence of identical, independent experiments. Bayesians (Ramsey, de Finetti, Savage): probability = coherent degree of belief, subject to Dutch book arguments. Objective Bayesians (Jeffreys, Berger) seek priors that are 'data-dominated' and minimally informative.",
+    "In practice, the distinction often matters less than the model. Both schools use likelihood functions; Bayesian analysis adds a prior; frequentist analysis uses the sampling distribution of estimators. For complex models, both require computation (MCMC for Bayesian; bootstrap or asymptotic theory for frequentist). The question is really: do you have useful prior information, and do you need exact probability statements about parameters?"
+  ],
+  "deepDive": [
+    {
+      "heading": "Probability Interpretation",
+      "body": "Frequentist: P(A) = lim_{n→∞} #{A occurs in n trials}/n. Only makes sense for repeatable experiments. Bayesian: P(A) = subjective degree of belief in A, satisfying the axioms of probability. De Finetti's theorem: any exchangeable sequence of binary outcomes can be represented as a mixture of iid Bernoulli — justifying the Bayesian representation with a prior over θ even without committing to 'objective' probabilities. [1]"
+    },
+    {
+      "heading": "CI vs Credible Interval: Same Number, Different Meaning",
+      "body": "For a Normal model with known σ and flat prior, the 95% frequentist CI [x̄ ± 1.96σ/√n] numerically equals the 95% Bayesian credible interval. Yet: CI = 'The procedure covers θ 95% of the time'; credible interval = 'P(θ ∈ [a,b] | x) = 0.95'. For non-flat priors, they differ. The Bayesian statement is what practitioners often (incorrectly) assume the frequentist CI says. [2]"
+    },
+    {
+      "heading": "Likelihood Principle",
+      "body": "The likelihood principle (LP): all the information in data x relevant to θ is contained in the likelihood function L(θ) = P(x|θ). Bayesian inference satisfies LP (the posterior depends on data only through L(θ)). Frequentist methods violate LP: p-values depend on the sampling distribution P(T ≥ t_obs | H₀), which includes unobserved outcomes. This means two experiments with the same likelihood can give different frequentist conclusions (due to different stopping rules), but always give the same Bayesian conclusion. [1]"
+    },
+    {
+      "heading": "Exchangeability and Hierarchical Models",
+      "body": "De Finetti: if observations are exchangeable (joint distribution invariant to permutation), then they can be represented as conditionally iid given a latent parameter θ, with θ having a prior distribution. This provides a frequentist justification for Bayesian hierarchical models: groups are exchangeable, so partial pooling via a hierarchical prior is justified by the data structure itself, not just subjective belief. This is the empirical Bayes perspective. [1]"
+    }
+  ],
+  "takeaways": [
+    "Frequentist: θ is fixed; probability = long-run frequency. Bayesian: θ is uncertain; probability = degree of belief. [1]",
+    "95% CI: procedure covers θ 95% of the time. 95% credible interval: P(θ ∈ [a,b] | data) = 0.95. [2]",
+    "Bayesian analysis satisfies the likelihood principle; frequentist methods do not. [1]",
+    "Bayes factors can support H₀ (BF < 1/3); p-values cannot provide evidence for H₀. [1]",
+    "For large n and weak priors, frequentist and Bayesian intervals are numerically similar but philosophically different. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Can you use Bayesian methods but interpret them frequentistically?",
+      "a": "Yes — empirical Bayes: estimate hyperparameters from the data (marginal MLE) rather than specifying a prior, then use the resulting posterior for inference. This is a frequentist procedure (hyperparameters are estimated, not given priors) that produces posterior-like summaries. It approximates full Bayesian hierarchical inference and is widely used in genomics (limma, DESeq2) and sports analytics (James-Stein estimator). [1]"
+    },
+    {
+      "q": "What is the 'replication crisis' connection to frequentist vs Bayesian?",
+      "a": "The replication crisis is primarily a frequentist problem: p < 0.05 has a high false positive rate when the prior probability of H₁ is low. Bayesian analysis with informative priors would naturally produce higher thresholds for evidence. However, Bayesian methods are not immune: poorly specified priors can lead to overconfident posteriors. The crisis is partly about misuse (p-hacking, publication bias, underpowering) more than the framework itself. Both frameworks require honest reporting and adequate sample sizes. [2]"
+    }
+  ],
+  "sources": [
+    { "label": "Gelman et al. — Bayesian Data Analysis (3rd ed.), Ch. 1", "url": "http://www.stat.columbia.edu/~gelman/book/" },
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 7–8", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" }
+  ]
+}

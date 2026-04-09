@@ -1,0 +1,64 @@
+{
+  "eli3": [
+    "Image captioning is the task of automatically generating a natural language description of an image. A captioning model takes an image as input and outputs a sentence like 'A dog running on a beach.' It requires both visual understanding (what objects and actions are present) and natural language generation (how to describe them fluently). Captioning is a fundamental computer vision × NLP task.",
+    "Modern captioning models follow the encoder-decoder architecture: image → CNN/ViT encoder → visual embeddings → transformer decoder with cross-attention → generated caption. The decoder attends to visual features at each generation step, learning to generate words that describe the visual content. Training: maximize log P(caption | image) over (image, caption) datasets like MS COCO (330K images, 5 captions each) and Conceptual Captions (3.3M pairs).",
+    "Captioning is the pre-training objective for many vision-language models: BLIP, CoCa, and SimVLM use captioning as one of their key training tasks. It directly produces the image-text pairs needed to train multimodal systems. Applications: accessibility (alt text for visually impaired), content moderation, image search indexing, social media tools, visual QA systems, and as input to text-based RAG pipelines that need to process image corpora."
+  ],
+  "whenWhy": [
+    {
+      "title": "Accessibility and alt text generation",
+      "body": "Web accessibility standards (WCAG) require meaningful alt text for images. Manually writing alt text for millions of images is infeasible. Automated image captioning provides: screen reader descriptions for visually impaired users, context for search engine crawlers, legal compliance for accessibility regulations. Facebook and Instagram use captioning models to generate automatic alt text for all uploaded photos. Captioning quality for this use case prioritizes factual accuracy and conciseness over creativity."
+    },
+    {
+      "title": "Multimodal RAG: indexing image-heavy documents",
+      "body": "Traditional RAG only handles text. For image-heavy corpora (slide decks, technical manuals, medical literature), generate captions for each image and index the captions as text. The captions become searchable via standard text or semantic search. At query time, relevant images are retrieved through their captions, and the image + caption is passed to the VLM for answer generation. This extends RAG to corpora where key information is in figures, charts, and diagrams."
+    },
+    {
+      "title": "Training data generation for VLMs",
+      "body": "Large-scale VLM training requires millions of (image, text) pairs. Captioning models are used to generate synthetic captions for images scraped from the web: a BLIP or CoCa model captions raw images → the (image, generated_caption) pair is used as training data. This was used for LAION-5B (5B image-text pairs) and for LLaVA's visual instruction tuning data (GPT-4 expanded COCO captions into visual instruction examples). Captioning models serve as data flywheel — generating training data for even better models."
+    }
+  ],
+  "deepDiveIntro": [
+    "Standard captioning model pipeline: (1) Image encoder: ViT or CNN produces visual feature maps or patch embeddings; (2) Cross-attention decoder: transformer decoder where each generation step attends to visual features. Query = current decode state, Key/Value = visual embeddings. The decoder generates one token at a time, attending to image regions relevant to the current word.",
+    "Evaluation metrics: BLEU-4 (4-gram precision vs reference captions), METEOR (synonym-aware), CIDEr (consensus image description evaluation — weights distinctive N-grams higher), SPICE (semantic propositional image caption evaluation — scene graph matching). CIDEr is the standard COCO captioning metric: CIDEr correlates best with human judgment. SPICE evaluates whether the caption captures objects, attributes, and relations, not just N-gram overlap."
+  ],
+  "deepDive": [
+    {
+      "heading": "Attention-based Captioning: Show, Attend and Tell",
+      "body": "Xu et al. (2015) — 'Show, Attend and Tell': first captioning model with soft attention. Architecture: CNN (VGG) extracts L=196 spatial feature vectors from the image. LSTM decoder: at each step t, compute attention αₜₗ = softmax(eₜₗ), where eₜₗ = f_att(aₗ, hₜ₋₁). Context vector: ẑₜ = Σₗ αₜₗ aₗ. Generate word: P(wₜ) = softmax(L_o(E_wₜ₋₁ + L_h hₜ + L_z ẑₜ)). Hard vs soft attention: soft (used above) uses expected attention; hard samples one location at each step (trained with REINFORCE). Soft attention is differentiable and more widely adopted. [1]"
+    },
+    {
+      "heading": "BLIP: Bootstrapping Language-Image Pre-training",
+      "body": "BLIP (Li et al. 2022): unified model for image-text understanding and generation. Architecture: (1) Image-Text Contrastive (ITC) — CLIP-style alignment; (2) Image-Text Matching (ITM) — binary classifier for (image, text) pair relevance; (3) Image-Captioning (LM) — generate captions from images. Key innovation: CapFilt (Captioning + Filtering) — use BLIP's own captioning model to generate captions for noisy web image-text pairs, then filter out poor-quality generated captions with BLIP's ITM. This bootstrapped data cleaning significantly improves model quality. BLIP-2 extends to use a frozen LLM (OPT, FlanT5) connected via Q-Former. [2]"
+    },
+    {
+      "heading": "Dense Captioning and Region Descriptions",
+      "body": "Standard captioning: one caption per image. Dense captioning (Johnson et al. 2016): detect all objects/regions → generate a caption for each region. Applications: detailed image understanding, visual QA requiring region-specific answers. Object detection (Faster R-CNN) proposes regions → RoI-pooled features → LSTM generates a caption per region. Modern approach: VG (Visual Genome) dense caption dataset — 94K images, 5.4M region-description pairs. Ground captions: 'the woman is smiling' for a face region. Dense captioning provides richer supervision than image-level captions. [1]"
+    },
+    {
+      "heading": "CIDEr and SPICE Evaluation Metrics",
+      "body": "CIDEr (Consensus-based Image Description Evaluation, Vedantam et al. 2015): weight N-grams by their TF-IDF across the caption reference set — distinctive, informative N-grams get higher weight than common phrases. Score = cosine similarity between TF-IDF weighted N-gram vectors of candidate and references. Correlates better with human judgment than BLEU/METEOR. CIDEr-D: adds clipping to penalize repeated N-grams. SPICE (Anderson et al. 2016): parse candidate and reference into scene graphs (objects, attributes, relations), compute F1 of graph triplets. Captures semantic content better than N-gram overlap — 'a black dog running' and 'a running black canine' have high SPICE despite low BLEU. [1]"
+    }
+  ],
+  "takeaways": [
+    "Image captioning: image encoder + attention-based text decoder → generate description left-to-right. [1]",
+    "CIDEr: TF-IDF weighted N-gram similarity — best standard metric for captioning evaluation. [1]",
+    "BLIP: tri-objective (ITC + ITM + LM) + CapFilt data bootstrapping — best pre-training recipe. [2]",
+    "BLIP-2 / CoCa: frozen image encoder + Q-Former/pooler + frozen LLM — efficient VLM pre-training. [2]",
+    "Application: index image captions for RAG, generate alt text, create VLM training data. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What is CIDEr-optimized SCST training and why does it matter?",
+      "a": "Standard captioning training: maximize log P(caption) via cross-entropy (teacher forcing). Problem: training metric (cross-entropy) ≠ evaluation metric (CIDEr). SCST (Self-Critical Sequence Training, Rennie et al. 2017): train directly to maximize the evaluation metric (CIDEr) using REINFORCE. Baseline: use the model's own greedy decoding as the reward baseline — reward = CIDEr(sampled_caption) − CIDEr(greedy_caption). Update parameters to increase probability of captions that score above the greedy baseline. SCST-optimized models: significant CIDEr improvements (e.g., from CIDEr 120 to 130+ on COCO). Drawback: REINFORCE has high variance — requires large batch size and careful tuning. Most state-of-the-art captioning models use SCST fine-tuning after initial cross-entropy training. [1]"
+    },
+    {
+      "q": "How does image captioning differ from visual question answering (VQA)?",
+      "a": "Image captioning: unconstrained generation — model must decide what to describe from the entire image. Output is a free-form sentence. Evaluation: CIDEr, BLEU, SPICE (comparing to reference captions). VQA: conditioned generation — model answers a specific question about the image. The question provides a strong constraint on what to attend to. Output may be a single word, phrase, or multi-sentence. Evaluation: exact match accuracy (for open-ended) or multiple-choice accuracy. Architecture: captioning models use image→text; VQA models take (image, question)→answer. Modern VLMs unify both: the same architecture handles captioning (without a question) and VQA (with a question) via instruction tuning. LLaVA, InstructBLIP, and GPT-4V all support both tasks with the same model. [2]"
+    }
+  ],
+  "sources": [
+    { "label": "Xu et al. (2015) — Show, Attend and Tell: Neural Image Caption Generation with Visual Attention, ICML 2015", "url": "https://arxiv.org/abs/1502.03044" },
+    { "label": "Li et al. (2022) — BLIP: Bootstrapping Language-Image Pre-training for Unified Vision-Language Understanding and Generation, ICML 2022", "url": "https://arxiv.org/abs/2201.12086" }
+  ]
+}

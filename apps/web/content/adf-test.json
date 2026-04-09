@@ -1,0 +1,67 @@
+{
+  "eli3": [
+    "The Augmented Dickey-Fuller (ADF) test tests whether a time series has a unit root (is non-stationary). H₀: the series has a unit root (non-stationary, I(1)). Hₐ: the series is stationary (I(0)). A small p-value (or test statistic more negative than the critical value) rejects the null, providing evidence for stationarity. Failing to reject does not prove non-stationarity — unit root tests have low power against near-unit-root alternatives.",
+    "The ADF statistic has a non-standard distribution under H₀ — it is not normal or chi-squared. Critical values are tabulated by MacKinnon (1996) and depend on: the sample size n, whether a constant is included, and whether a linear time trend is included. The 5% critical value is approximately −2.86 (constant only) or −3.41 (constant + trend) — more negative than the −1.96 you'd use for a normal test.",
+    "The key practical decision: which specification to use? No constant: for zero-mean series. Constant only: for series with non-zero mean but no trend (most stationary series). Constant + trend: for trending series (test whether trend is stochastic/random walk vs deterministic). Over-specifying (including unnecessary trend) reduces test power; under-specifying (omitting necessary constant) leads to size distortion."
+  ],
+  "whenWhy": [
+    {
+      "title": "Determining the order of integration before ARIMA modeling",
+      "body": "Box-Jenkins requires a stationary series. The ADF test determines whether to difference (d=1) before fitting ARMA, or whether the level series is stationary (d=0). If ADF rejects H₀ at the level, fit ARMA(p,q) directly. If not, difference and re-test. Test both level and first difference: if the level is I(1) but the first difference is I(0), use ARIMA(p,1,q)."
+    },
+    {
+      "title": "Prerequisite for cointegration testing",
+      "body": "Cointegration requires both series to be I(1). Before applying Engle-Granger or Johansen tests, confirm that all variables are I(1) using ADF. If variables have different orders of integration (one I(0), one I(1)), standard cointegration tests do not apply. The ADF test is the standard first step in any long-run relationship analysis."
+    },
+    {
+      "title": "Checking for spurious regression",
+      "body": "Before regressing one series on another in levels, confirm stationarity or cointegration. If both series are I(1) but not cointegrated, any apparent regression relationship is spurious (Granger & Newbold 1974). ADF test + cointegration test is the required pre-analysis before levels regression with time series data."
+    }
+  ],
+  "deepDiveIntro": [
+    "The Dickey-Fuller regression for AR(1): ΔYₜ = α + βt + γYₜ₋₁ + εₜ, where α is the constant, βt is a linear trend, and γ = φ₁ − 1. H₀: γ = 0 (unit root, φ₁ = 1). The t-statistic for γ does not follow the standard t-distribution under H₀ — it follows the Dickey-Fuller distribution, which is more negative than the normal. Critical values from Fuller (1976) and MacKinnon (1996).",
+    "The Augmented DF adds lagged differences to correct for serial correlation in the errors: ΔYₜ = α + βt + γYₜ₋₁ + Σᵢ₌₁ᵖ δᵢΔYₜ₋ᵢ + εₜ. The lag order p must be chosen to ensure white noise residuals. Selection: AIC/BIC on the augmented regression, or the Ng-Perron modified AIC. Too few lags → size distortion (over-rejection). Too many → power loss."
+  ],
+  "deepDive": [
+    {
+      "heading": "ADF Test Specifications",
+      "body": "Three versions: (1) No constant: ΔYₜ = γYₜ₋₁ + Σδᵢ·ΔYₜ₋ᵢ + εₜ — only for zero-mean series. (2) Constant: ΔYₜ = α + γYₜ₋₁ + Σδᵢ·ΔYₜ₋ᵢ + εₜ — tests random walk vs stationary AR. (3) Constant + trend: ΔYₜ = α + βt + γYₜ₋₁ + Σδᵢ·ΔYₜ₋ᵢ + εₜ — tests random walk (with drift) vs trend-stationary. Critical values differ by specification. MacKinnon (1996) response surface approximations for any n. [1]",
+      "formula": "ΔYₜ = α + βt + γ·Yₜ₋₁ + Σᵢ₌₁ᵖ δᵢ·ΔYₜ₋ᵢ + εₜ;   H₀: γ = 0"
+    },
+    {
+      "heading": "Critical Values and Test Decision",
+      "body": "Under H₀ (unit root), the t-statistic τ = γ̂/SE(γ̂) follows the Dickey-Fuller distribution — left-skewed and more negative than N(0,1). Reject H₀ if τ < critical value (note: one-sided left test). MacKinnon (1996) 5% critical values (n = 100): no constant: −1.95; constant: −2.89; constant + trend: −3.45. For n = 25 (small sample): −2.98 (constant), −3.60 (constant + trend). As n→∞, critical values approach approximately −1.95, −2.86, −3.41. [1]"
+    },
+    {
+      "heading": "Lag Selection in ADF",
+      "body": "AIC lag selection: choose p to minimize AIC = −2ℓ + 2(p+k) in the augmented regression. BIC is also common. Maximum lag: pmax = floor(12(n/100)^{1/4}) (Schwert 1989 rule of thumb). Alternative: sequential testing (Ng & Perron 1995) — start with pmax, test δₚ = 0 with standard t-test (10% level), reduce until first significant lag. Too few lags: correlated residuals, size distortion (ADF rejects too often). Too many: power loss (ADF fails to reject non-stationarity). [1]"
+  },
+    {
+      "heading": "Limitations and Complementary Tests",
+      "body": "ADF limitations: (1) Low power against near-unit-root alternatives (φ₁ = 0.98 looks like a unit root); (2) Sensitive to lag selection; (3) Cannot distinguish trend-stationary from difference-stationary for small n. KPSS test (Kwiatkowski et al. 1992): H₀ = trend stationary — complementary to ADF. If ADF fails to reject AND KPSS rejects: strong evidence of unit root. If ADF rejects AND KPSS fails to reject: strong evidence of stationarity. PP (Phillips-Perron, 1988) test: uses non-parametric correction for serial correlation instead of augmented lags — similar power to ADF but can be more sensitive to heteroscedasticity. [1]"
+    }
+  ],
+  "youtubeLabel": "Unit Root Tests (ADF) — Ben Lambert",
+  "youtubeUrl": "https://www.youtube.com/embed/2GwPkQBFqGg",
+  "takeaways": [
+    "ADF: ΔYₜ = α + βt + γYₜ₋₁ + Σδᵢ·ΔYₜ₋ᵢ + εₜ; H₀: γ = 0 (unit root). [1]",
+    "Test statistic τ = γ̂/SE(γ̂) follows Dickey-Fuller distribution — more negative critical values than normal. [1]",
+    "Specification matters: constant only (−2.89 at 5%) vs constant + trend (−3.45 at 5%) for n = 100. [1]",
+    "KPSS (H₀: stationary) complements ADF (H₀: unit root) for robust conclusions. [1]",
+    "Lag selection via AIC/BIC; too few lags → size distortion; too many → power loss. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What if ADF and KPSS give contradictory conclusions?",
+      "a": "ADF fails to reject (evidence of unit root) AND KPSS also fails to reject (evidence of stationarity) — contradictory. This happens when the series is near-stationary (φ₁ close to 1) — both tests have low power in this region. The series is likely I(0) with high persistence (long memory). Look at the test statistics relative to critical values (how close?), sample size (low power for small n), and economic theory. Consider ARFIMA models for long-memory alternatives or use a longer sample. [1]"
+    },
+    {
+      "q": "Is it appropriate to test the first difference if the level test fails to reject?",
+      "a": "Yes — if ADF on Yₜ fails to reject H₀ (evidence of unit root), apply ADF to ΔYₜ = Yₜ−Yₜ₋₁. If ADF on ΔYₜ rejects H₀, the series is I(1). For the ΔYₜ regression, use 'constant only' specification (even if the original series had a trend — ΔYₜ of a random walk with drift is stationary with non-zero mean). If ADF on ΔYₜ also fails to reject, the series may be I(2) — test ΔΔYₜ. Economic series are rarely I(2); most prices, rates, and quantities are I(1) or I(0). [1]"
+    }
+  ],
+  "sources": [
+    { "label": "MacKinnon (1996) — Numerical Distribution Functions for Unit Root and Cointegration Tests, J. Applied Econometrics 11(6)", "url": "https://doi.org/10.1002/(SICI)1099-1255(199611)11:6<601::AID-JAE417>3.0.CO;2-T" },
+    { "label": "Hamilton — Time Series Analysis, Ch. 17", "url": "https://press.princeton.edu/books/hardcover/9780691042893/time-series-analysis" }
+  ]
+}

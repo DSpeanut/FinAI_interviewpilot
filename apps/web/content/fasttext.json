@@ -1,0 +1,66 @@
+{
+  "eli3": [
+    "FastText (Joulin et al. 2016, Facebook AI Research) extends Word2Vec in two ways: (1) word embeddings: each word is represented as the sum of embeddings for all its character n-grams — 'eating' → embeddings of {<ea, eat, ati, tin, ing, ng>} + word embedding of 'eating'. This handles out-of-vocabulary words and captures morphology. (2) text classification: FastText averages word embeddings and applies a linear classifier — a shallow architecture that achieves near-LSTM accuracy at 1000× the speed.",
+    "The character n-gram trick solves the OOV problem: for an unknown word 'unhappiness', FastText computes its embedding from character n-grams that may have appeared in other words ('happi', 'ness', 'unhappy'). This makes FastText robust to misspellings, morphological variants, and technical terms. Words sharing morphological root (run, running, runner) have similar embeddings naturally.",
+    "FastText text classification is extremely fast: the hierarchical softmax or negative sampling trick enables training on billions of words in minutes. The classifier architecture: average word/n-gram embeddings → linear classifier with softmax. Competes with LSTM-based models on many benchmarks while being 3 orders of magnitude faster at inference. Production-ready: Facebook released pre-trained vectors for 157 languages."
+  ],
+  "whenWhy": [
+    {
+      "title": "Handling morphologically rich languages",
+      "body": "In Turkish, Finnish, or Arabic, the same root word has hundreds of inflected forms — Word2Vec and GloVe assign separate embeddings to each, requiring massive vocabularies and training data. FastText's character n-grams share parameters across morphological variants: 'run', 'running', 'runner', 'ran' share subword embeddings, enabling transfer across forms. Critical for low-resource languages where few examples of each inflection appear."
+    },
+    {
+      "title": "Production text classification at scale",
+      "body": "FastText's classification model is a simple: word embeddings → average pooling → linear + softmax. Inference: microseconds per document (no recurrence, no attention). Trains on millions of documents in minutes on a single CPU. Widely used for: language identification (FastText langdetect), intent classification in dialog systems, content moderation, spam filtering — any high-throughput classification where low latency matters."
+    },
+    {
+      "title": "OOV-robust word representations",
+      "body": "FastText embeddings are pre-trained for 157 languages on Wikipedia and Common Crawl. For any unseen word, FastText uses character n-grams to compute an approximated embedding rather than defaulting to <UNK>. This makes FastText particularly useful for: social media text (neologisms, abbreviations), scientific text (compound terms, gene names), and code-mixed text (mixing languages within a sentence)."
+    }
+  ],
+  "deepDiveIntro": [
+    "FastText word embeddings: represent word w as its character n-gram set G(w) (n = 3–6 by default). Each character n-gram g has embedding zg. Word embedding: vw = Σg∈G(w) zg. The Skip-gram objective (SGNS) is applied to these composed vectors. Character n-grams are hashed to indices (feature hashing) — memory-efficient representation without explicit n-gram vocabulary.",
+    "FastText text classification (bag-of-tricks): given document with words w₁,…,wN: (1) compute word representations (average of n-gram embeddings); (2) average all word representations: x = (1/N)Σᵢvwᵢ; (3) classify: P(y|x) = softmax(Wx). Training: minimize cross-entropy. Hierarchical softmax for many classes: O(log K) instead of O(K) per example. Word n-grams (bigrams, trigrams) can be added as additional features to capture local context."
+  ],
+  "deepDive": [
+    {
+      "heading": "Character N-gram Embedding Composition",
+      "body": "For word w = 'where': character n-grams (n=3): {<wh, whe, her, ere, re>} plus the whole-word token <where>. Character n-gram embeddings are looked up from a shared table and summed: vw = z_{<wh} + z_{whe} + z_{her} + z_{ere} + z_{re>} + z_{<where>}. Using hashing trick: n-grams are mapped to indices in {1,…,B} (B = 2M by default) via hashing — avoids explicit n-gram vocabulary. SGNS objective applied to composed vectors vw. [1]",
+      "formula": "vw = Σ_{g ∈ G(w)} z_g   [sum of character n-gram embeddings]"
+    },
+    {
+      "heading": "FastText Classification Architecture",
+      "body": "Input: document with N words. Representation: x = (1/N) Σᵢ vwᵢ (+ optional n-gram features for local order). Output: ŷ = softmax(Wx + b), W ∈ ℝK×d (K classes). Training: SGD with cross-entropy. Hierarchical softmax: treats the output layer as a binary tree of K leaves — each class is a root-to-leaf path. Computing P(y|x) requires O(log K) operations. Advantage: especially efficient when K is large (1M classes for product categorization). [1]",
+      "formula": "ŷ = softmax(W · (1/N)Σᵢ vwᵢ)"
+    },
+    {
+      "heading": "Comparison to LSTM and BERT",
+      "body": "FastText vs LSTM (BiLSTM-CRF for classification): FastText ignores word order entirely (bag of embeddings). LSTM captures sequential patterns. FastText ≈ LSTM accuracy on many sentiment/topic benchmarks because: (1) additive n-gram features partially capture local context; (2) most classification tasks are bag-of-words-like. BERT captures full context, long-range dependencies, and world knowledge — outperforms FastText by 2–5% on most tasks but requires 10–100× more compute. [1]"
+    },
+    {
+      "heading": "Pre-trained Multilingual FastText Vectors",
+      "body": "Facebook AI released FastText vectors for 157 languages, each trained on Wikipedia + Common Crawl. Vectors: 300 dimensions, trained with Skip-gram + character n-grams. Aligned multilingual vectors: FastText-aligned word vectors use cross-lingual alignment (MUSE framework, Conneau et al. 2018) to map monolingual vector spaces to a shared space using a bilingual dictionary. Enables cross-lingual transfer: train a classifier on English FastText vectors, apply to French without French training data. [2]"
+    }
+  ],
+  "takeaways": [
+    "FastText word embeddings: vw = sum of character n-gram embeddings — handles OOV and captures morphology. [1]",
+    "FastText classification: average word embeddings → linear + softmax; hierarchical softmax for large K. [1]",
+    "Character n-gram hashing: B=2M hash buckets avoids explicit n-gram vocabulary. [1]",
+    "Pre-trained for 157 languages; aligned vectors enable zero-shot cross-lingual transfer. [2]",
+    "1000× faster than LSTM at inference; 2–5% behind BERT — ideal for high-throughput, latency-sensitive NLP. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What n-gram range should be used for character n-grams in FastText?",
+      "a": "Default: n ∈ {3, 4, 5, 6} (all n-grams from 3 to 6 characters). Shorter n-grams (n=3): more sharing between words — good for agglutinative languages (Turkish) with long word forms. Longer n-grams (n=6): less sharing, more specific — better for longer derivational suffixes. For Chinese/Japanese (character-based writing), n=1 or n=2 works better since characters are morphemes. For English: n=3-6 is well-established. The hashing trick (B=2M) controls memory regardless of n-gram range. [1]"
+    },
+    {
+      "q": "How does FastText compare to subword tokenization (BPE) used in transformers?",
+      "a": "Both address OOV via subword decomposition. FastText: character n-grams are fixed sliding windows — simple, no training needed to determine splits. BPE: learned merges based on corpus frequency — adapts to the language's morphology. BPE produces fewer subwords per word than FastText n-grams (more compact representation). In transformer models (BERT, GPT), BPE tokenization + contextual encoding dominates. FastText's approach gives no positional encoding — order is lost. FastText is preferred when you need a fixed-size embedding per word (not per token), especially for lookup tables and non-transformer models. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Bojanowski et al. (2017) — Enriching Word Vectors with Subword Information, TACL 5", "url": "https://aclanthology.org/Q17-1010/" },
+    { "label": "Conneau et al. (2018) — Word Translation Without Parallel Data, ICLR 2018", "url": "https://openreview.net/forum?id=H196sainb" }
+  ]
+}

@@ -16,3 +16,6 @@ out/
 # IDE
 .vscode/
 .idea/
+
+# Content progress log
+apps/web/content_memory.md

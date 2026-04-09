@@ -1,0 +1,69 @@
+{
+  "eli3": [
+    "Generalized Linear Models (GLMs) extend linear regression to response variables from the exponential family (Normal, Binomial, Poisson, Gamma, Negative Binomial, etc.). A GLM has three components: (1) a random component specifying the distribution of Y; (2) a systematic component Xβ (the linear predictor); (3) a link function g such that g(E[Y|X]) = Xβ.",
+    "The link function transforms the mean μ = E[Y|X] to the linear predictor η = Xβ. The canonical link for each distribution: Binomial → logit (logistic regression), Poisson → log (log-linear model), Normal → identity (linear regression), Gamma → inverse. Using the canonical link simplifies the score equations and provides the most natural parameterization.",
+    "GLMs are fit by MLE via IRLS (Iteratively Reweighted Least Squares), which applies a sequence of WLS problems using updated weights and working responses. The deviance D = −2[ℓ(saturated) − ℓ(fitted)] generalizes SS_res and is the key goodness-of-fit measure. Pearson χ² statistics and analysis of deviance tables generalize ANOVA."
+  ],
+  "whenWhy": [
+    {
+      "title": "Count data: Poisson regression",
+      "body": "When Y is a count (number of events), Poisson regression with log link is appropriate: log(E[Y|X]) = Xβ, so E[Y|X] = exp(Xβ) > 0. Coefficients e^{β̂ⱼ} are rate ratios (multiplicative change in expected count per unit Xⱼ). Overdispersion (Var(Y) > E[Y]) is common — use negative binomial regression or quasi-Poisson with robust SE instead."
+    },
+    {
+      "title": "Binary outcomes: logistic regression",
+      "body": "Binomial GLM with logit link is standard logistic regression. Probit (Φ⁻¹ link) and complementary log-log (cloglog) links are alternatives for different tail behavior. Cloglog is appropriate for survival data modeled as discrete-time hazards — it corresponds to the proportional hazards model at the event level."
+    },
+    {
+      "title": "Skewed positive-valued outcomes: Gamma regression",
+      "body": "When Y > 0 and right-skewed (insurance claim amounts, hospital costs, reaction times), the Gamma distribution with log or inverse link is appropriate. The Gamma GLM assumes Var(Y) ∝ μ² (coefficient of variation constant), unlike Normal (constant variance) or Poisson (Var = μ). Tweedie distributions generalize further for zero-inflated positive responses."
+    }
+  ],
+  "deepDiveIntro": [
+    "Exponential family: f(y|θ,φ) = exp[(yθ − b(θ))/a(φ) + c(y,φ)], where θ is the canonical parameter, φ is the dispersion parameter. Key properties: E[Y] = b'(θ), Var(Y) = b''(θ)·a(φ). The variance function V(μ) = b''(θ) characterizes each distribution: Normal → V = 1, Poisson → V = μ, Binomial(n,p) → V = μ(1−μ/n), Gamma → V = μ².",
+    "IRLS for GLMs: at each step, compute working response z = η̂ + (y−μ̂)·(dη/dμ) and weight W = diag(1/[Var(μᵢ)(dηᵢ/dμᵢ)²]), then solve β⁽ᵗ⁺¹⁾ = (X'WX)⁻¹X'Wz. This is equivalent to Newton-Raphson on the log-likelihood. Convergence is guaranteed for canonical links and well-conditioned data."
+  ],
+  "deepDive": [
+    {
+      "heading": "GLM Components and Canonical Links",
+      "body": "Random: Y ~ exponential family with mean μ. Systematic: linear predictor η = Xβ. Link: g(μ) = η. Canonical links: Normal → g(μ) = μ (identity); Binomial → g(μ) = log(μ/(1−μ)) (logit); Poisson → g(μ) = log(μ); Gamma → g(μ) = 1/μ (inverse); Inverse Gaussian → g(μ) = 1/μ² (inverse squared). With canonical links, sufficient statistics are Σ yᵢXᵢ, simplifying estimation. [1]",
+      "formula": "g(E[Y|X]) = Xβ,   g = canonical link function"
+    },
+    {
+      "heading": "Deviance and Analysis of Deviance",
+      "body": "Deviance D(y;μ̂) = 2[ℓ(y;y) − ℓ(y;μ̂)], where ℓ(y;y) is the saturated log-likelihood (perfect fit). For Normal: D = SS_res = Σ(yᵢ−ŷᵢ)²/σ². For Poisson: D = 2Σ[yᵢ log(yᵢ/μ̂ᵢ) − (yᵢ−μ̂ᵢ)]. For Binomial: D = 2Σ[yᵢ log(yᵢ/μ̂ᵢ) + (nᵢ−yᵢ)log((nᵢ−yᵢ)/(nᵢ−μ̂ᵢ))]. Deviance difference between nested models: ΔD ~ χ²(df_diff) under H₀. [1]",
+      "formula": "D(y; μ̂) = 2[ℓ(y; y) − ℓ(y; μ̂)]"
+    },
+    {
+      "heading": "Overdispersion",
+      "body": "Poisson assumes Var(Y) = μ; Binomial(n,p) assumes Var(Y) = np(1−p). In practice, count data often has Var(Y) > E[Y] (overdispersion) due to unobserved heterogeneity or clustering. Consequences: underestimated SEs, inflated z-statistics, too many 'significant' predictors. Solutions: (1) quasi-likelihood with dispersion parameter φ̂ = Pearson χ²/(n−p); SEs inflated by √φ̂; (2) negative binomial regression; (3) mixed-effects Poisson with random intercepts. [1]"
+    },
+    {
+      "heading": "Offset in Poisson Regression",
+      "body": "For counts observed over different exposure periods (person-years, population size), include an offset: log(E[Y|X]) = log(T) + Xβ, where T is the exposure. This models the rate (count per unit exposure) rather than the raw count. The offset log(T) has coefficient fixed at 1, not estimated. Example: modeling disease incidence rates across regions with different population sizes — without offset, regions with larger populations would appear to have higher incidence. [1]",
+      "formula": "log(E[Y|X]) = offset + Xβ = log(T) + Xβ"
+    }
+  ],
+  "youtubeLabel": "Generalized Linear Models — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/ddCO9CaV1-I",
+  "takeaways": [
+    "GLM = exponential family response + linear predictor Xβ + link function g(μ) = Xβ. [1]",
+    "Canonical links: Normal→identity, Binomial→logit, Poisson→log, Gamma→inverse. [1]",
+    "IRLS fits GLMs by iterating weighted least squares — equivalent to Newton-Raphson on log-likelihood. [1]",
+    "Deviance generalizes SS_res; deviance difference between nested models ~ χ²(df_diff). [1]",
+    "Overdispersion inflates Type I error in Poisson/Binomial — use quasi-likelihood or negative binomial. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "When should you use a log-transformed linear model vs Poisson GLM?",
+      "a": "log(Y) = Xβ + ε (log-transformed OLS) vs log(E[Y|X]) = Xβ (Poisson GLM with log link) model different quantities. The log-linear model: E[log(Y)] = Xβ → E[Y] = exp(Xβ + σ²/2) by lognormal formula. Poisson GLM: E[Y] = exp(Xβ) directly. For count data with zeros, log-transform is impossible; Poisson GLM handles zeros naturally. For heteroscedastic continuous positive data (costs, prices), the log-linear model or Gamma GLM is typically preferred. Santos Silva & Tenreyro (2006) recommend Poisson QMLE even for non-count data with heteroscedasticity. [1]"
+    },
+    {
+      "q": "Can GLMs model multi-category outcomes?",
+      "a": "Yes, via extensions: multinomial logistic regression models P(Y=k|X) for K categories simultaneously with a reference category. Ordinal logistic regression (proportional odds model) models ordered categories. These are not technically GLMs in the classic McCullagh-Nelder sense but use the same likelihood/link function framework. For ordered outcomes, the proportional odds assumption (parallel lines) should be tested. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "McCullagh & Nelder — Generalized Linear Models (2nd ed.)", "url": "https://www.routledge.com/Generalized-Linear-Models/McCullagh-Nelder/p/book/9780412317606" },
+    { "label": "Agresti — Foundations of Linear and Generalized Linear Models, Ch. 4–6", "url": "https://www.wiley.com/en-us/Foundations+of+Linear+and+Generalized+Linear+Models-p-9781118730034" }
+  ]
+}

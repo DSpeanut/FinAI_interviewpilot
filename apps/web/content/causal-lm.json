@@ -1,0 +1,64 @@
+{
+  "eli3": [
+    "Causal (autoregressive) language modeling predicts the next token given all previous tokens, strictly left-to-right. 'Causal' means each token can only attend to earlier tokens — no peeking at future context. This is the training objective of GPT, Llama, and all major text-generation LLMs. The model learns P(wₜ | w₁,…,wₜ₋₁) for every position simultaneously via teacher forcing.",
+    "The key mechanic: a causal attention mask blocks the upper triangle of the attention matrix (setting those attention scores to −∞ before softmax). This ensures position 3 only attends to positions 1, 2, 3 — never 4, 5, 6, etc. At training time, all positions are computed in parallel (unlike RNNs). At inference, tokens are generated one at a time, each attending to all previously generated tokens.",
+    "Causal LMs are the backbone of text generation, instruction following, and in-context learning. Once scaled up (GPT-3, GPT-4, Llama 2), they exhibit emergent abilities: few-shot learning, chain-of-thought reasoning, code generation. The same model architecture that predicts the next token can be fine-tuned (SFT) and aligned (RLHF) to become a conversational assistant."
+  ],
+  "whenWhy": [
+    {
+      "title": "Text generation and completion",
+      "body": "Causal LMs generate text by autoregressive sampling: sample from P(wₜ|w₁,…,wₜ₋₁) at each step. Applications: story completion, code generation (GitHub Copilot uses Codex, a GPT model fine-tuned on code), document drafting, dialogue. Causal LMs can be prompted in-context: prepend examples, and the model continues the pattern. This enables few-shot classification, translation, and summarization without fine-tuning."
+    },
+    {
+      "title": "In-context learning and instruction following",
+      "body": "Causal LMs support in-context learning (ICL): providing a few examples in the prompt allows the model to perform new tasks without gradient updates. GPT-3 demonstrated ICL at scale. Instruction fine-tuning (InstructGPT, FLAN): fine-tune causal LMs on (instruction, output) pairs — model learns to follow natural language instructions. RLHF further aligns the model with human preferences. All major LLM assistants (ChatGPT, Claude, Gemini) use causal LM + SFT + RLHF."
+    },
+    {
+      "title": "Prefix LM and encoder-decoder variants",
+      "body": "Causal LMs can be adapted: prefix LM uses bidirectional attention on the prompt (prefix) and causal attention on the generation (suffix) — allows richer prompt encoding while maintaining generation capability. T5 uses an encoder-decoder: encoder processes input bidirectionally, decoder generates output causally. Encoder-decoder models (T5, BART) excel at seq2seq tasks (summarization, translation); pure causal LMs (GPT, Llama) are more flexible for generative tasks and in-context learning."
+    }
+  ],
+  "deepDiveIntro": [
+    "Training objective: maximize log-likelihood of training tokens — L = −Σᵢ log P(wᵢ|w₁,…,wᵢ₋₁; θ). Equivalently, minimize cross-entropy between model predictions and ground truth next tokens. Teacher forcing: during training, ground truth tokens are used as context (not model predictions), enabling parallel computation of all positions. At inference, model predictions are fed back as context (autoregressive decoding).",
+    "Causal attention mask: in a sequence of length n, the attention weight A[i,j] = 0 (or −∞ before softmax) for j > i. Matrix form: upper triangular mask. This is the only architectural difference between a causal LM (GPT) and a masked LM encoder (BERT). Same transformer building blocks — layer norm, multi-head attention, feed-forward — with different masking. KV-cache: at inference, key-value pairs from previous steps are cached, reducing per-step compute from O(n²) to O(n)."
+  ],
+  "deepDive": [
+    {
+      "heading": "Causal Attention Mechanism",
+      "body": "Attention scores before softmax: QKᵀ/√d. Causal mask M ∈ {0,−∞}^{n×n}: M[i,j] = 0 if j≤i, −∞ if j>i. Masked scores: (QKᵀ/√d) + M. Softmax: positions j>i get exp(−∞)=0 weight — token i attends only to tokens 1..i. Parallel training: all n positions computed simultaneously (unlike RNN which processes step-by-step). The causal mask is the mechanism that enables both parallel training AND sequential inference from the same model. [1]",
+      "formula": "A[i,j] = softmax((QKᵀ/√d + M)[i,j]);  M[i,j] = −∞ if j > i else 0"
+    },
+    {
+      "heading": "KV-Cache for Efficient Inference",
+      "body": "Naive autoregressive inference: at step t, recompute keys and values for all t tokens — O(t²) total compute for a sequence of length T. KV-cache: store key and value projections for all previous tokens; at step t, only compute Q, K, V for the new token and append K,V to cache. Compute per step: O(t) attention over cached K,V. Memory: O(n·L·d) where n=sequence length, L=layers, d=head dimension. At long contexts (n=128K), KV cache can use > 100GB — the memory bottleneck for long-context inference. Quantized KV-cache (int8, int4) reduces memory. [1]"
+    },
+    {
+      "heading": "Decoding Strategies",
+      "body": "Greedy: wₜ = argmax P(w|context) — deterministic, fast, repetitive. Beam search (width B): maintain B partial sequences — standard for MT, unnatural for open-ended generation. Sampling: wₜ ~ P(w|context). Top-K: sample from top K tokens by probability. Nucleus (top-p): sample from minimum set with cumulative prob ≥ p. Temperature T: P'(w) ∝ P(w)^{1/T}; T→0 is greedy, T→∞ is uniform. Repetition penalty: divide logits of recently generated tokens by penalty > 1 — reduces repetition. Production: temperature=0.7, top-p=0.9 is a common default. [1]"
+    },
+    {
+      "heading": "Causal LM vs. Masked LM: When to Use Which",
+      "body": "Causal LM (GPT, Llama): use for text generation, in-context learning, instruction following. No fine-tuning needed for many tasks (zero/few-shot). Scales better — larger causal LMs keep improving. Masked LM (BERT, RoBERTa): use for NLU tasks with labeled data — classification, NER, STS, QA (extractive). Better representations for understanding, but requires fine-tuning for each task. At the largest scales, causal LMs with RLHF match or exceed BERT on understanding tasks (GPT-4 on GLUE). Modern trend: causal LMs unify generation and understanding. [1]"
+    }
+  ],
+  "takeaways": [
+    "Causal LM: predict wₜ from w₁…wₜ₋₁ via causal attention mask (upper triangle = −∞). [1]",
+    "Teacher forcing: ground truth tokens as context during training — all positions computed in parallel. [1]",
+    "KV-cache: store K,V for previous tokens — reduces per-step inference cost from O(t²) to O(t). [1]",
+    "Nucleus sampling (top-p): best decoding for open-ended generation; temperature controls diversity. [1]",
+    "Causal LMs + SFT + RLHF = modern LLM assistants (ChatGPT, Claude, Gemini). [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What is the difference between causal LM and seq2seq (encoder-decoder) for text generation?",
+      "a": "Causal LM: single transformer stack — input and output share the same sequence. Prefix (input) tokens are generated causally. The model 'generates' the output by continuing the input prefix. Seq2seq (T5, BART): separate encoder (bidirectional) processes input; decoder (causal) generates output attending to encoder representations via cross-attention. Encoder-decoder advantages: (1) longer effective context (encoder sees full input, decoder generates output independently); (2) bidirectional encoding of input — better for structured tasks like summarization and translation. Causal LM advantages: simpler architecture, scales to larger sizes, supports in-context learning naturally, no separate encode/decode step. [1]"
+    },
+    {
+      "q": "How does teacher forcing cause exposure bias, and how is it addressed?",
+      "a": "Teacher forcing: during training, ground truth wₜ₋₁ is fed as context for predicting wₜ — regardless of what the model would have predicted. At inference, model prediction ŵₜ₋₁ is used as context for step t. If ŵₜ₋₁ ≠ wₜ₋₁ (error), the error propagates. This train/test distribution mismatch is called exposure bias. Mitigations: (1) Scheduled sampling (Bengio et al. 2015) — gradually replace teacher-forced tokens with model predictions during training; (2) Minimum Risk Training — optimize sequence-level reward (BLEU) rather than token-level cross-entropy; (3) RLHF — sequence-level reward optimization from human preferences. In practice, large LMs with teacher forcing work well enough that exposure bias is a minor issue. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Vaswani et al. (2017) — Attention Is All You Need, NeurIPS 2017", "url": "https://arxiv.org/abs/1706.03762" }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "eli3": [
+    "Effect size measures the magnitude of a difference or relationship, independent of sample size. Statistical significance (p < 0.05) only tells you whether an effect exists; effect size tells you how large it is. A drug with p = 0.0001 might have a negligible effect if n = 10,000; an effect size of d = 0.05 means the treatment moves the average by 5% of a standard deviation.",
+    "Cohen's d = (μ₁ − μ₂)/σ_pooled is the most common effect size for comparing two means. Cohen's (1988) benchmarks: small d = 0.2, medium d = 0.5, large d = 0.8 — but these are rough rules of thumb. In medicine, d = 0.2 can be clinically important; in basic science, d = 0.8 might be considered modest.",
+    "Effect size and sample size together determine statistical power. Cohen's power tables and software (G*Power) use effect size as the primary input for sample size calculations. Reporting effect size alongside p-values is required by APA guidelines and increasingly by journals to combat the p-value tyranny."
+  ],
+  "whenWhy": [
+    {
+      "title": "Separating statistical from practical significance",
+      "body": "With large n, trivial effects become statistically significant. A study of n = 100,000 might find p < 0.0001 for a mean difference of 0.001 (1% of a standard deviation) — statistically significant but practically meaningless. Effect size quantifies practical importance independently of sample size. Always report effect size alongside p-values."
+    },
+    {
+      "title": "Meta-analysis: comparing across studies",
+      "body": "Meta-analysis combines results across studies with different designs, sample sizes, and measurement scales. Standardized effect sizes (Cohen's d, Pearson r) put studies on a common scale, enabling pooled estimates. Unstandardized effects (raw mean differences) can only be combined across studies using identical measurement instruments."
+    },
+    {
+      "title": "Sample size planning via power analysis",
+      "body": "Power formulas require specifying the minimum detectable effect — expressed as an effect size. For a two-sample t-test at α = 0.05, power = 0.80: n per group = 7.85/d². Specifying d requires domain knowledge about what effect size is practically meaningful — not just statistically detectable."
+    },
+    {
+      "title": "Variance explained (η², R²) for ANOVA and regression",
+      "body": "For ANOVA, η² = SS_between/SS_total measures the proportion of variance explained by the factor. Cohen's benchmarks: small η² = 0.01, medium = 0.06, large = 0.14. For regression, R² is the analogous measure. Partial η² (SS_effect/(SS_effect + SS_error)) is preferable in multi-factor designs as it controls for other factors."
+    }
+  ],
+  "deepDiveIntro": [
+    "Cohen's d for two independent groups: d = (μ₁ − μ₂)/σ_pooled, where σ_pooled = √[(n₁−1)s₁² + (n₂−1)s₂²)/(n₁+n₂−2)]. For a one-sample test: d = (x̄ − μ₀)/s. Hedges' g uses n−1.5 in the denominator for small-sample bias correction. Glass's Δ uses only the control group's SD — preferred when groups have different variances and one serves as the natural reference.",
+    "For correlations, Pearson r is its own effect size: r = 0.1 (small), 0.3 (medium), 0.5 (large). The conversion d = 2r/√(1−r²) allows comparison between d and r. For proportions, Cohen's h = 2 arcsin(√p₁) − 2 arcsin(√p₂) accounts for the arcsine transformation needed to stabilize variance."
+  ],
+  "deepDive": [
+    {
+      "heading": "Cohen's d",
+      "body": "d = (x̄₁ − x̄₂) / s_pooled, where s_pooled = √[((n₁−1)s₁² + (n₂−1)s₂²)/(n₁+n₂−2)]. Interpretation: d = 0.5 means the group means differ by half a standard deviation. Cohen's (1988) benchmarks (developed for behavioral sciences): small = 0.2, medium = 0.5, large = 0.8. For within-person (paired) designs, d_z = d̄/s_d (using the SD of the differences) is typically used instead. [1]",
+      "formula": "d = (x̄₁ − x̄₂) / s_pooled,   s_pooled = √[((n₁−1)s₁² + (n₂−1)s₂²) / (n₁+n₂−2)]"
+    },
+    {
+      "heading": "Pearson r and η²",
+      "body": "Pearson r: measures the linear relationship strength between two continuous variables. Benchmarks: r = 0.1 (small), 0.3 (medium), 0.5 (large). r² (coefficient of determination) = proportion of variance in Y explained by X. For ANOVA: η² = SS_effect/SS_total. Partial η² = SS_effect/(SS_effect + SS_error) — removes variance accounted for by other factors. ω² = (SS_effect − df_effect · MS_error)/(SS_total + MS_error) is a less biased alternative to η². [1]",
+      "formula": "η² = SS_effect / SS_total,   partial η² = SS_effect / (SS_effect + SS_error)"
+    },
+    {
+      "heading": "Odds Ratio and Risk Ratio (Categorical Outcomes)",
+      "body": "For 2×2 tables: Odds Ratio OR = (ad)/(bc) where a,b,c,d are cell counts. Risk Ratio RR = [a/(a+b)] / [c/(c+d)]. OR ≈ RR when the outcome is rare. For reporting treatment effects in clinical trials: Number Needed to Treat (NNT) = 1/ARR (absolute risk reduction) is often more interpretable. Cohen's h for proportions: h = 2(arcsin√p₁ − arcsin√p₂). [1]"
+    },
+    {
+      "heading": "Context-Dependence of Effect Size Benchmarks",
+      "body": "Cohen's benchmarks are domain-agnostic heuristics and should not be applied mechanically. In education research, d = 0.2 can represent meaningful learning gains over a semester. In pharmacology, an OR of 1.1 for a common disease can represent thousands of lives. In psychology lab studies, d = 0.8 is common due to controlled conditions. Always interpret effect size relative to the practical context, not just against Cohen's labels. [1]"
+    }
+  ],
+  "youtubeLabel": "Effect Size (Cohen's d) — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/tTgouKMz-eI",
+  "takeaways": [
+    "Effect size quantifies magnitude independently of sample size; p-values don't. [1]",
+    "Cohen's d = (μ₁−μ₂)/σ_pooled; benchmarks: small = 0.2, medium = 0.5, large = 0.8 (domain-dependent). [1]",
+    "η² = SS_effect/SS_total; partial η² removes other factors — use ω² for less biased estimation. [1]",
+    "For proportions: OR, RR, Cohen's h; for correlations: Pearson r (r² = variance explained). [1]",
+    "Meta-analysis requires standardized effect sizes to pool results across studies with different scales. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Should you report Cohen's d or Hedges' g for small samples?",
+      "a": "Hedges' g is a bias-corrected version of Cohen's d: g = d · (1 − 3/(4(n₁+n₂)−9)). For n₁ = n₂ = 10: correction ≈ 1 − 3/71 ≈ 0.958. The bias in Cohen's d is small for n > 20 per group; for very small samples (n < 10), Hedges' g is preferred. In meta-analyses, always use Hedges' g for consistency. [1]"
+    },
+    {
+      "q": "Can effect sizes be compared across different effect size metrics?",
+      "a": "Yes, via conversion formulas: d = 2r/√(1−r²), r = d/√(d²+4), OR = exp(d·π/√3) (approximation). These conversions assume specific distributional models (e.g., the OR formula assumes logistic distribution). Use them for rough comparisons but be aware of the assumptions. The R package 'effectsize' implements many such conversions with confidence intervals. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Cohen, J. — Statistical Power Analysis for the Behavioral Sciences (2nd ed., 1988)", "url": "https://www.routledge.com/Statistical-Power-Analysis-for-the-Behavioral-Sciences/Cohen/p/book/9780805802832" },
+    { "label": "Lakens (2013) — Calculating and Reporting Effect Sizes, Frontiers in Psychology 4:863", "url": "https://doi.org/10.3389/fpsyg.2013.00863" }
+  ]
+}

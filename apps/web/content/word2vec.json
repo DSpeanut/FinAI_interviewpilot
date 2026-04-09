@@ -1,0 +1,68 @@
+{
+  "eli3": [
+    "Word2Vec (Mikolov et al. 2013) learns dense vector representations (embeddings) for words such that semantically similar words have similar vectors: vector('king') − vector('man') + vector('woman') ≈ vector('queen'). The famous analogy test. The key insight: words appearing in similar contexts have similar meanings — learn representations by predicting context from word (Skip-gram) or word from context (CBOW).",
+    "There are two architectures: Skip-gram predicts surrounding context words given the center word; CBOW predicts the center word from surrounding context words. Both are trained with negative sampling: instead of computing a softmax over all V words, sample k negative (non-context) words and train a binary classifier. This reduces training cost from O(V) to O(k) per word — critical for vocabularies of 100K+.",
+    "Word2Vec produces static embeddings: 'bank' has the same embedding regardless of context (river bank vs bank account). This was a major limitation, addressed by contextual embeddings (ELMo, BERT). However, Word2Vec embeddings remain useful for: fast inference, low-resource scenarios, and as initialization for neural models. Pre-trained embeddings (GoogleNews 300d, CommonCrawl) are available."
+  ],
+  "whenWhy": [
+    {
+      "title": "Semantic similarity and word clustering",
+      "body": "Word2Vec embeddings capture semantic and syntactic regularities: king−man+woman≈queen (semantic analogy), fast−faster≈slow−slower (comparative pattern), Paris−France+Germany≈Berlin (country-capital). Cosine similarity between vectors measures semantic relatedness: cosine(cat, dog) > cosine(cat, table). Used for: synonym detection, word sense disambiguation (using nearest neighbors), semantic search (query expansion with similar words)."
+    },
+    {
+      "title": "Initialization for downstream NLP models",
+      "body": "Word2Vec embeddings serve as pre-trained initialization for neural NLP models, replacing random initialization. Pre-training on large corpora (100B words) captures general semantic knowledge — fine-tuning on task-specific data then adapts these representations. This was the standard approach before BERT: embed tokens with Word2Vec/GloVe, encode with LSTM, classify. Transfer learning from pre-trained word embeddings provides significant gains on small datasets."
+    },
+    {
+      "title": "Fast inference and low-resource NLP",
+      "body": "Word2Vec produces 100–300 dimensional static embeddings that are extremely fast at inference (just a lookup table). For production systems with strict latency budgets or IoT/edge devices, Word2Vec + simple classifiers outperform transformers. For low-resource languages, Word2Vec can be trained on small corpora (10M words) and still provides useful representations."
+    }
+  ],
+  "deepDiveIntro": [
+    "Skip-gram objective: maximize Σ_{(w,c) ∈ D} log P(c|w) where P(c|w) = exp(vw·uc) / Σv exp(vw·uv). Negative sampling approximation: log σ(vw·uc) + Σk~Pn log σ(−vw·uk), where Pn(w) = f(w)^{3/4}/Z (unigram distribution raised to 3/4 power — samples frequent words as negatives more often but with dampening). Each word has two vectors: center word vector v, context word vector u.",
+    "CBOW: predict center word w from context words {c₁,…,c_{2k}}: maximize P(w|c₁,…,c_{2k}) ≈ P(w|mean(uc_i)). Faster than Skip-gram (fewer operations per word). Skip-gram: for each center word, predict each context word separately — more updates per word, better for rare words. In practice: Skip-gram with negative sampling (SGNS) gives better embeddings than CBOW and is the standard."
+  ],
+  "deepDive": [
+    {
+      "heading": "Skip-gram with Negative Sampling (SGNS)",
+      "body": "For each (center word w, context word c) pair within window size k: minimize binary cross-entropy: −log σ(vw·uc) − Σᵢ₌₁ᴷ log σ(−vw·unᵢ). Negative samples nᵢ drawn from Pn(w) ∝ f(w)^{3/4}. k = 5–20 negatives typically. Hyperparameters: vector dimension d = 100–300, window size = 5–10, Pn exponent = 0.75, subsampling frequent words (P(discard) = 1 − √(t/f(w))). Training: SGD or Adam. O(k·d) per word pair. [1]",
+      "formula": "L_SGNS = log σ(vw · uc) + Σₖ log σ(−vw · unₖ)"
+    },
+    {
+      "heading": "Linear Structure and Analogical Reasoning",
+      "body": "The geometric meaning of word vectors: offsets between vectors encode semantic relations. king − man ≈ queen − woman (gender relation), Paris − France ≈ Berlin − Germany (capital-country). This linear structure arises because PMI (Pointwise Mutual Information) matrix factorization and SGNS are equivalent (Levy & Goldberg 2014): SGNS implicitly factorizes the shifted PMI matrix PMI(w,c) − log k. The analogy offset is a linear encoding of the relational semantic difference. [1]",
+      "formula": "king − man + woman ≈ queen"
+    },
+    {
+      "heading": "Subsampling and Rare Word Handling",
+      "body": "Frequent words ('the', 'a', 'is') appear too often — subsampling: discard word w with probability P(discard) = 1 − √(t/f(w)), threshold t = 10⁻⁵. This reduces training data while keeping semantic content. Rare words: min_count = 5 (default) — words appearing < 5 times are discarded. OOV words get no embedding — a limitation vs subword models. For better rare word coverage: FastText (character n-grams within words) extends Word2Vec. [1]"
+    },
+    {
+      "heading": "Static vs Contextual Embeddings",
+      "body": "Word2Vec assigns one vector per word form — identical for all usages. 'bank' has the same vector regardless of 'river bank' vs 'bank account'. This was fixed by contextual embeddings: ELMo (Peters et al. 2018) uses BiLSTM representations that change with context; BERT uses self-attention. For tasks sensitive to word sense disambiguation (WSD), coreference resolution, and complex semantic reasoning, contextual embeddings are necessary. Word2Vec remains useful as a fast, lightweight alternative when compute is constrained. [2]"
+    }
+  ],
+  "youtubeLabel": "Word2Vec — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/viZrOnJclY0",
+  "takeaways": [
+    "Skip-gram: predict context from center word; CBOW: predict center from context. SGNS is the standard. [1]",
+    "Negative sampling: train binary classifier vs k random negatives — reduces cost from O(V) to O(k). [1]",
+    "SGNS ≡ implicit factorization of shifted PMI matrix — explains linear analogy structure. [1]",
+    "Limitation: static embeddings — 'bank' has one vector regardless of context (river vs financial). [2]",
+    "FastText extends Word2Vec with character n-grams, handling OOV words by composing subword vectors. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does Word2Vec use two separate embedding matrices (center vs context)?",
+      "a": "Each word w has a center vector vw (used when w is the center word) and a context vector uw (used when w is a context word). These capture different roles. After training, the center vectors are typically used as word representations; context vectors are discarded. Using a single shared matrix would enforce vw = uw, which is mathematically possible but empirically gives worse results — the asymmetry between center and context roles helps the optimization landscape. Some implementations add vw + uw as the final representation. [1]"
+    },
+    {
+      "q": "How do you evaluate word embeddings beyond analogy tasks?",
+      "a": "Analogy evaluation (Google analogies, MSR analogies) has been criticized for being too sensitive to the specific arithmetic used. Alternative evaluations: (1) Word similarity benchmarks (SimLex-999, WordSim-353) — cosine similarity should correlate with human judgments; (2) Downstream task performance (NER, sentiment, parsing accuracy when embeddings are used as features); (3) Intrinsic linguistic probing (syntactic probes, morphological probes). The field has moved toward evaluating embeddings via downstream task performance rather than intrinsic similarity benchmarks. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Mikolov et al. (2013) — Distributed Representations of Words and Phrases and their Compositionality, NeurIPS 2013", "url": "https://arxiv.org/abs/1310.4546" },
+    { "label": "Peters et al. (2018) — Deep Contextualized Word Representations (ELMo), NAACL 2018", "url": "https://aclanthology.org/N18-1202/" }
+  ]
+}

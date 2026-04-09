@@ -1,0 +1,73 @@
+{
+  "eli3": [
+    "Kurtosis measures the 'heaviness' of the tails of a distribution — how likely extreme events are compared to a normal distribution. High kurtosis (leptokurtic) means fat tails: there is more probability mass in the extremes and the peak is sharper. Low kurtosis (platykurtic) means thin tails with a flatter shape.",
+    "Excess kurtosis = kurtosis − 3. The normal distribution has excess kurtosis = 0 (mesokurtic). Positive excess kurtosis means more outliers than normal; negative means fewer. A Student-t distribution with few degrees of freedom has high excess kurtosis — it produces extreme values far more often than the normal.",
+    "In finance: fat-tailed return distributions (positive excess kurtosis) mean that 'once in a century' crashes happen far more often than normal-distribution models predict. Risk models that ignore kurtosis (like basic VaR) systematically underestimate tail risk."
+  ],
+  "whenWhy": [
+    {
+      "title": "Tail risk in financial modelling",
+      "body": "Asset returns have excess kurtosis (fat tails). The normal distribution assigns near-zero probability to moves >4σ, but real markets experience such moves with much higher frequency. Models like the Student-t or extreme value distributions capture this. Excess kurtosis > 3 in daily returns is a red flag for using normal-distribution risk models."
+    },
+    {
+      "title": "Normality diagnostics for statistical tests",
+      "body": "The Jarque-Bera test combines skewness and excess kurtosis into a chi-square statistic. Non-zero excess kurtosis indicates heavier or lighter tails than normal — violating the assumptions of many parametric tests. For ML, high-kurtosis features may benefit from transformation (e.g. Yeo-Johnson) before standardisation."
+    },
+    {
+      "title": "Selecting distributional assumptions for models",
+      "body": "Before fitting a parametric model, check excess kurtosis: positive → consider Student-t, Laplace, or generalised normal; negative → consider uniform or beta. This guides whether maximum likelihood with normal errors is appropriate or whether a heavier-tailed likelihood is needed."
+    },
+    {
+      "title": "Signal processing — peakedness of spectra",
+      "body": "In signal processing and audio analysis, kurtosis of a signal indicates impulsiveness (how 'spiky' the signal is). High kurtosis in vibration signals is used for detecting machinery faults (bearing defects) — fault signals are impulsive, normal operation is not."
+    }
+  ],
+  "deepDiveIntro": [
+    "Population kurtosis: κ = E[(X−μ)⁴]/σ⁴ = μ₄/σ⁴ (fourth standardised central moment). Excess kurtosis: γ₂ = κ − 3. The subtraction of 3 makes the normal distribution the reference (κ_normal = 3). Positive excess kurtosis: heavier tails than normal (leptokurtic). Negative: lighter tails (platykurtic).",
+    "Sample excess kurtosis (Fisher's adjusted): ĝ₂ = [(n(n+1))/((n−1)(n−2)(n−3)) Σ((xᵢ−x̄)/s)⁴] − [3(n−1)²/((n−2)(n−3))]. This is unbiased to O(1/n²) for normal populations. The simpler sample kurtosis m₄/m₂² is consistent but biased."
+  ],
+  "visualizationType": "kurtosis",
+  "deepDive": [
+    {
+      "heading": "Definition: Fourth Standardised Moment",
+      "body": "κ = E[(X−μ)⁴] / σ⁴. Excess kurtosis: γ₂ = κ − 3. Normal distribution: κ = 3, γ₂ = 0. Leptokurtic (γ₂ > 0): fatter tails, sharper peak. Platykurtic (γ₂ < 0): thinner tails, flatter peak. The fourth power amplifies large deviations — kurtosis is dominated by tail behaviour. [1]",
+      "formula": "γ₂ = E[(X−μ)⁴] / σ⁴ − 3"
+    },
+    {
+      "heading": "Named Distributions and Their Kurtosis",
+      "body": "Normal N(μ,σ²): γ₂ = 0. Student-t(ν): γ₂ = 6/(ν−4) for ν > 4 (approaches 0 as ν→∞). Laplace(μ,b): γ₂ = 3 (always leptokurtic). Uniform(a,b): γ₂ = −6/5 (always platykurtic). Exponential(λ): γ₂ = 6. Bernoulli(p): γ₂ = (1−6p(1−p))/(p(1−p)). [1]"
+    },
+    {
+      "heading": "Mesokurtic, Leptokurtic, Platykurtic",
+      "body": "Mesokurtic (γ₂ ≈ 0): normal-like tails. Leptokurtic (γ₂ > 0): 'lepto' = thin in Greek, but the peak is thin/sharp and tails are fat — most mass is concentrated at centre AND in the extremes, with less in the shoulders. Platykurtic (γ₂ < 0): 'platy' = flat — flatter peak, shorter tails. Despite the 'lepto=thin' etymology, leptokurtic means fatter tails relative to normal. [1]"
+    },
+    {
+      "heading": "Excess Kurtosis and Tail Risk",
+      "body": "For a normal distribution, P(|X−μ| > 4σ) ≈ 6.3×10⁻⁵. For t(5) with γ₂ = 6: P(|X−μ| > 4σ) is much higher. Value-at-Risk models assuming normality underestimate extreme losses when γ₂ > 0. The distinction is captured by extreme value theory (EVT): the generalised extreme value parameter ξ > 0 corresponds to fat tails (positive excess kurtosis). [2]"
+    }
+  ],
+  "youtubeLabel": "Kurtosis Explained",
+  "youtubeUrl": "https://www.youtube.com/embed/tSf0gEUXPsw",
+  "takeaways": [
+    "Kurtosis κ = E[(X−μ)⁴]/σ⁴; excess kurtosis γ₂ = κ − 3; normal has γ₂ = 0. [1]",
+    "Leptokurtic (γ₂ > 0): fat tails, more extreme outliers than normal; platykurtic (γ₂ < 0): thin tails. [1]",
+    "Student-t(ν) γ₂ = 6/(ν−4) → 0 as ν→∞: t approaches normal with more degrees of freedom. [1]",
+    "Jarque-Bera test combines skewness and excess kurtosis: JB = (n/6)[ĝ₁² + ĝ₂²/4] ~ χ²(2). [1]",
+    "Financial returns: positive γ₂ means 'fat tails' — crashes occur far more than normal models predict. [2]",
+    "High kurtosis in ML features may indicate need for outlier-robust preprocessing. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Can kurtosis be negative? What does it mean?",
+      "a": "Yes. Excess kurtosis γ₂ ≥ −2 always (it cannot be more negative than −2). Uniform distribution has γ₂ = −6/5 ≈ −1.2. Negative excess kurtosis means the distribution has lighter tails and a flatter peak than the normal — extreme values are less probable than normal would predict. This is platykurtic. [1]"
+    },
+    {
+      "q": "Why is kurtosis sometimes called a measure of 'peakedness'? Is that accurate?",
+      "a": "The traditional description of kurtosis as 'peakedness' is misleading. Kurtosis is mathematically a measure of tail heaviness, not peak height. A distribution can have a sharp peak and thin tails (giving low kurtosis) or a flat centre and fat tails (giving high kurtosis). The correct interpretation is: excess kurtosis measures how heavy the tails are relative to the normal distribution. Westfall (2014) provides a detailed refutation of the 'peakedness' interpretation. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 2", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" },
+    { "label": "McNeil, Frey & Embrechts — Quantitative Risk Management, Ch. 2", "url": "https://press.princeton.edu/books/hardcover/9780691166278/quantitative-risk-management" }
+  ]
+}

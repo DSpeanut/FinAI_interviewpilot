@@ -1,0 +1,87 @@
+{
+  "eli3": [
+    "AdaBoost — Adaptive Boosting — trains a sequence of weak classifiers (barely better than random guessing), where each new classifier focuses harder on the examples that previous classifiers got wrong.",
+    "After each round, misclassified examples have their weights increased and correctly classified examples have their weights decreased. The next weak learner must pay more attention to the hard cases. The final prediction is a weighted vote of all the weak learners, where more accurate learners get louder votes.",
+    "AdaBoost was the first practical boosting algorithm and proved that combining many weak learners can produce an arbitrarily strong learner. It was a landmark result in machine learning theory and the ancestor of modern gradient boosting."
+  ],
+  "whenWhy": [
+    {
+      "title": "Binary classification with weak learners",
+      "body": "AdaBoost works well with very simple base learners — decision stumps (1-level trees) are the classic choice. The ensemble of stumps is fast to train, produces a sparse model, and often achieves competitive accuracy on simple classification tasks."
+    },
+    {
+      "title": "Understanding boosting theory",
+      "body": "AdaBoost is the canonical example for understanding boosting theory: the exponential loss connection, the relationship between training error and ensemble complexity, and the PAC learning framework. Understanding AdaBoost is essential foundation for gradient boosting."
+    },
+    {
+      "title": "Face detection (Viola-Jones)",
+      "body": "The Viola-Jones face detector (2001) — which dominated real-time face detection for a decade — is an AdaBoost classifier over simple Haar-like features. AdaBoost's ability to select informative features automatically made it ideal for high-dimensional visual tasks."
+    },
+    {
+      "title": "When training data is noisy — be cautious",
+      "body": "AdaBoost exponentially upweights misclassified examples. If those examples are mislabelled noise, AdaBoost will fixate on them and overfit badly. It is highly sensitive to label noise. For noisy data, prefer gradient boosting with shrinkage or Random Forest."
+    }
+  ],
+  "deepDiveIntro": [
+    "AdaBoost (Freund & Schapire, 1997) fits a sequence of weak classifiers hₘ on reweighted versions of the training data. The weights wᵢ are updated after each round — misclassified points get higher weights, correctly classified points get lower weights. The final model is a weighted majority vote: H(x) = sign(Σₘ αₘ hₘ(x)).",
+    "AdaBoost can be derived as forward stagewise additive modelling with exponential loss L(y, F) = exp(−y·F(x)), y ∈ {−1,+1}. This connection, established by Friedman et al. (2000), unified AdaBoost with the gradient boosting framework."
+  ],
+  "visualizationType": "adaboost",
+  "deepDive": [
+    {
+      "heading": "The AdaBoost Algorithm",
+      "body": "Initialise weights wᵢ = 1/n. For m = 1, …, M: (1) Fit weak classifier hₘ(x) ∈ {−1,+1} minimising weighted error εₘ = Σᵢ wᵢ 𝟙[hₘ(xᵢ) ≠ yᵢ] / Σᵢ wᵢ. (2) Compute learner weight αₘ = ½ log((1−εₘ)/εₘ). (3) Update sample weights: wᵢ ← wᵢ exp(−αₘ yᵢ hₘ(xᵢ)). (4) Normalise wᵢ. Final: H(x) = sign(Σₘ αₘ hₘ(x)). [1]",
+      "formula": "αₘ = ½ log((1 − εₘ) / εₘ),    wᵢ ← wᵢ · exp(−αₘ yᵢ hₘ(xᵢ))"
+    },
+    {
+      "heading": "Learner Weight αₘ",
+      "body": "If εₘ = 0 (perfect classifier): αₘ → ∞ — dominates all other learners. If εₘ = 0.5 (random guessing): αₘ = 0 — gets no vote. If εₘ > 0.5 (worse than random): αₘ < 0 — vote is negated (a flipped bad classifier is a good one). Only weak learners with εₘ < 0.5 are required. [1]"
+    },
+    {
+      "heading": "Training Error Bound",
+      "body": "A key theoretical guarantee: the training error of the final ensemble decreases exponentially with M. Specifically, training error ≤ exp(−2 Σₘ γₘ²) where γₘ = 0.5 − εₘ is the edge of the m-th weak learner above random. If each weak learner has edge γ > 0, training error → 0 as M → ∞. [1][2]",
+      "formula": "Training error ≤ exp(−2 Σₘ γₘ²)"
+    },
+    {
+      "heading": "Connection to Exponential Loss",
+      "body": "AdaBoost minimises the exponential loss L(y, F) = Σᵢ exp(−yᵢ F(xᵢ)) via forward stagewise additive modelling. The sample weights wᵢ at round m equal exp(−yᵢ F_{m-1}(xᵢ)) — the per-example exponential loss at the current ensemble. Minimising weighted error εₘ is equivalent to taking one gradient step in function space. [1]",
+      "formula": "L(y, F) = Σᵢ exp(−yᵢ F(xᵢ))"
+    },
+    {
+      "heading": "Sensitivity to Outliers & Noise",
+      "body": "Exponential loss grows exponentially for misclassified points (unlike log-loss which grows linearly). Points that are consistently misclassified — whether because they are boundary cases, mislabelled noise, or true outliers — receive exponentially increasing weights, forcing the model to focus on them. This is both AdaBoost's strength (focuses on hard cases) and weakness (overfits to noise). [1]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: AdaBoost",
+  "youtubeUrl": "https://www.youtube.com/embed/LsK-xG1cLYA",
+  "takeaways": [
+    "AdaBoost reweights training examples after each round — misclassified examples get upweighted exponentially. [1]",
+    "Learner weight αₘ = ½ log((1−εₘ)/εₘ): better classifiers get louder votes in the final ensemble. [1]",
+    "Training error is bounded by exp(−2Σγₘ²) — decreases exponentially as long as each learner beats random. [1]",
+    "AdaBoost minimises exponential loss via forward stagewise additive modelling. [1]",
+    "Exponential loss makes AdaBoost highly sensitive to mislabelled data — prefer GBM with shrinkage for noisy problems. [1]",
+    "Decision stumps (depth-1 trees) are the canonical weak learner for AdaBoost. [1][2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What makes a 'weak learner' in practice?",
+      "a": "Formally, a weak learner need only do slightly better than random (error < 0.5 on weighted training data). In practice, decision stumps (a single threshold on one feature) are the standard choice — they are simple, fast, and easy to fit optimally on weighted data by scanning all feature thresholds. Any other classifier that avoids overfitting on weighted data (logistic regression, linear SVM) also qualifies. [1]"
+    },
+    {
+      "q": "How does AdaBoost relate to Gradient Boosting?",
+      "a": "Gradient Boosting (Friedman, 2001) generalises AdaBoost. AdaBoost = Gradient Boosting with exponential loss and hard classification output. By replacing exponential loss with other differentiable losses (MSE, log-loss) and allowing real-valued weak learners (regression trees instead of ±1 classifiers), you get the full Gradient Boosting framework. [1]"
+    },
+    {
+      "q": "Why doesn't AdaBoost seem to overfit even with many rounds?",
+      "a": "Empirically, AdaBoost's test error often continues to decrease even after training error reaches zero — a puzzle at the time of its discovery. The explanation: additional rounds increase the margin (confidence) of correct predictions even after accuracy plateaus. The margin theory (Schapire et al., 1998) shows that larger margins → better generalisation bounds. This inspired the development of SVMs. [1][2]"
+    },
+    {
+      "q": "Can AdaBoost handle multi-class problems?",
+      "a": "The original AdaBoost is binary (y ∈ {−1,+1}). Multi-class extensions include AdaBoost.M1 (one-vs-all with weak learner error < 1−1/K), AdaBoost.M2, and SAMME (Stagewise Additive Modelling using a Multi-class Exponential loss) — which is what scikit-learn implements as its default multi-class strategy. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Freund & Schapire — A Decision-Theoretic Generalization of On-Line Learning (1997)", "url": "https://www.sciencedirect.com/science/article/pii/S002200009791504X" },
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 10", "url": "https://hastie.su.domains/ElemStatLearn/" }
+  ]
+}

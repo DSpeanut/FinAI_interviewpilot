@@ -1,0 +1,90 @@
+{
+  "eli3": [
+    "Imagine asking 500 different doctors for a diagnosis. Each doctor was trained on a slightly different subset of your medical records and only looks at a random handful of symptoms at a time. They all vote, and you go with the majority. No single doctor is perfect, but 500 imperfect doctors voting independently are hard to fool collectively.",
+    "That's Random Forest. Each 'doctor' is a decision tree grown on a bootstrap sample of the training data (random rows) and at each split it only considers a random subset of features (random columns). The final prediction is a majority vote (classification) or average (regression).",
+    "Two sources of randomness — bootstrap sampling and feature subsampling — ensure the trees are diverse enough that their errors cancel out. This is the magic of ensemble methods: weak learners combine into a strong learner."
+  ],
+  "whenWhy": [
+    {
+      "title": "Strong out-of-the-box baseline",
+      "body": "Random Forest works well on almost any tabular dataset with minimal tuning. It handles mixed feature types, missing values (with imputation), non-linear relationships, and interactions automatically. In practice, it is the first complex model to try after linear baselines."
+    },
+    {
+      "title": "Feature importance and interpretability",
+      "body": "Random Forest provides Mean Decrease in Impurity (MDI) and permutation feature importance — a ranked list of which features drive predictions. Useful for feature selection, debugging data quality, and communicating findings to stakeholders."
+    },
+    {
+      "title": "Out-of-Bag (OOB) error estimate",
+      "body": "Each tree is trained on ~63% of data (bootstrap sample). The remaining ~37% — the OOB set — acts as a free validation set. OOB error closely approximates cross-validation error at no extra cost, making evaluation extremely efficient."
+    },
+    {
+      "title": "When gradient boosting is overfitting or too slow",
+      "body": "Random Forest is harder to overfit than gradient boosting (deep trees average out variance rather than accumulating bias corrections). It is also trivially parallelisable — trees are independent. When GBM overfits or training time is constrained, Random Forest is often the better choice."
+    }
+  ],
+  "deepDiveIntro": [
+    "Random Forest is a bagging ensemble of decision trees with an additional feature-subsampling trick. Standard bagging reduces variance by averaging many models trained on bootstrap samples, but trees grown on the same dataset are correlated — they make similar mistakes. Feature subsampling at each split de-correlates the trees, dramatically improving the variance reduction.",
+    "The theoretical foundation is the bias-variance decomposition: deep trees have low bias and high variance. Averaging B de-correlated trees reduces variance by a factor approaching 1/B while keeping bias approximately constant."
+  ],
+  "visualizationType": "random-forest",
+  "deepDive": [
+    {
+      "heading": "Bootstrap Sampling & Bagging",
+      "body": "For each of B trees, draw n samples with replacement from the training set (a bootstrap sample). About 63.2% of unique samples appear in each bootstrap (1 − (1−1/n)ⁿ → 1−1/e ≈ 0.632). The remaining ~36.8% are the OOB samples for that tree. Average predictions over all B trees. Bagging reduces variance proportional to 1/B for uncorrelated trees. [1]",
+      "formula": "ŷ_RF(x) = (1/B) Σᵦ₌₁ᴮ Tᵦ(x)"
+    },
+    {
+      "heading": "Feature Subsampling (the 'Random' in Random Forest)",
+      "body": "At each split in each tree, instead of searching all p features, randomly select m features and choose the best split among only those m. Default: m = √p for classification, m = p/3 for regression (Breiman 2001). This is the key innovation over plain bagging — it de-correlates trees even when one feature dominates, preventing all trees from making the same first split. [1]"
+    },
+    {
+      "heading": "Bias-Variance Analysis",
+      "body": "The expected MSE of a B-tree average is: Var(ŷ_RF) = ρ·σ² + (1−ρ)σ²/B, where ρ is the pairwise tree correlation and σ² is the variance of a single tree. As B → ∞, variance → ρ·σ². Feature subsampling reduces ρ, directly reducing the irreducible ensemble variance. Deep trees keep bias low. [1]",
+      "formula": "Var(ŷ_RF) → ρ·σ²  as  B → ∞"
+    },
+    {
+      "heading": "Out-of-Bag (OOB) Error",
+      "body": "For each training point xᵢ, predict using only trees for which xᵢ was OOB (not used in training). Average these predictions to get ŷ_OOB(xᵢ). OOB error = error rate of {ŷ_OOB(xᵢ)} across all i. This is a nearly unbiased estimate of test error — equivalent to leave-one-out CV for bagging. No separate validation set needed. [1]"
+    },
+    {
+      "heading": "Feature Importance",
+      "body": "MDI (Mean Decrease in Impurity): sum over all trees and splits the impurity decrease weighted by the fraction of samples reaching that split. Fast but biased toward high-cardinality features. Permutation importance: for each feature, shuffle its values in the OOB set and measure accuracy drop. Unbiased and reliable. For production use, prefer SHAP values. [1][2]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: Random Forests",
+  "youtubeUrl": "https://www.youtube.com/embed/J4Wdy0Wc_xQ",
+  "takeaways": [
+    "Random Forest = bagging + feature subsampling. Bootstrap rows reduce variance; random feature subsets de-correlate trees. [1]",
+    "As B → ∞, variance → ρσ² (tree correlation times single-tree variance); more trees never hurts but returns diminish. [1]",
+    "OOB error is a free, nearly unbiased test error estimate — use it instead of a separate validation set. [1]",
+    "Tune n_estimators (more = better, diminishing returns), max_features (√p default), and max_depth (None = fully grown). [1]",
+    "Random Forest is trivially parallelisable (n_jobs=-1 in scikit-learn) — training time scales linearly with cores. [1]",
+    "Prefer permutation importance or SHAP over MDI importance for reliable feature ranking. [1][2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Does Random Forest overfit?",
+      "a": "It is much harder to overfit than a single deep tree, but not immune. With very noisy data, enough trees will start memorising noise patterns. Signs: OOB error is low but test error is high. Regularise with max_depth, min_samples_leaf, or max_features. The OOB estimate warns you before a separate test set is needed. [1]"
+    },
+    {
+      "q": "How many trees (n_estimators) is enough?",
+      "a": "Plot OOB error vs number of trees — it decreases and plateaus. Typically 100–500 trees is sufficient for most datasets; beyond that, gains are marginal. The cost of more trees is linear in compute time, so use as many as your budget allows. There is no penalty for too many trees in terms of bias-variance. [1]"
+    },
+    {
+      "q": "How does Random Forest handle missing values?",
+      "a": "Scikit-learn's implementation does not natively handle missing values — impute first. However, Breiman's original algorithm and implementations like R's randomForest use 'proximity-based imputation': iteratively impute missing values using weighted median/mode where weights are tree co-occurrence frequencies of the point with other points. [1]"
+    },
+    {
+      "q": "Why does Random Forest underperform on very high-dimensional sparse data?",
+      "a": "Feature subsampling with m = √p means each split sees very few features. In sparse high-dimensional data (e.g. text bag-of-words with p = 50,000), √p ≈ 224 features per split, which is still a tiny fraction — most splits won't see the relevant features. Increase max_features or switch to gradient boosting with large feature fractions. [2]"
+    },
+    {
+      "q": "What is the difference between Random Forest and Extra Trees?",
+      "a": "Extra Trees (Extremely Randomised Trees) selects random thresholds for each feature rather than the best threshold — eliminating the greedy search entirely. This further reduces variance at the cost of slight bias increase. Extra Trees is faster to train than Random Forest and often achieves similar accuracy. Available as ExtraTreesClassifier in scikit-learn. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 15", "url": "https://hastie.su.domains/ElemStatLearn/" },
+    { "label": "James et al. — An Introduction to Statistical Learning, Ch. 8", "url": "https://www.statlearning.com/" }
+  ]
+}

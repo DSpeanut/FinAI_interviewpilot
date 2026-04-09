@@ -1,0 +1,76 @@
+{
+  "eli3": [
+    "Standard deviation is the square root of variance. It answers: on average, how far do individual data points sit from the mean? Taking the square root brings the unit back to the original scale — so if data is in dollars, standard deviation is also in dollars.",
+    "For a normal distribution, about 68% of data falls within ±1σ of the mean, 95% within ±2σ, and 99.7% within ±3σ. This '68-95-99.7 rule' is one of the most-used rules of thumb in statistics and ML.",
+    "Standard deviation is the natural measure of spread for normal-like data. It also appears in the formula for z-scores: z = (x−μ)/σ, which tells you how many standard deviations a value is from the mean — the basis for standardisation, z-tests, and normal tables."
+  ],
+  "whenWhy": [
+    {
+      "title": "Measuring and comparing spread across variables",
+      "body": "Standard deviation expresses spread in the same units as the data (unlike variance, which is in squared units). It enables direct comparison: 'these test scores have σ=10, those have σ=5' — the first group is twice as spread out."
+    },
+    {
+      "title": "Standardisation / z-score normalisation",
+      "body": "z = (x−μ)/σ transforms data to mean 0, std 1. This is critical before algorithms that are sensitive to feature scale (KNN, SVM, PCA, neural networks). Without standardisation, features with large scales dominate distance-based and gradient-based computations."
+    },
+    {
+      "title": "Confidence intervals and hypothesis tests",
+      "body": "The standard error of the mean (σ/√n) is the standard deviation of the sampling distribution of x̄. It quantifies how precisely the sample mean estimates the population mean. A 95% CI for μ is approximately x̄ ± 1.96σ/√n. All z-tests and t-tests normalise by the standard error."
+    },
+    {
+      "title": "Volatility in finance",
+      "body": "Annualised volatility of a financial asset is the annualised standard deviation of log-returns: σ_annual = σ_daily × √252. It is the core input to Black-Scholes option pricing and risk measures like VaR. Higher σ means more uncertain outcomes."
+    }
+  ],
+  "deepDiveIntro": [
+    "Sample standard deviation s = √s² = √[Σ(xᵢ−x̄)²/(n−1)]. Note: s is NOT an unbiased estimator of σ even though s² is unbiased for σ². This is because E[√s²] ≠ √E[s²] by Jensen's inequality (√ is concave). The bias is small for large n and is rarely corrected in practice.",
+    "For a normal distribution N(μ,σ²), the standard deviation σ fully characterises the spread. The empirical rule (68-95-99.7) follows directly from the normal CDF: Φ(1)−Φ(−1) ≈ 0.683, Φ(2)−Φ(−2) ≈ 0.954, Φ(3)−Φ(−3) ≈ 0.997."
+  ],
+  "visualizationType": "standard-deviation",
+  "deepDive": [
+    {
+      "heading": "Definition and Relationship to Variance",
+      "body": "σ = √σ² (population); s = √s² = √[Σ(xᵢ−x̄)²/(n−1)] (sample). Units: same as x. s² is unbiased for σ², but s is not unbiased for σ due to Jensen's inequality. For normal populations, the correction factor is c₄(n) = √(2/(n−1)) · Γ(n/2)/Γ((n−1)/2); for large n, c₄ ≈ 1 − 1/(4(n−1)). [1]",
+      "formula": "s = √[ (1/(n−1)) Σᵢ (xᵢ − x̄)² ]"
+    },
+    {
+      "heading": "Empirical Rule (68-95-99.7)",
+      "body": "For X ~ N(μ,σ²): P(|X−μ| ≤ σ) ≈ 0.6827; P(|X−μ| ≤ 2σ) ≈ 0.9545; P(|X−μ| ≤ 3σ) ≈ 0.9973. These follow from the standard normal CDF. For non-normal distributions, Chebyshev's inequality gives a weaker but universal bound: P(|X−μ| ≥ kσ) ≤ 1/k² for any distribution with finite variance. [1]",
+      "formula": "P(μ − kσ ≤ X ≤ μ + kσ) ≥ 1 − 1/k²   (Chebyshev)"
+    },
+    {
+      "heading": "Standard Error of the Mean",
+      "body": "SE(x̄) = σ/√n (known σ) or s/√n (estimated). This is the standard deviation of the sampling distribution of x̄. It shrinks as 1/√n — doubling precision requires 4× more data. The 95% CI for μ is x̄ ± z_{0.025} · σ/√n = x̄ ± 1.96 · σ/√n for large n, or x̄ ± t_{n−1,0.025} · s/√n for small n. [1]",
+      "formula": "SE(x̄) = σ / √n"
+    },
+    {
+      "heading": "Z-score Standardisation",
+      "body": "z = (x−μ)/σ. Under N(μ,σ²), z ~ N(0,1). In ML, feature standardisation (sklearn's StandardScaler) applies z = (x−x̄)/s. This is essential for: (1) PCA — so components reflect variance structure, not scale; (2) gradient descent — so learning rates are well-conditioned; (3) regularisation — so L1/L2 penalties are applied equally across features. [1][2]",
+      "formula": "z = (x − μ) / σ"
+    }
+  ],
+  "youtubeLabel": "Standard Deviation — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/SzZ6GpcfoQY",
+  "takeaways": [
+    "s = √[Σ(xᵢ−x̄)²/(n−1)]; same units as x — more interpretable than variance. [1]",
+    "s² is unbiased for σ², but s is slightly biased for σ (Jensen's inequality — minor for n>30). [1]",
+    "68-95-99.7 rule: for N(μ,σ²), ≈68/95/99.7% of data falls within 1/2/3σ of mean. [1]",
+    "Standard error SE = σ/√n: standard deviation of the sampling distribution of x̄. [1]",
+    "Z-score z=(x−μ)/σ standardises to N(0,1) — basis of z-tests and feature scaling. [1][2]",
+    "Chebyshev: P(|X−μ| ≥ kσ) ≤ 1/k² — distribution-free bound using only σ. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why is the coefficient of variation (CV) sometimes preferred over standard deviation?",
+      "a": "CV = σ/μ × 100% is a dimensionless measure of relative variability. It allows comparing spread across variables with different scales or units: a σ=5 may be large if μ=10 (CV=50%) but small if μ=1000 (CV=0.5%). CV is meaningful only for ratio-scale data with a positive mean (not for data that can be zero or negative). [1]"
+    },
+    {
+      "q": "When should you use MAD instead of standard deviation?",
+      "a": "MAD = median(|xᵢ−median(x)|) is a robust alternative to σ. It has breakdown point 0.5 (like the median) vs σ's breakdown point of 0. Robust σ̂ = 1.4826 × MAD is a consistent estimator of σ for normal data. Use MAD when data has heavy tails, or when robustness to outliers is more important than efficiency under normality. [2]"
+    }
+  ],
+  "sources": [
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 2", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" },
+    { "label": "Huber — Robust Statistics (2nd ed.), Ch. 2", "url": "https://www.wiley.com/en-us/Robust+Statistics%2C+2nd+Edition-p-9780470129906" }
+  ]
+}

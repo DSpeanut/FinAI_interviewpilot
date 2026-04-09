@@ -1,0 +1,71 @@
+{
+  "eli3": [
+    "An A/B test randomly assigns users (or subjects) to a control group (A) or treatment group (B), then measures whether the treatment causes a statistically significant difference in a key metric. Randomization is the defining feature — it ensures the two groups are comparable on all confounders (observed and unobserved), making the difference in outcomes causally attributable to the treatment.",
+    "For a binary metric (conversion rate): use a two-proportion z-test. For a continuous metric (revenue, session duration): use a two-sample t-test (Welch). Power determines the required sample size: for a minimum detectable effect (MDE) of δ, significance α = 0.05, and power 1−β = 0.80: n per variant ≈ 7.85·σ²/δ² (two-sample). Under-sizing leads to false negatives; over-sizing wastes resources.",
+    "Common pitfalls: (1) peeking — looking at results before the planned sample size and stopping when p < 0.05 inflates Type I error (use sequential testing or fixed-horizon designs); (2) multiple metrics — testing 10 metrics at α = 0.05 yields ~5 false positives per experiment on average (apply Bonferroni or FDR correction); (3) novelty effect — users behave differently initially due to novelty, not a sustained effect."
+  ],
+  "whenWhy": [
+    {
+      "title": "Causal effect estimation in product development",
+      "body": "A/B testing is the gold standard for measuring the causal impact of product changes (UI modifications, pricing changes, algorithmic updates). Randomization eliminates confounding — any difference between groups is due to the treatment, not pre-existing differences. Used at scale by all major tech companies: Google, Meta, Netflix, Airbnb run thousands of concurrent experiments."
+    },
+    {
+      "title": "Sample size planning: MDE and power",
+      "body": "Choose the MDE (minimum detectable effect) based on business impact, not just statistical convenience. For binary metrics (CTR p₀ = 0.10, MDE = 0.02): n = 2·(z_{α/2}+z_β)²·p̄(1−p̄)/δ² ≈ 2·7.85·0.105·0.895/0.02² ≈ 3,685 per variant. For continuous metrics: n = 2·(z_{α/2}+z_β)²·σ²/δ². Variance σ² from historical data or pilot."
+    },
+    {
+      "title": "Sequential testing: controlling peeking",
+      "body": "Sequential testing (SPRT, alpha-spending functions) allows continuous monitoring without inflating Type I error. Alpha-spending (O'Brien-Fleming, Pocock): allocate the α budget across interim looks — early stopping requires stronger evidence. Bayesian A/B testing with a stopping rule (e.g., P(θ_B > θ_A | data) > 0.95) naturally accommodates sequential looks without separate correction."
+    },
+    {
+      "title": "CUPED: variance reduction in A/B tests",
+      "body": "CUPED (Controlled-experiment Using Pre-Experiment Data, Deng et al. 2013): use pre-experiment covariate X (e.g., pre-experiment metric value) to reduce variance in the outcome Y: Ỹ = Y − θ·(X − E[X]), where θ = Cov(Y,X)/Var(X) (regression coefficient). The adjusted estimator Ỹ has the same expectation as Y but lower variance: Var(Ỹ) = Var(Y)(1−ρ²), where ρ = Corr(Y,X). With ρ = 0.5: 75% variance reduction → half the sample size needed."
+    }
+  ],
+  "deepDiveIntro": [
+    "Standard A/B test: H₀: μ_A = μ_B. Test statistic: Z = (x̄_B − x̄_A)/SE, where SE = √(s_A²/n_A + s_B²/n_B) (Welch). Reject H₀ if |Z| > z_{α/2}. Power: 1−β = Φ(|δ|/SE − z_{α/2}). For binary metrics: SE = √(p̄(1−p̄)(1/n_A + 1/n_B)), p̄ = pooled proportion. For better variance estimation when traffic splits are unequal, always use Welch (unequal variance) formulation.",
+    "The peeking problem: if you test at each observation and stop when p < 0.05, the actual Type I error rate over the course of the experiment is much higher than 0.05. With 5 peeks: actual α ≈ 0.14; continuous peeking: α→1. The problem is using a fixed-horizon test in a sequential monitoring setting. Sequential testing methods solve this by adjusting the critical value at each look."
+  ],
+  "deepDive": [
+    {
+      "heading": "Two-Proportion z-Test for Conversion Rates",
+      "body": "H₀: p_A = p_B. Under H₀: Z = (p̂_B − p̂_A)/√(p̂(1−p̂)(1/n_A+1/n_B)) ~ N(0,1), where p̂ = (n_A p̂_A + n_B p̂_B)/(n_A+n_B) is the pooled proportion. Two-sided: reject if |Z| > z_{α/2}. For one-sided (B > A): reject if Z > z_α. Sample size for equal n per variant: n = (z_{α/2}+z_β)²·(p_A(1−p_A)+p_B(1−p_B))/(p_A−p_B)² ≈ 2·(z_{α/2}+z_β)²·p̄(1−p̄)/δ². [1]",
+      "formula": "n ≈ 2(z_{α/2} + z_β)² · p̄(1−p̄) / (p_A − p_B)²"
+    },
+    {
+      "heading": "Peeking and Sequential Testing",
+      "body": "Alpha-spending function approach (Lan & DeMets, 1983): allocate α across K planned interim looks. O'Brien-Fleming (conservative early, liberal late): α(t) = 2(1−Φ(z_{α/2}/√t)) where t = fraction of total n. Pocock (equal spending): α(t) = α·log(1+(e−1)·t). The Haybittle-Peto boundary: use α = 0.001 for interim looks, α = 0.05 for final analysis. Always-valid p-values (AVIP) are another approach that controls Type I error regardless of when you stop. [1]"
+    },
+    {
+      "heading": "Network Effects and SUTVA",
+      "body": "The Stable Unit Treatment Value Assumption (SUTVA): potential outcomes for unit i depend only on its own treatment assignment, not others'. Violated when: users interact (social network effects), treatment affects the control group via shared resources (cannibalization), or there are spillovers (ads shown to some affect purchase probability of others). Solutions: cluster randomization (treat clusters, not individuals), switchback experiments (alternating time periods), or ego-network analysis. [1]"
+    },
+    {
+      "heading": "Multiple Testing in A/B Experiments",
+      "body": "Testing K metrics simultaneously at α = 0.05: expected false positives = K·α (when all H₀ true). Bonferroni: use α/K per metric (very conservative). Benjamini-Hochberg: control FDR at level q — sort p-values p_(1) ≤ … ≤ p_(K), reject H_(k) if p_(k) ≤ q·k/K. Industry practice: designate one primary metric (OEC, Overall Evaluation Criterion); secondary metrics are exploratory with FDR control. Any secondary metric driving the decision should be pre-registered. [1]"
+    }
+  ],
+  "youtubeLabel": "A/B Testing — Khan Academy",
+  "youtubeUrl": "https://www.youtube.com/embed/AJX4W3MwKzU",
+  "takeaways": [
+    "A/B test: randomize to control/treatment; test H₀: μ_A = μ_B with z-test (proportions) or t-test (continuous). [1]",
+    "Sample size: n = (z_{α/2}+z_β)²·2σ²/δ² (continuous); ≈ 2·7.85·p̄(1−p̄)/δ² (proportions). [1]",
+    "Peeking inflates Type I error — use sequential testing (alpha-spending, SPRT) for continuous monitoring. [1]",
+    "CUPED reduces variance by Var(Ỹ) = Var(Y)(1−ρ²) using pre-experiment covariates. [1]",
+    "SUTVA may be violated with network effects — use cluster randomization or switchback experiments. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle skewed metrics (e.g., revenue per user with heavy right tail)?",
+      "a": "Revenue distributions are typically heavy-tailed (many zero values, occasional large purchases). The central limit theorem applies but convergence is slow. Solutions: (1) log-transform revenue (test on log scale; back-transform for effect estimates); (2) cap/winsorize extreme values at a percentile; (3) use the Mann-Whitney U test (non-parametric, robust to outliers); (4) use CUPED — regressing on pre-experiment revenue substantially reduces variance even with heavy tails; (5) bootstrap confidence intervals. [1]"
+    },
+    {
+      "q": "What is the minimum sample size for a meaningful A/B test?",
+      "a": "There is no universal minimum — it depends on baseline rate p₀, MDE δ, α, and power. For a conversion rate experiment with p₀ = 0.01, MDE = 0.001 (10% relative lift): n ≈ 2·7.85·0.0099·0.9901/0.001² ≈ 154,000 per variant. For p₀ = 0.50, MDE = 0.01: n ≈ 2·7.85·0.25/0.0001 = 39,250. Very small effects at low base rates require enormous samples — this is the standard situation in recommendation and ad ranking systems. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Kohavi, Deng & Vermeer — Trustworthy Online Controlled Experiments (2020)", "url": "https://doi.org/10.1017/9781108653985" },
+    { "label": "Deng et al. (2013) — Improving the Sensitivity of Online Controlled Experiments by Utilizing Pre-Experiment Data, KDD 2013", "url": "https://dl.acm.org/doi/10.1145/2487575.2488217" }
+  ]
+}

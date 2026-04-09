@@ -16,7 +16,7 @@ export const categories = [
     name: "Statistics",
     slug: "statistics",
     subcategories: [
-      { id: "2-1", name: "Descriptive Statistics", slug: "descriptive-statistics", entryCount: 8 },
+      { id: "2-1", name: "Descriptive Statistics", slug: "descriptive-statistics", entryCount: 8 }, // entries: mean, median, mode, variance, std-dev, skewness, kurtosis, percentiles
       { id: "2-2", name: "Inferential Statistics", slug: "inferential-statistics", entryCount: 5 },
       { id: "2-3", name: "Hypothesis Testing", slug: "hypothesis-testing", entryCount: 6 },
       { id: "2-4", name: "Bayesian Statistics", slug: "bayesian-statistics", entryCount: 5 },
@@ -224,7 +224,114 @@ export const mockEntries: WikiEntry[] = [
   { id: "e20", title: "Mean Shift",              slug: "mean-shift",              difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "4-3", tags: ["clustering", "unsupervised", "density"] },
   { id: "e21", title: "HDBSCAN",                slug: "hdbscan",                difficulty: "advanced"     as const, status: "published" as const, subcategoryId: "4-3", tags: ["clustering", "unsupervised", "density", "hierarchy"] },
   { id: "e22", title: "UMAP",                   slug: "umap",                   difficulty: "advanced"     as const, status: "published" as const, subcategoryId: "4-3", tags: ["clustering", "dimensionality-reduction", "visualization"] },
+  // Ensemble Methods (4-4)
+  { id: "e23", title: "Random Forest",       slug: "random-forest",       difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "4-4", tags: ["ensemble", "bagging", "tree"] },
+  { id: "e24", title: "Gradient Boosting",   slug: "gradient-boosting",   difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "4-4", tags: ["ensemble", "boosting", "tree"] },
+  { id: "e25", title: "XGBoost",             slug: "xgboost",             difficulty: "advanced"     as const, status: "published" as const, subcategoryId: "4-4", tags: ["ensemble", "boosting", "tree"] },
+  { id: "e26", title: "LightGBM",            slug: "lightgbm",            difficulty: "advanced"     as const, status: "published" as const, subcategoryId: "4-4", tags: ["ensemble", "boosting", "tree"] },
+  { id: "e27", title: "CatBoost",            slug: "catboost",            difficulty: "advanced"     as const, status: "published" as const, subcategoryId: "4-4", tags: ["ensemble", "boosting", "categorical"] },
+  { id: "e28", title: "Bagging",             slug: "bagging",             difficulty: "beginner"     as const, status: "published" as const, subcategoryId: "4-4", tags: ["ensemble", "bagging"] },
+  { id: "e29", title: "Stacking",            slug: "stacking",            difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "4-4", tags: ["ensemble", "meta-learning"] },
+  { id: "e30", title: "AdaBoost",            slug: "adaboost",            difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "4-4", tags: ["ensemble", "boosting"] },
+  // Dimensionality Reduction (4-5)
+  { id: "e31", title: "PCA",                 slug: "pca",                 difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "4-5", tags: ["dimensionality-reduction", "linear", "unsupervised"] },
+  { id: "e32", title: "t-SNE",               slug: "tsne",                difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "4-5", tags: ["dimensionality-reduction", "visualization"] },
+  { id: "e33", title: "UMAP",               slug: "umap",                difficulty: "advanced"     as const, status: "published" as const, subcategoryId: "4-5", tags: ["dimensionality-reduction", "visualization"] },
+  { id: "e34", title: "LDA (dimensionality)", slug: "lda-dimensionality", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "4-5", tags: ["dimensionality-reduction", "supervised", "linear"] },
+  { id: "e35", title: "Autoencoders",        slug: "autoencoders",        difficulty: "advanced"     as const, status: "published" as const, subcategoryId: "4-5", tags: ["dimensionality-reduction", "deep-learning", "generative"] },
   { id: "e10", title: "Self-Attention", slug: "self-attention", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "5-4", tags: ["transformers", "attention", "nlp"] },
+  // Descriptive Statistics (2-1)
+  { id: "e36", title: "Mean", slug: "mean", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "2-1", tags: ["descriptive", "central-tendency"] },
+  { id: "e37", title: "Median", slug: "median", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "2-1", tags: ["descriptive", "central-tendency", "robust"] },
+  { id: "e38", title: "Mode", slug: "mode", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "2-1", tags: ["descriptive", "central-tendency", "categorical"] },
+  { id: "e39", title: "Variance", slug: "variance", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-1", tags: ["descriptive", "spread", "moments"] },
+  { id: "e40", title: "Standard Deviation", slug: "standard-deviation", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "2-1", tags: ["descriptive", "spread"] },
+  { id: "e41", title: "Skewness", slug: "skewness", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-1", tags: ["descriptive", "shape", "moments"] },
+  { id: "e42", title: "Kurtosis", slug: "kurtosis", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-1", tags: ["descriptive", "shape", "tail-risk"] },
+  { id: "e43", title: "Percentiles & Quartiles", slug: "percentiles-quartiles", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "2-1", tags: ["descriptive", "quantiles", "robust"] },
+  // Hypothesis Testing (2-3)
+  { id: "e44", title: "Z-test", slug: "z-test", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "2-3", tags: ["hypothesis-testing", "parametric", "normal"] },
+  { id: "e45", title: "t-test", slug: "t-test", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "2-3", tags: ["hypothesis-testing", "parametric"] },
+  { id: "e46", title: "Chi-Square Test", slug: "chi-square-test", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-3", tags: ["hypothesis-testing", "categorical"] },
+  { id: "e47", title: "ANOVA", slug: "anova", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-3", tags: ["hypothesis-testing", "parametric", "multiple-groups"] },
+  { id: "e48", title: "Mann-Whitney U", slug: "mann-whitney-u", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-3", tags: ["hypothesis-testing", "non-parametric"] },
+  { id: "e49", title: "Multiple Testing Correction", slug: "multiple-testing-correction", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-3", tags: ["hypothesis-testing", "fdr", "bonferroni"] },
+  // Inferential Statistics (2-2)
+  { id: "e50", title: "Point Estimation", slug: "point-estimation", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-2", tags: ["estimation", "mle", "bias-variance"] },
+  { id: "e51", title: "Confidence Intervals", slug: "confidence-intervals", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-2", tags: ["estimation", "interval", "coverage"] },
+  { id: "e52", title: "p-value", slug: "p-value", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "2-2", tags: ["hypothesis-testing", "significance", "inference"] },
+  { id: "e53", title: "Statistical Power", slug: "statistical-power", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-2", tags: ["power", "sample-size", "type-ii-error"] },
+  { id: "e54", title: "Effect Size", slug: "effect-size", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-2", tags: ["cohen-d", "practical-significance", "meta-analysis"] },
+  // Bayesian Statistics (2-4)
+  { id: "e55", title: "Prior & Posterior", slug: "prior-posterior", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-4", tags: ["bayesian", "conjugate-prior", "credible-interval"] },
+  { id: "e56", title: "Bayesian Inference", slug: "bayesian-inference", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-4", tags: ["bayesian", "posterior", "bayes-factor"] },
+  { id: "e57", title: "MAP Estimation", slug: "map-estimation", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-4", tags: ["bayesian", "map", "regularization"] },
+  { id: "e58", title: "MCMC", slug: "mcmc", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "2-4", tags: ["bayesian", "sampling", "metropolis-hastings"] },
+  { id: "e59", title: "Bayesian vs Frequentist", slug: "bayesian-vs-frequentist", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-4", tags: ["bayesian", "frequentist", "philosophy"] },
+  // Regression Analysis (2-5)
+  { id: "e60", title: "Simple Linear Regression", slug: "simple-linear-regression-stats", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "2-5", tags: ["regression", "ols", "gauss-markov"] },
+  { id: "e61", title: "Multiple Linear Regression", slug: "multiple-linear-regression", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-5", tags: ["regression", "ols", "multicollinearity"] },
+  { id: "e62", title: "Logistic Regression (Stats)", slug: "logistic-regression-stats", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-5", tags: ["regression", "mle", "odds-ratio"] },
+  { id: "e63", title: "GLMs", slug: "glm", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "2-5", tags: ["regression", "generalized-linear-models", "exponential-family"] },
+  // Sampling Methods (2-6)
+  { id: "e64", title: "Random Sampling", slug: "random-sampling", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "2-6", tags: ["sampling", "srs", "finite-population"] },
+  { id: "e65", title: "Stratified Sampling", slug: "stratified-sampling", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-6", tags: ["sampling", "stratification", "neyman-allocation"] },
+  { id: "e66", title: "Bootstrap", slug: "bootstrap", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-6", tags: ["sampling", "resampling", "confidence-intervals"] },
+  { id: "e67", title: "Jackknife", slug: "jackknife", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-6", tags: ["sampling", "resampling", "bias-correction"] },
+  // Experimental Design (2-7)
+  { id: "e68", title: "A/B Testing", slug: "ab-testing", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-7", tags: ["experiment", "hypothesis-testing", "sample-size"] },
+  { id: "e69", title: "Randomized Control Trials", slug: "randomized-control-trials", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-7", tags: ["experiment", "rct", "causal-inference"] },
+  { id: "e70", title: "Confounding Variables", slug: "confounding-variables", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-7", tags: ["causal-inference", "dag", "confounding"] },
+  { id: "e71", title: "Causal Inference", slug: "causal-inference", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "2-7", tags: ["causal-inference", "did", "iv", "rdd"] },
+  // Time Series (Stats) (2-8)
+  { id: "e72", title: "Stationarity", slug: "stationarity", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-8", tags: ["time-series", "unit-root", "cointegration"] },
+  { id: "e73", title: "Autocorrelation", slug: "autocorrelation", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-8", tags: ["time-series", "acf", "pacf"] },
+  { id: "e74", title: "ARIMA", slug: "arima", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-8", tags: ["time-series", "forecasting", "box-jenkins"] },
+  { id: "e75", title: "Seasonality", slug: "seasonality", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-8", tags: ["time-series", "seasonal-decomposition", "sarima"] },
+  { id: "e76", title: "ADF Test", slug: "adf-test", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "2-8", tags: ["time-series", "unit-root", "stationarity-test"] },
+  // NLP Fundamentals (6-1)
+  { id: "e77", title: "Tokenization", slug: "tokenization", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "6-1", tags: ["nlp", "bpe", "wordpiece", "sentencepiece"] },
+  { id: "e78", title: "Stemming & Lemmatization", slug: "stemming-lemmatization", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "6-1", tags: ["nlp", "morphology", "text-normalization"] },
+  { id: "e79", title: "POS Tagging", slug: "pos-tagging", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "6-1", tags: ["nlp", "sequence-labeling", "syntax"] },
+  { id: "e80", title: "Named Entity Recognition", slug: "named-entity-recognition", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-1", tags: ["nlp", "ner", "information-extraction"] },
+  { id: "e81", title: "Dependency Parsing", slug: "dependency-parsing", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-1", tags: ["nlp", "syntax", "dependency-tree"] },
+  // Classical NLP (6-2)
+  { id: "e82", title: "Bag of Words", slug: "bag-of-words", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "6-2", tags: ["nlp", "text-representation", "naive-bayes"] },
+  { id: "e83", title: "TF-IDF", slug: "tf-idf", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "6-2", tags: ["nlp", "information-retrieval", "bm25"] },
+  { id: "e84", title: "Word2Vec", slug: "word2vec", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-2", tags: ["nlp", "word-embeddings", "skip-gram", "cbow"] },
+  { id: "e85", title: "GloVe", slug: "glove", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-2", tags: ["nlp", "word-embeddings", "co-occurrence"] },
+  { id: "e86", title: "FastText", slug: "fasttext", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-2", tags: ["nlp", "word-embeddings", "subword", "oov"] },
+  { id: "e87", title: "N-grams", slug: "n-grams", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "6-2", tags: ["nlp", "language-modeling", "bleu", "smoothing"] },
+  // Language Model Fundamentals (6-3)
+  { id: "e88", title: "Language Modeling", slug: "language-modeling", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-3", tags: ["nlp", "language-model", "autoregressive", "masked-lm"] },
+  { id: "e89", title: "Perplexity", slug: "perplexity", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-3", tags: ["nlp", "evaluation", "cross-entropy", "language-model"] },
+  { id: "e90", title: "Masked Language Model", slug: "masked-lm", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-3", tags: ["nlp", "bert", "mlm", "pre-training"] },
+  { id: "e91", title: "Causal Language Model", slug: "causal-lm", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-3", tags: ["nlp", "gpt", "autoregressive", "causal-attention"] },
+  // Large Language Models (6-4)
+  { id: "e92", title: "GPT Architecture", slug: "gpt-architecture", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "6-4", tags: ["llm", "gpt", "decoder-only", "transformer"] },
+  { id: "e93", title: "BERT Architecture", slug: "bert-architecture", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "6-4", tags: ["llm", "bert", "encoder-only", "masked-lm"] },
+  { id: "e94", title: "Scaling Laws", slug: "scaling-laws", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "6-4", tags: ["llm", "chinchilla", "compute-optimal", "power-law"] },
+  { id: "e95", title: "Emergent Abilities", slug: "emergent-abilities", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "6-4", tags: ["llm", "emergence", "scale", "chain-of-thought"] },
+  { id: "e96", title: "Context Window", slug: "context-window", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-4", tags: ["llm", "attention", "rope", "flashattention", "kv-cache"] },
+  { id: "e97", title: "Llama", slug: "llama", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "6-4", tags: ["llm", "llama", "open-source", "rmsnorm", "swiglu", "gqa"] },
+  // Prompt Engineering (6-5)
+  { id: "e98", title: "Zero-Shot Prompting", slug: "zero-shot-prompting", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "6-5", tags: ["prompting", "zero-shot", "instruction-tuning"] },
+  { id: "e99", title: "Few-Shot Prompting", slug: "few-shot-prompting", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "6-5", tags: ["prompting", "few-shot", "in-context-learning"] },
+  { id: "e100", title: "Chain-of-Thought", slug: "chain-of-thought", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-5", tags: ["prompting", "cot", "reasoning", "self-consistency"] },
+  { id: "e101", title: "ReAct Prompting", slug: "react-prompting", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-5", tags: ["prompting", "react", "tool-use", "agents"] },
+  { id: "e102", title: "Prompt Injection", slug: "prompt-injection", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-5", tags: ["security", "prompt-injection", "adversarial", "llm-security"] },
+  // Retrieval & Grounding (6-6)
+  { id: "e103", title: "RAG", slug: "rag", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-6", tags: ["rag", "retrieval", "vector-database", "grounding"] },
+  { id: "e104", title: "Chunking Strategies", slug: "chunking-strategies", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-6", tags: ["rag", "chunking", "document-processing"] },
+  { id: "e105", title: "Embedding Models", slug: "embedding-models", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-6", tags: ["embeddings", "bi-encoder", "contrastive-learning", "mteb"] },
+  { id: "e106", title: "Reranking", slug: "reranking", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-6", tags: ["rag", "cross-encoder", "reranking", "rrf"] },
+  { id: "e107", title: "Hybrid Search", slug: "hybrid-search", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-6", tags: ["rag", "bm25", "dense-retrieval", "rrf", "splade"] },
+  // Multimodal (6-7)
+  { id: "e108", title: "Vision-Language Models", slug: "vision-language-models", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "6-7", tags: ["multimodal", "vlm", "vit", "visual-instruction-tuning"] },
+  { id: "e109", title: "CLIP", slug: "clip", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "6-7", tags: ["multimodal", "clip", "contrastive-learning", "zero-shot-classification"] },
+  { id: "e110", title: "GPT-4V", slug: "gpt-4v", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-7", tags: ["multimodal", "gpt-4v", "visual-qa", "document-understanding"] },
+  { id: "e111", title: "Image Captioning", slug: "image-captioning", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-7", tags: ["multimodal", "captioning", "cider", "blip"] },
+  { id: "e112", title: "Speech-to-Text", slug: "speech-to-text", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "6-7", tags: ["multimodal", "asr", "whisper", "wer", "ctc"] },
 ]
 
 export const difficultyColors = {

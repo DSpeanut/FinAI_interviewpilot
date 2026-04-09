@@ -1,0 +1,66 @@
+{
+  "eli3": [
+    "Scaling laws describe how language model performance improves predictably with more parameters (N), more training data (D), and more compute (C). Kaplan et al. (2020) at OpenAI found that test loss follows a power law: L ∝ N^{-α} when holding D fixed, and L ∝ D^{-β} when holding N fixed. These are smooth, predictable relationships — doubling parameters reliably improves performance by a fixed amount.",
+    "The key finding: for a fixed compute budget C, there is an optimal allocation between model size and data size. Kaplan et al. initially recommended scaling model size faster than data. Hoffmann et al. (2022) (Chinchilla) revised this: for a given compute budget, the optimal model is smaller but trained on more tokens than Kaplan suggested — roughly, N_opt ∝ C^{0.5} and D_opt ∝ C^{0.5} (equal scaling). GPT-3 (175B, 300B tokens) was undertrained according to Chinchilla.",
+    "Scaling laws enable planning: before training a large model, predict its final loss from smaller runs. This derisk expensive training runs. Emergent abilities (Wei et al. 2022) — capabilities that appear suddenly at certain scale thresholds — are a related but debated phenomenon. Scaling laws have driven the LLM race: GPT-4, Claude, Gemini are all scaled according to Chinchilla-optimal or beyond principles."
+  ],
+  "whenWhy": [
+    {
+      "title": "Allocating compute budget for LLM training",
+      "body": "Before training a large model, use scaling laws to find the compute-optimal allocation. Chinchilla law: for C compute FLOPs, optimal model has N* ≈ (C/6)^{0.5} parameters, trained on D* ≈ (C/6)^{0.5} tokens (6 FLOPs per token for forward+backward per parameter). Example: 10²³ FLOPs → 70B parameters, 1.4T tokens. This analysis showed GPT-3 (175B, 300B tokens) used too many parameters for too few tokens. Llama 1 (Touvron et al. 2023) followed Chinchilla — smaller model, more data."
+    },
+    {
+      "title": "Predicting performance before training",
+      "body": "Scaling laws allow extrapolation: train small models (100M, 1B, 10B) at different compute budgets, fit the power law, extrapolate to the target scale. This gives an expected loss for the large model before committing the compute. Used by OpenAI, DeepMind, Anthropic to make training decisions. The smooth power-law relationship means small-scale experiments reliably predict large-scale outcomes — reducing risk in expensive training runs."
+    },
+    {
+      "title": "Understanding model efficiency trade-offs",
+      "body": "Scaling laws reveal that for inference-heavy deployments (many queries per day), a smaller, better-trained model (Chinchilla-optimal) is more efficient than a large undertrained model. A 70B model trained on 1.4T tokens (Llama 2) outperforms a 175B model trained on 300B tokens (GPT-3) at similar compute, while being much cheaper to run. This insight drove the shift toward smaller, more data-efficient models in industry."
+    }
+  ],
+  "deepDiveIntro": [
+    "Kaplan et al. (2020) scaling laws: L(N) ≈ (Nc/N)^{αN}, L(D) ≈ (Dc/D)^{αD}, L(C) ≈ (Cc/C)^{αC}. Exponents: αN ≈ 0.076, αD ≈ 0.095, αC ≈ 0.050 (for compute-optimal training). These hold over 6+ orders of magnitude. Key prediction: model size N should scale faster than data D for fixed compute (Kaplan). This was revised by Hoffmann et al. (Chinchilla, 2022) who ran more careful controlled experiments.",
+    "Chinchilla scaling law: L(N,D) = E + A/N^α + B/D^β where E is irreducible entropy, A, B are fitted constants, α ≈ 0.34, β ≈ 0.28. Optimal allocation: minimize L subject to C = 6ND. Solution: N* = G·(C/6)^{0.5}, D* = G⁻¹·(C/6)^{0.5} where G ≈ 1 (approximately equal scaling of N and D). Chinchilla (70B, 1.4T tokens) matches Gopher (280B, 300B tokens) quality at 4× less compute."
+  ],
+  "deepDive": [
+    {
+      "heading": "Power Law Relationships",
+      "body": "Test loss as a function of model size N (fixed data): L ∝ N^{−0.076}. Doubling N reduces loss by 2^{0.076} ≈ 1.054 — about 5% per doubling. Loss as a function of data D (fixed model): L ∝ D^{−0.095}. These power laws hold from 10M to 10B+ parameters. Fit on log-log scale. The irreducible entropy floor E represents the minimum achievable loss — even an infinite model on infinite data has a floor (noise in the data itself). Beyond the floor, more compute always helps. [1]",
+      "formula": "L(N, D) = E + A/N^α + B/D^β"
+    },
+    {
+      "heading": "Chinchilla Optimal Compute Allocation",
+      "body": "FLOPs per training step: C ≈ 6ND (2 for forward pass: N FLOPs, 2× for backward ≈ 4N, total 6N per token × D tokens). Minimize L(N,D) subject to 6ND = C_budget. Lagrangian: ∂L/∂N = ∂L/∂D gives αA/N^{α+1} = βB/D^{β+1}, with 6ND = C. Solution: N* ∝ C^{0.5}, D* ∝ C^{0.5}. Chinchilla rule of thumb: 20 training tokens per parameter. 70B model → 1.4T tokens. GPT-3 (175B, 300B tokens): ≈ 1.7 tokens/param (severely undertrained by this standard). [2]"
+    },
+    {
+      "heading": "Emergent Abilities at Scale",
+      "body": "Wei et al. (2022): some capabilities (multi-step arithmetic, chain-of-thought reasoning, few-shot word unscrambling) are absent below ~10B params and appear sharply above a threshold. Proposed explanation: tasks require multiple steps, each individually low-probability — only at high per-step accuracy does the product probability become non-negligible. Debate: Schaeffer et al. (2023) argue emergence is a metric artifact — with continuous metrics (instead of accuracy), emergence disappears and scaling is smooth. Regardless, GPT-3 scale (175B) showed qualitatively new capabilities not present at GPT-2 scale (1.5B). [3]"
+    },
+    {
+      "heading": "Scaling Beyond Chinchilla: Inference-Optimal Models",
+      "body": "Chinchilla optimizes for a single training run. For inference-heavy deployments (LLM API serving millions of queries), the total compute = training + N_queries × inference_cost. Smaller models are cheaper per inference. Llama 2 70B: trained on 2T tokens (beyond Chinchilla optimal for 70B) — accepts higher training cost for lower inference cost. Llama 3 8B: trained on 15T tokens — extremely inference-efficient. 'Overtrained' small models (more data than Chinchilla-optimal) are increasingly preferred for deployment. [2]"
+    }
+  ],
+  "takeaways": [
+    "L(N,D) = E + A/N^α + B/D^β — power law over model size and data, holds 6+ orders of magnitude. [1]",
+    "Kaplan: scale N faster than D. Chinchilla (2022): N and D scale equally — 20 tokens per parameter. [2]",
+    "GPT-3 (175B, 300B tokens) was severely undertrained; Chinchilla (70B, 1.4T) matches at 4× less compute. [2]",
+    "Emergent abilities: some capabilities appear sharply at scale thresholds — possibly metric artifact. [3]",
+    "Inference-optimal: 'overtrain' smaller models for cheap deployment (Llama 3 8B on 15T tokens). [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Do scaling laws hold for all model architectures and domains?",
+      "a": "Kaplan and Chinchilla scaling laws were derived for autoregressive transformer LMs on natural language. They appear to generalize: similar power laws observed for vision transformers (Zhai et al. 2022, ViT scaling), code LMs (GitHub Copilot), and multimodal models. However, the exponents (α, β) and constants differ by domain and architecture. Mixture-of-Experts (MoE) models change the scaling dynamics — total parameters (N) vs active parameters per token are different. Sparse MoE scales differently than dense models. In practice, organizations refit scaling laws for their specific architecture, data mixture, and hardware configuration. [1][2]"
+    },
+    {
+      "q": "What is the 'flop-matched' vs 'parameter-matched' comparison?",
+      "a": "Two models are parameter-matched if they have the same N (parameters). Two models are FLOP-matched if they use the same training compute C = 6ND. A parameter-matched comparison is unfair if one model was trained on 10× more data — it had 10× more FLOPs. A FLOP-matched comparison is the fair way to compare architectures and training recipes. Chinchilla showed that Gopher (280B, 300B tokens) vs Chinchilla (70B, 1.4T tokens) are approximately FLOP-matched, and Chinchilla wins — same compute, better allocation. Always check whether LLM comparisons control for training compute, not just parameter count. [2]"
+    }
+  ],
+  "sources": [
+    { "label": "Kaplan et al. (2020) — Scaling Laws for Neural Language Models, arXiv 2001.08361", "url": "https://arxiv.org/abs/2001.08361" },
+    { "label": "Hoffmann et al. (2022) — Training Compute-Optimal Large Language Models (Chinchilla), NeurIPS 2022", "url": "https://arxiv.org/abs/2203.15556" },
+    { "label": "Wei et al. (2022) — Emergent Abilities of Large Language Models, TMLR 2022", "url": "https://arxiv.org/abs/2206.07682" }
+  ]
+}

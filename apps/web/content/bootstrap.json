@@ -1,0 +1,72 @@
+{
+  "eli3": [
+    "The bootstrap (Efron, 1979) estimates the sampling distribution of any statistic by resampling with replacement from the original dataset. Draw B bootstrap samples of size n (each drawn from the original n observations with replacement), compute the statistic on each, and use the distribution of those B values to estimate variance, bias, and confidence intervals — without assuming a parametric model.",
+    "A bootstrap sample of size n drawn with replacement from n observations: approximately 63.2% of original observations appear at least once (since P(not selected in one draw) = (1−1/n)ⁿ → 1/e ≈ 0.368 as n→∞), the rest appear 0 times. This means ≈ 36.8% of observations are out-of-bag (OOB) — never selected. OOB observations form a natural validation set, used in random forests.",
+    "The bootstrap works because the empirical distribution F̂ₙ (putting mass 1/n on each observation) approximates the unknown true distribution F. Bootstrap resampling from F̂ₙ mimics sampling from F. It fails when F̂ₙ is a poor approximation of F: small samples, heavy tails, extremes (min, max), and non-smooth functionals."
+  ],
+  "whenWhy": [
+    {
+      "title": "Standard errors for complex estimators",
+      "body": "For statistics without tractable closed-form SE (median, trimmed mean, correlation, Gini coefficient, model predictions), the bootstrap provides a straightforward SE estimate: SE_boot = std({θ̂*_b}_{b=1}^B). No analytical formula needed. B = 200–1000 bootstrap samples is typically sufficient for SE estimation; B = 1000–10,000 for confidence intervals."
+    },
+    {
+      "title": "Confidence intervals without normality",
+      "body": "Four main bootstrap CI types: (1) Normal: θ̂ ± z_{α/2}·SE_boot (assumes normality); (2) Percentile: [q_{α/2}, q_{1−α/2}] of {θ̂*_b}; (3) Basic (pivot): [2θ̂−q_{1−α/2}, 2θ̂−q_{α/2}] — corrects for bias in the percentile interval; (4) BCa (bias-corrected and accelerated): adjusts for both bias and acceleration (non-constant SE). BCa has the best theoretical properties (second-order accurate) and should be the default."
+  },
+    {
+      "title": "Model selection and cross-validation",
+      "body": ".632 bootstrap estimator: error estimate = 0.632 · OOB_error + 0.368 · training_error. Better than leave-one-out CV for small samples because OOB sets have different sizes. Used in random forests for honest error estimation without a separate test set. The bootstrap's OOB mechanism is the basis for random forest's built-in validation."
+    },
+    {
+      "title": "Hypothesis testing via bootstrap",
+      "body": "The permutation test (label shuffling) tests H₀: no difference between groups without parametric assumptions. The bootstrap can also be used for hypothesis testing via the bootstrap p-value: compute the statistic under the null (shift bootstrap distribution to have mean 0), then compute P(|θ̂*| ≥ |θ̂|). This is the two-sample bootstrap test, equivalent to the permutation test for large B."
+    }
+  ],
+  "deepDiveIntro": [
+    "Nonparametric bootstrap: for b = 1,…,B: draw x*₁,…,x*ₙ iid from {x₁,…,xₙ} (SRSWR), compute θ̂*_b = T(x*₁,…,x*ₙ). SE estimate: std({θ̂*_b}). Bias estimate: B̂ias = θ̄* − θ̂ where θ̄* = (1/B)Σθ̂*_b. Bootstrap works because the bootstrap distribution of θ̂* − θ̄* approximates the sampling distribution of θ̂ − θ.",
+    "The BCa confidence interval adjusts the percentile interval for two quantities: bias-correction ẑ₀ = Φ⁻¹(#{θ̂*_b < θ̂}/B) and acceleration â = (1/6)Σᵢ(θ̂₋ᵢ − θ̄₋)³/(Σᵢ(θ̂₋ᵢ − θ̄₋)²)^{3/2} (from jackknife leave-one-out estimates). Adjusted percentiles: α₁ = Φ(ẑ₀ + (ẑ₀+z_α)/(1−â(ẑ₀+z_α))), α₂ = Φ(ẑ₀ + (ẑ₀+z_{1−α})/(1−â(ẑ₀+z_{1−α})))."
+  ],
+  "deepDive": [
+    {
+      "heading": "Nonparametric Bootstrap: SE and Bias",
+      "body": "SE_boot = √[(1/(B−1))Σ(θ̂*_b − θ̄*)²]. Bias_boot = θ̄* − θ̂. Bias-corrected estimate: θ̂_BC = θ̂ − Bias_boot = 2θ̂ − θ̄*. The sample median is slightly biased in small samples; the bootstrap bias estimate enables correction. B ≥ 200 for stable SE; B ≥ 1000 for stable CI endpoints. Computational cost: B × (cost of computing θ̂). Parallelizable over B. [1]",
+      "formula": "SE_boot = std({θ̂*_b}_{b=1}^B)"
+    },
+    {
+      "heading": "Bootstrap CI Types and Accuracy",
+      "body": "Percentile CI: [θ̂*_{α/2}, θ̂*_{1−α/2}] — first-order accurate (coverage error O(n^{-1/2})). Basic CI: [2θ̂−θ̂*_{1−α/2}, 2θ̂−θ̂*_{α/2}] — first-order accurate. Studentized (bootstrap-t): requires nested bootstrapping, computationally expensive. BCa: second-order accurate (coverage error O(n⁻¹)) — best coverage but requires computing the acceleration â from jackknife estimates. For skewed distributions or biased estimators, BCa substantially outperforms percentile CI. [1]",
+      "formula": "Percentile CI: [θ̂*_{α/2},  θ̂*_{1−α/2}]"
+    },
+    {
+      "heading": "When Bootstrap Fails",
+      "body": "The bootstrap is inconsistent for: (1) Non-smooth functionals: sample maximum θ̂ = max(xᵢ) — the bootstrap max does not converge to the correct sampling distribution (the extreme value distribution). (2) Unit root testing (Dickey-Fuller) — bootstrap breaks down near the unit root boundary. (3) Very small samples (n < 10): the discrete empirical distribution is a poor approximation. (4) Heavy-tailed distributions without finite variance: bootstrap SE is inconsistent. For extremes: use the m-out-of-n bootstrap (m << n). [1]"
+    },
+    {
+      "heading": "Parametric Bootstrap",
+      "body": "Instead of resampling from the empirical distribution, the parametric bootstrap draws from a fitted parametric model. Fit θ̂ = T(x₁,…,xₙ), then draw x*₁,…,x*ₙ from the fitted model F(·;θ̂), compute θ̂*. More efficient than nonparametric bootstrap when the model is correctly specified; biased when model is misspecified. Used for model checking: compare observed statistic to its distribution under the fitted model. [1]"
+    }
+  ],
+  "youtubeLabel": "Bootstrap Confidence Intervals — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/Xz0x-8-cgaQ",
+  "takeaways": [
+    "Bootstrap: resample n observations with replacement B times, compute statistic on each. SE_boot = std({θ̂*_b}). [1]",
+    "~63.2% of original observations appear in each bootstrap sample; 36.8% are out-of-bag. [1]",
+    "BCa CI is second-order accurate — the default for production use. Percentile CI is first-order. [1]",
+    "Bootstrap fails for sample extrema, unit roots, very small n, and heavy-tailed distributions (no finite variance). [1]",
+    "Parametric bootstrap: resample from fitted model — more efficient if model is correct, biased if misspecified. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How many bootstrap samples B are needed?",
+      "a": "B = 200–500: sufficient for SE estimation (SE of SE ≈ SE/√(2B)). B = 1000–2000: stable percentile CI endpoints. B = 10,000+: stable BCa CI (which is more sensitive to the tails). For hypothesis testing with target power: B should satisfy P(false conclusion) ≤ 0.01, typically requiring B ≥ 999 (so p-values are k/B for k ∈ {0,1,…,B}). Davison & Hinkley (1997) provide detailed guidance. [1]"
+    },
+    {
+      "q": "Is the bootstrap valid for dependent data (time series)?",
+      "a": "Standard iid bootstrap is invalid for time series — resampling breaks dependence structure. Block bootstrap: sample blocks of consecutive observations of length l, then concatenate. Circular block bootstrap (wraps around at the ends) corrects for end-effects. Stationary bootstrap (Politis & Romano, 1994): random block lengths geometrically distributed with mean l. Model-based bootstrap for ARIMA: fit model, resample residuals, reconstruct series. Choice of block length l matters (bias-variance tradeoff in DEFF). [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Efron & Hastie — Computer Age Statistical Inference, Ch. 10–12", "url": "https://hastie.su.domains/CASI/" },
+    { "label": "Davison & Hinkley — Bootstrap Methods and Their Application, Ch. 2–5", "url": "https://doi.org/10.1017/CBO9780511802843" }
+  ]
+}

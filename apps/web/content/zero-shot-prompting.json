@@ -1,0 +1,65 @@
+{
+  "eli3": [
+    "Zero-shot prompting means asking a language model to perform a task without providing any examples — just an instruction and the input. 'Classify this review as positive or negative: [review text]' is a zero-shot prompt. The model relies entirely on knowledge learned during pre-training and instruction tuning to understand and execute the task. No demonstrations, no labeled examples.",
+    "Zero-shot prompting works well for large instruction-tuned models (GPT-4, Claude, Llama 2-chat) because these models were fine-tuned on diverse (instruction, response) pairs that teach them to follow natural language directives. For smaller or base (not instruction-tuned) models, zero-shot prompting is unreliable — they may complete the prompt rather than perform the task. Instruction tuning is what makes zero-shot work.",
+    "Zero-shot is the fastest, cheapest prompting strategy — no examples needed in the context, minimal tokens. It works well for simple, well-defined tasks (classification, summarization, translation) but can fail on complex reasoning, specialized domain tasks, or tasks requiring specific output formats. For these, few-shot examples or chain-of-thought prompting provides more reliable behavior."
+  ],
+  "whenWhy": [
+    {
+      "title": "Quick prototyping and simple task baselines",
+      "body": "Zero-shot is the natural starting point when building an LLM-based system. Start with zero-shot: if accuracy is sufficient, ship it — minimal prompt engineering overhead. Escalate to few-shot if zero-shot falls short. For standard NLP tasks (sentiment classification, summarization, named entity extraction, translation), large instruction-tuned models often achieve competitive zero-shot accuracy. The GPT-4 zero-shot baseline on many benchmarks exceeds fine-tuned smaller models."
+    },
+    {
+      "title": "Tasks where examples are hard to provide",
+      "body": "For tasks with open-ended outputs (creative writing, open QA, brainstorming), few-shot examples may constrain the model too much. Zero-shot with a clear instruction gives the model more freedom. For very rare tasks with no available examples, zero-shot is the only option. Instruction quality becomes critical: precise, unambiguous instructions with explicit output format requirements improve zero-shot performance significantly."
+    },
+    {
+      "title": "Cost-sensitive production APIs",
+      "body": "In LLM API deployments (OpenAI, Anthropic, Cohere), input tokens are billed. Zero-shot prompts have minimal token count — no examples to pay for. For high-throughput applications (millions of API calls per day), the difference between 50-token zero-shot and 500-token few-shot prompts is significant cost. When zero-shot accuracy meets the quality bar, it's the economically optimal choice."
+    }
+  ],
+  "deepDiveIntro": [
+    "Zero-shot instruction design principles (from empirical studies): (1) Task specification — explicitly name the task ('Classify', 'Summarize', 'Extract'); (2) Role assignment — 'You are an expert at...'; (3) Output format specification — 'Respond with only JSON', 'Answer in one sentence'; (4) Constraints — 'Focus only on...', 'Do not...'; (5) Chain-of-thought trigger — 'Let's think step by step' converts zero-shot to zero-shot-CoT.",
+    "Zero-shot-CoT (Kojima et al. 2022): appending 'Let's think step by step' to a question dramatically improves zero-shot reasoning. On MultiArith (multi-step math), standard zero-shot: 17.7%, zero-shot-CoT: 78.7% accuracy for GPT-3. The phrase triggers step-by-step reasoning without needing example demonstrations. This is now the standard zero-shot approach for reasoning tasks at sufficient model scale (≥60B parameters)."
+  ],
+  "deepDive": [
+    {
+      "heading": "Instruction Tuning and Zero-Shot Capability",
+      "body": "Wei et al. (2022) FLAN: fine-tune LM on 62 NLP tasks phrased as natural language instructions. Zero-shot performance on held-out tasks (not seen during fine-tuning) improved by 16% on average for 137B FLAN vs base 137B. Key insight: instruction tuning teaches the model to interpret and follow instructions in natural language — a meta-skill that generalizes. InstructGPT (Ouyang et al. 2022): SFT + RLHF on diverse instructions. Result: InstructGPT 1.3B outperforms GPT-3 175B on zero-shot tasks by human preference — alignment matters more than scale for instruction following. [1]"
+    },
+    {
+      "heading": "Zero-Shot-CoT",
+      "body": "Standard zero-shot for math: 'Q: Roger has 5 balls. He buys 2 more. How many? A:' → model might output '7' or might fail. Zero-shot-CoT: append 'Let's think step by step.' → model outputs step-by-step reasoning → extract final answer. Two-step process: (1) Generate reasoning with 'Let's think step by step'; (2) Extract answer with 'Therefore, the answer is'. Works for math, logic, planning. Fails for factual retrieval tasks where reasoning doesn't help. At <60B parameters: zero-shot-CoT can hurt (generates wrong intermediate steps). [2]",
+      "formula": "Zero-shot-CoT = zero-shot + 'Let\\'s think step by step.'"
+    },
+    {
+      "heading": "Prompt Format and Output Structure",
+      "body": "Output format control: the most impactful zero-shot prompt design decision. Unstructured: model may output verbose, inconsistent format. Structured: specify format explicitly. Examples: (1) JSON output: 'Respond only with valid JSON: {\"label\": \"positive/negative\", \"confidence\": 0-1}'; (2) Single word: 'Answer with only one word: positive or negative'; (3) List: 'Extract all named entities. Return as a comma-separated list.'. Format specification reduces post-processing errors and makes outputs parseable. Constrained decoding (grammar-based sampling) ensures structural compliance programmatically. [1]"
+    },
+    {
+      "heading": "Zero-Shot vs Fine-tuning Trade-offs",
+      "body": "Zero-shot: no training data needed, instant deployment, generalizes across related tasks. Weak for: specialized domain vocabulary, strict format requirements, tasks outside training distribution. Fine-tuning: requires labeled examples (≥100 for LoRA, ≥1K for full fine-tune), training cost, but achieves consistent format and domain accuracy. GPT-4 zero-shot often matches fine-tuned GPT-3.5 or Llama 2 13B on many NLP tasks — scale substitutes for task-specific fine-tuning. Rule of thumb: start zero-shot → if accuracy < threshold, try few-shot → then CoT → then fine-tuning. [1]"
+    }
+  ],
+  "takeaways": [
+    "Zero-shot: instruction only, no examples — works for large instruction-tuned models. [1]",
+    "Zero-shot-CoT: append 'Let's think step by step' — 17.7% → 78.7% on math at GPT-3 scale. [2]",
+    "Instruction quality: task name + role + output format + constraints — most impactful design decision. [1]",
+    "Instruction tuning (FLAN, InstructGPT) is what makes zero-shot work — not just scale. [1]",
+    "Escalation path: zero-shot → few-shot → CoT → fine-tuning. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does zero-shot prompting fail on base (non-instruction-tuned) models?",
+      "a": "Base models (trained only on next-token prediction, no instruction tuning) complete text — they don't follow instructions. Given 'Classify this review as positive or negative: Great product!', a base model might continue with more text rather than outputting 'positive'. The model learned to continue plausible text, not to understand an instruction-response format. Instruction tuning (SFT on (instruction, response) pairs) teaches the model the expected input/output format. Without instruction tuning, you can coax behavior via demonstrations (few-shot), but zero-shot instruction following is unreliable. This is why Llama base vs Llama-chat behave very differently on the same prompt. [1]"
+    },
+    {
+      "q": "What is the effect of prompt verbosity on zero-shot accuracy?",
+      "a": "Generally, more detailed, explicit instructions improve accuracy up to a point. Under-specified: 'Classify: [text]' — model may not know the label set or output format. Well-specified: 'Classify the sentiment of the following review as exactly one of: positive, neutral, negative. Output only the label. Review: [text]' — clearer expectations. However, very long prompts can introduce noise: irrelevant instructions may confuse the model, and very long system prompts may dilute attention on the actual input. For complex tasks, structured prompts (numbered steps, XML tags) improve parsing. Empirically: prompts with explicit output format consistently outperform unstructured prompts. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Wei et al. (2022) — Finetuned Language Models Are Zero-Shot Learners (FLAN), ICLR 2022", "url": "https://arxiv.org/abs/2109.01652" },
+    { "label": "Kojima et al. (2022) — Large Language Models are Zero-Shot Reasoners, NeurIPS 2022", "url": "https://arxiv.org/abs/2205.11916" }
+  ]
+}

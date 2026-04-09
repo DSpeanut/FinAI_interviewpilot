@@ -1,0 +1,64 @@
+{
+  "eli3": [
+    "Speech-to-text (STT), or Automatic Speech Recognition (ASR), converts spoken audio into written text. Modern STT systems use deep learning: audio waveform → spectrogram (Mel-filterbank features) → encoder (Conformer or transformer) → decoder (CTC or attention-based) → text. Whisper (OpenAI 2022) is the dominant open-source model, trained on 680K hours of multilingual audio data.",
+    "Two key decoding approaches: (1) CTC (Connectionist Temporal Classification) — predicts a probability distribution over characters/tokens at each time step, collapses repeated predictions to get final text. Fast, but cannot model language context as well. (2) Attention-based encoder-decoder (like Whisper) — encoder processes audio, decoder generates text token-by-token with attention to encoder outputs. Slower but higher quality, handles multilingual and code-switched speech.",
+    "Modern STT is near-human level on clean audio benchmarks (WER < 3% on LibriSpeech clean). Real-world challenges: background noise, accents, domain-specific vocabulary (medical, legal), overlapping speech (diarization), and real-time streaming. State-of-the-art: Whisper large-v3 (open-source), Google STT v2, AWS Transcribe, Azure Speech Services."
+  ],
+  "whenWhy": [
+    {
+      "title": "Meeting transcription and audio search",
+      "body": "STT enables: meeting transcriptions (Zoom, Teams, Otter.ai), podcast transcriptions for search indexing, customer call analysis (contact center analytics), voice command interfaces. Whisper with speaker diarization (pyannote-audio) attributes each transcribed segment to a speaker. For enterprise: STT → diarized transcript → LLM summary + action items. This pipeline converts unstructured audio into structured, searchable text."
+    },
+    {
+      "title": "Voice interfaces and real-time assistants",
+      "body": "Voice-first interfaces (Siri, Google Assistant, Alexa) use streaming STT: transcribe audio chunks in real-time (<300ms latency) while the user is still speaking. Streaming models: use CTC or RNN-T (Recurrent Neural Network Transducer) which can produce output during input encoding — streaming-capable. Whisper is not natively streaming but can be adapted with chunking. Real-time STT enables: voice control, voice search, accessibility tools for speech-impaired users, real-time meeting assistants."
+  },
+    {
+      "title": "Multimodal document processing",
+      "body": "Audio and video content are unstructured for RAG and search. STT converts speech to text, enabling: (1) video transcription for searchable subtitle generation; (2) podcast episode indexing; (3) lecture transcription for educational search; (4) multilingual transcript generation. STT + LLM summarization = automated video digest. Whisper's multilingual capability (99 languages) enables cross-lingual transcription — transcribe French audio into English text directly."
+    }
+  ],
+  "deepDiveIntro": [
+    "Audio feature extraction: raw waveform → Short-Time Fourier Transform (STFT, window=25ms, stride=10ms) → Mel-filterbank (80 or 128 Mel bins) → log → normalized features. The Mel scale approximates human auditory perception — more frequency resolution at low frequencies where speech content is concentrated. Result: 2D spectrogram (time × frequency), treated similarly to an image.",
+    "Whisper (Radford et al. 2022): encoder-decoder transformer. Encoder: 2-layer Conv1D (downsampling) → sinusoidal position embeddings → N transformer encoder blocks with full self-attention. Decoder: causal transformer decoder with cross-attention to encoder outputs. The decoder generates text tokens autoregressively. Special tokens: <|startoftranscript|>, <|en|> (language token), <|transcribe|> or <|translate|> (task token), <|notimestamps|> or timestamp tokens. This multi-task framing enables transcription, translation, and timestamp generation with a single model."
+  ],
+  "deepDive": [
+    {
+      "heading": "CTC vs Attention Decoder",
+      "body": "CTC (Graves et al. 2006): at each time frame t, predict P(token | audio_t). Output includes a blank token (−). Decoding: collapse consecutive duplicates and remove blanks. L(y|x) = Σ_{π:B(π)=y} P(π|x), summed over all valid alignments. CTC assumes frame-level independence — no language model. Advantage: fast decoding, streaming-compatible, simple. Attention decoder (Whisper, ESPnet): decoder autoregressively generates text with attention to all encoder frames — better language modeling. Advantage: higher quality, handles long-range dependencies. Hybrid (CTC + attention): train with both losses, use CTC for prefix scoring in beam search. [1]"
+    },
+    {
+      "heading": "Whisper Architecture and Training",
+      "body": "Whisper (Radford et al. 2022): trained on 680K hours of audio (438K English, 242K multilingual). Encoder: 6-layer transformer (small) to 32-layer (large-v3). Input: 30-second audio chunks → 80-channel Mel spectrogram → 1500 time frames. Cross-attention: decoder attends to 1500 encoder outputs. Multi-task training: language identification, transcription, translation, voice activity detection — all via special tokens. Zero-shot transfer: Whisper large-v3 achieves WER 2.7% on LibriSpeech clean, 5.2% on other (no domain-specific fine-tuning). Available: openai/whisper-large-v3 on HuggingFace. [1]"
+    },
+    {
+      "heading": "Word Error Rate (WER) and Evaluation",
+      "body": "WER = (S + D + I) / N, where S=substitutions, D=deletions, I=insertions, N=number of words in reference. Lower is better. Standard benchmarks: LibriSpeech (read speech, audiobooks) — easy, clean; CHiME-6 (cocktail party, overlapping speech) — hard; AMI (meeting transcription) — moderate; SpeechStorm (spontaneous, accented). LibriSpeech clean WER: human ≈1.5%, Whisper large-v3 ≈2.7%, Whisper medium ≈4.2%. Real-world WER for medical/legal speech can be 15–30% without domain adaptation. [1]"
+    },
+    {
+      "heading": "Speaker Diarization and Practical Pipeline",
+      "body": "Diarization: 'who spoke when?' — segmenting audio into speaker-attributed regions. Pipeline: (1) VAD (Voice Activity Detection) — detect speech vs silence; (2) Speaker segmentation — split at speaker changes; (3) Speaker embedding — embed each segment with a speaker encoder (d-vector, x-vector); (4) Clustering — k-means or spectral clustering on embeddings to assign speaker IDs. pyannote-audio 3.1: SOTA open-source diarization (DER ≈ 7% on AMI). Full pipeline: audio → Whisper (transcription) + pyannote (diarization) → align transcription timestamps with speaker labels → attributed transcript. [2]"
+    }
+  ],
+  "takeaways": [
+    "WER = (substitutions + deletions + insertions) / reference_words — lower is better. [1]",
+    "Whisper: encoder-decoder transformer, trained on 680K hours, 99 languages, zero-shot STT + translation. [1]",
+    "CTC: fast, streaming, frame-independent; attention decoder: higher quality, not natively streaming. [1]",
+    "Audio features: raw waveform → Mel spectrogram (80 bins, 10ms stride) → transformer encoder. [1]",
+    "Full pipeline: Whisper (transcription) + pyannote (diarization) → attributed meeting transcript. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle Whisper's limitation of 30-second audio chunks for long files?",
+      "a": "Whisper processes 30-second chunks internally. For long audio: (1) Simple chunking: split audio into 30s segments, transcribe each, concatenate — problem: splits at arbitrary points, may cut mid-sentence. (2) Chunking with overlap: use 30s chunks with 5-10s overlap at boundaries — merge overlapping transcripts using string matching. (3) Faster-Whisper (CTranslate2 backend): implements sliding window with proper VAD-based segmentation — splits at silence, not at fixed 30s boundaries. (4) WhisperX: uses VAD to detect speech segments, align word-level timestamps with forced alignment (CTC with character model). For production long-form transcription, Faster-Whisper or WhisperX are preferred over raw Whisper API for long audio. [1]"
+    },
+    {
+      "q": "What is RNN-T and why is it preferred for streaming ASR?",
+      "a": "RNN-T (Recurrent Neural Network Transducer, Graves 2012): extends CTC with a language model component. Architecture: (1) Encoder (transcription network): processes audio frames → encoder outputs. (2) Prediction network (label network): RNN over previous output labels — like an LM. (3) Joint network: combines encoder and prediction outputs → probability over output tokens + blank. RNN-T can emit output tokens at any time step after processing sufficient audio — this makes it naturally streaming: output is produced as input arrives, with minimal latency (< 100ms). CTC lacks the prediction network (no language model in the decoder). Attention encoder-decoder requires the full audio sequence before decoding. RNN-T is the standard for on-device streaming ASR (Google's Gboard keyboard, Apple's Siri) due to its low-latency streaming capability. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Radford et al. (2022) — Robust Speech Recognition via Large-Scale Weak Supervision (Whisper), ICML 2023", "url": "https://arxiv.org/abs/2212.04356" },
+    { "label": "Bredin et al. (2023) — pyannote.audio 2.1 speaker diarization pipeline", "url": "https://arxiv.org/abs/2104.04045" }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "eli3": [
+    "Statistical power is the probability that a test correctly rejects a false null hypothesis: Power = P(reject H₀ | H₁ is true) = 1 − β, where β is the Type II error rate. High power means you're unlikely to miss a real effect. A test with power 0.80 will detect a true effect 80% of the time.",
+    "Power depends on four quantities: (1) the true effect size δ (larger effect → easier to detect), (2) sample size n (larger n → higher power), (3) significance level α (higher α → higher power, at the cost of more false positives), and (4) population variability σ (lower σ → higher power). The only one researchers control post-design is n.",
+    "In practice, power analysis is done before data collection to determine the required sample size. The standard convention is power ≥ 0.80 (Cohen, 1988), meaning β ≤ 0.20. Under-powered studies waste resources and produce unreliable effect estimates even when they 'succeed' (winner's curse)."
+  ],
+  "whenWhy": [
+    {
+      "title": "A priori power analysis: planning sample size",
+      "body": "Before running an experiment, compute the minimum n needed to detect a specified effect at given α and desired power (1−β). Fix: α (typically 0.05), power (typically 0.80 or 0.90), minimum detectable effect (MDE) or expected effect size, and σ from pilot data or literature. Solve for n using the power formula. Underpowered studies are a primary driver of false negatives and the replication crisis."
+    },
+    {
+      "title": "Post-hoc power: misleading after a null result",
+      "body": "Computing power after a non-significant result using the observed effect size is circular and uninformative — 'observed power' is a direct function of the p-value: if p > α, observed power < 0.5. The correct post-hoc approach is to report a confidence interval for the effect — if the CI includes the MDE, the study was underpowered for that effect."
+    },
+    {
+      "title": "Sensitivity analysis: what effect sizes are detectable?",
+      "body": "Given a fixed n and α, compute the power curve as a function of effect size δ. This reveals the minimum detectable effect (MDE) at 80% power. Useful for interpreting studies with fixed n (clinical trial constraints, existing databases) and communicating what the study was and wasn't designed to detect."
+    },
+    {
+      "title": "Power in multiple testing settings",
+      "body": "With m tests and multiple testing corrections (Bonferroni: α/m), individual test power decreases substantially. Family-wise power (probability of detecting at least one true effect) and per-comparison power must be considered separately. In genomic studies (m ~ 10⁶), very large n is required to maintain power at Bonferroni-corrected levels."
+    }
+  ],
+  "deepDiveIntro": [
+    "For a one-sample z-test with H₀: μ = μ₀ vs H₁: μ = μ₀ + δ (δ > 0), at significance level α (one-sided): Power = P(Z > z_α − δ√n/σ | μ = μ₀+δ) = Φ(δ√n/σ − z_α), where Φ is the standard normal CDF. Increasing n, δ, or α, or decreasing σ, increases power.",
+    "The required sample size for desired power 1−β (two-sided, one-sample): n = (z_{α/2} + z_β)²σ²/δ². For α = 0.05, power = 0.80: (1.96 + 0.842)² ≈ 7.85. For Cohen's d = δ/σ = 0.5 (medium effect): n = 7.85/(0.5²) ≈ 32 per group."
+  ],
+  "deepDive": [
+    {
+      "heading": "Power Formula for z-test",
+      "body": "One-sided right test, H₀: μ = μ₀, H₁: μ = μ₁ > μ₀, effect δ = μ₁ − μ₀. Reject H₀ when Z = (x̄ − μ₀)/(σ/√n) > z_α. Power = P(Z > z_α | μ = μ₁) = P((x̄−μ₁)/(σ/√n) > z_α − δ√n/σ) = 1 − Φ(z_α − δ√n/σ) = Φ(δ√n/σ − z_α). For two-sided test at α: Power ≈ Φ(|δ|√n/σ − z_{α/2}) (ignoring the negligible left tail). [1]",
+      "formula": "Power ≈ Φ(|δ| · √n / σ  −  z_{α/2})"
+    },
+    {
+      "heading": "Sample Size Formula",
+      "body": "Solving Power = 1−β for n: n = (z_{α/2} + z_β)²σ²/δ² (two-sided). In terms of Cohen's d = δ/σ: n = (z_{α/2} + z_β)²/d². For α = 0.05 (z_{0.025} = 1.96), power = 0.80 (z_{0.20} = 0.842): coefficient = (1.96+0.842)² = 7.85. For d = 0.2 (small): n ≈ 197; d = 0.5 (medium): n ≈ 32; d = 0.8 (large): n ≈ 13 per group (two-sample: double these). [1]",
+      "formula": "n = (z_{α/2} + z_β)² · σ² / δ² = (z_{α/2} + z_β)² / d²"
+    },
+    {
+      "heading": "Power-Precision Tradeoff",
+      "body": "There is a fundamental tradeoff between Type I error (α) and Type II error (β). Lowering α (more stringent) increases β (less power) for fixed n. The only way to simultaneously reduce both is to increase n. In exploratory research, α = 0.10 or 0.20 may be acceptable to increase power; in confirmatory trials with strong consequences (FDA approval), α = 0.01 with power = 0.90 may be required. [1]"
+    },
+    {
+      "heading": "Winner's Curse in Underpowered Studies",
+      "body": "When an underpowered study 'succeeds' (rejects H₀), the observed effect size is inflated above the true effect — this is the winner's curse (Ioannidis, 2008). Only extreme sample effects pass the significance threshold in underpowered designs. Meta-analyses that include underpowered studies are subject to this bias. Publication bias (only significant results published) compounds the problem."
+    }
+  ],
+  "youtubeLabel": "Statistical Power — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/Rsc5znwR5FA",
+  "takeaways": [
+    "Power = P(reject H₀ | H₁ true) = 1 − β; convention is power ≥ 0.80. [1]",
+    "Power increases with: larger δ (effect size), larger n, larger α, smaller σ. [1]",
+    "Sample size: n = (z_{α/2} + z_β)²σ²/δ² for a two-sided z-test. [1]",
+    "Post-hoc 'observed power' using the observed effect is circular — report CIs instead. [1]",
+    "Winner's curse: significant results from underpowered studies overestimate the true effect size. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "If power = 0.80, what is the expected false discovery rate among significant results?",
+      "a": "It depends on the prior probability that H₁ is true (base rate R). Using the positive predictive value formula: PPV = Power·R / (Power·R + α·(1−R)). If R = 0.10 (10% of hypotheses tested are true), α = 0.05, power = 0.80: PPV = 0.80·0.10/(0.80·0.10 + 0.05·0.90) = 0.08/(0.08+0.045) ≈ 0.64. So 36% of significant results are false positives — much higher than the nominal 5%. (Ioannidis, 2005)"
+    },
+    {
+      "q": "How does power analysis differ for non-parametric tests?",
+      "a": "Non-parametric tests (Mann-Whitney, Wilcoxon) don't have closed-form power formulas because power depends on the full distribution, not just μ and σ. Simulation-based power analysis is the standard approach: simulate data under H₁, run the test many times, and estimate power as the proportion of rejections. For data close to normal, non-parametric tests have approximately 95% of the power of their parametric counterparts (asymptotic relative efficiency). [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Cohen, J. — Statistical Power Analysis for the Behavioral Sciences (2nd ed., 1988)", "url": "https://www.routledge.com/Statistical-Power-Analysis-for-the-Behavioral-Sciences/Cohen/p/book/9780805802832" },
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 8", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" }
+  ]
+}

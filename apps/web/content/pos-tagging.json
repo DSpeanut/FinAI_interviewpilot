@@ -1,0 +1,67 @@
+{
+  "eli3": [
+    "Part-of-Speech (POS) tagging assigns a grammatical category to each word in a sentence: noun (NN), verb (VB), adjective (JJ), adverb (RB), determiner (DT), preposition (IN), etc. The Penn Treebank tagset has 45 tags; Universal Dependencies (UD) uses 17 coarse UPOS tags used across 100+ languages. 'The dog barked' → DT NN VBD.",
+    "POS tagging is ambiguous: 'run' can be a noun ('go for a run') or a verb ('run fast'); 'fly' is noun or verb. Context resolves the ambiguity — this is why early rule-based taggers were replaced by statistical models (HMM, MaxEnt, CRF) and now neural models (BiLSTM-CRF, BERT fine-tuned on UD). Modern taggers achieve >97% accuracy on standard benchmarks (Penn Treebank WSJ).",
+    "POS tags are used as features by downstream tasks: lemmatization (need to know if 'meeting' is noun or verb), parsing (noun phrase detection), NER (named entities are often noun phrases), and information extraction. In neural NLP, POS tagging is often performed jointly with other tasks (parsing, NER) using multi-task learning."
+  ],
+  "whenWhy": [
+    {
+      "title": "Disambiguation for downstream NLP tasks",
+      "body": "POS tags disambiguate word senses critical for: lemmatization (verb vs noun), chunking (noun phrase boundary detection), parsing (subject/object relations), and word sense disambiguation. A chunker uses POS tags to find NP chunks: (DT)?(JJ)*(NN+) — optional determiner, zero or more adjectives, one or more nouns. Without POS, shallow parsing is unreliable."
+    },
+    {
+      "title": "Feature engineering for information extraction",
+      "body": "In template-based IE and rule-based NER, POS patterns define entity mentions: consecutive NN/NNS/NNP/NNPS tokens often form named entities or technical terms. POS-based rules ('JJ NN' → possible compound noun) are used in terminology extraction, keyword detection, and domain-specific ontology building where training data is scarce."
+    },
+    {
+      "title": "Linguistic analysis and corpus linguistics",
+      "body": "POS tagging enables corpus-level linguistic analysis: word frequency by POS (lexical richness), POS n-gram patterns (stylometry), collocations (JJ NN pairs), and grammatical complexity measures. Tagged corpora (Penn Treebank, British National Corpus) are foundational resources for computational linguistics and lexicography."
+    }
+  ],
+  "deepDiveIntro": [
+    "HMM POS tagger (classic): maximize P(tags|words) ∝ P(words|tags)P(tags) = ΠP(wᵢ|tᵢ) · ΠP(tᵢ|tᵢ₋₁). Emission probability P(w|t) and transition probability P(t|t') estimated from tagged corpus. Decoding via Viterbi algorithm: O(T²N) where T = number of tags, N = sentence length. Supervised accuracy ~96% on Penn Treebank with trigram language model.",
+    "CRF tagger: conditions on the full observation sequence — P(tags|words) = (1/Z)exp(ΣₖλₖFₖ(tags,words)). Features: word identity, suffix, prefix, capitalization, surrounding words and tags. Viterbi decoding. BiLSTM-CRF (Ma & Hovy, 2016): character-level CNN + word embeddings + BiLSTM features fed into CRF — state-of-the-art before transformers. BERT fine-tuned on UD achieves >97% UPOS accuracy across most languages."
+  ],
+  "deepDive": [
+    {
+      "heading": "Penn Treebank and Universal Dependencies Tagsets",
+      "body": "Penn Treebank (PTB) 45 tags: NN/NNS (singular/plural noun), NNP/NNPS (proper noun), VB/VBD/VBG/VBN/VBP/VBZ (verb forms), JJ/JJR/JJS (adjective), RB/RBR/RBS (adverb), DT (determiner), IN (preposition/conjunction), CC (coordinating conjunction), PRP/PRP$ (pronoun), CD (cardinal number), WDT/WP/WRB (wh-words). Universal Dependencies (UD) 17 UPOS tags: NOUN, VERB, ADJ, ADV, DET, ADP, CCONJ, SCONJ, PRON, NUM, PROPN, AUX, PART, PUNCT, SYM, INTJ, X. UD enables cross-lingual comparison. [1]",
+      "formula": "HMM: t* = argmax_{t} Π P(wᵢ|tᵢ) · Π P(tᵢ|tᵢ₋₁)  [Viterbi decoding]"
+    },
+    {
+      "heading": "Viterbi Decoding for HMM Tagger",
+      "body": "Dynamic programming. viterbi[t][i] = max probability of any tag sequence ending in tag t at position i. Recurrence: viterbi[t][i] = max_{t'} viterbi[t'][i−1] · P(t|t') · P(wᵢ|t). Initialize: viterbi[t][1] = P(t|<s>) · P(w₁|t). Traceback: recover tag sequence. Time O(T²N), space O(TN). For trigram HMM: condition on two previous tags. Bigram baseline already achieves ~95% on WSJ; trigram: ~96%. Beam search approximates Viterbi with O(bTN) complexity. [1]"
+    },
+    {
+      "heading": "Neural POS Tagging: BiLSTM-CRF and BERT",
+      "body": "BiLSTM-CRF (Ma & Hovy 2016): character-level CNN → character embeddings + word embeddings → BiLSTM → CRF decoder. The CRF layer ensures globally consistent tag sequences (e.g., prevents invalid bigrams). BERT/transformer fine-tuning: add a linear classification head on top of BERT's token representations. Fine-tuned BERT achieves 97.8% accuracy on PTB WSJ — near-human level. Key advantage: contextual representations disambiguate polysemous words ('run' in context). [1]"
+    },
+    {
+      "heading": "Error Analysis: Ambiguity Sources",
+      "body": "Main error types: (1) In-vocabulary ambiguous words: 'flies' (N vs V), 'close' (JJ vs VB vs RB), 'that' (DT vs WDT vs IN) — most errors. (2) Punctuation and sentence boundary ambiguity. (3) Unknown words (OOV): HMMs use rare word features (capitalization, suffix) as proxies; neural models use character-level representations. The 4% remaining errors for neural taggers are mostly on rare words, code-switching, and social media text (non-standard capitalization, abbreviations). [1]"
+    }
+  ],
+  "youtubeLabel": "POS Tagging — Jurafsky",
+  "youtubeUrl": "https://www.youtube.com/embed/a9WkMlSBD6I",
+  "takeaways": [
+    "POS tagging assigns grammatical categories (NN, VB, JJ…) to each token; Penn Treebank has 45 tags, UD has 17 UPOS. [1]",
+    "HMM: argmax P(w|t)P(t|t') decoded with Viterbi O(T²N); ~96% accuracy. [1]",
+    "BiLSTM-CRF: character CNN + word embeddings + BiLSTM + CRF; near state-of-the-art before BERT. [1]",
+    "BERT fine-tuned on UD achieves >97% UPOS accuracy — contextual representations handle word ambiguity. [1]",
+    "Main error source: ambiguous function words ('that', 'close', 'flies') and OOV rare words. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How does POS tagging handle multiword expressions?",
+      "a": "Standard POS taggers assign tags word-by-word; multiword expressions (MWEs) like 'New York', 'kick the bucket', 'in spite of' are not directly handled. In UD, MWEs are represented as syntactic structures (fixed or flat dependencies) rather than single tokens. For downstream tasks, MWE detection is a separate step before or after POS tagging. spaCy uses a rule-based MWE detector that groups tokens post-tagging. [1]"
+    },
+    {
+      "q": "How accurate are cross-lingual POS taggers?",
+      "a": "Zero-shot cross-lingual transfer with multilingual BERT (mBERT) or XLM-R: train on source language, evaluate on target. Performance varies by language pair relatedness: 90%+ for closely related languages (Spanish→Portuguese), 75–85% for distant languages (English→Arabic, Japanese). Languages with different scripts and morphology suffer most. Dedicated per-language models (Stanza) trained on UD treebanks typically outperform zero-shot multilingual models. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Jurafsky & Martin — Speech and Language Processing (3rd ed.), Ch. 8", "url": "https://web.stanford.edu/~jurafsky/slp3/" },
+    { "label": "Ma & Hovy (2016) — End-to-end Sequence Labeling via Bi-directional LSTM-CNNs-CRF, ACL 2016", "url": "https://aclanthology.org/P16-1101/" }
+  ]
+}

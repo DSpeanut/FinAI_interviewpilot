@@ -224,6 +224,32 @@ function Visualization({ type }: { type: string }) {
   if (type === "mean-shift") return <MeanShiftViz />
   if (type === "hdbscan") return <HDBSCANViz />
   if (type === "umap") return <UMAPViz />
+  if (type === "random-forest") return <RandomForestViz />
+  if (type === "gradient-boosting") return <GradientBoostingViz />
+  if (type === "xgboost") return <XGBoostViz />
+  if (type === "lightgbm") return <LightGBMViz />
+  if (type === "catboost") return <CatBoostViz />
+  if (type === "bagging") return <BaggingViz />
+  if (type === "adaboost") return <AdaBoostViz />
+  if (type === "stacking") return <StackingViz />
+  if (type === "pca") return <PCAViz />
+  if (type === "tsne") return <TSNEViz />
+  if (type === "lda-dimensionality") return <LDADimViz />
+  if (type === "autoencoders") return <AutoencoderViz />
+  if (type === "mean") return <MeanViz />
+  if (type === "median") return <MedianViz />
+  if (type === "mode") return <ModeViz />
+  if (type === "variance") return <VarianceViz />
+  if (type === "standard-deviation") return <StandardDeviationViz />
+  if (type === "skewness") return <SkewnessViz />
+  if (type === "kurtosis") return <KurtosisViz />
+  if (type === "percentiles-quartiles") return <PercentilesQuartilesViz />
+  if (type === "z-test") return <ZTestViz />
+  if (type === "t-test") return <TTestViz />
+  if (type === "chi-square-test") return <ChiSquareViz />
+  if (type === "anova") return <AnovaViz />
+  if (type === "mann-whitney-u") return <MannWhitneyViz />
+  if (type === "multiple-testing-correction") return <MultipleTestingViz />
   return null
 }
 
@@ -1317,7 +1343,1364 @@ function QDAViz() {
   )
 }
 
+// ── Random Forest: multiple trees voting ─────────────────────────────────────
+function RandomForestViz() {
+  const W = 320, H = 215
+  const treeW = 64, treeH = 90
+  const gap = 14
+  const totalW = 3 * treeW + 2 * gap
+  const startX = (W - totalW) / 2
+  const treesY = 14
+
+  // Draw a tiny decision tree (3 nodes, 4 leaves)
+  function MiniTree({ x, y, vote, col }: { x: number; y: number; vote: string; col: string }) {
+    const cx = x + treeW / 2
+    const rootY = y + 14
+    const midY = y + 44
+    const leafY = y + 72
+    const lx1 = cx - 22, lx2 = cx - 6, rx1 = cx + 6, rx2 = cx + 22
+    return (
+      <g>
+        <rect x={x} y={y} width={treeW} height={treeH} rx="6" fill="#F9FAFB" stroke="#D1FAE5" strokeWidth="1.2" />
+        {/* root */}
+        <circle cx={cx} cy={rootY} r={7} fill="#064E3B" />
+        {/* mid level */}
+        <line x1={cx} y1={rootY+7} x2={lx1} y2={midY-6} stroke="#9CA3AF" strokeWidth="1" />
+        <line x1={cx} y1={rootY+7} x2={rx1+16} y2={midY-6} stroke="#9CA3AF" strokeWidth="1" />
+        <circle cx={lx1} cy={midY} r={6} fill="#374151" />
+        <circle cx={rx1+16} cy={midY} r={6} fill="#374151" />
+        {/* leaves */}
+        <line x1={lx1} y1={midY+6} x2={lx1-8} y2={leafY-5} stroke="#9CA3AF" strokeWidth="1" />
+        <line x1={lx1} y1={midY+6} x2={lx1+8} y2={leafY-5} stroke="#9CA3AF" strokeWidth="1" />
+        <line x1={rx1+16} y1={midY+6} x2={rx2+14} y2={leafY-5} stroke="#9CA3AF" strokeWidth="1" />
+        <rect x={lx1-12} y={leafY-5} width={14} height={10} rx="2" fill={col} opacity="0.85" />
+        <rect x={lx1-2}  y={leafY-5} width={14} height={10} rx="2" fill="#9CA3AF" opacity="0.5" />
+        <rect x={rx2+8}  y={leafY-5} width={14} height={10} rx="2" fill={col} opacity="0.85" />
+        {/* vote label */}
+        <text x={cx} y={y+treeH+13} textAnchor="middle" fontSize="8" fill={col} fontWeight="700">→ {vote}</text>
+      </g>
+    )
+  }
+
+  const trees = [
+    { vote: "Class A", col: "#10B981" },
+    { vote: "Class A", col: "#10B981" },
+    { vote: "Class B", col: "#F97316" },
+  ]
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {trees.map((t, i) => (
+        <MiniTree key={i} x={startX + i * (treeW + gap)} y={treesY} vote={t.vote} col={t.col} />
+      ))}
+
+      {/* vote arrows */}
+      {trees.map((t, i) => {
+        const tx = startX + i * (treeW + gap) + treeW / 2
+        return <line key={i} x1={tx} y1={treesY+treeH+24} x2={W/2} y2={H-40}
+          stroke="#D1D5DB" strokeWidth="1.2" strokeDasharray="3,2" />
+      })}
+
+      {/* majority vote box */}
+      <rect x={W/2-55} y={H-42} width={110} height={28} rx="8" fill="#D1FAE5" stroke="#10B981" strokeWidth="1.5" />
+      <text x={W/2} y={H-32} textAnchor="middle" fontSize="8" fill="#064E3B" fontWeight="700">Majority vote:</text>
+      <text x={W/2} y={H-20} textAnchor="middle" fontSize="9" fill="#10B981" fontWeight="700">Class A (2 vs 1)</text>
+
+      {/* bootstrap annotation */}
+      <text x={startX - 2} y={treesY - 3} fontSize="7.5" fill="#9CA3AF">bootstrap samples + random features</text>
+    </svg>
+  )
+}
+
+// ── Gradient Boosting: sequential residual correction ────────────────────────
+function GradientBoostingViz() {
+  const W = 320, H = 215
+  const pad = { l: 38, r: 14, t: 18, b: 38 }
+  const pw = W - pad.l - pad.r
+  const ph = H - pad.t - pad.b
+  const sx = (x: number) => pad.l + x * pw
+  const sy = (y: number) => pad.t + (1 - y) * ph
+
+  const data: [number, number][] = [
+    [0.05,0.18],[0.12,0.40],[0.20,0.55],[0.28,0.62],[0.36,0.75],
+    [0.45,0.68],[0.53,0.82],[0.62,0.70],[0.72,0.88],[0.82,0.78],[0.92,0.92],
+  ]
+
+  // F0: mean prediction (flat line at 0.65)
+  const F0 = 0.65
+  // F1: after first tree (rough step function)
+  const F1 = (x: number) => x < 0.35 ? 0.38 : x < 0.65 ? 0.72 : 0.86
+  // F2: closer to true values
+  const F2 = (x: number) => 0.12 + 0.82 * x + 0.08 * Math.sin(x * 5)
+
+  const steps = 80
+  const f1Pts = Array.from({length: steps+1},(_,i) => `${sx(i/steps)},${sy(F1(i/steps))}`).join(" ")
+  const f2Pts = Array.from({length: steps+1},(_,i) => `${sx(i/steps)},${sy(F2(i/steps))}`).join(" ")
+
+  // Residuals after F0
+  const residuals = data.map(([x,y]) => ({ x, r: y - F0 }))
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* axes */}
+      <line x1={pad.l} y1={pad.t} x2={pad.l} y2={H-pad.b} stroke="#D1FAE5" strokeWidth="1.2" />
+      <line x1={pad.l} y1={H-pad.b} x2={W-pad.r} y2={H-pad.b} stroke="#D1FAE5" strokeWidth="1.2" />
+      <text x={W/2} y={H-4} textAnchor="middle" fontSize="8" fill="#9CA3AF">x</text>
+      <text x={12} y={H/2} textAnchor="middle" fontSize="8" fill="#9CA3AF" transform={`rotate(-90,12,${H/2})`}>y</text>
+
+      {/* F0: initial flat mean */}
+      <line x1={sx(0)} y1={sy(F0)} x2={sx(1)} y2={sy(F0)}
+        stroke="#D1D5DB" strokeWidth="1.5" strokeDasharray="4,2" />
+      <text x={sx(0.02)+2} y={sy(F0)-4} fontSize="7.5" fill="#9CA3AF">F₀ (mean)</text>
+
+      {/* residual lines from F0 */}
+      {residuals.map((r,i) => (
+        <line key={i}
+          x1={sx(r.x)} y1={sy(F0)} x2={sx(r.x)} y2={sy(F0 + r.r)}
+          stroke="#FCA5A5" strokeWidth="1.2" strokeDasharray="2,1.5" opacity="0.7" />
+      ))}
+
+      {/* F1: after tree 1 */}
+      <polyline points={f1Pts} fill="none" stroke="#F59E0B" strokeWidth="1.8" strokeDasharray="5,2" />
+      <text x={sx(0.66)} y={sy(F1(0.66))-6} fontSize="7.5" fill="#F59E0B" fontWeight="600">F₁</text>
+
+      {/* F2: closer fit */}
+      <polyline points={f2Pts} fill="none" stroke="#10B981" strokeWidth="2.2" />
+      <text x={sx(0.50)} y={sy(F2(0.50))-7} fontSize="7.5" fill="#10B981" fontWeight="600">F₂ (after 2 trees)</text>
+
+      {/* data points */}
+      {data.map(([x,y],i) => <circle key={i} cx={sx(x)} cy={sy(y)} r={4} fill="#064E3B" opacity="0.8" />)}
+
+      {/* legend */}
+      <line x1={pad.l+2} y1={H-pad.b+14} x2={pad.l+16} y2={H-pad.b+14} stroke="#FCA5A5" strokeWidth="1.2" strokeDasharray="2,1.5" />
+      <text x={pad.l+19} y={H-pad.b+18} fontSize="7" fill="#6B7280">residual</text>
+      <line x1={pad.l+70} y1={H-pad.b+14} x2={pad.l+84} y2={H-pad.b+14} stroke="#F59E0B" strokeWidth="1.8" strokeDasharray="5,2" />
+      <text x={pad.l+87} y={H-pad.b+18} fontSize="7" fill="#6B7280">F₁</text>
+      <line x1={pad.l+108} y1={H-pad.b+14} x2={pad.l+122} y2={H-pad.b+14} stroke="#10B981" strokeWidth="2.2" />
+      <text x={pad.l+125} y={H-pad.b+18} fontSize="7" fill="#6B7280">F₂</text>
+    </svg>
+  )
+}
+
+// ── XGBoost: gain formula + regularised split ─────────────────────────────────
+function XGBoostViz() {
+  const W = 320, H = 215
+  const pad = { l: 24, r: 16, t: 14, b: 28 }
+  const pw = W - pad.l - pad.r
+  const ph = H - pad.t - pad.b
+  const sx = (x: number) => pad.l + x * pw
+  const sy = (y: number) => pad.t + (1 - y) * ph
+
+  // Two panels: left = gradient landscape, right = split gain illustration
+  const divX = 0.52
+
+  // Left: gradient (gᵢ) and hessian (hᵢ) for each point
+  const pts: {x:number; g:number; h:number}[] = [
+    {x:0.08, g:0.60, h:0.24},{x:0.16, g:0.40, h:0.24},{x:0.24, g:0.20, h:0.20},
+    {x:0.32, g:-0.10, h:0.18},{x:0.40, g:-0.30, h:0.21},{x:0.48, g:-0.50, h:0.25},
+  ]
+
+  // Right: split gain bar chart
+  const splits = [
+    { label: "x≤0.3", gain: 0.72, col: "#10B981" },
+    { label: "x≤0.5", gain: 0.45, col: "#F59E0B" },
+    { label: "x≤0.7", gain: 0.28, col: "#9CA3AF" },
+  ]
+  const barMaxH = 0.60
+  const barW = 0.08
+  const barStartX = divX + 0.06
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* divider */}
+      <line x1={sx(divX)} y1={pad.t} x2={sx(divX)} y2={H-pad.b} stroke="#D1FAE5" strokeWidth="1" strokeDasharray="3,2" />
+
+      {/* LEFT: gradients & hessians */}
+      <text x={sx(0.24)} y={pad.t+2} textAnchor="middle" fontSize="8" fill="#064E3B" fontWeight="700">Gradients gᵢ & Hessians hᵢ</text>
+      {/* gradient bars */}
+      {pts.map((p,i) => (
+        <g key={i}>
+          {/* gradient bar */}
+          <rect x={sx(p.x)-6} y={p.g >= 0 ? sy(p.g) : sy(0)}
+            width={6} height={Math.abs(p.g) * ph}
+            fill={p.g >= 0 ? "#3B82F6" : "#EF4444"} opacity="0.8" />
+          {/* hessian dot */}
+          <circle cx={sx(p.x)+4} cy={sy(p.h*0.8)} r={p.h*ph*0.35} fill="#F59E0B" opacity="0.6" />
+        </g>
+      ))}
+      {/* zero line */}
+      <line x1={sx(0)} y1={sy(0)} x2={sx(divX)} y2={sy(0)} stroke="#9CA3AF" strokeWidth="0.8" />
+      <text x={sx(0)+2} y={sy(0)-3} fontSize="6.5" fill="#9CA3AF">0</text>
+
+      {/* legend left */}
+      <rect x={pad.l+2} y={H-pad.b+10} width={6} height={6} fill="#3B82F6" opacity="0.8" />
+      <text x={pad.l+10} y={H-pad.b+17} fontSize="6.5" fill="#6B7280">gᵢ (gradient)</text>
+      <circle cx={pad.l+82} cy={H-pad.b+13} r={4} fill="#F59E0B" opacity="0.6" />
+      <text x={pad.l+88} y={H-pad.b+17} fontSize="6.5" fill="#6B7280">hᵢ (hessian)</text>
+
+      {/* RIGHT: split gain bars */}
+      <text x={sx(divX + (1-divX)/2)} y={pad.t+2} textAnchor="middle" fontSize="8" fill="#064E3B" fontWeight="700">Split Gain</text>
+      {splits.map((s, i) => {
+        const bx = barStartX + i * (barW + 0.04)
+        return (
+          <g key={i}>
+            <rect x={sx(bx)} y={sy(s.gain * barMaxH)} width={sx(bx+barW)-sx(bx)} height={s.gain * barMaxH * ph}
+              fill={s.col} opacity="0.85" rx="2" />
+            <text x={sx(bx + barW/2)} y={sy(s.gain * barMaxH) - 4} textAnchor="middle" fontSize="7.5" fill={s.col} fontWeight="700">{(s.gain).toFixed(2)}</text>
+            <text x={sx(bx + barW/2)} y={H-pad.b+14} textAnchor="middle" fontSize="7" fill="#374151">{s.label}</text>
+          </g>
+        )
+      })}
+      {/* best split annotation */}
+      <text x={sx(barStartX + barW/2)} y={sy(splits[0].gain * barMaxH) - 14} textAnchor="middle" fontSize="7" fill="#10B981">← best</text>
+
+      {/* formula at bottom */}
+      <text x={sx(divX + (1-divX)/2)} y={H-pad.b+26} textAnchor="middle" fontSize="7" fill="#374151">Gain = ½[G²_L/(H_L+λ) + G²_R/(H_R+λ) - ...]</text>
+    </svg>
+  )
+}
+
+// ── LightGBM: leaf-wise vs level-wise ────────────────────────────────────────
+function LightGBMViz() {
+  const W = 320, H = 215
+  const halfW = W / 2 - 8
+
+  // Draw a tree given nodes: [cx, cy, r, isLeaf, loss, isExpanded]
+  function TreeNode({ cx, cy, fill, r=8 }: {cx:number;cy:number;fill:string;r?:number}) {
+    return <circle cx={cx} cy={cy} r={r} fill={fill} stroke="white" strokeWidth="1.2" />
+  }
+
+  // Level-wise (left): expand all nodes at each level
+  // Level 0 → 1 → expand both children of both nodes
+  const lvlRoot = { x: 80, y: 28 }
+  const lvl1 = [{ x: 46, y: 74 }, { x: 114, y: 74 }]
+  const lvl2 = [{ x: 28, y: 120 }, { x: 64, y: 120 }, { x: 96, y: 120 }, { x: 132, y: 120 }]
+
+  // Leaf-wise (right): always expand the best leaf
+  const lw = { rootX: 230, rootY: 28 }
+  const lwNodes = [
+    { x: 230, y: 28, loss: "L=1.0", isRoot: true },
+    { x: 200, y: 74, loss: "L=0.8", expanded: false },
+    { x: 260, y: 74, loss: "L=0.3", expanded: true },  // best, expand
+    { x: 240, y: 120, loss: "L=0.2", expanded: false },
+    { x: 280, y: 120, loss: "L=0.05", expanded: true }, // best, expand
+    { x: 265, y: 165, loss: "" },
+    { x: 295, y: 165, loss: "" },
+  ]
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* Divider */}
+      <line x1={W/2} y1={10} x2={W/2} y2={H-10} stroke="#D1FAE5" strokeWidth="1" strokeDasharray="3,2" />
+
+      {/* LEFT: Level-wise */}
+      <text x={80} y={12} textAnchor="middle" fontSize="8.5" fill="#374151" fontWeight="700">Level-wise (XGBoost)</text>
+      {/* edges */}
+      {lvl1.map((n,i) => <line key={i} x1={lvlRoot.x} y1={lvlRoot.y+8} x2={n.x} y2={n.y-8} stroke="#9CA3AF" strokeWidth="1.2" />)}
+      {lvl2.map((n,i) => <line key={i} x1={lvl1[Math.floor(i/2)].x} y1={lvl1[Math.floor(i/2)].y+8} x2={n.x} y2={n.y-8} stroke="#9CA3AF" strokeWidth="1.2" />)}
+      {/* nodes */}
+      <TreeNode cx={lvlRoot.x} cy={lvlRoot.y} fill="#374151" />
+      {lvl1.map((n,i) => <TreeNode key={i} cx={n.x} cy={n.y} fill="#3B82F6" />)}
+      {lvl2.map((n,i) => <TreeNode key={i} cx={n.x} cy={n.y} fill="#93C5FD" r={6} />)}
+      {/* depth annotations */}
+      <text x={6} y={lvlRoot.y+3} fontSize="6.5" fill="#9CA3AF">d=0</text>
+      <text x={6} y={lvl1[0].y+3} fontSize="6.5" fill="#9CA3AF">d=1</text>
+      <text x={6} y={lvl2[0].y+3} fontSize="6.5" fill="#9CA3AF">d=2</text>
+      <text x={80} y={H-10} textAnchor="middle" fontSize="7" fill="#6B7280">expand all leaves at each depth</text>
+
+      {/* RIGHT: Leaf-wise */}
+      <text x={240} y={12} textAnchor="middle" fontSize="8.5" fill="#374151" fontWeight="700">Leaf-wise (LightGBM)</text>
+      {/* edges */}
+      <line x1={230} y1={36} x2={200} y2={66} stroke="#9CA3AF" strokeWidth="1.2" />
+      <line x1={230} y1={36} x2={260} y2={66} stroke="#9CA3AF" strokeWidth="1.2" />
+      <line x1={260} y1={82} x2={240} y2={112} stroke="#9CA3AF" strokeWidth="1.2" />
+      <line x1={260} y1={82} x2={280} y2={112} stroke="#9CA3AF" strokeWidth="1.2" />
+      <line x1={280} y1={128} x2={265} y2={157} stroke="#9CA3AF" strokeWidth="1.2" />
+      <line x1={280} y1={128} x2={295} y2={157} stroke="#9CA3AF" strokeWidth="1.2" />
+      {/* nodes */}
+      <TreeNode cx={230} cy={28} fill="#374151" />
+      <TreeNode cx={200} cy={74} fill="#9CA3AF" />       {/* not expanded */}
+      <TreeNode cx={260} cy={74} fill="#10B981" />       {/* expanded - best */}
+      <TreeNode cx={240} cy={120} fill="#9CA3AF" />
+      <TreeNode cx={280} cy={120} fill="#10B981" />      {/* expanded - best */}
+      <TreeNode cx={265} cy={165} fill="#6EE7B7" r={6} />
+      <TreeNode cx={295} cy={165} fill="#6EE7B7" r={6} />
+      {/* labels */}
+      <text x={187} y={93} fontSize="6.5" fill="#9CA3AF">wait</text>
+      <text x={263} y={93} fontSize="6.5" fill="#10B981" fontWeight="600">best↓</text>
+      <text x={268} y={139} fontSize="6.5" fill="#10B981" fontWeight="600">best↓</text>
+      <text x={240} y={H-10} textAnchor="middle" fontSize="7" fill="#6B7280">always expand the best leaf</text>
+    </svg>
+  )
+}
+
+// ── CatBoost: ordered target statistics for categoricals ─────────────────────
+function CatBoostViz() {
+  const W = 320, H = 215
+  const pad = { l: 24, r: 14, t: 14, b: 28 }
+
+  // Show ordered encoding: for each row, only use "past" rows to compute cat stat
+  const rows = [
+    { idx: 1, cat: "A", y: 1, stat: "0.50 (prior)", used: [] },
+    { idx: 2, cat: "B", y: 0, stat: "0.50 (prior)", used: [] },
+    { idx: 3, cat: "A", y: 1, stat: "1/1=1.00", used: [1] },
+    { idx: 4, cat: "A", y: 0, stat: "2/2=1.00", used: [1,3] },
+    { idx: 5, cat: "B", y: 1, stat: "0/1=0.00", used: [2] },
+    { idx: 6, cat: "A", y: 1, stat: "2/3=0.67", used: [1,3,4] },
+  ]
+
+  const rowH = 26
+  const tableY = 20
+  const cols = { idx: 30, cat: 62, y: 100, stat: 138, bar: 240 }
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* title */}
+      <text x={W/2} y={12} textAnchor="middle" fontSize="8.5" fill="#064E3B" fontWeight="700">Ordered Target Statistics (random permutation σ)</text>
+
+      {/* header */}
+      {[["#", cols.idx], ["Cat", cols.cat], ["y", cols.y], ["cat_stat(xᵢ)", cols.stat]].map(([label,x]) => (
+        <text key={String(x)} x={Number(x)} y={tableY+12} fontSize="7.5" fill="#374151" fontWeight="700">{label}</text>
+      ))}
+      <line x1={pad.l} y1={tableY+16} x2={W-pad.r} y2={tableY+16} stroke="#D1FAE5" strokeWidth="1" />
+
+      {/* rows */}
+      {rows.map((r, i) => {
+        const ry = tableY + 18 + i * rowH
+        const statNum = r.used.length === 0 ? 0.5 : r.used.filter(u => {
+          const row = rows.find(rr => rr.idx === u)
+          return row?.y === 1
+        }).length / r.used.length
+        const barW = statNum * 60
+        const bg = i % 2 === 0 ? "#F9FAFB" : "white"
+        return (
+          <g key={i}>
+            <rect x={pad.l} y={ry} width={W-pad.l-pad.r} height={rowH-2} fill={bg} rx="2" />
+            <text x={cols.idx} y={ry+14} fontSize="7.5" fill="#374151">{r.idx}</text>
+            <text x={cols.cat} y={ry+14} fontSize="7.5" fill="#374151" fontWeight="600">{r.cat}</text>
+            <text x={cols.y}   y={ry+14} fontSize="7.5" fill={r.y===1?"#10B981":"#EF4444"} fontWeight="600">{r.y}</text>
+            <text x={cols.stat} y={ry+14} fontSize="7" fill="#374151">{r.stat}</text>
+            {/* stat bar */}
+            <rect x={cols.bar} y={ry+4} width={barW} height={rowH-10} rx="2" fill="#10B981" opacity="0.55" />
+            {/* "past rows" annotation for row 3 */}
+            {i === 2 && (
+              <text x={W-pad.r-2} y={ry+14} textAnchor="end" fontSize="6.5" fill="#9CA3AF">↑ uses rows 1</text>
+            )}
+          </g>
+        )
+      })}
+
+      <text x={W/2} y={H-6} textAnchor="middle" fontSize="7" fill="#6B7280">Each row uses only "past" rows → no target leakage</text>
+    </svg>
+  )
+}
+
+// ── Bagging: bootstrap samples → models → average ────────────────────────────
+function BaggingViz() {
+  const W = 320, H = 215
+
+  const trainSet = Array.from({length:12},(_,i) => ({ id: i+1, x: 20+(i%6)*44, y: 30+Math.floor(i/6)*28 }))
+  const bootstraps = [
+    [1,1,3,5,7,7,9,10,12],
+    [2,3,4,6,6,8,9,11,12],
+    [1,2,5,5,8,9,10,11,11],
+  ]
+  const modelY = 130
+  const avgY = 185
+
+  const bsCols = ["#3B82F6","#10B981","#F59E0B"]
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* Training set */}
+      <text x={W/2} y={12} textAnchor="middle" fontSize="8" fill="#374151" fontWeight="700">Training Set (n=12)</text>
+      {trainSet.map(p => (
+        <circle key={p.id} cx={p.x} cy={p.y} r={7} fill="#6B7280" opacity="0.5" />
+      ))}
+      {trainSet.map(p => (
+        <text key={p.id} x={p.x} y={p.y+3} textAnchor="middle" fontSize="6" fill="white" fontWeight="700">{p.id}</text>
+      ))}
+
+      {/* Bootstrap sample arrows */}
+      {bootstraps.map((_,i) => {
+        const bx = 48 + i * 112
+        return <line key={i} x1={W/2} y1={62} x2={bx+24} y2={modelY-22}
+          stroke={bsCols[i]} strokeWidth="1.2" strokeDasharray="3,2" opacity="0.7" />
+      })}
+
+      {/* Bootstrap samples + models */}
+      {bootstraps.map((bs, i) => {
+        const bx = 12 + i * 104
+        return (
+          <g key={i}>
+            <text x={bx+40} y={modelY-10} textAnchor="middle" fontSize="7" fill={bsCols[i]}>
+              Bootstrap {i+1}
+            </text>
+            <rect x={bx} y={modelY} width={80} height={28} rx="6" fill={bsCols[i]} opacity="0.15" stroke={bsCols[i]} strokeWidth="1.2" />
+            <text x={bx+40} y={modelY+17} textAnchor="middle" fontSize="8" fill={bsCols[i]} fontWeight="700">Model {i+1}</text>
+            {/* arrow to average */}
+            <line x1={bx+40} y1={modelY+28} x2={W/2} y2={avgY-10}
+              stroke={bsCols[i]} strokeWidth="1.2" />
+          </g>
+        )
+      })}
+
+      {/* Average box */}
+      <rect x={W/2-55} y={avgY-10} width={110} height={26} rx="8" fill="#F0FDF9" stroke="#10B981" strokeWidth="1.5" />
+      <text x={W/2} y={avgY+6} textAnchor="middle" fontSize="8.5" fill="#064E3B" fontWeight="700">Average / Vote  →  ŷ_bag</text>
+
+      {/* ~63% annotation */}
+      <text x={W-4} y={70} textAnchor="end" fontSize="7" fill="#9CA3AF">~63% unique</text>
+      <text x={W-4} y={80} textAnchor="end" fontSize="7" fill="#9CA3AF">per bootstrap</text>
+    </svg>
+  )
+}
+
+// ── AdaBoost: sample weights after misclassification ─────────────────────────
+function AdaBoostViz() {
+  const W = 320, H = 215
+  const pad = { l: 18, r: 14, t: 14, b: 36 }
+  const pw = W - pad.l - pad.r
+  const ph = H - pad.t - pad.b
+  const sx = (x: number) => pad.l + x * pw
+  const sy = (y: number) => pad.t + (1 - y) * ph
+
+  // Points: +1 (blue circles) and -1 (orange squares)
+  // Round 1: stump splits at x=0.45
+  const pts: {x:number;y:number;cls:1|-1;misR1:boolean;misR2:boolean}[] = [
+    {x:0.10,y:0.70,cls:1,  misR1:false,misR2:false},
+    {x:0.18,y:0.55,cls:1,  misR1:false,misR2:false},
+    {x:0.25,y:0.80,cls:1,  misR1:false,misR2:false},
+    {x:0.32,y:0.45,cls:1,  misR1:false,misR2:true},  // hard
+    {x:0.40,y:0.60,cls:-1, misR1:false,misR2:false},
+    {x:0.50,y:0.75,cls:-1, misR1:false,misR2:false},
+    {x:0.58,y:0.35,cls:-1, misR1:false,misR2:false},
+    {x:0.65,y:0.50,cls:-1, misR1:false,misR2:false},
+    {x:0.72,y:0.65,cls:1,  misR1:true, misR2:false}, // misclassified round 1
+    {x:0.80,y:0.42,cls:1,  misR1:true, misR2:false}, // misclassified round 1
+    {x:0.88,y:0.70,cls:1,  misR1:true, misR2:false}, // misclassified round 1
+  ]
+
+  const stump1X = 0.48
+  const stump2X = 0.68
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* axes */}
+      <line x1={pad.l} y1={pad.t} x2={pad.l} y2={H-pad.b} stroke="#D1FAE5" strokeWidth="1.2" />
+      <line x1={pad.l} y1={H-pad.b} x2={W-pad.r} y2={H-pad.b} stroke="#D1FAE5" strokeWidth="1.2" />
+
+      {/* stump 1 */}
+      <line x1={sx(stump1X)} y1={pad.t} x2={sx(stump1X)} y2={H-pad.b}
+        stroke="#9CA3AF" strokeWidth="1.5" strokeDasharray="4,2" />
+      <text x={sx(stump1X)+2} y={pad.t+10} fontSize="7.5" fill="#9CA3AF">h₁</text>
+
+      {/* stump 2 (focused on right side after weight update) */}
+      <line x1={sx(stump2X)} y1={pad.t} x2={sx(stump2X)} y2={H-pad.b}
+        stroke="#F59E0B" strokeWidth="1.5" strokeDasharray="4,2" />
+      <text x={sx(stump2X)+2} y={pad.t+10} fontSize="7.5" fill="#F59E0B">h₂</text>
+
+      {/* data points */}
+      {pts.map((p,i) => {
+        const r = p.misR1 ? 9 : 5.5  // bigger = upweighted
+        const ringCol = p.misR1 ? "#EF4444" : "none"
+        return (
+          <g key={i}>
+            {p.misR1 && <circle cx={sx(p.x)} cy={sy(p.y)} r={r+4} fill="none" stroke="#EF4444" strokeWidth="1.5" opacity="0.6" />}
+            {p.cls === 1
+              ? <circle cx={sx(p.x)} cy={sy(p.y)} r={r} fill="#3B82F6" opacity="0.9" />
+              : <rect x={sx(p.x)-r} y={sy(p.y)-r} width={r*2} height={r*2} rx="2" fill="#F97316" opacity="0.9" />
+            }
+          </g>
+        )
+      })}
+
+      {/* annotation */}
+      <text x={sx(0.80)} y={sy(0.42)-14} fontSize="7" fill="#EF4444" textAnchor="middle">upweighted</text>
+      <text x={sx(0.80)} y={sy(0.42)-6} fontSize="7" fill="#EF4444" textAnchor="middle">after round 1</text>
+
+      {/* legend */}
+      <circle cx={pad.l+6} cy={H-pad.b+15} r={5} fill="#3B82F6" />
+      <text x={pad.l+14} y={H-pad.b+19} fontSize="7" fill="#6B7280">class +1</text>
+      <rect x={pad.l+58} y={H-pad.b+10} width={10} height={10} rx="2" fill="#F97316" />
+      <text x={pad.l+71} y={H-pad.b+19} fontSize="7" fill="#6B7280">class −1</text>
+      <circle cx={pad.l+120} cy={H-pad.b+15} r={8} fill="none" stroke="#EF4444" strokeWidth="1.5" />
+      <text x={pad.l+131} y={H-pad.b+19} fontSize="7" fill="#6B7280">high wᵢ (misclassified)</text>
+    </svg>
+  )
+}
+
+// ── Stacking: OOF predictions → meta-learner ─────────────────────────────────
+function StackingViz() {
+  const W = 320, H = 215
+
+  const baseModels = [
+    { label: "RF",   x: 40,  col: "#3B82F6" },
+    { label: "GBM",  x: 120, col: "#10B981" },
+    { label: "LR",   x: 200, col: "#F59E0B" },
+    { label: "SVM",  x: 280, col: "#8B5CF6" },
+  ]
+  const trainY = 20, oofY = 90, metaY = 150, predY = 198
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* Training data */}
+      <rect x={80} y={trainY} width={160} height={26} rx="6" fill="#F3F4F6" stroke="#D1D5DB" strokeWidth="1.2" />
+      <text x={160} y={trainY+17} textAnchor="middle" fontSize="8.5" fill="#374151" fontWeight="700">Training Data (K-fold CV)</text>
+
+      {/* Arrows down to base models */}
+      {baseModels.map(m => (
+        <line key={m.label} x1={160} y1={trainY+26} x2={m.x} y2={oofY-10}
+          stroke="#D1D5DB" strokeWidth="1" />
+      ))}
+
+      {/* Base models */}
+      {baseModels.map(m => (
+        <g key={m.label}>
+          <rect x={m.x-22} y={oofY-10} width={44} height={24} rx="6" fill={m.col} opacity="0.15" stroke={m.col} strokeWidth="1.5" />
+          <text x={m.x} y={oofY+7} textAnchor="middle" fontSize="8.5" fill={m.col} fontWeight="700">{m.label}</text>
+        </g>
+      ))}
+
+      {/* OOF predictions column */}
+      <text x={160} y={oofY+28} textAnchor="middle" fontSize="7.5" fill="#374151">OOF predictions ẑᵢⱼ (never in-sample)</text>
+      <rect x={52} y={oofY+32} width={216} height={22} rx="5" fill="#FEF3C7" stroke="#F59E0B" strokeWidth="1.2" />
+      {baseModels.map((m,i) => (
+        <text key={i} x={52 + i*54 + 27} y={oofY+47} textAnchor="middle" fontSize="7.5" fill="#92400E" fontWeight="600">{`ẑ·${m.label}`}</text>
+      ))}
+
+      {/* Arrow to meta-learner */}
+      <line x1={160} y1={oofY+54} x2={160} y2={metaY-8} stroke="#D1D5DB" strokeWidth="1.2" />
+
+      {/* Meta-learner */}
+      <rect x={90} y={metaY-8} width={140} height={28} rx="8" fill="#D1FAE5" stroke="#10B981" strokeWidth="1.5" />
+      <text x={160} y={metaY+9} textAnchor="middle" fontSize="8.5" fill="#064E3B" fontWeight="700">Meta-Learner (e.g. LR)</text>
+
+      {/* Arrow to final prediction */}
+      <line x1={160} y1={metaY+20} x2={160} y2={predY-6} stroke="#10B981" strokeWidth="1.5" />
+      <text x={160} y={predY+2} textAnchor="middle" fontSize="9" fill="#064E3B" fontWeight="700">ŷ (final prediction)</text>
+    </svg>
+  )
+}
+
+// ── PCA: variance ellipse + principal component arrows ───────────────────────
+function PCAViz() {
+  const W = 320, H = 215
+  const pad = { l: 20, r: 14, t: 18, b: 36 }
+  const pw = W - pad.l - pad.r
+  const ph = H - pad.t - pad.b
+  const sx = (x: number) => pad.l + x * pw
+  const sy = (y: number) => pad.t + (1 - y) * ph
+
+  // Data cloud: elongated along PC1 direction (~45°)
+  const mu = [0.50, 0.50]
+  const pts: [number,number][] = [
+    [0.20,0.22],[0.28,0.30],[0.32,0.35],[0.38,0.40],[0.42,0.44],
+    [0.48,0.50],[0.52,0.54],[0.58,0.58],[0.64,0.64],[0.70,0.70],
+    [0.26,0.38],[0.36,0.28],[0.62,0.72],[0.72,0.62],
+    [0.44,0.56],[0.54,0.44],[0.46,0.62],[0.56,0.38],
+  ]
+
+  // PC1 direction (high variance): along y=x direction (45°)
+  // PC2 direction (low variance): perpendicular
+  const pc1 = { dx: 0.28, dy: 0.28 }
+  const pc2 = { dx: 0.10, dy: -0.10 }
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* Data ellipse */}
+      <ellipse cx={sx(0.50)} cy={sy(0.50)} rx={100} ry={28}
+        transform={`rotate(-45,${sx(0.50)},${sy(0.50)})`}
+        fill="#DBEAFE" stroke="#3B82F6" strokeWidth="1" strokeDasharray="4,2" opacity="0.5" />
+
+      {/* axes */}
+      <line x1={pad.l} y1={pad.t} x2={pad.l} y2={H-pad.b} stroke="#D1FAE5" strokeWidth="1.2" />
+      <line x1={pad.l} y1={H-pad.b} x2={W-pad.r} y2={H-pad.b} stroke="#D1FAE5" strokeWidth="1.2" />
+      <text x={W/2} y={H-4} textAnchor="middle" fontSize="8" fill="#9CA3AF">Feature x₁</text>
+      <text x={11} y={H/2} textAnchor="middle" fontSize="8" fill="#9CA3AF" transform={`rotate(-90,11,${H/2})`}>Feature x₂</text>
+
+      {/* data points */}
+      {pts.map(([x,y],i) => <circle key={i} cx={sx(x)} cy={sy(y)} r={3.5} fill="#1E40AF" opacity="0.7" />)}
+
+      {/* PC1 arrow (long - high variance) */}
+      <line x1={sx(mu[0]-pc1.dx)} y1={sy(mu[1]-pc1.dy)}
+        x2={sx(mu[0]+pc1.dx)} y2={sy(mu[1]+pc1.dy)}
+        stroke="#EF4444" strokeWidth="2.5" markerEnd="url(#arrowRed)" />
+      <text x={sx(mu[0]+pc1.dx)+6} y={sy(mu[1]+pc1.dy)} fontSize="9" fill="#EF4444" fontWeight="700">PC1</text>
+      <text x={sx(mu[0]+pc1.dx)+6} y={sy(mu[1]+pc1.dy)+10} fontSize="7" fill="#EF4444">high var</text>
+
+      {/* PC2 arrow (short - low variance) */}
+      <line x1={sx(mu[0]-pc2.dx)} y1={sy(mu[1]-pc2.dy)}
+        x2={sx(mu[0]+pc2.dx)} y2={sy(mu[1]+pc2.dy)}
+        stroke="#10B981" strokeWidth="2.5" />
+      <text x={sx(mu[0]+pc2.dx)+6} y={sy(mu[1]+pc2.dy)+4} fontSize="9" fill="#10B981" fontWeight="700">PC2</text>
+      <text x={sx(mu[0]+pc2.dx)+6} y={sy(mu[1]+pc2.dy)+14} fontSize="7" fill="#10B981">low var</text>
+
+      {/* mean point */}
+      <circle cx={sx(mu[0])} cy={sy(mu[1])} r={5} fill="#F59E0B" stroke="white" strokeWidth="1.5" />
+      <text x={sx(mu[0])+8} y={sy(mu[1])+3} fontSize="7.5" fill="#F59E0B" fontWeight="600">μ̄</text>
+
+      {/* variance annotation */}
+      <text x={sx(0.50)} y={pad.t+8} textAnchor="middle" fontSize="7.5" fill="#374151">PC1 explains most variance → keep</text>
+      <text x={sx(0.50)} y={pad.t+18} textAnchor="middle" fontSize="7.5" fill="#374151">PC2 explains little → may discard</text>
+    </svg>
+  )
+}
+
+// ── t-SNE: high-d Gaussian → 2D Student-t, KL divergence ────────────────────
+function TSNEViz() {
+  const W = 320, H = 215
+  const halfW = W / 2 - 10
+
+  // Left: high-d similarities (Gaussian) — concentric circles
+  const hd = { cx: 70, cy: 108 }
+  // Right: low-d layout (Student-t) — separated clusters
+  const ld = { cx: 240, cy: 108 }
+
+  const clusters2D = [
+    { cx: 220, cy: 75,  pts: [[208,65],[218,58],[230,68],[225,80],[212,78]], col: "#3B82F6" },
+    { cx: 265, cy: 130, pts: [[255,120],[270,115],[278,128],[268,140],[255,135]], col: "#10B981" },
+    { cx: 230, cy: 155, pts: [[220,148],[235,143],[244,155],[236,165],[222,160]], col: "#F59E0B" },
+  ]
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* divider */}
+      <line x1={W/2} y1={10} x2={W/2} y2={H-10} stroke="#D1FAE5" strokeWidth="1" strokeDasharray="3,2" />
+
+      {/* LEFT: high-dimensional similarities */}
+      <text x={hd.cx} y={18} textAnchor="middle" fontSize="8" fill="#374151" fontWeight="700">High-d (Gaussian pᵢⱼ)</text>
+      {[0.6,0.45,0.30,0.16].map((r,i) => (
+        <ellipse key={i} cx={hd.cx} cy={hd.cy} rx={r*70} ry={r*62}
+          fill="none" stroke="#3B82F6" strokeWidth="0.7" opacity={0.25 + i*0.15} />
+      ))}
+      {/* points in high-d (all crowded together) */}
+      {[[60,88],[68,95],[72,105],[80,115],[65,120],[75,92],[58,112],[82,100],[70,130],[55,102]].map(([x,y],i) => (
+        <circle key={i} cx={x} cy={y} r={3} fill={["#3B82F6","#10B981","#F59E0B"][i%3]} opacity="0.7" />
+      ))}
+      <text x={hd.cx} y={H-12} textAnchor="middle" fontSize="7" fill="#6B7280">crowded in 2D → pᵢⱼ high for many pairs</text>
+
+      {/* arrow */}
+      <line x1={halfW+8} y1={H/2} x2={W/2-4} y2={H/2} stroke="#9CA3AF" strokeWidth="1.5" markerEnd="url(#arr)" />
+      <text x={halfW+W/2/2+8} y={H/2-5} textAnchor="middle" fontSize="7.5" fill="#9CA3AF">t-SNE</text>
+      <text x={halfW+W/2/2+8} y={H/2+12} textAnchor="middle" fontSize="7" fill="#9CA3AF">(Student-t qᵢⱼ)</text>
+
+      {/* RIGHT: 2D embedding with separated clusters */}
+      <text x={ld.cx} y={18} textAnchor="middle" fontSize="8" fill="#374151" fontWeight="700">2D Embedding (t-SNE)</text>
+      {clusters2D.map((cl,ci) => (
+        <g key={ci}>
+          <ellipse cx={cl.cx} cy={cl.cy} rx={22} ry={18} fill={cl.col} opacity="0.15" />
+          {cl.pts.map(([x,y],i) => (
+            <circle key={i} cx={x} cy={y} r={4} fill={cl.col} opacity="0.9" />
+          ))}
+        </g>
+      ))}
+      <text x={ld.cx} y={H-12} textAnchor="middle" fontSize="7" fill="#6B7280">Student-t heavy tails → well-separated clusters</text>
+    </svg>
+  )
+}
+
+// ── LDA (dimensionality): Fisher projection ───────────────────────────────────
+function LDADimViz() {
+  const W = 320, H = 215
+  const pad = { l: 20, r: 14, t: 18, b: 38 }
+  const pw = W - pad.l - pad.r
+  const ph = H - pad.t - pad.b
+  const sx = (x: number) => pad.l + x * pw
+  const sy = (y: number) => pad.t + (1 - y) * ph
+
+  const cls = [
+    { pts: [[0.15,0.72],[0.20,0.80],[0.25,0.68],[0.30,0.76],[0.18,0.85]], col:"#EF4444", mu:[0.216,0.762] },
+    { pts: [[0.55,0.45],[0.60,0.52],[0.65,0.40],[0.70,0.48],[0.58,0.36]], col:"#3B82F6", mu:[0.616,0.442] },
+    { pts: [[0.80,0.75],[0.85,0.68],[0.90,0.80],[0.88,0.60],[0.78,0.72]], col:"#10B981", mu:[0.842,0.710] },
+  ]
+
+  // Fisher axis direction: along between-class variance
+  // Approximate: direction from class 1 mean to class 3 mean
+  const ax = 0.842 - 0.216, ay = 0.710 - 0.762
+  const alen = Math.sqrt(ax*ax+ay*ay)
+  const aun = [ax/alen, ay/alen]
+
+  // Projection axis (shown at bottom)
+  const projY = 0.05
+  const projStart = [0.08, projY], projEnd = [0.96, projY]
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* axes */}
+      <line x1={pad.l} y1={pad.t} x2={pad.l} y2={H-pad.b} stroke="#D1FAE5" strokeWidth="1.2" />
+      <line x1={pad.l} y1={H-pad.b} x2={W-pad.r} y2={H-pad.b} stroke="#D1FAE5" strokeWidth="1.2" />
+
+      {/* Fisher discriminant axis */}
+      <line x1={sx(0.05)} y1={sy(0.55)} x2={sx(0.95)} y2={sy(0.90)}
+        stroke="#F59E0B" strokeWidth="2" />
+      <text x={sx(0.96)} y={sy(0.91)+10} fontSize="8" fill="#F59E0B" fontWeight="700">LDA axis w</text>
+
+      {/* class ellipses */}
+      {cls.map((cl,i) => (
+        <ellipse key={i} cx={sx(cl.mu[0])} cy={sy(cl.mu[1])} rx={36} ry={22}
+          transform={`rotate(10,${sx(cl.mu[0])},${sy(cl.mu[1])})`}
+          fill={cl.col} stroke={cl.col} strokeWidth="1.2" opacity="0.18" />
+      ))}
+
+      {/* data points */}
+      {cls.map((cl,ci) => cl.pts.map(([x,y],i) => (
+        <circle key={`${ci}-${i}`} cx={sx(x)} cy={sy(y)} r={4.5} fill={cl.col} opacity="0.9" />
+      )))}
+
+      {/* class means */}
+      {cls.map((cl,i) => (
+        <circle key={i} cx={sx(cl.mu[0])} cy={sy(cl.mu[1])} r={6} fill={cl.col} stroke="white" strokeWidth="1.5" />
+      ))}
+
+      {/* projection axis at bottom */}
+      <line x1={sx(projStart[0])} y1={sy(projY)} x2={sx(projEnd[0])} y2={sy(projY)} stroke="#9CA3AF" strokeWidth="1.5" />
+      <text x={sx(projEnd[0])+2} y={sy(projY)+4} fontSize="7.5" fill="#9CA3AF">w projection</text>
+      {/* projected means on 1D axis */}
+      {cls.map((cl,i) => {
+        const proj = cl.mu[0] * aun[0] + cl.mu[1] * aun[1]
+        const projX = 0.1 + (proj - 0.4) * 1.2
+        return <line key={i} x1={sx(projX)} y1={sy(projY)-5} x2={sx(projX)} y2={sy(projY)+5} stroke={cl.col} strokeWidth="2.5" />
+      })}
+
+      {/* annotation */}
+      <text x={sx(0.50)} y={pad.t+8} textAnchor="middle" fontSize="7.5" fill="#374151" fontWeight="600">J(w) = |wᵀSᴮw| / |wᵀSᵂw|   max →</text>
+      <text x={sx(0.50)} y={pad.t+18} textAnchor="middle" fontSize="7" fill="#374151">classes separated on 1D projection</text>
+    </svg>
+  )
+}
+
+// ── Autoencoder: encoder–bottleneck–decoder architecture ─────────────────────
+function AutoencoderViz() {
+  const W = 320, H = 215
+
+  // Layer widths (number of units visualised)
+  const layers = [
+    { units: 5, x: 28,  label: "Input\n(p=5)", col: "#6B7280" },
+    { units: 4, x: 90,  label: "Encoder", col: "#3B82F6" },
+    { units: 2, x: 160, label: "Latent z\n(d=2)", col: "#10B981" },
+    { units: 4, x: 230, label: "Decoder", col: "#8B5CF6" },
+    { units: 5, x: 292, label: "Output\nx̂", col: "#6B7280" },
+  ]
+  const unitH = 16, gap = 6
+  const totalH = (units: number) => units * unitH + (units-1) * gap
+  const cy = H / 2
+
+  function LayerUnits({ x, units, col }: { x: number; units: number; col: string }) {
+    const th = totalH(units)
+    const startY = cy - th / 2
+    return (
+      <>
+        {Array.from({length: units}, (_, i) => (
+          <rect key={i} x={x-10} y={startY + i*(unitH+gap)} width={20} height={unitH} rx="3"
+            fill={col} opacity="0.8" />
+        ))}
+      </>
+    )
+  }
+
+  function Connections({ l1, l2 }: { l1: typeof layers[0]; l2: typeof layers[0] }) {
+    const th1 = totalH(l1.units), th2 = totalH(l2.units)
+    const sy1 = cy - th1/2, sy2 = cy - th2/2
+    const result = []
+    for (let a = 0; a < l1.units; a++) {
+      for (let b = 0; b < l2.units; b++) {
+        result.push(
+          <line key={`${a}-${b}`}
+            x1={l1.x + 10} y1={sy1 + a*(unitH+gap) + unitH/2}
+            x2={l2.x - 10} y2={sy2 + b*(unitH+gap) + unitH/2}
+            stroke="#D1D5DB" strokeWidth="0.5" opacity="0.5" />
+        )
+      }
+    }
+    return <>{result}</>
+  }
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* connections */}
+      {layers.slice(0,-1).map((l,i) => <Connections key={i} l1={l} l2={layers[i+1]} />)}
+
+      {/* layer units */}
+      {layers.map((l,i) => <LayerUnits key={i} x={l.x} units={l.units} col={l.col} />)}
+
+      {/* layer labels */}
+      {layers.map((l,i) => (
+        <text key={i} x={l.x} y={cy + totalH(l.units)/2 + 16} textAnchor="middle" fontSize="7.5" fill={l.col} fontWeight="600">
+          {l.label.split("\n")[0]}
+        </text>
+      ))}
+      {layers.map((l,i) => (
+        <text key={i} x={l.x} y={cy + totalH(l.units)/2 + 26} textAnchor="middle" fontSize="7" fill={l.col}>
+          {l.label.split("\n")[1] ?? ""}
+        </text>
+      ))}
+
+      {/* arrows */}
+      <line x1={50} y1={cy} x2={76} y2={cy} stroke="#9CA3AF" strokeWidth="1.2" />
+      <line x1={140} y1={cy} x2={146} y2={cy} stroke="#9CA3AF" strokeWidth="1.2" />
+      <line x1={174} y1={cy} x2={216} y2={cy} stroke="#9CA3AF" strokeWidth="1.2" />
+
+      {/* bottleneck annotation */}
+      <text x={160} y={cy - totalH(2)/2 - 14} textAnchor="middle" fontSize="8" fill="#10B981" fontWeight="700">Bottleneck</text>
+      <text x={160} y={cy - totalH(2)/2 - 4} textAnchor="middle" fontSize="7" fill="#10B981">d &lt;&lt; p</text>
+
+      {/* loss annotation */}
+      <text x={W/2} y={H-8} textAnchor="middle" fontSize="7.5" fill="#374151">Loss: ‖x − x̂‖²   →   minimise reconstruction error</text>
+
+      {/* encoder/decoder brackets */}
+      <line x1={20} y1={18} x2={155} y2={18} stroke="#3B82F6" strokeWidth="1" />
+      <text x={87} y={14} textAnchor="middle" fontSize="7.5" fill="#3B82F6" fontWeight="600">Encoder fθ</text>
+      <line x1={165} y1={18} x2={305} y2={18} stroke="#8B5CF6" strokeWidth="1" />
+      <text x={235} y={14} textAnchor="middle" fontSize="7.5" fill="#8B5CF6" fontWeight="600">Decoder gφ</text>
+    </svg>
+  )
+}
+
 // ── K-Means: centroids + cluster regions + data points ───────────────────────
+// ─── Statistics Visualizations ───────────────────────────────────────────────
+
+function MeanViz() {
+  const W = 320, H = 180
+  const data = [3, 7, 5, 12, 4, 9, 6, 10, 2, 8]
+  const mean = data.reduce((a, b) => a + b, 0) / data.length  // = 6.6
+  const pad = { l: 40, r: 20, t: 30, b: 40 }
+  const xScale = (i: number) => pad.l + (i / (data.length - 1)) * (W - pad.l - pad.r)
+  const maxVal = 14
+  const yScale = (v: number) => H - pad.b - (v / maxVal) * (H - pad.t - pad.b)
+  const meanX1 = pad.l, meanX2 = W - pad.r
+  const meanY = yScale(mean)
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-sm mx-auto">
+      <text x={W / 2} y={16} textAnchor="middle" fontSize="10" fill="#6B7280" fontWeight="600">Arithmetic Mean — Balancing Point</text>
+      {/* Y axis */}
+      <line x1={pad.l} y1={pad.t} x2={pad.l} y2={H - pad.b} stroke="#D1D5DB" strokeWidth="1" />
+      <line x1={pad.l} y1={H - pad.b} x2={W - pad.r} y2={H - pad.b} stroke="#D1D5DB" strokeWidth="1" />
+      {/* Deviation lines */}
+      {data.map((v, i) => (
+        <line key={i} x1={xScale(i)} y1={yScale(v)} x2={xScale(i)} y2={meanY}
+          stroke={v >= mean ? "#BFDBFE" : "#FCA5A5"} strokeWidth="2" strokeDasharray="3 2" />
+      ))}
+      {/* Mean line */}
+      <line x1={meanX1} y1={meanY} x2={meanX2} y2={meanY} stroke="#2563EB" strokeWidth="2" />
+      <text x={meanX2 + 3} y={meanY + 4} fontSize="9" fill="#2563EB" fontWeight="700">x̄={mean}</text>
+      {/* Data points */}
+      {data.map((v, i) => (
+        <circle key={i} cx={xScale(i)} cy={yScale(v)} r={4}
+          fill={v >= mean ? "#3B82F6" : "#EF4444"} stroke="white" strokeWidth="1.2" />
+      ))}
+      <text x={pad.l - 4} y={yScale(mean) + 4} textAnchor="end" fontSize="8" fill="#2563EB">{mean}</text>
+      <text x={W / 2} y={H - 6} textAnchor="middle" fontSize="8.5" fill="#6B7280">Blue above mean  ·  Red below mean  ·  Σ deviations = 0</text>
+    </svg>
+  )
+}
+
+function MedianViz() {
+  const W = 320, H = 180
+  const data = [2, 4, 6, 8, 10, 100]
+  const sorted = [...data].sort((a, b) => a - b)
+  const median = (sorted[2] + sorted[3]) / 2  // = 7
+  const mean = data.reduce((a, b) => a + b, 0) / data.length  // = 21.67
+  const pad = { l: 30, r: 30, t: 30, b: 50 }
+  const n = sorted.length
+  const xScale = (i: number) => pad.l + (i / (n - 1)) * (W - pad.l - pad.r)
+  const barH = 24, barY = 80
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-sm mx-auto">
+      <text x={W / 2} y={16} textAnchor="middle" fontSize="10" fill="#6B7280" fontWeight="600">Median vs Mean — Outlier Sensitivity</text>
+      {/* Sorted values */}
+      {sorted.map((v, i) => (
+        <g key={i}>
+          <rect x={xScale(i) - 18} y={barY} width={36} height={barH} rx="4"
+            fill={i === 2 || i === 3 ? "#D1FAE5" : "#F3F4F6"} stroke={i === 2 || i === 3 ? "#10B981" : "#E5E7EB"} strokeWidth="1.2" />
+          <text x={xScale(i)} y={barY + 16} textAnchor="middle" fontSize="10" fill="#374151" fontWeight={i === 2 || i === 3 ? "700" : "400"}>{v}</text>
+          <text x={xScale(i)} y={barY + 34} textAnchor="middle" fontSize="7.5" fill="#9CA3AF">x₍{i + 1}₎</text>
+        </g>
+      ))}
+      {/* Median annotation */}
+      <line x1={(xScale(2) + xScale(3)) / 2} y1={barY - 4} x2={(xScale(2) + xScale(3)) / 2} y2={barY + barH + 4}
+        stroke="#10B981" strokeWidth="2" />
+      <text x={(xScale(2) + xScale(3)) / 2} y={barY - 8} textAnchor="middle" fontSize="9" fill="#10B981" fontWeight="700">Median = {median}</text>
+      {/* Mean annotation — pulled right by outlier */}
+      <text x={W / 2} y={H - 22} textAnchor="middle" fontSize="8.5" fill="#EF4444" fontWeight="600">Mean = {mean.toFixed(1)} ← pulled by outlier (100)</text>
+      <text x={W / 2} y={H - 8} textAnchor="middle" fontSize="8" fill="#6B7280">Median is robust — rank only, not magnitude</text>
+    </svg>
+  )
+}
+
+function ModeViz() {
+  const W = 320, H = 190
+  const counts: Record<string, number> = { A: 2, B: 6, C: 4, D: 1, E: 3 }
+  const categories = Object.keys(counts)
+  const maxCount = Math.max(...Object.values(counts))
+  const pad = { l: 36, r: 16, t: 30, b: 44 }
+  const barWidth = (W - pad.l - pad.r) / categories.length - 8
+  const xBase = (i: number) => pad.l + i * ((W - pad.l - pad.r) / categories.length) + 4
+  const yScale = (v: number) => H - pad.b - (v / (maxCount + 1)) * (H - pad.t - pad.b)
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-sm mx-auto">
+      <text x={W / 2} y={16} textAnchor="middle" fontSize="10" fill="#6B7280" fontWeight="600">Mode — Most Frequent Value (Category B)</text>
+      {[0, 2, 4, 6].map(v => (
+        <g key={v}>
+          <line x1={pad.l} y1={yScale(v)} x2={W - pad.r} y2={yScale(v)} stroke="#F3F4F6" strokeWidth="1" />
+          <text x={pad.l - 4} y={yScale(v) + 4} textAnchor="end" fontSize="8" fill="#9CA3AF">{v}</text>
+        </g>
+      ))}
+      {categories.map((cat, i) => {
+        const isMode = counts[cat] === maxCount
+        return (
+          <g key={cat}>
+            <rect x={xBase(i)} y={yScale(counts[cat])} width={barWidth} height={H - pad.b - yScale(counts[cat])} rx="3"
+              fill={isMode ? "#FBBF24" : "#BFDBFE"} stroke={isMode ? "#D97706" : "#93C5FD"} strokeWidth="1.5" />
+            {isMode && <text x={xBase(i) + barWidth / 2} y={yScale(counts[cat]) - 6} textAnchor="middle" fontSize="9" fill="#D97706" fontWeight="700">MODE</text>}
+            <text x={xBase(i) + barWidth / 2} y={yScale(counts[cat]) - (isMode ? 18 : 6)} textAnchor="middle" fontSize="9" fill="#374151">{counts[cat]}</text>
+            <text x={xBase(i) + barWidth / 2} y={H - pad.b + 14} textAnchor="middle" fontSize="10" fill="#374151" fontWeight="600">{cat}</text>
+          </g>
+        )
+      })}
+      <text x={W / 2} y={H - 8} textAnchor="middle" fontSize="8" fill="#6B7280">Only valid measure of centre for nominal (categorical) data</text>
+    </svg>
+  )
+}
+
+function VarianceViz() {
+  const W = 320, H = 190
+  const data = [2, 5, 4, 8, 3, 7, 6]
+  const mean = data.reduce((a, b) => a + b, 0) / data.length
+  const pad = { l: 40, r: 20, t: 30, b: 44 }
+  const maxVal = 10
+  const xScale = (i: number) => pad.l + (i / (data.length - 1)) * (W - pad.l - pad.r)
+  const yScale = (v: number) => H - pad.b - (v / maxVal) * (H - pad.t - pad.b)
+  const meanY = yScale(mean)
+  const variance = data.reduce((s, v) => s + (v - mean) ** 2, 0) / (data.length - 1)
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-sm mx-auto">
+      <text x={W / 2} y={16} textAnchor="middle" fontSize="10" fill="#6B7280" fontWeight="600">Variance — Mean Squared Deviation</text>
+      <line x1={pad.l} y1={H - pad.b} x2={W - pad.r} y2={H - pad.b} stroke="#D1D5DB" strokeWidth="1" />
+      <line x1={pad.l} y1={pad.t} x2={pad.l} y2={H - pad.b} stroke="#D1D5DB" strokeWidth="1" />
+      {/* Mean line */}
+      <line x1={pad.l} y1={meanY} x2={W - pad.r} y2={meanY} stroke="#2563EB" strokeWidth="1.5" strokeDasharray="5 3" />
+      <text x={W - pad.r + 2} y={meanY + 4} fontSize="8" fill="#2563EB">x̄={mean.toFixed(1)}</text>
+      {/* Deviation squares */}
+      {data.map((v, i) => {
+        const cx = xScale(i), cy = yScale(v)
+        const dev = Math.abs(v - mean)
+        const sqSize = dev * (H - pad.t - pad.b) / maxVal
+        const sqTop = v >= mean ? cy : meanY
+        return (
+          <g key={i}>
+            <rect x={cx - sqSize / 2} y={sqTop} width={sqSize} height={sqSize}
+              fill={v >= mean ? "rgba(59,130,246,0.12)" : "rgba(239,68,68,0.12)"}
+              stroke={v >= mean ? "#93C5FD" : "#FCA5A5"} strokeWidth="1" />
+            <line x1={cx} y1={cy} x2={cx} y2={meanY}
+              stroke={v >= mean ? "#3B82F6" : "#EF4444"} strokeWidth="1.5" />
+            <circle cx={cx} cy={cy} r={4} fill={v >= mean ? "#3B82F6" : "#EF4444"} stroke="white" strokeWidth="1.2" />
+          </g>
+        )
+      })}
+      <text x={W / 2} y={H - 10} textAnchor="middle" fontSize="9" fill="#374151" fontWeight="600">s² = Σ(xᵢ−x̄)²/(n−1) = {variance.toFixed(2)}</text>
+    </svg>
+  )
+}
+
+function StandardDeviationViz() {
+  const W = 320, H = 190
+  const pad = { l: 16, r: 16, t: 30, b: 44 }
+  const cx = W / 2, cy = H / 2 + 8
+  const mu = 50, sigma = 15
+  const xMin = 0, xMax = 100
+  const xScale = (x: number) => pad.l + ((x - xMin) / (xMax - xMin)) * (W - pad.l - pad.r)
+  const points: string[] = []
+  for (let x = xMin; x <= xMax; x += 1) {
+    const z = (x - mu) / sigma
+    const y = cy - 80 * Math.exp(-0.5 * z * z)
+    points.push(`${xScale(x)},${y}`)
+  }
+  const bands = [
+    { mult: 1, color: "#BFDBFE", label: "68%" },
+    { mult: 2, color: "#DBEAFE", label: "95%" },
+    { mult: 3, color: "#EFF6FF", label: "99.7%" },
+  ]
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-sm mx-auto">
+      <text x={W / 2} y={16} textAnchor="middle" fontSize="10" fill="#6B7280" fontWeight="600">Empirical Rule — 68·95·99.7</text>
+      {/* Shaded bands */}
+      {[...bands].reverse().map(({ mult, color }) => {
+        const x1 = xScale(mu - mult * sigma), x2 = xScale(mu + mult * sigma)
+        return <rect key={mult} x={x1} y={cy - 84} width={x2 - x1} height={86} fill={color} />
+      })}
+      {/* Bell curve */}
+      <polyline points={points.join(" ")} fill="none" stroke="#2563EB" strokeWidth="2" />
+      {/* Mean line */}
+      <line x1={xScale(mu)} y1={cy - 85} x2={xScale(mu)} y2={cy} stroke="#1D4ED8" strokeWidth="1.5" strokeDasharray="4 3" />
+      <text x={xScale(mu)} y={cy + 12} textAnchor="middle" fontSize="8.5" fill="#1D4ED8">μ</text>
+      {/* σ labels */}
+      {[-3, -2, -1, 1, 2, 3].map(k => (
+        <text key={k} x={xScale(mu + k * sigma)} y={cy + 12} textAnchor="middle" fontSize="7.5" fill="#6B7280">{k}σ</text>
+      ))}
+      {/* Band labels */}
+      {bands.map(({ mult, label }) => (
+        <text key={mult} x={xScale(mu + (mult - 0.5) * sigma)} y={cy - 66} textAnchor="middle" fontSize="7.5" fill="#1D4ED8" fontWeight="600">{label}</text>
+      ))}
+      <text x={W / 2} y={H - 8} textAnchor="middle" fontSize="8.5" fill="#374151">z = (x−μ)/σ  ·  SE = σ/√n</text>
+    </svg>
+  )
+}
+
+function SkewnessViz() {
+  const W = 320, H = 200
+  const pad = { l: 16, r: 16, t: 30, b: 36 }
+  const panelW = (W - pad.l - pad.r - 16) / 3
+  const shapes = [
+    { label: "Left-Skewed", gamma: -1.2, color: "#FCA5A5", stroke: "#EF4444", sub: "γ₁ < 0", note: "mean<med<mode" },
+    { label: "Symmetric", gamma: 0, color: "#BFDBFE", stroke: "#3B82F6", sub: "γ₁ = 0", note: "mean=med=mode" },
+    { label: "Right-Skewed", gamma: 1.2, color: "#BBF7D0", stroke: "#10B981", sub: "γ₁ > 0", note: "mean>med>mode" },
+  ]
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-sm mx-auto">
+      <text x={W / 2} y={16} textAnchor="middle" fontSize="10" fill="#6B7280" fontWeight="600">Skewness — Tail Direction (3rd Moment)</text>
+      {shapes.map(({ label, gamma, color, stroke, sub, note }, idx) => {
+        const ox = pad.l + idx * (panelW + 8)
+        const baseY = H - pad.b
+        const peakX = gamma < 0 ? 0.65 : gamma > 0 ? 0.35 : 0.5
+        const pts: string[] = []
+        for (let t = 0; t <= 1; t += 0.02) {
+          const x = ox + t * panelW
+          let y: number
+          if (gamma === 0) {
+            const z = (t - 0.5) / 0.15
+            y = baseY - 70 * Math.exp(-0.5 * z * z)
+          } else if (gamma > 0) {
+            y = baseY - 70 * Math.exp(-3 * (t - 0.2) * (t - 0.2) / ((t + 0.1) * 1.5))
+          } else {
+            y = baseY - 70 * Math.exp(-3 * (t - 0.8) * (t - 0.8) / ((1.1 - t) * 1.5))
+          }
+          pts.push(`${x},${y}`)
+        }
+        pts.unshift(`${ox},${baseY}`)
+        pts.push(`${ox + panelW},${baseY}`)
+        return (
+          <g key={idx}>
+            <polygon points={pts.join(" ")} fill={color} fillOpacity="0.5" stroke={stroke} strokeWidth="1.5" />
+            <text x={ox + panelW / 2} y={pad.t + 14} textAnchor="middle" fontSize="8.5" fill="#374151" fontWeight="700">{label}</text>
+            <text x={ox + panelW / 2} y={pad.t + 26} textAnchor="middle" fontSize="8" fill={stroke}>{sub}</text>
+            <text x={ox + panelW / 2} y={H - pad.b + 14} textAnchor="middle" fontSize="7.5" fill="#6B7280">{note}</text>
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
+function KurtosisViz() {
+  const W = 320, H = 200
+  const pad = { l: 20, r: 20, t: 30, b: 36 }
+  const midY = H - pad.b
+  const shapes = [
+    { label: "Platykurtic", kurt: -1, color: "#FDE68A", stroke: "#D97706", tailW: 0.28, peakH: 52, sub: "γ₂ < 0", note: "thin tails" },
+    { label: "Mesokurtic", kurt: 0, color: "#BFDBFE", stroke: "#3B82F6", tailW: 0.2, peakH: 72, sub: "γ₂ = 0 (Normal)", note: "normal tails" },
+    { label: "Leptokurtic", kurt: 1, color: "#D1FAE5", stroke: "#10B981", tailW: 0.14, peakH: 90, sub: "γ₂ > 0", note: "fat tails" },
+  ]
+  const panelW = (W - pad.l - pad.r - 16) / 3
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-sm mx-auto">
+      <text x={W / 2} y={16} textAnchor="middle" fontSize="10" fill="#6B7280" fontWeight="600">Kurtosis — Tail Heaviness (4th Moment)</text>
+      {shapes.map(({ label, color, stroke, tailW, peakH, sub, note }, idx) => {
+        const ox = pad.l + idx * (panelW + 8)
+        const pts: string[] = []
+        for (let t = 0; t <= 1; t += 0.02) {
+          const z = (t - 0.5) / tailW
+          const x = ox + t * panelW
+          const y = midY - peakH * Math.exp(-0.5 * z * z)
+          pts.push(`${x},${y}`)
+        }
+        pts.unshift(`${ox},${midY}`)
+        pts.push(`${ox + panelW},${midY}`)
+        return (
+          <g key={idx}>
+            <polygon points={pts.join(" ")} fill={color} fillOpacity="0.55" stroke={stroke} strokeWidth="1.5" />
+            <text x={ox + panelW / 2} y={pad.t + 14} textAnchor="middle" fontSize="8.5" fill="#374151" fontWeight="700">{label}</text>
+            <text x={ox + panelW / 2} y={pad.t + 26} textAnchor="middle" fontSize="7.5" fill={stroke}>{sub}</text>
+            <text x={ox + panelW / 2} y={H - pad.b + 14} textAnchor="middle" fontSize="7.5" fill="#6B7280">{note}</text>
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
+function PercentilesQuartilesViz() {
+  const W = 320, H = 180
+  const pad = { l: 36, r: 24, t: 30, b: 48 }
+  const bxY = 80, bxH = 34
+  const Q1 = 30, Q2 = 50, Q3 = 70, wMin = 10, wMax = 100
+  const xScale = (v: number) => pad.l + ((v - 0) / 110) * (W - pad.l - pad.r)
+  const IQR = Q3 - Q1
+  const fence1 = Q1 - 1.5 * IQR, fence2 = Q3 + 1.5 * IQR
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-sm mx-auto">
+      <text x={W / 2} y={16} textAnchor="middle" fontSize="10" fill="#6B7280" fontWeight="600">Box Plot — Five-Number Summary + IQR</text>
+      {/* Whiskers */}
+      <line x1={xScale(wMin)} y1={bxY + bxH / 2} x2={xScale(Q1)} y2={bxY + bxH / 2} stroke="#6B7280" strokeWidth="1.5" />
+      <line x1={xScale(Q3)} y1={bxY + bxH / 2} x2={xScale(wMax)} y2={bxY + bxH / 2} stroke="#6B7280" strokeWidth="1.5" />
+      <line x1={xScale(wMin)} y1={bxY + 6} x2={xScale(wMin)} y2={bxY + bxH - 6} stroke="#6B7280" strokeWidth="1.5" />
+      <line x1={xScale(wMax)} y1={bxY + 6} x2={xScale(wMax)} y2={bxY + bxH - 6} stroke="#6B7280" strokeWidth="1.5" />
+      {/* IQR box */}
+      <rect x={xScale(Q1)} y={bxY} width={xScale(Q3) - xScale(Q1)} height={bxH} fill="#BFDBFE" stroke="#3B82F6" strokeWidth="1.5" />
+      {/* Median line */}
+      <line x1={xScale(Q2)} y1={bxY} x2={xScale(Q2)} y2={bxY + bxH} stroke="#1D4ED8" strokeWidth="2.5" />
+      {/* Tukey fence */}
+      <line x1={xScale(fence1)} y1={bxY - 10} x2={xScale(fence1)} y2={bxY + bxH + 10} stroke="#EF4444" strokeWidth="1" strokeDasharray="3 2" />
+      <line x1={xScale(fence2)} y1={bxY - 10} x2={xScale(fence2)} y2={bxY + bxH + 10} stroke="#EF4444" strokeWidth="1" strokeDasharray="3 2" />
+      {/* Outlier */}
+      <circle cx={xScale(105)} cy={bxY + bxH / 2} r={4} fill="#EF4444" stroke="white" strokeWidth="1.2" />
+      <text x={xScale(105)} y={bxY - 4} textAnchor="middle" fontSize="7.5" fill="#EF4444">outlier</text>
+      {/* Labels */}
+      {[{ v: wMin, l: "min" }, { v: Q1, l: "Q1=25p" }, { v: Q2, l: "Q2=50p" }, { v: Q3, l: "Q3=75p" }, { v: wMax, l: "max" }].map(({ v, l }) => (
+        <text key={l} x={xScale(v)} y={bxY + bxH + 14} textAnchor="middle" fontSize="7.5" fill="#374151">{l}</text>
+      ))}
+      <text x={xScale((Q1 + Q3) / 2)} y={bxY - 6} textAnchor="middle" fontSize="8" fill="#3B82F6" fontWeight="600">IQR = Q3−Q1 = {IQR}</text>
+      <text x={W / 2} y={H - 8} textAnchor="middle" fontSize="8" fill="#EF4444">Red dashes: Tukey fence Q1−1.5×IQR, Q3+1.5×IQR</text>
+    </svg>
+  )
+}
+
+function ZTestViz() {
+  const W = 320, H = 190
+  const pad = { l: 24, r: 24, t: 30, b: 44 }
+  const cx = W / 2, baseY = H - pad.b
+  const xScale = (z: number) => cx + z * 44
+  const yNorm = (z: number) => baseY - 90 * Math.exp(-0.5 * z * z)
+  const zCrit = 1.96
+  const pts: string[] = []
+  for (let z = -3.2; z <= 3.2; z += 0.05) pts.push(`${xScale(z)},${yNorm(z)}`)
+  const leftTail: string[] = []
+  for (let z = -3.2; z <= -zCrit; z += 0.05) leftTail.push(`${xScale(z)},${yNorm(z)}`)
+  const rightTail: string[] = []
+  for (let z = zCrit; z <= 3.2; z += 0.05) rightTail.push(`${xScale(z)},${yNorm(z)}`)
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-sm mx-auto">
+      <text x={W / 2} y={16} textAnchor="middle" fontSize="10" fill="#6B7280" fontWeight="600">Z-Test — Two-Sided Rejection Regions (α=0.05)</text>
+      {/* Rejection regions */}
+      <polygon points={[`${xScale(-3.2)},${baseY}`, ...leftTail, `${xScale(-zCrit)},${baseY}`].join(" ")} fill="#FCA5A5" fillOpacity="0.7" />
+      <polygon points={[`${xScale(zCrit)},${baseY}`, ...rightTail, `${xScale(3.2)},${baseY}`].join(" ")} fill="#FCA5A5" fillOpacity="0.7" />
+      {/* Normal curve */}
+      <polyline points={pts.join(" ")} fill="none" stroke="#2563EB" strokeWidth="2" />
+      <line x1={xScale(-3.2)} y1={baseY} x2={xScale(3.2)} y2={baseY} stroke="#D1D5DB" strokeWidth="1" />
+      {/* Critical value lines */}
+      <line x1={xScale(-zCrit)} y1={baseY} x2={xScale(-zCrit)} y2={yNorm(-zCrit)} stroke="#EF4444" strokeWidth="1.5" strokeDasharray="4 2" />
+      <line x1={xScale(zCrit)} y1={baseY} x2={xScale(zCrit)} y2={yNorm(zCrit)} stroke="#EF4444" strokeWidth="1.5" strokeDasharray="4 2" />
+      <text x={xScale(-zCrit)} y={baseY + 12} textAnchor="middle" fontSize="8.5" fill="#EF4444" fontWeight="700">−1.96</text>
+      <text x={xScale(zCrit)} y={baseY + 12} textAnchor="middle" fontSize="8.5" fill="#EF4444" fontWeight="700">+1.96</text>
+      <text x={xScale(0)} y={baseY + 12} textAnchor="middle" fontSize="8" fill="#374151">0</text>
+      <text x={xScale(-2.7)} y={baseY - 10} textAnchor="middle" fontSize="8" fill="#EF4444" fontWeight="600">2.5%</text>
+      <text x={xScale(2.7)} y={baseY - 10} textAnchor="middle" fontSize="8" fill="#EF4444" fontWeight="600">2.5%</text>
+      <text x={W / 2} y={H - 8} textAnchor="middle" fontSize="8.5" fill="#374151">Z = (x̄−μ₀)/(σ/√n)  ~  N(0,1)  under H₀</text>
+    </svg>
+  )
+}
+
+function TTestViz() {
+  const W = 320, H = 200
+  const pad = { l: 24, r: 24, t: 30, b: 48 }
+  const cx = W / 2, baseY = H - pad.b
+  const xScale = (z: number) => cx + z * 40
+  const yNorm = (z: number) => baseY - 80 * Math.exp(-0.5 * z * z)
+  const yt3 = (z: number) => baseY - 80 * Math.pow(1 + z * z / 3, -2)
+  const yt10 = (z: number) => baseY - 80 * Math.pow(1 + z * z / 10, -5.5)
+  const ptsNorm: string[] = [], ptst3: string[] = [], ptst10: string[] = []
+  for (let z = -3.5; z <= 3.5; z += 0.05) {
+    ptsNorm.push(`${xScale(z)},${yNorm(z)}`)
+    ptst3.push(`${xScale(z)},${yt3(z)}`)
+    ptst10.push(`${xScale(z)},${yt10(z)}`)
+  }
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-sm mx-auto">
+      <text x={W / 2} y={16} textAnchor="middle" fontSize="10" fill="#6B7280" fontWeight="600">t-Distribution vs Normal (heavier tails, small n)</text>
+      <line x1={xScale(-3.5)} y1={baseY} x2={xScale(3.5)} y2={baseY} stroke="#D1D5DB" strokeWidth="1" />
+      <polyline points={ptsNorm.join(" ")} fill="none" stroke="#2563EB" strokeWidth="2" />
+      <polyline points={ptst10.join(" ")} fill="none" stroke="#10B981" strokeWidth="1.5" strokeDasharray="5 3" />
+      <polyline points={ptst3.join(" ")} fill="none" stroke="#EF4444" strokeWidth="1.5" strokeDasharray="3 2" />
+      {/* Legend */}
+      <line x1={pad.l} y1={H - 32} x2={pad.l + 20} y2={H - 32} stroke="#2563EB" strokeWidth="2" />
+      <text x={pad.l + 24} y={H - 28} fontSize="8" fill="#374151">N(0,1)</text>
+      <line x1={pad.l + 56} y1={H - 32} x2={pad.l + 76} y2={H - 32} stroke="#10B981" strokeWidth="1.5" strokeDasharray="5 3" />
+      <text x={pad.l + 80} y={H - 28} fontSize="8" fill="#374151">t(10)</text>
+      <line x1={pad.l + 112} y1={H - 32} x2={pad.l + 132} y2={H - 32} stroke="#EF4444" strokeWidth="1.5" strokeDasharray="3 2" />
+      <text x={pad.l + 136} y={H - 28} fontSize="8" fill="#374151">t(3)</text>
+      {[-3, -2, -1, 0, 1, 2, 3].map(v => (
+        <text key={v} x={xScale(v)} y={baseY + 12} textAnchor="middle" fontSize="7.5" fill="#9CA3AF">{v}</text>
+      ))}
+      <text x={W / 2} y={H - 10} textAnchor="middle" fontSize="8.5" fill="#374151">T = (x̄−μ₀)/(s/√n)  ~  t(n−1)  under H₀</text>
+    </svg>
+  )
+}
+
+function ChiSquareViz() {
+  const W = 320, H = 190
+  const pad = { l: 32, r: 24, t: 30, b: 44 }
+  const baseY = H - pad.b
+  const xMax = 15, critVal = 5.99  // chi2(2, alpha=0.05)
+  const xScale = (x: number) => pad.l + (x / xMax) * (W - pad.l - pad.r)
+  const yScale = (y: number) => baseY - y * 200
+  const chi2pdf = (x: number, k: number) => x <= 0 ? 0 : Math.exp((k / 2 - 1) * Math.log(x) - x / 2 - (k / 2) * Math.log(2) - Math.log(Math.abs(k / 2 - 1) || 1))
+  const ptsAll: string[] = [], ptsTail: string[] = []
+  for (let x = 0.1; x <= xMax; x += 0.1) {
+    const y = chi2pdf(x, 2) * 1.2
+    ptsAll.push(`${xScale(x)},${yScale(y)}`)
+    if (x >= critVal) ptsTail.push(`${xScale(x)},${yScale(y)}`)
+  }
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-sm mx-auto">
+      <text x={W / 2} y={16} textAnchor="middle" fontSize="10" fill="#6B7280" fontWeight="600">Chi-Square Distribution χ²(2), α=0.05</text>
+      <line x1={pad.l} y1={baseY} x2={W - pad.r} y2={baseY} stroke="#D1D5DB" strokeWidth="1" />
+      {/* Rejection region */}
+      <polygon points={[`${xScale(critVal)},${baseY}`, ...ptsTail, `${xScale(xMax)},${baseY}`].join(" ")} fill="#FCA5A5" fillOpacity="0.7" />
+      <polyline points={ptsAll.join(" ")} fill="none" stroke="#7C3AED" strokeWidth="2" />
+      <line x1={xScale(critVal)} y1={baseY} x2={xScale(critVal)} y2={baseY - 60} stroke="#EF4444" strokeWidth="1.5" strokeDasharray="4 2" />
+      <text x={xScale(critVal)} y={baseY + 14} textAnchor="middle" fontSize="8.5" fill="#EF4444" fontWeight="700">{critVal}</text>
+      <text x={xScale(critVal + 2)} y={baseY - 20} textAnchor="middle" fontSize="8" fill="#EF4444" fontWeight="600">5%</text>
+      {[0, 3, 6, 9, 12].map(v => (
+        <text key={v} x={xScale(v)} y={baseY + 12} textAnchor="middle" fontSize="7.5" fill="#9CA3AF">{v}</text>
+      ))}
+      <text x={W / 2} y={H - 8} textAnchor="middle" fontSize="8.5" fill="#374151">χ² = Σ(O−E)²/E  ~  χ²((r−1)(c−1))  under H₀</text>
+    </svg>
+  )
+}
+
+function AnovaViz() {
+  const W = 320, H = 195
+  const pad = { l: 36, r: 16, t: 34, b: 44 }
+  const groups = [
+    { label: "Group A", mean: 52, spread: 6, color: "#BFDBFE", stroke: "#3B82F6", n: 6 },
+    { label: "Group B", mean: 68, spread: 7, color: "#D1FAE5", stroke: "#10B981", n: 6 },
+    { label: "Group C", mean: 44, spread: 5, color: "#FDE68A", stroke: "#D97706", n: 6 },
+  ]
+  const grandMean = groups.reduce((s, g) => s + g.mean, 0) / 3
+  const yMin = 20, yMax = 100
+  const yScale = (v: number) => H - pad.b - ((v - yMin) / (yMax - yMin)) * (H - pad.t - pad.b)
+  const gw = (W - pad.l - pad.r - 24) / 3
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-sm mx-auto">
+      <text x={W / 2} y={16} textAnchor="middle" fontSize="10" fill="#6B7280" fontWeight="600">ANOVA — Between-Group vs Within-Group Variance</text>
+      {/* Grand mean */}
+      <line x1={pad.l} y1={yScale(grandMean)} x2={W - pad.r} y2={yScale(grandMean)} stroke="#6B7280" strokeWidth="1" strokeDasharray="6 3" />
+      <text x={W - pad.r + 2} y={yScale(grandMean) + 4} fontSize="7.5" fill="#6B7280">x̄</text>
+      {groups.map(({ label, mean, spread, color, stroke, n }, idx) => {
+        const ox = pad.l + idx * (gw + 12) + gw / 2
+        return (
+          <g key={idx}>
+            {/* Within-group spread (simulated points) */}
+            {Array.from({ length: n }, (_, k) => {
+              const jitter = (k - n / 2) * 5.5
+              const val = mean + (k % 3 === 0 ? -spread : k % 3 === 1 ? 0 : spread) * 0.8
+              return (
+                <circle key={k} cx={ox + jitter * 0.3} cy={yScale(val)} r={3} fill={color} stroke={stroke} strokeWidth="1" />
+              )
+            })}
+            {/* Group mean line */}
+            <line x1={ox - gw * 0.35} y1={yScale(mean)} x2={ox + gw * 0.35} y2={yScale(mean)} stroke={stroke} strokeWidth="2.5" />
+            <text x={ox} y={H - pad.b + 14} textAnchor="middle" fontSize="8.5" fill="#374151">{label}</text>
+            <text x={ox} y={yScale(mean) - 6} textAnchor="middle" fontSize="7.5" fill={stroke} fontWeight="700">μ={mean}</text>
+          </g>
+        )
+      })}
+      <text x={W / 2} y={H - 8} textAnchor="middle" fontSize="8.5" fill="#374151">F = MSB/MSW  ~  F(k−1, n−k)  under H₀</text>
+    </svg>
+  )
+}
+
+function MannWhitneyViz() {
+  const W = 320, H = 195
+  const pad = { l: 24, r: 24, t: 30, b: 48 }
+  const group1 = [3, 5, 7, 9, 11, 13]
+  const group2 = [1, 4, 6, 10, 14, 16]
+  const combined = [
+    ...group1.map(v => ({ v, g: 1 })),
+    ...group2.map(v => ({ v, g: 2 })),
+  ].sort((a, b) => a.v - b.v)
+  const n = combined.length
+  const rankX = (i: number) => pad.l + (i / (n - 1)) * (W - pad.l - pad.r)
+  const dotY1 = 90, dotY2 = 120
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-sm mx-auto">
+      <text x={W / 2} y={16} textAnchor="middle" fontSize="10" fill="#6B7280" fontWeight="600">Mann-Whitney U — Rank-Based Comparison</text>
+      {/* Rank axis */}
+      <line x1={pad.l} y1={105} x2={W - pad.r} y2={105} stroke="#D1D5DB" strokeWidth="1" />
+      {combined.map(({ v, g }, i) => (
+        <g key={i}>
+          <circle cx={rankX(i)} cy={g === 1 ? dotY1 : dotY2} r={7}
+            fill={g === 1 ? "#BFDBFE" : "#D1FAE5"} stroke={g === 1 ? "#3B82F6" : "#10B981"} strokeWidth="1.5" />
+          <text x={rankX(i)} y={(g === 1 ? dotY1 : dotY2) + 4} textAnchor="middle" fontSize="7.5" fill="#374151">{v}</text>
+          <text x={rankX(i)} y={105 + 12} textAnchor="middle" fontSize="7" fill="#9CA3AF">r{i + 1}</text>
+        </g>
+      ))}
+      {/* Legend */}
+      <circle cx={pad.l + 4} cy={H - 32} r={5} fill="#BFDBFE" stroke="#3B82F6" strokeWidth="1.5" />
+      <text x={pad.l + 12} y={H - 28} fontSize="8" fill="#374151">Group 1</text>
+      <circle cx={pad.l + 62} cy={H - 32} r={5} fill="#D1FAE5" stroke="#10B981" strokeWidth="1.5" />
+      <text x={pad.l + 70} y={H - 28} fontSize="8" fill="#374151">Group 2</text>
+      <text x={W / 2} y={H - 10} textAnchor="middle" fontSize="8.5" fill="#374151">U/(n₁n₂) = P̂(X{">"}Y) = AUC</text>
+    </svg>
+  )
+}
+
+function MultipleTestingViz() {
+  const W = 320, H = 200
+  const pad = { l: 36, r: 24, t: 30, b: 44 }
+  const m = 20
+  const alpha = 0.05
+  const bonf = alpha / m
+  const bhQ = 0.05
+  const pvals = [0.001, 0.003, 0.006, 0.010, 0.018, 0.024, 0.031, 0.042, 0.057, 0.071, 0.089, 0.108, 0.134, 0.160, 0.195, 0.23, 0.29, 0.38, 0.54, 0.78]
+  const xScale = (i: number) => pad.l + (i / (m - 1)) * (W - pad.l - pad.r)
+  const yScale = (p: number) => pad.t + (Math.log10(p) / Math.log10(0.0005)) * (H - pad.t - pad.b) * (-1)
+  const bonfY = pad.t + (Math.log10(bonf) / Math.log10(0.0005)) * (H - pad.t - pad.b) * (-1)
+  const alphaY = pad.t + (Math.log10(alpha) / Math.log10(0.0005)) * (H - pad.t - pad.b) * (-1)
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-sm mx-auto">
+      <text x={W / 2} y={16} textAnchor="middle" fontSize="10" fill="#6B7280" fontWeight="600">Multiple Testing — Bonferroni vs BH-FDR (m=20)</text>
+      <line x1={pad.l} y1={H - pad.b} x2={W - pad.r} y2={H - pad.b} stroke="#D1D5DB" strokeWidth="1" />
+      <line x1={pad.l} y1={pad.t} x2={pad.l} y2={H - pad.b} stroke="#D1D5DB" strokeWidth="1" />
+      {/* Unadjusted alpha */}
+      <line x1={pad.l} y1={alphaY} x2={W - pad.r} y2={alphaY} stroke="#9CA3AF" strokeWidth="1" strokeDasharray="4 2" />
+      <text x={W - pad.r + 2} y={alphaY + 4} fontSize="7.5" fill="#9CA3AF">α=0.05</text>
+      {/* Bonferroni threshold */}
+      <line x1={pad.l} y1={bonfY} x2={W - pad.r} y2={bonfY} stroke="#EF4444" strokeWidth="1.5" strokeDasharray="5 3" />
+      <text x={W - pad.r + 2} y={bonfY + 4} fontSize="7.5" fill="#EF4444">Bonf</text>
+      {/* BH line: i*q/m for each sorted rank */}
+      {pvals.map((_, i) => {
+        const bhThresh = ((i + 1) * bhQ) / m
+        if (i < m - 1) {
+          const x1 = xScale(i), x2 = xScale(i + 1)
+          const bhY1 = pad.t + (Math.log10(bhThresh) / Math.log10(0.0005)) * (H - pad.t - pad.b) * (-1)
+          const bhThresh2 = ((i + 2) * bhQ) / m
+          const bhY2 = pad.t + (Math.log10(bhThresh2) / Math.log10(0.0005)) * (H - pad.t - pad.b) * (-1)
+          return <line key={i} x1={x1} y1={bhY1} x2={x2} y2={bhY2} stroke="#3B82F6" strokeWidth="1.5" />
+        }
+        return null
+      })}
+      {/* p-values */}
+      {pvals.map((p, i) => {
+        const py = yScale(p)
+        const bhThresh = ((i + 1) * bhQ) / m
+        const rejected = p <= bhThresh
+        return (
+          <circle key={i} cx={xScale(i)} cy={py} r={3.5}
+            fill={rejected ? "#10B981" : "#9CA3AF"} stroke="white" strokeWidth="1" />
+        )
+      })}
+      {/* Legend */}
+      <line x1={pad.l} y1={H - 20} x2={pad.l + 16} y2={H - 20} stroke="#EF4444" strokeWidth="1.5" strokeDasharray="5 3" />
+      <text x={pad.l + 20} y={H - 16} fontSize="7.5" fill="#374151">Bonferroni</text>
+      <line x1={pad.l + 76} y1={H - 20} x2={pad.l + 92} y2={H - 20} stroke="#3B82F6" strokeWidth="1.5" />
+      <text x={pad.l + 96} y={H - 16} fontSize="7.5" fill="#374151">BH threshold</text>
+      <circle cx={pad.l + 164} cy={H - 20} r={3.5} fill="#10B981" stroke="white" strokeWidth="1" />
+      <text x={pad.l + 170} y={H - 16} fontSize="7.5" fill="#374151">BH-rejected</text>
+    </svg>
+  )
+}
+
 function KMeansViz() {
   const W = 320, H = 215
   const pad = { l: 18, r: 14, t: 14, b: 36 }

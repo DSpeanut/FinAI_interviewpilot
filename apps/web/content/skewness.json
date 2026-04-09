@@ -1,0 +1,74 @@
+{
+  "eli3": [
+    "Skewness measures whether a distribution has a longer tail on one side. A distribution is right-skewed (positive skew) if it has a long right tail — like income data where most people earn modestly but a few earn enormous amounts. It is left-skewed (negative skew) if the long tail is on the left.",
+    "For a right-skewed distribution: mean > median > mode. The mean gets pulled toward the long tail, while the mode is at the peak. This ordering is a quick diagnostic — if mean > median in your data, it is likely right-skewed.",
+    "Skewness is the third standardised central moment: γ₁ = E[(X−μ)³]/σ³. Positive γ₁ = right tail; negative γ₁ = left tail; γ₁ = 0 = symmetric. The normal distribution has skewness 0."
+  ],
+  "whenWhy": [
+    {
+      "title": "Checking normality assumptions",
+      "body": "Many statistical tests (t-test, ANOVA, regression) assume normality of errors. Skewness > |1| is a warning sign. A skewness test (D'Agostino-Pearson, Jarque-Bera) quantifies departure from normality. For ML, skewed features can hurt gradient-based models — log or Box-Cox transformation can reduce skewness."
+    },
+    {
+      "title": "Choosing the right central tendency measure",
+      "body": "For right-skewed data (income, housing prices, survival times), mean > median — the mean overstates the 'typical' value. Communicate median for skewed data. US Census reports median income precisely because the income distribution is highly right-skewed."
+    },
+    {
+      "title": "Financial risk and return distributions",
+      "body": "Equity returns exhibit negative skewness (fat left tail, rare but severe crashes). Option pricing and risk models must account for skewness — models assuming normal returns (zero skewness) underestimate tail risk. The Sortino ratio, downside deviation, and CVaR are measures designed for negatively skewed return distributions."
+    },
+    {
+      "title": "Log transformation for skewed data",
+      "body": "For right-skewed, positive-valued data, log(x) often produces approximate normality. This is because the log-normal distribution (common in nature due to multiplicative effects) has exactly zero skewness on the log scale. Box-Cox transformation generalises this: x^λ (or log x when λ→0)."
+    }
+  ],
+  "deepDiveIntro": [
+    "The population skewness is γ₁ = μ₃/σ³ where μ₃ = E[(X−μ)³] is the third central moment. The sample skewness is ĝ₁ = [n/((n−1)(n−2))] Σᵢ [(xᵢ−x̄)/s]³ (Fisher's adjusted formula — unbiased to O(1/n²)). The simpler estimator m₃/m₂^{3/2} is biased but consistent.",
+    "Skewness γ₁ > 0: right (positive) tail — mean > median. γ₁ < 0: left (negative) tail — mean < median. γ₁ = 0: symmetric (but not necessarily normal). Thresholds: |γ₁| < 0.5 (approximately symmetric), 0.5 ≤ |γ₁| < 1 (moderately skewed), |γ₁| ≥ 1 (highly skewed)."
+  ],
+  "visualizationType": "skewness",
+  "deepDive": [
+    {
+      "heading": "Definition: Third Standardised Moment",
+      "body": "Population: γ₁ = E[(X−μ)³] / σ³ = μ₃/σ³. Sample (Fisher's adjusted): ĝ₁ = [n/((n−1)(n−2))] Σᵢ [(xᵢ−x̄)/s]³. The cubing ensures that deviations retain their sign (positive deviations contribute + to skewness, negative contribute −). Standardising by σ³ makes it dimensionless and scale-invariant. [1]",
+      "formula": "γ₁ = E[(X − μ)³] / σ³"
+    },
+    {
+      "heading": "Named Distributions and Their Skewness",
+      "body": "Normal N(μ,σ²): γ₁ = 0. Log-normal LN(μ,σ²): γ₁ = (e^{σ²}+2)√(e^{σ²}−1) > 0 (always right-skewed). Exponential Exp(λ): γ₁ = 2 (always right-skewed). Beta(α,β): γ₁ = 2(β−α)√(α+β+1)/[(α+β+2)√(αβ)] — can be positive, negative, or zero. [1]"
+    },
+    {
+      "heading": "Pearson's Skewness Coefficients",
+      "body": "Pearson's mode skewness: Sk₁ = (mean−mode)/σ. Pearson's median skewness (more robust): Sk₂ = 3(mean−median)/σ. These are simpler alternatives that don't require computing high-order moments. For the normal distribution: mean = median = mode, so both = 0. [1]"
+    },
+    {
+      "heading": "Jarque-Bera Test for Normality",
+      "body": "JB = n/6 · [ĝ₁² + (ĝ₂)²/4] where ĝ₁ = sample skewness, ĝ₂ = sample excess kurtosis. Under H₀ (normality), JB →_d χ²(2). Reject normality if JB > χ²_{2,α}. For α=0.05, critical value ≈ 5.99. The test combines skewness and kurtosis — sensitive to departures from normality in either dimension. [2]",
+      "formula": "JB = (n/6)·[ĝ₁² + ĝ₂²/4] ~ χ²(2)"
+    }
+  ],
+  "youtubeLabel": "Skewness and Kurtosis — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/tSf0gEUXPsw",
+  "takeaways": [
+    "Skewness γ₁ = E[(X−μ)³]/σ³: 3rd standardised central moment; 0 = symmetric, >0 = right tail, <0 = left tail. [1]",
+    "Right-skewed: mean > median > mode; left-skewed: mean < median < mode. [1]",
+    "Sample estimator: ĝ₁ = [n/((n−1)(n−2))] Σ[(xᵢ−x̄)/s]³ (Fisher's adjusted, approximately unbiased). [1]",
+    "Jarque-Bera test combines skewness and kurtosis: JB ~ χ²(2) under normality. [2]",
+    "Log transformation reduces right-skewness; Box-Cox generalises to any power transformation. [1]",
+    "Financial returns often show negative skewness (crash risk in left tail). [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Can a distribution be symmetric but not normal?",
+      "a": "Yes. Symmetry (γ₁ = 0) is necessary but not sufficient for normality. The Student-t, uniform, and Laplace distributions are all symmetric but not normal. Normality requires additionally that all higher moments match those of the normal. The Jarque-Bera test checks both skewness and excess kurtosis; passing both is still not definitive (only indicative). [1]"
+    },
+    {
+      "q": "Why is skewness sensitive to outliers?",
+      "a": "Skewness uses the third power of deviations: (xᵢ−x̄)³. A single observation far from the mean contributes proportionally to its cube — outliers dominate the sample skewness estimate. This is why the sample skewness can give misleading results for small samples with heavy tails. Robust alternatives include Groeneveld-Meeden skewness based on the median and quartiles: GM = (mean−median)/MAD. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 2", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" },
+    { "label": "Jarque & Bera (1980) — Efficient Tests for Normality, Econometrica Letters 6(3)", "url": "https://doi.org/10.1016/0165-1765(80)90024-5" }
+  ]
+}

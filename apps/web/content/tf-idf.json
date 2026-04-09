@@ -1,0 +1,68 @@
+{
+  "eli3": [
+    "TF-IDF (Term Frequency – Inverse Document Frequency) weights each word in a document by how often it appears in that document (TF) divided by how common it is across all documents (IDF). Words that appear often in one document but rarely in the corpus get high scores — they are likely distinctive for that document. Common words like 'the', 'is', 'and' get near-zero weight because IDF is low.",
+    "TF(t,d) = count(t in d) / |d| (normalized term frequency). IDF(t) = log(N / df(t)), where N = total documents and df(t) = number of documents containing term t. TF-IDF(t,d) = TF(t,d) × IDF(t). For the word 'the': TF might be high but IDF ≈ 0 (appears in every doc) → TF-IDF ≈ 0. For 'photosynthesis' in a biology paper: high TF, high IDF → high TF-IDF.",
+    "TF-IDF is the backbone of classical information retrieval. Documents and queries are represented as TF-IDF vectors; relevance is measured by cosine similarity. BM25 (Robertson et al. 1995) is the dominant successor — it adds document length normalization and saturates TF at high counts. Modern search engines (Elasticsearch, Solr) use BM25 as the default ranking function, often augmented by neural re-ranking."
+  ],
+  "whenWhy": [
+    {
+      "title": "Document ranking in information retrieval",
+      "body": "Given a query q and document collection, rank documents by relevance. TF-IDF vector space model: represent query and documents as TF-IDF vectors, rank by cosine similarity. Cosine(q,d) = (q·d)/(||q||·||d||). This is the classical approach used before neural retrieval. Inverted index + TF-IDF is still the basis of Elasticsearch's full-text search."
+    },
+    {
+      "title": "Feature extraction for text classification",
+      "body": "TF-IDF vectors are better features than raw counts for classification: they downweight stop words automatically, giving more discriminative features. scikit-learn's TfidfVectorizer combines vectorization and TF-IDF weighting. TF-IDF + LinearSVC or logistic regression achieves strong classification performance — the standard baseline before neural models."
+    },
+    {
+      "title": "Keyword extraction and summarization",
+      "body": "The highest TF-IDF words in a document are its most distinctive terms — useful for extractive keyword extraction, document tagging, and auto-summarization. YAKE (Campos et al. 2020) and TextRank use TF-IDF-like signals for unsupervised keyword extraction. TF-IDF across a document collection also enables finding near-duplicate documents via high cosine similarity."
+    }
+  ],
+  "deepDiveIntro": [
+    "TF-IDF formula variants: (1) Raw: TF = count(t,d), IDF = log(N/df(t)). (2) Normalized TF: TF = count(t,d)/max_term_count(d) — normalizes for document length. (3) Sublinear TF: TF = 1 + log(count(t,d)) if count > 0 else 0 — dampens the effect of very high counts. (4) Smooth IDF: IDF = log((N+1)/(df(t)+1)) + 1 — prevents division by zero for terms in all documents. scikit-learn's default uses sublinear_tf=False, smooth_idf=True, L2-normalized vectors.",
+    "BM25 (Best Match 25, Robertson et al. 1995): score(d,q) = ΣₜIDF(t)·(tf(t,d)·(k₁+1))/(tf(t,d)+k₁·(1−b+b·|d|/avgdl)), where k₁ ∈ [1.2, 2.0] controls TF saturation, b ∈ [0.75, 1.0] controls document length normalization, avgdl = average document length. BM25 consistently outperforms TF-IDF in IR benchmarks — it is the default retrieval function in Elasticsearch and Solr."
+  ],
+  "deepDive": [
+    {
+      "heading": "TF-IDF Formulation",
+      "body": "Standard TF-IDF: w(t,d) = (1 + log tf(t,d)) × log(N/(1+df(t))) [sublinear TF, smooth IDF]. Document vector = [w(t₁,d), w(t₂,d), …, w(tV,d)] normalized to unit L2 norm. Cosine similarity for ranking: sim(q,d) = Σₜ w(t,q)·w(t,d) / (||q||·||d||) = dot product of L2-normalized vectors. Higher IDF → rarer term → higher discriminative value. Zero weight for terms not in document (sparse representation). [1]",
+      "formula": "TF-IDF(t,d) = (1 + log tf(t,d)) × log(N / (1 + df(t)))"
+    },
+    {
+      "heading": "BM25: The Dominant Successor",
+      "body": "BM25 addresses two TF-IDF limitations: (1) TF saturation — a term appearing 1000× should not be 1000× as informative as appearing 1×; BM25 saturates at k₁+1 × IDF. (2) Document length normalization — long documents have higher raw TF; BM25 normalizes by |d|/avgdl. Empirically, BM25 with k₁=1.5, b=0.75 is a robust default. On TREC benchmarks, BM25 improves MAP by 5–15% over TF-IDF. Elasticsearch's default since 5.0. [2]",
+      "formula": "BM25(t,d) = IDF(t) · tf(t,d)·(k₁+1) / (tf(t,d) + k₁·(1 − b + b·|d|/avgdl))"
+    },
+    {
+      "heading": "TF-IDF for Text Classification",
+      "body": "Scikit-learn pipeline: TfidfVectorizer(min_df=2, max_df=0.9, ngram_range=(1,2), sublinear_tf=True) → LinearSVC(C=1.0). TfidfVectorizer parameters: min_df (drop terms appearing in < min_df documents — removes rare noise), max_df (drop terms in > max_df fraction — removes stop words), ngram_range (include bigrams), sublinear_tf (log TF). LinearSVC is preferred over logistic regression for large sparse TF-IDF vectors due to L1/L2 regularization and speed. [1]"
+    },
+    {
+      "heading": "Limitations of TF-IDF",
+      "body": "No semantic similarity: 'car' and 'automobile' are unrelated in TF-IDF space (different vocabulary items). No word order: ignores syntactic and pragmatic structure. Vocabulary mismatch: a query using synonyms of document words gets zero similarity. These limitations motivated vector space word embeddings (Word2Vec, GloVe) and dense retrieval (DPR, Contriever) which encode semantic meaning in dense continuous vectors. Hybrid retrieval (BM25 + neural re-ranking or dense retrieval) is the current production standard. [1]"
+    }
+  ],
+  "youtubeLabel": "TF-IDF — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/OymqCnh-HYA",
+  "takeaways": [
+    "TF-IDF(t,d) = TF(t,d) × IDF(t); high for frequent terms in one doc, rare across corpus. [1]",
+    "BM25 adds TF saturation and document length normalization — dominant IR ranking function. [2]",
+    "Cosine similarity on L2-normalized TF-IDF vectors is the standard query-document similarity measure. [1]",
+    "Limitations: no semantic similarity (synonyms unrelated), no word order, vocabulary mismatch problem. [1]",
+    "Hybrid retrieval: BM25 (recall) + neural re-ranker (precision) is the production standard. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What is the effect of IDF when a term appears in all documents?",
+      "a": "If df(t) = N (term in all documents): IDF = log(N/N) = 0 → TF-IDF = 0 (smooth IDF: log(N+1)/(N+1)+1 ≈ 1, non-zero). This is the desired behavior for stop words — they get zero (or near-zero) weight. If max_df is set (e.g., max_df=0.9), terms appearing in >90% of documents are excluded from vocabulary entirely, reducing dimensionality. The choice between IDF=0 and vocabulary exclusion affects the sparse vector dimensionality and downstream model behavior. [1]"
+    },
+    {
+      "q": "Does TF normalization by document length hurt or help?",
+      "a": "Raw TF without length normalization: long documents have higher counts for all terms → higher TF → higher similarity, biasing retrieval toward long documents. TF normalization by document length (TF = count/|d|) corrects this but can over-normalize: a query term appearing 10× in a 100-word document (TF=0.1) is treated the same as 100× in a 1000-word document (TF=0.1) — but the latter is clearly more relevant. BM25's b parameter (0<b<1) provides a middle ground between no normalization (b=0) and full normalization (b=1). [2]"
+    }
+  ],
+  "sources": [
+    { "label": "Manning, Raghavan & Schütze — Introduction to Information Retrieval, Ch. 6–11", "url": "https://nlp.stanford.edu/IR-book/" },
+    { "label": "Robertson et al. (1995) — Okapi at TREC-3, NIST TREC-3 Proceedings", "url": "https://trec.nist.gov/pubs/trec3/papers/city.ps.gz" }
+  ]
+}

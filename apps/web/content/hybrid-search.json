@@ -1,0 +1,65 @@
+{
+  "eli3": [
+    "Hybrid search combines two complementary retrieval approaches: sparse retrieval (BM25 — keyword matching) and dense retrieval (bi-encoder — semantic similarity). Sparse retrieval excels at exact keyword matches and rare terms. Dense retrieval excels at semantic similarity and paraphrases. Combining them captures both signals: exact match AND semantic relevance.",
+    "Why hybrid? BM25 misses: 'automobile accident' query won't find 'car crash' document. Dense misses: 'API error code 429' query may return semantically similar text rather than the exact error code. Hybrid search hedges both failure modes. Combination: merge and re-rank the two result lists (Reciprocal Rank Fusion) or weighted score combination. Hybrid search consistently outperforms either alone on diverse query types.",
+    "Hybrid search is the current production standard for enterprise search and RAG. Elasticsearch and OpenSearch support hybrid search natively (BM25 + kNN). Pinecone, Weaviate, and Qdrant support sparse-dense hybrid vectors. The optimal α (weight between sparse and dense scores) depends on the query distribution and must be tuned empirically — but α=0.5 (equal weight) is a strong default."
+  ],
+  "whenWhy": [
+    {
+      "title": "Production RAG with diverse query types",
+      "body": "Real-world queries span the spectrum from exact keyword lookups ('What is the refund policy paragraph 3.2?') to conceptual questions ('How does the company handle returns?'). Sparse search handles the first; dense search handles the second. A hybrid system handles both without needing to pre-classify the query type. For enterprise RAG over internal documents (legal, HR, technical manuals), hybrid search improves recall by 10–20% over dense-only search across diverse query types."
+    },
+    {
+      "title": "Rare terms and proper nouns",
+      "body": "Embedding models often struggle with rare technical terms, product names, error codes, and proper nouns that weren't frequent in training data. 'OOM error in CUDA kernel allocator' — an embedding model may not capture this precisely. BM25 matches on exact tokens: if the document contains 'OOM error', 'CUDA', 'kernel', 'allocator', it gets a high BM25 score. Hybrid search includes BM25 to ensure such exact-match queries find the right document even when semantic embeddings fail."
+    },
+    {
+      "title": "Reducing sensitivity to embedding model choice",
+      "body": "Dense search quality varies significantly across domains and embedding models. A general-purpose embedding model (text-embedding-3-small) may be suboptimal for medical or legal text. BM25 is domain-agnostic — it only relies on term frequency statistics in your corpus. Hybrid search is more robust to embedding model quality: even if the dense component is weaker, the BM25 component provides a reliable floor. This makes hybrid search a lower-risk default when you cannot fine-tune an embedding model."
+    }
+  ],
+  "deepDiveIntro": [
+    "Reciprocal Rank Fusion (RRF): combine ranked lists from BM25 and dense retrieval. RRF score(d) = Σ_r 1/(k + rank_r(d)) where k=60 is a constant. Documents ranked high by multiple systems get a high fused score. Advantage: rank-based combination — robust to score scale differences between BM25 and dense retrieval (BM25 scores are not directly comparable to cosine similarities). No learning required. Simple to implement.",
+    "Convex combination: hybrid_score(d) = α·dense_score(d) + (1−α)·sparse_score(d). Requires normalizing scores to [0,1] before combining. α is a hyperparameter tuned on a validation set. Advantage over RRF: α can be tuned to emphasize dense (better for semantic queries) or sparse (better for exact-match queries). More complex than RRF. Production systems often use RRF for simplicity and tune α via A/B testing for quality."
+  ],
+  "deepDive": [
+    {
+      "heading": "Sparse Retrieval: BM25",
+      "body": "BM25: score(d,q) = Σₜ∈q IDF(t)·(tf(t,d)·(k₁+1))/(tf(t,d)+k₁·(1−b+b·|d|/avgdl)). k₁≈1.5, b≈0.75 are defaults. BM25 is an inverted index — for a query with m terms, retrieval is O(m·posting_list_length), fast for large corpora. Implemented in: Elasticsearch (default ranker), Apache Lucene, BM25Okapi in rank_bm25 Python package. Strengths: exact term matching, efficient for large corpora, no GPU needed, interpretable scores. Weaknesses: vocabulary mismatch (synonyms get zero overlap), no semantic understanding, language-dependent tokenization. [1]"
+    },
+    {
+      "heading": "Dense Retrieval: Bi-encoder ANN Search",
+      "body": "Dense retrieval: embed query and all documents with a bi-encoder. ANN search (HNSW in most vector DBs): sub-linear time retrieval even for 100M+ vectors. HNSW (Hierarchical Navigable Small World): hierarchical graph-based index. Build time: O(nlogn). Query time: O(logn). Recall@k ≈ 95–99% of exact kNN. IVF-PQ (Faiss): partition vectors into clusters (IVF), compress with product quantization (PQ) — trades recall for memory. For production RAG: HNSW at up to 10M vectors; IVF-PQ for larger corpora. [2]"
+    },
+    {
+      "heading": "Sparse-Dense Fusion with RRF",
+      "body": "RRF algorithm: (1) Get BM25 top-100 results with ranks 1..100. (2) Get dense top-100 results with ranks 1..100. (3) For each document d: score = 1/(60+rank_BM25(d)) + 1/(60+rank_dense(d)), where rank(d) = 101 if not in the list. (4) Sort by fused score, take top-k. Properties: k=60 smoothing prevents a document ranked 1st in one system from dominating. Documents appearing in both lists get approximately doubled score — naturally up-ranks results with multi-system agreement. No need to normalize heterogeneous BM25 and cosine scores. [1]",
+      "formula": "RRF(d) = Σ_r 1 / (k + rank_r(d)),  k=60"
+    },
+    {
+      "heading": "Learned Sparse Retrieval: SPLADE",
+      "body": "SPLADE (Formal et al. 2021): learned sparse representations that combine the benefits of BM25 (sparse vectors, fast inverted index) with semantic understanding. Architecture: BERT encoder → MLM head → apply ReLU + log(1+x) activation → sparse vector over vocabulary. Training: contrastive loss + FLOPS regularization (penalizes non-zero terms to maintain sparsity). SPLADE vectors can be indexed in BM25-style inverted indexes for fast retrieval, but the non-zero terms include semantically related vocabulary (not just exact terms). Outperforms BM25 and dense-only on BEIR benchmark. [2]"
+    }
+  ],
+  "takeaways": [
+    "Hybrid search: BM25 (exact match) + dense (semantic) — handles diverse query types better than either alone. [1]",
+    "RRF: rank-based fusion, no score normalization needed, k=60 default — simple and effective. [1]",
+    "HNSW: O(log n) ANN query, ~98% recall@10 — standard for dense retrieval vector index. [2]",
+    "SPLADE: learned sparse vectors for inverted index — semantic + exact match without two separate systems. [2]",
+    "Optimal α for convex combination is query-distribution-dependent — tune empirically on validation set. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you normalize BM25 and dense scores before combining them?",
+      "a": "BM25 scores: unbounded positive floats. Cosine similarity: [-1, 1] or [0, 1] with normalized embeddings. Direct addition is meaningless without normalization. Methods: (1) Min-max normalization: score_norm = (score - min) / (max - min) — maps each system's scores to [0,1]; (2) Z-score normalization: (score - mean) / std; (3) Sigmoid: maps to (0,1). Problem: normalization is query-dependent (min/max change per query), and outliers affect normalization. This is why RRF is preferred over score combination in practice — it's rank-based and doesn't require score normalization. For score combination with a tunable α, collect min/max statistics over a query distribution and normalize accordingly. [1]"
+    },
+    {
+      "q": "What is the difference between hybrid search and query expansion?",
+      "a": "Hybrid search: run sparse AND dense retrieval in parallel, merge results — combines two retrieval modalities simultaneously. Query expansion: augment the original query with synonyms or related terms, then run a single retrieval system (usually BM25) with the expanded query. Example: 'dog' → expand to 'dog OR puppy OR canine' for BM25 retrieval. Query expansion improves sparse retrieval's recall for synonyms without needing a second retrieval system. Hybrid search is generally more effective than query expansion alone because it captures both exact-match and semantic similarity in a principled way. They can also be combined: query expansion + hybrid search. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Robertson & Zaragoza (2009) — The Probabilistic Relevance Framework: BM25 and Beyond, Foundations and Trends in Information Retrieval", "url": "https://dl.acm.org/doi/10.1561/1500000019" },
+    { "label": "Formal et al. (2021) — SPLADE: Sparse Lexical and Expansion Model for First Stage Ranking, SIGIR 2021", "url": "https://arxiv.org/abs/2107.05720" }
+  ]
+}

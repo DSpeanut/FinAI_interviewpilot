@@ -1,0 +1,79 @@
+{
+  "eli3": [
+    "Variance measures how spread out a dataset is — specifically, the average squared distance of each value from the mean. Squaring has two effects: it makes all deviations positive, and it penalises large deviations more than small ones.",
+    "For {2, 4, 6}: mean = 4. Deviations are −2, 0, +2. Squared deviations are 4, 0, 4. Variance = (4+0+4)/3 = 2.67 (population) or (4+0+4)/2 = 4 (sample, dividing by n−1 for an unbiased estimate).",
+    "Variance is in squared units. To get back to the original units, take the square root — that gives you the standard deviation. Variance appears everywhere in statistics: it is the quantity that the CLT, ANOVA, and regression all decompose and reason about."
+  ],
+  "whenWhy": [
+    {
+      "title": "Measuring spread and uncertainty",
+      "body": "Variance quantifies how much a distribution is spread around its mean. In finance, variance of returns = risk. In ML, variance of predictions across training sets = variance component of the bias–variance tradeoff. Low variance = consistent predictions; high variance = sensitivity to training data."
+    },
+    {
+      "title": "Variance decomposition (bias–variance tradeoff)",
+      "body": "E[(ŷ−y)²] = Bias(ŷ)² + Var(ŷ) + σ². Understanding variance as a quantity is prerequisite to diagnosing overfitting (high variance) vs underfitting (high bias) and to explaining regularisation's effect."
+    },
+    {
+      "title": "ANOVA and regression",
+      "body": "ANOVA partitions total variance into between-group and within-group components. Linear regression minimises residual variance. The coefficient of determination R² = 1 − Var(residuals)/Var(y) is the proportion of variance explained. Variance is the fundamental currency of regression analysis."
+    },
+    {
+      "title": "Portfolio construction (Markowitz)",
+      "body": "Portfolio variance σ²_p = wᵀΣw, where Σ is the covariance matrix and w is the weight vector. Modern portfolio theory (Markowitz 1952) formulates the optimal portfolio as the one that minimises variance for a given expected return. Variance = risk in this framework."
+    }
+  ],
+  "deepDiveIntro": [
+    "Population variance: σ² = E[(X−μ)²] = E[X²] − μ². Sample variance: s² = (1/(n−1))Σᵢ(xᵢ−x̄)². The divisor n−1 (Bessel's correction) makes s² an unbiased estimator of σ²: E[s²] = σ². Dividing by n gives the biased MLE, which underestimates σ² by a factor of (n−1)/n.",
+    "The variance exists only if E[X²] < ∞ (finite second moment). For heavy-tailed distributions like the Cauchy, variance is infinite and the sample variance diverges with n. In such cases, other measures of spread (interquartile range, median absolute deviation) are more meaningful."
+  ],
+  "visualizationType": "variance",
+  "deepDive": [
+    {
+      "heading": "Population vs Sample Variance",
+      "body": "Population: σ² = (1/N)Σᵢ(xᵢ−μ)². Sample (unbiased): s² = (1/(n−1))Σᵢ(xᵢ−x̄)². The denominator n−1 arises because x̄ is estimated from the data: one degree of freedom is 'used up' by x̄. Proof of unbiasedness: E[Σ(xᵢ−x̄)²] = (n−1)σ², so E[s²] = σ². [1]",
+      "formula": "s² = (1/(n−1)) Σᵢ₌₁ⁿ (xᵢ − x̄)²"
+    },
+    {
+      "heading": "Computational Formula",
+      "body": "σ² = E[X²] − (E[X])², equivalently s² = [Σxᵢ² − n x̄²]/(n−1). This form is efficient for streaming computation (only need to track Σxᵢ and Σxᵢ²), but numerically unstable for large values — catastrophic cancellation. For numerical work, prefer Welford's online algorithm which maintains mean and M₂ in a single pass. [1]",
+      "formula": "σ² = E[X²] − (E[X])²"
+    },
+    {
+      "heading": "Variance of Linear Combinations",
+      "body": "Var(aX + b) = a²Var(X). For independent variables: Var(X₁ + X₂) = Var(X₁) + Var(X₂). For correlated: Var(X₁ + X₂) = Var(X₁) + Var(X₂) + 2Cov(X₁,X₂). This is why diversification reduces portfolio variance — negative covariance offsets individual variances. [1]",
+      "formula": "Var(aX + b) = a²Var(X)"
+    },
+    {
+      "heading": "Bias–Variance Decomposition",
+      "body": "For a predictor ŷ = f̂(x), MSE = E[(ŷ−y)²] = Bias(f̂(x))² + Var(f̂(x)) + σ²_ε, where σ²_ε is irreducible noise. Variance = Var(f̂(x)) = E[(f̂(x)−E[f̂(x)])²] — how much predictions vary across training sets. High-variance models (deep trees, high-degree polynomials) overfit; regularisation and ensemble methods reduce this term. [2]"
+    }
+  ],
+  "youtubeLabel": "Variance and Standard Deviation — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/SzZ6GpcfoQY",
+  "takeaways": [
+    "Population variance σ² = E[(X−μ)²]; sample variance s² = Σ(xᵢ−x̄)²/(n−1) — unbiased for σ². [1]",
+    "Bessel's correction (n−1) corrects for the degree of freedom consumed by estimating x̄. [1]",
+    "σ² = E[X²] − (E[X])² — computational form, but use Welford's algorithm for numerical stability. [1]",
+    "Var(aX + b) = a²Var(X); Var(X+Y) = Var(X) + Var(Y) + 2Cov(X,Y). [1]",
+    "In bias–variance tradeoff: variance = sensitivity of predictions to training set fluctuations. [2]",
+    "Variance undefined for heavy-tailed distributions (Cauchy); use IQR or MAD instead. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does dividing by n−1 (not n) give an unbiased estimate?",
+      "a": "When we compute Σ(xᵢ−x̄)², we use x̄ instead of the true μ. Since x̄ minimises Σ(xᵢ−c)² over c, the sum Σ(xᵢ−x̄)² is always ≤ Σ(xᵢ−μ)². This systematic underestimation must be corrected. Algebraically: E[Σ(xᵢ−x̄)²] = (n−1)σ², so dividing by n−1 recovers σ². [1]"
+    },
+    {
+      "q": "What is the difference between variance and mean squared error?",
+      "a": "MSE(θ̂) = E[(θ̂−θ)²] = Var(θ̂) + Bias(θ̂)². Variance measures spread around the estimator's own mean E[θ̂], while MSE measures spread around the true parameter θ. For unbiased estimators (Bias = 0), MSE = Var. For biased estimators, you may accept higher bias to get lower variance — the bias–variance tradeoff. [1]"
+    },
+    {
+      "q": "Is s² consistent for σ²?",
+      "a": "Yes. s² is both unbiased and consistent: as n→∞, s² →ₚ σ² by the Law of Large Numbers. The asymptotic distribution of s² is: √n(s² − σ²) →_d N(0, μ₄ − σ⁴), where μ₄ = E[(X−μ)⁴] is the fourth central moment. For normal data, μ₄ = 3σ⁴, so the asymptotic variance simplifies to 2σ⁴. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 2 & 7", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" },
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning (2nd ed.), Ch. 2", "url": "https://hastie.su.domains/ElemStatLearn/" }
+  ]
+}

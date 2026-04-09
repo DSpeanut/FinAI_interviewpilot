@@ -1,0 +1,66 @@
+{
+  "eli3": [
+    "Bag of Words (BoW) represents a document as the multiset of its words, ignoring order and grammar. 'The dog bit the man' and 'The man bit the dog' have the same BoW representation: {the: 2, dog: 1, bit: 1, man: 1}. Each document becomes a vector of word counts over a fixed vocabulary V — a V-dimensional sparse vector.",
+    "BoW is the foundation of classical text classification and information retrieval. The vectorization pipeline: (1) build vocabulary V from training corpus; (2) represent each document as a count vector; (3) apply TF-IDF weighting; (4) feed into a classifier (Naive Bayes, logistic regression, SVM). Despite losing word order, BoW works surprisingly well for sentiment analysis, spam detection, and topic classification.",
+    "BoW limitations: (1) ignores word order ('dog bites man' = 'man bites dog'); (2) no semantic similarity ('car' and 'automobile' are unrelated in BoW); (3) high-dimensional sparse vectors (V can be 100K+); (4) common words dominate — fixed by TF-IDF. N-gram extensions partially address (1) by adding bigrams, trigrams as features."
+  ],
+  "whenWhy": [
+    {
+      "title": "Simple, interpretable text classification baseline",
+      "body": "BoW + logistic regression or LinearSVC is a strong, fast baseline for text classification. On many benchmarks (sentiment analysis, topic classification), BoW with TF-IDF achieves 90–95% of the performance of more complex neural models — at a fraction of the compute cost. Always run BoW as a baseline before investing in fine-tuned transformers."
+    },
+    {
+      "title": "Naive Bayes text classification",
+      "body": "Multinomial Naive Bayes uses BoW counts directly: P(class|doc) ∝ P(class) · ΠᵥP(word_v|class)^{count_v}. Fast, few parameters, works well with small training sets. Despite the independence assumption (Naive Bayes) being violated for text, it achieves competitive accuracy for spam filtering and document routing where speed and simplicity matter."
+    },
+    {
+      "title": "Topic modeling with LDA",
+      "body": "Latent Dirichlet Allocation (LDA, Blei et al. 2003) models documents as mixtures of topics, each topic as a distribution over words — all operating on BoW representations. LDA discovers latent thematic structure from unlabeled text. The topic-word distributions are interpretable (top words per topic represent themes). LDA is the foundational unsupervised topic model, extended by neural topic models (ProdLDA, CTM)."
+    }
+  ],
+  "deepDiveIntro": [
+    "Document-term matrix: rows = documents, columns = vocabulary terms, values = counts (or TF-IDF weights). For a corpus of D documents and vocabulary size V: matrix is D×V, typically very sparse (most documents use <1% of vocabulary). CountVectorizer (scikit-learn) builds this matrix. TfidfVectorizer applies TF-IDF weighting automatically.",
+    "Preprocessing pipeline before BoW: lowercasing → punctuation removal → tokenization → stop-word removal → stemming/lemmatization. Stop-word removal eliminates 'the', 'a', 'is' which carry no semantic weight but dominate counts. The choice of stop-word list matters: aggressively removing stop words can hurt tasks where function words are informative (authorship attribution, style classification)."
+  ],
+  "deepDive": [
+    {
+      "heading": "Document-Term Matrix and Vectorization",
+      "body": "Vocabulary V = {w₁,…,wV}: all unique tokens in training corpus. Document d represented as xd ∈ ℝV where xd[v] = count of wv in d. Sparse representation: only non-zero counts stored. Min/max document frequency thresholds (min_df, max_df in scikit-learn) prune rare and too-common terms. Feature hashing (FeatureHasher) uses a hash function to map terms to indices — fixed-size vector without explicit vocabulary, useful for streaming. [1]",
+      "formula": "doc_vector[v] = count(word_v in document)"
+    },
+    {
+      "heading": "N-gram Extensions",
+      "body": "Unigram BoW loses word order. Adding bigrams partially recovers it: 'not good' → unigrams {not, good} lose negation; bigram {not_good} captures it. Character n-grams: represent text as counts of character sequences — robust to misspellings, morphological variation, and cross-lingual transfer. Mixed n-gram models: ngram_range=(1,3) in scikit-learn includes unigrams, bigrams, and trigrams. Vocabulary explodes: |bigrams| ≈ V²/c (c = average unique bigrams per doc). Feature selection (χ², mutual information) or feature hashing controls dimensionality. [1]"
+    },
+    {
+      "heading": "Multinomial Naive Bayes with BoW",
+      "body": "Model: P(c|d) ∝ P(c)·ΠᵥP(wv|c)^{xd[v]}. Parameters: P(c) = prior (class frequency), P(wv|c) = likelihood (word frequency in class c documents). Laplace smoothing: P(wv|c) = (count(wv,c)+1) / (Σv count(wv,c)+V). Training: O(D·V). Prediction: sum log-likelihoods (avoids underflow). Despite the independence assumption being false (words in a sentence ARE correlated), MNB performs well because: (1) P(c|d) only needs correct ranking, not calibration; (2) word frequencies are often approximately independent given class. [1]",
+      "formula": "log P(c|d) = log P(c) + Σᵥ xd[v] · log P(wv|c)"
+    },
+    {
+      "heading": "BoW vs Neural Representations",
+      "body": "BoW: sparse, high-dimensional, no semantic similarity, no word order, interpretable feature weights. Word embeddings (Word2Vec, GloVe): dense, low-dimensional (300d), captures semantic similarity, still no order. BERT: contextual embeddings capture order and meaning. For small datasets (<10K), BoW + linear models often outperform fine-tuned transformers (insufficient data for neural fine-tuning). For large datasets or tasks requiring semantic understanding: neural wins. The choice depends on data size, interpretability needs, and latency constraints. [1]"
+    }
+  ],
+  "takeaways": [
+    "BoW: document → count vector over vocabulary V; ignores word order, no semantic similarity. [1]",
+    "N-gram extensions (bigrams, trigrams) partially capture local word order and phrases. [1]",
+    "Multinomial Naive Bayes: log P(c|d) = log P(c) + Σ xd[v]·log P(wv|c); fast and effective baseline. [1]",
+    "LDA uses BoW for unsupervised topic discovery — documents as mixtures of word distributions. [1]",
+    "BoW + TF-IDF + LinearSVC achieves 90–95% of neural performance on many classification tasks at low cost. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Does BoW work for multilingual text?",
+      "a": "BoW works independently per language since it's purely vocabulary-based. Multilingual BoW would have a combined vocabulary across languages — terms in different languages never share meaning, so cross-lingual BoW has no transfer. For cross-lingual classification, multilingual embeddings (mBERT, XLM-R) or character n-gram features (shared across related languages) are used. Character n-grams provide some cross-lingual robustness for related languages (Spanish-Portuguese) since morphological affixes are shared. [1]"
+    },
+    {
+      "q": "When is BoW better than fine-tuned transformers?",
+      "a": "BoW wins when: (1) training data is very small (<1K examples) — neural models overfit, BoW generalizes better with simpler decision boundaries; (2) the task is keyword-driven and doesn't require semantic understanding ('does this email contain word X?'); (3) inference latency is critical — BoW + logistic regression is orders of magnitude faster; (4) interpretability is required — BoW feature weights show which words drive predictions. Fine-tuned BERT wins for: semantic similarity, nuanced sentiment, long document understanding, and tasks with large training data. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Jurafsky & Martin — Speech and Language Processing (3rd ed.), Ch. 4", "url": "https://web.stanford.edu/~jurafsky/slp3/" },
+    { "label": "Manning, Raghavan & Schütze — Introduction to Information Retrieval, Ch. 6", "url": "https://nlp.stanford.edu/IR-book/" }
+  ]
+}

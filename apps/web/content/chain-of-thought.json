@@ -1,0 +1,66 @@
+{
+  "eli3": [
+    "Chain-of-thought (CoT) prompting (Wei et al. 2022) instructs a language model to produce step-by-step reasoning before giving the final answer, rather than answering directly. 'Let's think step by step' (zero-shot CoT) or providing demonstrations with reasoning traces (few-shot CoT) triggers the model to externalize its reasoning. This dramatically improves performance on multi-step arithmetic, logical reasoning, and commonsense tasks.",
+    "Why CoT works: multi-step problems require intermediate computations. Without CoT, the model must compress all reasoning into a single token prediction — this fails for complex problems. With CoT, the model generates intermediate results that are then available as context for subsequent steps. Each reasoning step is simpler than the full problem, and the model can verify partial results. CoT converts a hard single-step problem into a series of easier single-step problems.",
+    "CoT effectiveness is scale-dependent: it hurts small models (<60B) that generate incorrect reasoning traces, and helps large models (≥60B) that generate mostly correct traces. Key variants: zero-shot CoT ('Let's think step by step'), few-shot CoT (demonstrations with reasoning), self-consistency (majority vote over multiple CoT paths), and tree of thoughts (branching reasoning exploration). CoT has become a standard component of any reasoning-heavy LLM prompt."
+  ],
+  "whenWhy": [
+    {
+      "title": "Multi-step arithmetic and math word problems",
+      "body": "Math word problems require multi-step calculation: decomposing the problem, intermediate arithmetic, and combining partial results. Direct answer prompting fails because the model cannot hold all intermediate values in 'working memory'. CoT: generate the reasoning trace → 'There are 3 bags with 4 apples each = 12 apples total. John eats 2, so 12-2=10' → extract final answer. GPT-3 + few-shot CoT on GSM8K: 56.5% vs 17.9% without CoT. PaLM 540B + CoT: 58% vs 18% direct."
+    },
+    {
+      "title": "Logical and commonsense reasoning",
+      "body": "Tasks requiring multi-hop reasoning (BoolQ, StrategyQA, ARC-Challenge) or commonsense inference benefit from CoT because the model must chain multiple facts. Example: 'Do elephants eat cheeseburgers?' requires: elephants are herbivores → herbivores eat plants, not meat → cheeseburgers contain meat → no. Direct answer has no way to surface this chain. Few-shot CoT with 4–8 reasoning examples dramatically improves commonsense benchmarks."
+    },
+    {
+      "title": "Debugging and interpretability",
+      "body": "CoT produces human-readable reasoning traces that show WHY the model reached a conclusion. This is valuable for: (1) debugging incorrect answers — trace shows where reasoning went wrong; (2) user trust — showing reasoning increases user confidence in LLM outputs; (3) safety — reasoning traces can be reviewed for dangerous logic chains; (4) weak supervision — reasoning traces can be used as training signal. CoT makes the LLM's 'decision process' interpretable in a way that direct answers cannot."
+    }
+  ],
+  "deepDiveIntro": [
+    "Few-shot CoT structure: each demonstration consists of a question followed by a reasoning chain and a final answer. Format: 'Q: [question] A: [Step 1: ...] [Step 2: ...] ... The answer is [X].' The model learns to produce reasoning chains by imitating the demonstrations. The reasoning chain is free-form natural language — it doesn't need to be formal logic. This is a key advantage over formal reasoning systems.",
+    "Self-consistency (Wang et al. 2023): instead of greedy decoding one CoT path, sample k=40 diverse reasoning chains using high temperature, extract the final answer from each, take majority vote. Rationale: there are multiple ways to reach a correct answer, but incorrect answers are more varied. Majority vote amplifies correct signals. Self-consistency improves GSM8K from 56.5% (CoT greedy) to 74.4% (GPT-3 175B). It's the most reliable enhancement to standard CoT."
+  ],
+  "deepDive": [
+    {
+      "heading": "Few-Shot CoT vs Zero-Shot CoT",
+      "body": "Few-shot CoT (Wei et al. 2022): 8 hand-crafted (question, reasoning chain, answer) demonstrations per benchmark. Achieves best performance but requires manual demonstration curation. Zero-shot CoT (Kojima et al. 2022): append 'Let's think step by step.' — no demonstrations needed. Two-stage: (1) generate reasoning: prompt + 'Let's think step by step' → reasoning chain; (2) extract answer: reasoning chain + 'Therefore, the answer is' → final answer. Zero-shot CoT GPT-3 MultiArith: 78.7% vs standard zero-shot: 17.7%. Trade-off: few-shot CoT > zero-shot CoT accuracy, but zero-shot requires no example curation. [1][2]"
+    },
+    {
+      "heading": "Self-Consistency Decoding",
+      "body": "Self-consistency: sample {p₁,...,pₖ} reasoning paths at temperature T=0.7 (diversity). Extract answer aᵢ from each path. Final answer = argmax_a Σᵢ 𝟙[aᵢ = a] (majority vote). k=40 is standard. Cost: k× inference compute. Benefits: 5–20% accuracy improvement over greedy CoT on math and reasoning tasks. Works because: correct answers tend to cluster (many paths lead to the same correct answer), incorrect answers are more scattered. On MATH benchmark: GPT-3 + CoT: 7.9%, + self-consistency: 11.4%. [3]",
+      "formula": "ŷ = argmax_a |{i: path_i gives answer a}|"
+    },
+    {
+      "heading": "Tree of Thoughts (ToT)",
+      "body": "Yao et al. (2023): extend CoT from a single linear chain to a tree of reasoning paths. The model generates multiple reasoning steps (thought nodes), evaluates each (with the model acting as an evaluator), and explores the tree via BFS or DFS. Enables backtracking — the model can revisit earlier reasoning steps if a path fails. On 24 Game (math puzzle): GPT-4 + standard prompting: 4% success, GPT-4 + ToT: 74%. Useful for tasks with well-defined intermediate states (puzzles, planning, multi-step proofs). More expensive than self-consistency: multiple forward passes per problem. [1]"
+    },
+    {
+      "heading": "Least-to-Most Prompting and Decomposition",
+      "body": "Least-to-most prompting (Zhou et al. 2023): decompose a complex problem into subproblems, solve each in order, using previous answers as context for subsequent subproblems. Two stages: (1) decomposition: 'To solve X, we need to first solve:' → list of subproblems; (2) sequential solving: solve each subproblem, appending answer before the next. On SCAN compositional generalization: standard few-shot: 16%, least-to-most: 99.7%. Particularly effective when the problem has a natural hierarchical structure. Reduces the hardness of each step by breaking the problem down. [1]"
+    }
+  ],
+  "takeaways": [
+    "CoT: generate reasoning trace before final answer — converts hard single-step into easy multi-step. [1]",
+    "Zero-shot CoT: 'Let\\'s think step by step.' — 17.7% → 78.7% on MultiArith (GPT-3). [2]",
+    "Self-consistency: majority vote over k=40 CoT paths — most reliable CoT enhancement. [3]",
+    "Tree of Thoughts: branching reasoning with evaluation and backtracking — 4% → 74% on 24 Game. [1]",
+    "Scale-dependent: CoT hurts <60B models (wrong traces), helps ≥60B models. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Can CoT hallucinate plausible but wrong reasoning traces?",
+      "a": "Yes, and this is a known failure mode. The model can produce confident, step-by-step reasoning that is internally consistent but factually incorrect — 'hallucinated CoT'. Example: a math problem where the model sets up the equation correctly but makes an arithmetic error in step 3, then confidently concludes from the wrong intermediate result. Mitigations: (1) Self-consistency: if multiple sampled paths agree on the same answer, it's more likely correct (incorrect paths tend to diverge); (2) Program-aided language models (PAL): generate Python code instead of natural language reasoning — execute the code to get deterministic answers; (3) Verification models: use a separate model to check the reasoning chain. CoT traces should not be trusted blindly for safety-critical applications. [1]"
+    },
+    {
+      "q": "What is the difference between CoT and program-aided language models (PAL)?",
+      "a": "CoT: LM generates natural language reasoning steps → extract answer from text. Weakness: arithmetic in text is unreliable (LMs make arithmetic mistakes even with CoT). PAL (Gao et al. 2023): LM generates Python code for the reasoning steps → execute code to get exact answer. Arithmetic/logic is delegated to the Python interpreter — deterministic and correct. Example: 'Roger has 5 balls...' → model generates Python: `balls = 5; balls_bought = 2; print(balls + balls_bought)` → Python outputs `7`. On GSM8K: GPT-3 + PAL: 72.0% vs CoT: 56.5%. Works best for math and structured logic. Fails when problem requires world knowledge or judgment that Python can't express. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Wei et al. (2022) — Chain-of-Thought Prompting Elicits Reasoning in Large Language Models, NeurIPS 2022", "url": "https://arxiv.org/abs/2201.11903" },
+    { "label": "Kojima et al. (2022) — Large Language Models are Zero-Shot Reasoners, NeurIPS 2022", "url": "https://arxiv.org/abs/2205.11916" },
+    { "label": "Wang et al. (2023) — Self-Consistency Improves Chain of Thought Reasoning in Language Models, ICLR 2023", "url": "https://arxiv.org/abs/2203.11171" }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "eli3": [
+    "Stratified sampling divides the population into non-overlapping, exhaustive subgroups (strata) based on a relevant variable (age groups, regions, income levels), then independently draws a SRS from each stratum. The strata are chosen so that units within strata are more similar (homogeneous) than units across strata — this homogeneity is what reduces variance compared to SRS.",
+    "There are two main allocation rules: proportional allocation (nₕ/n = Nₕ/N — same sampling fraction in every stratum) and Neyman optimal allocation (nₕ ∝ Nₕσₕ — sample more from strata that are larger or more variable). Neyman allocation minimizes total variance for a fixed total n. If σₕ is the same across strata, Neyman reduces to proportional allocation.",
+    "Stratified sampling guarantees that each stratum is represented in the sample. This is crucial when certain subgroups are small but important (domain estimation), when stratum-specific estimates are needed, or when the relationship between X and Y differs across strata (interaction). The variance reduction vs SRS is (proportional allocation): Var_strat = Var_SRS − Σ(Nₕ/N)(μₕ−μ)²/n — the second term is the between-stratum variance removed."
+  ],
+  "whenWhy": [
+    {
+      "title": "Reducing estimator variance for a given n",
+      "body": "When a stratifying variable is correlated with the outcome Y, stratification removes between-stratum variance from the estimator — reducing the variance of x̄_strat below Var_SRS at the same n. Example: income survey stratified by occupation (doctors, teachers, laborers). Income is highly variable within all workers but much less variable within each occupation — stratification captures this."
+    },
+    {
+      "title": "Ensuring adequate representation of small subgroups",
+      "body": "In SRS, rare subgroups may be underrepresented (e.g., n = 5 from a 2% minority in a sample of n = 250). Oversampling minority strata (disproportionate stratification) then reweighting with the Horvitz-Thompson estimator ensures adequate precision for subgroup estimates while maintaining overall population estimates. Standard in health surveys (NHANES, NHIS), exit polls, and clinical subgroup analyses."
+    },
+    {
+      "title": "Administrative stratification",
+      "body": "When sampling is conducted independently by different organizations or regions (states, hospitals, schools), stratification by organizational unit is natural. Each stratum is sampled independently, allowing stratum-level estimates without coordination. This is the basis of multi-stage cluster sampling with stratification at each stage."
+    }
+  ],
+  "deepDiveIntro": [
+    "Population divided into H strata of sizes N₁,…,Nₕ (ΣNₕ = N). Draw SRS of size nₕ from stratum h. Stratum weight: wₕ = Nₕ/N. Population mean μ = Σwₕμₕ. Stratified estimator: x̄_st = Σwₕx̄ₕ. Under SRSWOR within each stratum: E[x̄_st] = μ (unbiased). Var(x̄_st) = Σwₕ²·σₕ²(1−fₕ)/nₕ, where fₕ = nₕ/Nₕ.",
+    "Proportional allocation: nₕ = n·Nₕ/N. Then Var_prop(x̄_st) = (1−f)/n · Σwₕσₕ² = (1−f)/n · σ̄_w² (within-stratum weighted mean variance). Neyman allocation: nₕ ∝ Nₕσₕ. Then nₕ = n·Nₕσₕ/ΣNₕσₕ. Var_opt(x̄_st) = (ΣwₕσₕΣwₕσₕ/n) − Σwₕσₕ²/N."
+  ],
+  "deepDive": [
+    {
+      "heading": "Stratified Estimator and Variance",
+      "body": "x̄_st = Σᴴₕ₌₁ wₕx̄ₕ, wₕ = Nₕ/N. Var(x̄_st) = Σwₕ²·Varₕ(x̄ₕ) = Σwₕ²·σₕ²(1−fₕ)/nₕ. Estimated variance: Σwₕ²·sₕ²(1−fₕ)/nₕ. Variance reduction vs SRS: Var_SRS − Var_strat_prop = Σwₕ(μₕ−μ)²/n (the between-stratum variance divided by n). Larger between-stratum differences → larger variance reduction from stratification. [1]",
+      "formula": "Var(x̄_st) = Σ wₕ² · σₕ²(1 − fₕ) / nₕ"
+    },
+    {
+      "heading": "Proportional vs Neyman Allocation",
+      "body": "Proportional: nₕ = n·wₕ. Simple, ensures proportional representation. Var_prop = (1−f)/n · Σwₕσₕ². Neyman: nₕ = n·wₕσₕ/(Σwₕσₕ). Minimizes Var(x̄_st) for fixed n. Var_opt = (Σwₕσₕ)²/n − Σwₕσₕ²/N. Neyman requires σₕ estimates (from pilot data or prior knowledge). When σₕ are equal: Neyman = proportional. When σₕ differ substantially, Neyman can be much more efficient. [1]",
+      "formula": "Neyman:  nₕ = n · wₕσₕ / (Σ wₖσₖ)"
+    },
+    {
+      "heading": "Post-Stratification",
+      "body": "When stratification is not feasible at design stage, post-stratification weights can be applied after data collection: ȳ_ps = Σwₕȳₕ, where wₕ = Nₕ/N from auxiliary population data. Post-stratification adjusts for unequal sampling probabilities and non-response within strata. It reduces bias if non-response is ignorable within strata (missing at random given stratum) and increases precision by aligning sample composition with population. Raking (iterative proportional fitting) extends this to multiple stratification variables. [1]"
+    },
+    {
+      "heading": "Optimal Stratification: Choosing Strata Boundaries",
+      "body": "Optimal stratum boundaries minimize total within-stratum variance for a given H. For a single stratifying variable, the cumulative square root of frequency rule (√fₕ) approximately equalizes Nₕσₕ across strata — the Neyman allocation becomes equal allocation. In practice: use quantiles of the stratifying variable as boundaries, ensuring approximately equal Nₕσₕ per stratum. More strata are better up to a point; beyond H ≈ 5–6, gains are marginal. [1]"
+    }
+  ],
+  "takeaways": [
+    "Stratified mean: x̄_st = Σwₕx̄ₕ; unbiased under SRSWOR within strata. [1]",
+    "Variance reduction = between-strata variance removed; proportional allocation: Var_prop vs Var_SRS. [1]",
+    "Neyman allocation: nₕ ∝ Nₕσₕ; minimizes variance for fixed n. [1]",
+    "Disproportionate stratification + HT weighting ensures subgroup precision without biasing overall estimates. [1]",
+    "Post-stratification applies stratum weights after collection to reduce non-response bias and improve precision. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What if a stratum has nₕ = 1?",
+      "a": "With nₕ = 1, the within-stratum variance sₕ² is undefined (no degrees of freedom). This 'collapsed stratum' problem can be handled by: (1) collapsing stratum h with an adjacent stratum for variance estimation; (2) using the combined variance across merged strata; (3) using paired selection (nₕ = 2 per stratum, then sₕ² from the pair). Take-Neyman allocation may assign nₕ = 1 to very small strata — ensure a minimum nₕ ≥ 2 in the optimization. [1]"
+    },
+    {
+      "q": "How does stratification interact with cluster sampling?",
+      "a": "Stratified cluster sampling: divide PSUs (primary sampling units, e.g., schools) into strata (by region, school type), then sample clusters within strata using SRS. Within selected clusters, sample units (students). This is the standard design for large-scale surveys (PISA, NHANES): stratification reduces variance; clustering reduces operational cost. Variance estimation requires accounting for both stratification and clustering — typically done with Taylor linearization or jackknife replication. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Cochran — Sampling Techniques (3rd ed.), Ch. 5", "url": "https://www.wiley.com/en-us/Sampling+Techniques%2C+3rd+Edition-p-9780471162407" },
+    { "label": "Lohr — Sampling: Design and Analysis (2nd ed.), Ch. 3", "url": "https://www.routledge.com/Sampling-Design-and-Analysis/Lohr/p/book/9780367279509" }
+  ]
+}

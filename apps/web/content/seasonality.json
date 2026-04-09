@@ -1,0 +1,66 @@
+{
+  "eli3": [
+    "Seasonality is a systematic, periodic pattern in a time series that repeats at regular intervals (daily, weekly, monthly, quarterly, annually). It is distinct from trend (long-run direction) and irregular fluctuations (random noise). Example: retail sales spike every December, flu incidence peaks in winter, traffic is highest on weekday mornings — these are seasonal patterns.",
+    "Seasonal decomposition separates a series into three components: Yₜ = Tₜ + Sₜ + Rₜ (additive) or Yₜ = Tₜ · Sₜ · Rₜ (multiplicative). The additive model is appropriate when the seasonal amplitude is constant regardless of the trend level; the multiplicative model is appropriate when the seasonal amplitude grows proportionally with the trend (common for economic and financial series).",
+    "Seasonal adjustment removes the seasonal component to reveal the underlying trend and cycle — essential for comparing months or quarters that differ in 'expected' seasonal behavior (e.g., unemployment in January vs July). Major statistical agencies (BLS, Eurostat) use X-13ARIMA-SEATS or STL decomposition for official seasonal adjustment of GDP, unemployment, and CPI."
+  ],
+  "whenWhy": [
+    {
+      "title": "Decomposition for understanding and visualization",
+      "body": "STL (Seasonal and Trend decomposition using Loess, Cleveland et al. 1990) decomposes Yₜ = Tₜ + Sₜ + Rₜ using locally weighted regression (loess). Advantages over classical decomposition: handles any seasonal period, robust to outliers, seasonal component can change over time. Classical decomposition uses moving averages for the trend — inflexible and cannot handle changing seasonality."
+    },
+    {
+      "title": "Seasonal ARIMA (SARIMA) modeling",
+      "body": "SARIMA(p,d,q)(P,D,Q)_s explicitly models seasonal autocorrelation. Seasonal differencing ∇ˢYₜ = Yₜ − Yₜ₋ₛ removes seasonal non-stationarity. The 'airline model' SARIMA(0,1,1)(0,1,1)₁₂ is a parsimonious but effective model for monthly economic data. For weekly data with multiple seasonal periods (e.g., daily, weekly, annual cycles), TBATS or Prophet handles multiple seasonalities."
+    },
+    {
+      "title": "Seasonal dummy variables in regression",
+      "body": "For regression with seasonal data: include K−1 seasonal dummy variables (K = number of seasons, drop one to avoid multicollinearity). For monthly data: 11 monthly dummies. Dummy coefficient interpretation: seasonal effect relative to the omitted reference month. For multiplicative seasonality: log-transform Yₜ and use additive dummies on the log scale. More flexible than fixed seasonal dummies: Fourier series terms sin(2πkt/s), cos(2πkt/s) for k = 1,…,K/2."
+    }
+  ],
+  "deepDiveIntro": [
+    "Additive decomposition: Yₜ = Tₜ + Sₜ + Rₜ. Seasonal component Sₜ: periodic with period s, Σₖ₌₀ˢ⁻¹Sₜ₋ₖ = 0 (zero sum over each season). Estimated via moving average for Tₜ, then average of Yₜ−Tₜ within each season for Sₜ, residual Rₜ = Yₜ − Tₜ − Sₜ. Multiplicative: Yₜ = Tₜ · Sₜ · Rₜ — equivalent to additive after log transformation.",
+    "STL decomposition (Cleveland et al. 1990): iterates between seasonal smoother (loess within each season across time) and trend smoother (loess of seasonally adjusted series). Two tuning parameters: seasonal window n_s (larger → smoother seasonal component), trend window n_t (larger → smoother trend). Robust option: down-weight observations with large residuals. STL-ETS or STL-ARIMA: decompose with STL, forecast seasonally adjusted series with ETS or ARIMA, add back seasonal component."
+  ],
+  "deepDive": [
+    {
+      "heading": "Classical Decomposition",
+      "body": "1. Estimate trend Tₜ using a 2×s moving average (for even s: 2×s MA = [0.5Yₜ₋ₛ/₂ + Yₜ₋ₛ/₂₊₁+…+Yₜ₊ₛ/₂₋₁ + 0.5Yₜ₊ₛ/₂]/s). 2. Detrend: dₜ = Yₜ − Tₜ (additive) or Yₜ/Tₜ (multiplicative). 3. Seasonal indices: average dₜ within each season k = 1,…,s; normalize to sum to 0 (additive) or s (multiplicative). Limitations: trend undefined at series ends (±s/2 observations); assumes constant seasonal pattern; sensitive to outliers. [1]",
+      "formula": "Additive: Yₜ = Tₜ + Sₜ + Rₜ;   Multiplicative: Yₜ = Tₜ · Sₜ · Rₜ"
+    },
+    {
+      "heading": "STL Decomposition",
+      "body": "STL iterates (outer loop: robustness; inner loop: component estimation): (1) Detrend: dₜ = Yₜ − Tₜ. (2) Cycle-subseries smoothing: apply loess to each season's subseries {dₜ: t mod s = k} across time to get raw seasonal. (3) Low-pass filter the raw seasonal and subtract to remove trend leakage. (4) Update seasonal: Sₜ from smoothed minus filtered. (5) Update trend: loess smooth of Yₜ − Sₜ. Repeat. Result: Tₜ, Sₜ, Rₜ with Rₜ = Yₜ − Tₜ − Sₜ. Seasonal component can change slowly over years. [1]"
+    },
+    {
+      "heading": "Seasonal ARIMA: SARIMA",
+      "body": "SARIMA(p,d,q)(P,D,Q)_s: Φ(Bˢ)φ(B)(1−Bˢ)ᴰ(1−B)ᵈYₜ = c + Θ(Bˢ)θ(B)εₜ. Seasonal difference ∇ˢ = 1−Bˢ: ∇ˢYₜ = Yₜ − Yₜ₋ₛ removes seasonal non-stationarity. Example: SARIMA(1,1,1)(1,1,1)₁₂ for monthly series with trend and seasonality. ACF/PACF patterns: seasonal AR shows spikes at lags s, 2s,… with decay; seasonal MA shows single spike at lag s. Identify seasonal orders by looking at ACF/PACF at multiples of s after seasonal differencing. [1]",
+      "formula": "SARIMA: Φ(Bˢ)φ(B)·(1−Bˢ)ᴰ(1−B)ᵈ·Yₜ = Θ(Bˢ)θ(B)·εₜ"
+    },
+    {
+      "heading": "Fourier Terms for Flexible Seasonality",
+      "body": "For complex or multiple seasonality, include Fourier terms as regressors: sin(2πkt/s), cos(2πkt/s) for k = 1,…,K, where s is the seasonal period. K Fourier pairs approximate a smooth seasonal pattern — fewer parameters than s−1 seasonal dummies and can model non-standard periods (e.g., weekly seasonality in daily data: s = 7, or annual in daily data: s = 365.25). TBATS (Trigonometric Box-Cox ARMA Trend Seasonality) and Prophet use this approach for multiple seasonal periods. [1]"
+    }
+  ],
+  "takeaways": [
+    "Additive decomposition: Yₜ = Tₜ + Sₜ + Rₜ; use when seasonal amplitude is constant. [1]",
+    "Multiplicative: Yₜ = Tₜ·Sₜ·Rₜ (or log-transform → additive); use when amplitude grows with trend. [1]",
+    "STL: robust loess-based decomposition; handles changing seasonality and any seasonal period. [1]",
+    "SARIMA: add seasonal AR(P), MA(Q), and seasonal differencing (D) to ARIMA. [1]",
+    "Fourier terms: K pairs of sin/cos allow flexible seasonal patterns with fewer parameters than dummies. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle multiple seasonal periods (e.g., hourly data with daily and weekly seasonality)?",
+      "a": "Standard ARIMA/SARIMA handles only one seasonal period. For multiple seasonalities: (1) TBATS (De Livera et al. 2011): models multiple seasonal periods with trigonometric Fourier terms, Box-Cox transformation, and ARMA errors — handles complex seasonality automatically; (2) Prophet (Facebook/Meta): uses Fourier series for trend, yearly, weekly, and custom seasonalities, with changepoints for trend; (3) STL with multiple seasonal periods (MSTL): iterative decomposition removing each seasonal component in turn. [1]"
+    },
+    {
+      "q": "What is the X-13ARIMA-SEATS method used by statistical agencies?",
+      "a": "X-13ARIMA-SEATS is the US Census Bureau's seasonal adjustment software, combining two approaches: (1) X-11: filter-based multiplicative decomposition using Henderson moving averages — no parametric model assumptions, robust; (2) SEATS: signal extraction based on ARIMA model — projects component models from an estimated ARIMA. X-13 first identifies an ARIMA model (RegARIMA step, allowing for calendar effects, outliers, and regressors), then applies X-11 or SEATS for decomposition. Eurostat uses X-13ARIMA-SEATS for all EU official statistics. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Cleveland et al. (1990) — STL: A Seasonal-Trend Decomposition Procedure Based on Loess, J. Official Statistics 6(1)", "url": "https://www.wessa.net/download/stl.pdf" },
+    { "label": "Hyndman & Athanasopoulos — Forecasting: Principles and Practice (3rd ed.), Ch. 3, 9", "url": "https://otexts.com/fpp3/" }
+  ]
+}

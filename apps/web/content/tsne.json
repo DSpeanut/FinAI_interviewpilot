@@ -1,0 +1,87 @@
+{
+  "eli3": [
+    "t-SNE asks a simple question: if two points are close neighbours in high-dimensional space, can I arrange them so they're close in 2D as well? It does this by first measuring how similar each pair of points is in the original space — close pairs get high similarity scores, distant pairs near zero.",
+    "Then it places all points randomly in 2D and iteratively moves them. Points that should be close get pulled together; points that should be far get pushed apart. After many iterations the 2D layout reflects the neighbourhood structure of the high-dimensional data.",
+    "The key trick: t-SNE uses a heavy-tailed distribution (Student-t) for the 2D similarities. This creates a strong repulsion between dissimilar points and prevents the 'crowding problem' where many high-dimensional points collapse into a small 2D region."
+  ],
+  "whenWhy": [
+    {
+      "title": "Visualising high-dimensional data clusters",
+      "body": "t-SNE produces the clearest, most visually compelling cluster separations among dimensionality reduction methods. It is the standard visualisation tool in single-cell biology, NLP (token/word embedding visualisation), and computer vision (feature space exploration)."
+    },
+    {
+      "title": "Exploring local neighbourhood structure",
+      "body": "t-SNE excels at preserving local structure — if two points are neighbours in high-d, they are neighbours in the 2D map. Sub-cluster structure within a larger cluster is clearly revealed. Use it to verify that embeddings (word2vec, ResNet features) capture the expected neighbourhood relationships."
+    },
+    {
+      "title": "When global structure is not critical",
+      "body": "The relative positions of different clusters in a t-SNE plot are not meaningful. Two clusters far apart in t-SNE may be adjacent in high-d space. Use UMAP if global structure matters. Use t-SNE purely for local neighbourhood visualisation."
+    },
+    {
+      "title": "Not for downstream ML — visualisation only",
+      "body": "t-SNE is non-parametric (cannot embed new points without re-running) and slow O(n² to n log n). Never use t-SNE as a preprocessing step for a supervised model. Use PCA or UMAP for that. t-SNE is exclusively a visualisation tool."
+    }
+  ],
+  "deepDiveIntro": [
+    "t-SNE (van der Maaten & Hinton, 2008) defines a probability distribution pᵢⱼ over pairs of high-dimensional points (using a Gaussian kernel) and a distribution qᵢⱼ over pairs in 2D (using a Student-t kernel). It minimises the KL divergence between pᵢⱼ and qᵢⱼ by gradient descent.",
+    "The Student-t distribution in the low-dimensional space has heavier tails than the Gaussian used in high-d. This asymmetry is the solution to the crowding problem: moderately close points in high-d are mapped to be further apart in 2D, preventing cluster collapse."
+  ],
+  "visualizationType": "tsne",
+  "deepDive": [
+    {
+      "heading": "High-Dimensional Similarities (pᵢⱼ)",
+      "body": "For each point xᵢ, compute conditional probabilities pⱼ|ᵢ ∝ exp(−||xᵢ−xⱼ||²/2σᵢ²), where σᵢ is chosen so that the perplexity of the distribution equals the user-specified Perplexity parameter. Symmetrise: pᵢⱼ = (pⱼ|ᵢ + pᵢ|ⱼ)/2n. The perplexity is effectively the number of effective nearest neighbours (typically 5–50). [1]",
+      "formula": "pⱼ|ᵢ = exp(−‖xᵢ−xⱼ‖²/2σᵢ²) / Σₖ≠ᵢ exp(−‖xᵢ−xₖ‖²/2σᵢ²)"
+    },
+    {
+      "heading": "Low-Dimensional Similarities (qᵢⱼ) — Student-t Kernel",
+      "body": "In the 2D embedding, similarities are defined using the Student-t distribution with 1 degree of freedom: qᵢⱼ = (1 + ||yᵢ−yⱼ||²)⁻¹ / Σₖ≠ₗ (1 + ||yₖ−yₗ||²)⁻¹. The heavy tail means that moderately close pairs in high-d map to further pairs in 2D — solving the crowding problem. [1]",
+      "formula": "qᵢⱼ = (1 + ‖yᵢ − yⱼ‖²)⁻¹ / Σₖ≠ₗ (1 + ‖yₖ − yₗ‖²)⁻¹"
+    },
+    {
+      "heading": "Objective: KL Divergence Minimisation",
+      "body": "t-SNE minimises the KL divergence from P to Q: C = KL(P||Q) = Σᵢⱼ pᵢⱼ log(pᵢⱼ/qᵢⱼ). The gradient is: ∂C/∂yᵢ = 4 Σⱼ (pᵢⱼ − qᵢⱼ)(yᵢ−yⱼ)(1+||yᵢ−yⱼ||²)⁻¹. Close pairs (pᵢⱼ > qᵢⱼ) attract; distant pairs (pᵢⱼ < qᵢⱼ) repel. KL(P||Q) penalises placing nearby high-d points far apart in 2D more than placing distant points nearby. [1]",
+      "formula": "C = KL(P||Q) = Σᵢⱼ pᵢⱼ log(pᵢⱼ/qᵢⱼ)"
+    },
+    {
+      "heading": "Perplexity Hyperparameter",
+      "body": "Perplexity ≈ 2^{H(Pᵢ)} where H is the entropy of the conditional distribution. Intuitively: the effective number of nearest neighbours considered per point. Low perplexity (5–15): focuses on very local structure, may fragment clusters. High perplexity (30–100): considers broader neighbourhood, smoother clusters. Perplexity should be set between 5 and 50; the default of 30 works for most datasets. [1]"
+    },
+    {
+      "heading": "Barnes-Hut Approximation (O(n log n))",
+      "body": "The naive gradient computation is O(n²) — expensive for n > 10,000. Barnes-Hut t-SNE groups clusters of distant points and approximates their repulsive force as a single body (multipole approximation). This reduces complexity to O(n log n) with a small accuracy trade-off controlled by the theta parameter (default 0.5). scikit-learn uses this by default. [1]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: t-SNE",
+  "youtubeUrl": "https://www.youtube.com/embed/NEaUSP4YerM",
+  "takeaways": [
+    "t-SNE minimises KL divergence between high-d Gaussian similarities P and 2D Student-t similarities Q. [1]",
+    "Student-t in 2D has heavier tails than Gaussian in high-d — this solves the crowding problem and sharpens cluster boundaries. [1]",
+    "Perplexity (default 30) controls the effective number of neighbours — the most important hyperparameter. [1]",
+    "Local structure is preserved; global structure (inter-cluster distances) is not meaningful in t-SNE plots. [1]",
+    "t-SNE is non-parametric — cannot embed new points; for that, use UMAP or parametric t-SNE. [1]",
+    "Barnes-Hut approximation reduces O(n²) to O(n log n); set n_iter ≥ 1000 for stable convergence. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why do different runs of t-SNE give different-looking plots?",
+      "a": "t-SNE optimisation is non-convex and uses random initialisation. Different random seeds give different starting configurations and converge to different local minima. The cluster topology (which points are neighbours) is consistent, but the rotation, reflection, and global arrangement of clusters will differ. Always set random_state for reproducibility, and run multiple times to verify the structure is stable. [1]"
+    },
+    {
+      "q": "Should I run PCA before t-SNE?",
+      "a": "Yes — always reduce to 50 dimensions with PCA first. For high-dimensional data (p > 50), computing exact pairwise distances in the original space is expensive and noisy. PCA removes the low-variance noise dimensions and keeps the main signal, making t-SNE faster and more stable. Scikit-learn does not do this automatically; you must chain: PCA(n_components=50).fit_transform(X) → TSNE(). [1]"
+    },
+    {
+      "q": "Can I compare cluster sizes in t-SNE plots?",
+      "a": "No. The density and size of clusters in a t-SNE plot are not meaningful. t-SNE expands dense regions and compresses sparse ones to make all clusters roughly the same visual size. A small cluster may contain hundreds of points; a large-looking cluster may contain few. Only topology (which points are neighbours) is preserved, not density. [1]"
+    },
+    {
+      "q": "What is the crowding problem?",
+      "a": "In p dimensions, a point has many more potential neighbours than in 2D. If you try to faithfully place all moderately-close high-d neighbours around a point in 2D, they crowd the limited 2D space and collapse into the same region. t-SNE's Student-t kernel solves this by allowing moderate distances in 2D to represent much shorter distances in high-d, pushing groups apart. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "van der Maaten & Hinton — Visualizing Data using t-SNE (JMLR 2008)", "url": "https://jmlr.org/papers/v9/vandermaaten08a.html" },
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 14", "url": "https://hastie.su.domains/ElemStatLearn/" }
+  ]
+}

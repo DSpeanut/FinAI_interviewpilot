@@ -1,0 +1,75 @@
+{
+  "eli3": [
+    "A percentile tells you what percentage of data falls below a given value. The 90th percentile means 90% of values are at or below it. Your test score at the 90th percentile means you scored higher than 90% of test-takers.",
+    "Quartiles divide the sorted data into four equal parts. Q1 (25th percentile) is the lower quartile, Q2 (50th) is the median, Q3 (75th) is the upper quartile. The interquartile range IQR = Q3 − Q1 contains the middle 50% of the data and is the most common robust measure of spread.",
+    "The five-number summary (min, Q1, median, Q3, max) — visualised as a box-and-whisker plot — tells you the full shape of a distribution without assuming any distributional form. It is the standard way to compare distributions across groups."
+  ],
+  "whenWhy": [
+    {
+      "title": "Robust measure of spread: IQR",
+      "body": "IQR = Q3 − Q1 has breakdown point 0.25 — resistant to up to 25% outliers. It is the basis for Tukey's outlier detection rule: values beyond [Q1 − 1.5×IQR, Q3 + 1.5×IQR] are flagged as outliers. This rule is non-parametric — it makes no distributional assumption."
+    },
+    {
+      "title": "Comparing distributions across groups",
+      "body": "Side-by-side box plots allow simultaneous comparison of distributions across many groups. They are particularly useful for detecting shifts in median and spread (e.g. A/B test results, feature distributions across cohorts). Unlike histograms, box plots scale well to many groups."
+    },
+    {
+      "title": "Normalisation by rank (percentile normalisation)",
+      "body": "Percentile rank transformation maps each value to its rank percentile: x → rank(x)/n. This is a non-parametric normalisation that handles outliers by compressing them to the range [0,1]. Used in quantitative finance (cross-sectional factor normalisation), and for robust feature scaling in ML."
+    },
+    {
+      "title": "Quantile functions and probability integral transform",
+      "body": "The quantile function Q(p) = F⁻¹(p) is the inverse CDF. For U ~ Uniform(0,1), F⁻¹(U) has distribution F. This probability integral transform is the basis for random number generation, copulas, and quantile-quantile (Q-Q) plots for assessing distributional fit."
+    }
+  ],
+  "deepDiveIntro": [
+    "The p-th percentile (or 100p-th quantile) of a distribution F is Q(p) = inf{x : F(x) ≥ p}, the smallest x such that at least fraction p of the population is at or below x. For continuous strictly increasing CDFs, Q(p) = F⁻¹(p).",
+    "For a sample of n values, there are multiple conventions for computing the sample quantile (linear interpolation, nearest rank, etc.). The most common: sort values as x₁ ≤ … ≤ xₙ; the p-th quantile is x₍ₗ₎ where l = ⌈np⌉ (nearest-rank method) or interpolated between x₍⌊np⌋₎ and x₍⌈np⌉₎."
+  ],
+  "visualizationType": "percentiles-quartiles",
+  "deepDive": [
+    {
+      "heading": "Quartiles: Q1, Q2, Q3",
+      "body": "Q1 = 25th percentile (lower quartile), Q2 = 50th percentile (median), Q3 = 75th percentile (upper quartile). IQR = Q3 − Q1 contains the middle 50% of data. The five-number summary {min, Q1, Q2, Q3, max} fully describes the spread without distributional assumptions. Boxplot whiskers extend to min(Q3 + 1.5×IQR, x_max) and max(Q1 − 1.5×IQR, x_min). [1]",
+      "formula": "IQR = Q3 − Q1"
+    },
+    {
+      "heading": "Outlier Detection: Tukey's Fence",
+      "body": "Inner fences: [Q1−1.5×IQR, Q3+1.5×IQR]. Outer fences: [Q1−3×IQR, Q3+3×IQR]. Points beyond the inner fence are mild outliers; beyond the outer fence are extreme outliers. For normal data, the inner fence marks approximately ±2.7σ, so about 0.7% of normal observations are flagged — a non-parametric approximation to the ±3σ rule. [1]",
+      "formula": "Outlier if x < Q1 − 1.5·IQR  or  x > Q3 + 1.5·IQR"
+    },
+    {
+      "heading": "Quantile Function and Q-Q Plots",
+      "body": "Q-Q plot: plot the quantiles of sample data against the theoretical quantiles of a reference distribution (usually normal). Points lie on a straight line if data follows the reference distribution. Deviations from the line reveal: S-curves (heavier or lighter tails), systematic shifts (location mismatch), or bends (skewness). More sensitive than histograms for detecting distributional departures. [1]"
+    },
+    {
+      "heading": "Probability Integral Transform",
+      "body": "If X has CDF F, then U = F(X) ~ Uniform(0,1). Inverse: if U ~ Uniform(0,1), then F⁻¹(U) ~ F. This transform is fundamental to: (1) generating random variables from F given uniform random numbers; (2) copulas which model dependence by transforming margins to uniform; (3) Kolmogorov-Smirnov test which tests uniformity of F(xᵢ). [1][2]",
+      "formula": "If X ~ F, then F(X) ~ Uniform(0,1)"
+    }
+  ],
+  "youtubeLabel": "Box Plots and Quartiles — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/fHLhBnmwUM0",
+  "takeaways": [
+    "p-th quantile Q(p) = F⁻¹(p): the value below which fraction p of the population falls. [1]",
+    "IQR = Q3 − Q1: robust spread measure with breakdown point 0.25; used in Tukey's outlier rule. [1]",
+    "Tukey fence: outlier if x < Q1−1.5×IQR or x > Q3+1.5×IQR (≈ ±2.7σ for normal data). [1]",
+    "Five-number summary {min, Q1, median, Q3, max} fully characterises a distribution non-parametrically. [1]",
+    "Q-Q plot: compare sample quantiles to theoretical quantiles — deviations reveal tail and skew departures. [1]",
+    "Probability integral transform: U = F(X) ~ Uniform(0,1) — basis of copulas and random number generation. [1][2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why do different software packages give different quartile values for the same data?",
+      "a": "There are at least nine different conventions for computing sample quantiles (Hyndman & Fan 1996 documented them). Python's numpy default (method='linear', type 7) interpolates between order statistics. R's default (type 7) is the same. The differences matter most for small samples or when quantiles fall between observations. For large n, all methods converge. [1]"
+    },
+    {
+      "q": "When is the IQR a better measure of spread than standard deviation?",
+      "a": "IQR is preferred when: (1) data is skewed — std dev is inflated by the tail; (2) outliers are present — IQR ignores them by design; (3) data is ordinal — std dev requires interval scaling; (4) sample size is small with suspected non-normality. Standard deviation is preferred when: data is approximately normal, and you need to interface with normal-distribution statistical theory (confidence intervals, hypothesis tests). [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 2", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" },
+    { "label": "Hyndman & Fan (1996) — Sample Quantiles in Statistical Packages, The American Statistician 50(4)", "url": "https://doi.org/10.2307/2684934" }
+  ]
+}

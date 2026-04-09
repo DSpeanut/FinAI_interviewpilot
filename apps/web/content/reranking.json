@@ -1,0 +1,65 @@
+{
+  "eli3": [
+    "Re-ranking is a second-stage retrieval step that takes the top-k candidates from a fast first-stage retrieval (BM25 or bi-encoder) and scores them more accurately using a slower but more precise model. The first stage optimizes for recall (get all potentially relevant documents), the second stage optimizes for precision (find the most relevant ones among the candidates).",
+    "Re-rankers are typically cross-encoders: transformer models that take a (query, document) pair as input and output a single relevance score. Unlike bi-encoders (which embed query and document independently), cross-encoders see both together — the model can assess fine-grained relevance by comparing query terms directly to document terms via attention. This is more accurate but cannot be pre-computed, so it's only practical for a small set of candidates (top-20 to top-100).",
+    "The two-stage pipeline (retrieve → re-rank) is the standard architecture for production search and RAG: fast BM25 or bi-encoder retrieval returns top-100 candidates (high recall), cross-encoder re-ranking selects top-5 (high precision). The LLM then generates an answer from these top-5 highly relevant chunks. Popular re-rankers: Cohere Rerank API, cross-encoder/ms-marco-MiniLM-L6-v2 (open-source), BGE-Reranker."
+  ],
+  "whenWhy": [
+    {
+      "title": "Improving RAG precision with two-stage retrieval",
+      "body": "Bi-encoder retrieval is fast but imprecise — it embeds query and document independently without comparing them directly. Top-20 bi-encoder results may include irrelevant documents that happened to have similar embeddings. Re-ranking with a cross-encoder: passes each (query, candidate) pair through the re-ranker model, gets a precise relevance score, sorts candidates by score, takes top-5. The LLM context only contains the 5 most relevant chunks — reducing noise, improving answer quality."
+    },
+    {
+      "title": "Handling multi-aspect queries",
+      "body": "A query like 'What are the side effects of metformin in elderly patients with kidney disease?' has multiple constraints: drug name, patient population, comorbidity. A bi-encoder may retrieve documents about metformin generally, or kidney disease generally, but miss the specific combination. A cross-encoder sees the full query-document pair and scores precisely whether all aspects are addressed. Re-ranking dramatically improves precision for complex, multi-aspect queries."
+    },
+    {
+      "title": "Cohere Rerank and managed re-ranking APIs",
+      "body": "Cohere Rerank API: send query + list of documents, receive relevance scores. No model hosting required. Latency: ~50ms for top-100 documents. Best for: production RAG where maintaining a self-hosted re-ranker is overhead. Alternative: open-source cross-encoders from sentence-transformers (ms-marco-MiniLM families). Trade-off: Cohere Rerank is faster to deploy but costs per API call; self-hosted is free at scale but requires GPU infrastructure."
+    }
+  ],
+  "deepDiveIntro": [
+    "Cross-encoder architecture: BERT-style encoder takes [CLS] + query + [SEP] + document + [SEP] as input. [CLS] token representation is passed through a linear layer to produce a single relevance score. Self-attention allows every query token to attend to every document token — captures fine-grained term overlap, semantic relationships, and relevance signals that bi-encoder cosine similarity misses. Training: pointwise (binary relevant/not-relevant), pairwise (relevant > irrelevant), or listwise (optimize ranking metrics like NDCG).",
+    "Training data for re-rankers: MS MARCO (Microsoft Machine Reading Comprehension) — 530K (query, relevant passage) pairs from Bing search. Negative sampling: hard negatives from BM25 top results that are not the answer. Models trained on MS MARCO transfer well to other domains. Popular open-source models: cross-encoder/ms-marco-MiniLM-L6-v2 (fast, 6-layer), cross-encoder/ms-marco-electra-base (accurate). Fine-tune on domain-specific data for best performance."
+  ],
+  "deepDive": [
+    {
+      "heading": "Bi-encoder vs Cross-encoder Comparison",
+      "body": "Bi-encoder: f(q) and f(d) computed independently. Score = cos(f(q), f(d)). Pre-compute f(d) offline → query time: compute f(q) + ANN search. O(1) per query after indexing. Quality: good for general semantic similarity, weaker for fine-grained relevance. Cross-encoder: g(q, d) jointly encodes both. Score = g([q;d]). Cannot pre-compute for unseen queries. Query time: k forward passes through the encoder. O(k) per query. Quality: superior — sees both texts simultaneously, captures exact relevance. In practice: bi-encoder for top-100, cross-encoder re-ranks to top-5. [1]",
+      "formula": "Bi-encoder: cos(f(q), f(d));  Cross-encoder: g([CLS] q [SEP] d [SEP])[0] · w"
+    },
+    {
+      "heading": "Listwise Re-ranking with LLMs",
+      "body": "Traditional re-ranking: pointwise or pairwise scoring with a dedicated re-ranker model. LLM-based re-ranking: use the LLM itself to re-rank. RankGPT (Sun et al. 2023): prompt the LLM with a listwise ranking instruction — 'Given the query and the following passages, rank them from most to least relevant: [query] [passages]' → LLM outputs a permutation. Surprisingly effective — GPT-4 RankGPT outperforms cross-encoders on TREC benchmarks. Limitation: expensive (LLM inference for re-ranking on every query); sliding window approach needed for >20 candidates. [2]"
+    },
+    {
+      "heading": "Reciprocal Rank Fusion (RRF)",
+      "body": "RRF: combine multiple retrieval result lists (BM25 rank, dense rank) without a re-ranker model. RRF score for document d = Σ_r 1/(k + rank_r(d)), where k=60 is a constant and rank_r(d) is document d's rank in retrieval system r. Sum over all retrieval systems r. Advantages: no learned parameters, no additional model, no training data needed. Works because rank is a robust signal — documents ranked high by multiple independent systems are likely relevant. RRF + BM25 + dense retrieval often outperforms either alone. [1]"
+    },
+    {
+      "heading": "Evaluation: NDCG and MRR",
+      "body": "NDCG@k (Normalized Discounted Cumulative Gain): measures whether highly relevant documents appear near the top of the ranked list. DCG@k = Σᵢ₌₁ᵏ relᵢ/log₂(i+1) (relevance discounted by position). NDCG = DCG/IDCG (normalized by ideal ranking). MRR (Mean Reciprocal Rank): average of 1/rank_first_relevant across queries — measures how soon the first relevant document appears. Re-ranking goal: maximize NDCG@5 and MRR@10. BEIR benchmark (Thakur et al. 2021): 18 heterogeneous retrieval datasets for out-of-domain evaluation of re-rankers. [1]"
+    }
+  ],
+  "takeaways": [
+    "Re-ranking: first-stage retrieval (recall) → cross-encoder re-ranking (precision) → top-5 to LLM. [1]",
+    "Cross-encoder: sees query + document jointly — much more accurate than bi-encoder, but O(k) not O(1). [1]",
+    "RRF: combine multiple retrieval lists without a learned model — robust, no training needed. [1]",
+    "LLM re-ranking (RankGPT): listwise permutation prompting — strong quality, high inference cost. [2]",
+    "NDCG@k and MRR@k: standard metrics for evaluating re-ranking quality. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How many candidates should be passed to the re-ranker (top-k)?",
+      "a": "The trade-off: larger k → higher chance the true relevant document is in the candidate set (recall), but more expensive re-ranking (cross-encoder runs k forward passes). Typical practice: first-stage retrieval top-100, re-rank to top-5 or top-10. Beyond k=100, the marginal recall gain is small (most relevant documents appear in the top-100 for well-trained bi-encoders), while latency increases linearly. For high-precision applications (medical, legal), k=50 first-stage with top-5 re-ranking is a common sweet spot. Monitor recall@k of the first stage — if < 90%, increase k before investing in a better re-ranker. [1]"
+    },
+    {
+      "q": "When should you skip re-ranking in a RAG pipeline?",
+      "a": "Skip re-ranking when: (1) latency budget is tight (< 200ms total) — cross-encoder adds 50–200ms; (2) the knowledge base is small (< 1000 documents) — bi-encoder retrieval alone has high precision at small scale; (3) queries are simple and precise (exact keyword lookup, catalog search) — BM25 or dense retrieval alone is sufficient; (4) cost is constrained — Cohere Rerank API has per-call cost that may not be justified for all traffic. Use re-ranking when: queries are complex/ambiguous, the knowledge base is large and dense, answer quality is more important than latency, and you're observing frequent 'retrieved wrong chunk' errors in RAG outputs. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Thakur et al. (2021) — BEIR: A Heterogeneous Benchmark for Zero-shot Evaluation of Information Retrieval Models, NeurIPS 2021", "url": "https://arxiv.org/abs/2104.08663" },
+    { "label": "Sun et al. (2023) — Is ChatGPT Good at Search? Investigating Large Language Models as Re-Ranking Agents, EMNLP 2023", "url": "https://arxiv.org/abs/2304.09542" }
+  ]
+}

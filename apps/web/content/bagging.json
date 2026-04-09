@@ -1,0 +1,86 @@
+{
+  "eli3": [
+    "Bagging stands for Bootstrap AGGregatING. The idea is simple: instead of training one model on all your data, train many models each on a slightly different random sample of your data (with replacement), then average their predictions.",
+    "Why does averaging help? Each individual model makes mistakes, but different models tend to make different mistakes because they were trained on different data. When you average them, the mistakes partially cancel out. This is called variance reduction.",
+    "Bagging works best on models that are sensitive to the training data — models where small changes in the data lead to very different predictions (high variance models like deep decision trees). If your model is already stable, bagging won't help much."
+  ],
+  "whenWhy": [
+    {
+      "title": "Reducing variance of unstable learners",
+      "body": "Bagging is most effective for high-variance, low-bias models — deep decision trees, neural networks trained with dropout, k-NN with small k. Averaging B such models reduces variance roughly by a factor of B (for independent models), with minimal effect on bias."
+    },
+    {
+      "title": "Free uncertainty estimates (prediction intervals)",
+      "body": "Since you have B model predictions for each input, you can compute their standard deviation as an estimate of prediction uncertainty. This is a simple, non-parametric alternative to Bayesian credible intervals and requires no additional computation."
+    },
+    {
+      "title": "Out-of-Bag evaluation",
+      "body": "Each bootstrap sample leaves out ~37% of the training data. These OOB samples provide a free validation set for each model. The OOB error estimate is nearly unbiased and avoids the computational cost of cross-validation."
+    },
+    {
+      "title": "Foundation for Random Forest",
+      "body": "Random Forest is bagging applied to decision trees with one extra trick: feature subsampling at each split to de-correlate the trees. Understanding bagging is prerequisite to understanding why Random Forest works."
+    }
+  ],
+  "deepDiveIntro": [
+    "Bagging (Breiman, 1996) addresses the instability of high-variance estimators by averaging. The theoretical guarantee is simple: if B models with variance σ² are independently trained, their average has variance σ²/B. In practice, models are correlated (trained on overlapping bootstrap samples), so the reduction is σ²(ρ + (1−ρ)/B) where ρ is the pairwise correlation.",
+    "The bias of the ensemble equals the bias of each individual model (averaging does not change bias). Bagging is therefore only useful when the individual models have low bias — i.e. complex, expressive models that can fit the data closely."
+  ],
+  "visualizationType": "bagging",
+  "deepDive": [
+    {
+      "heading": "Bootstrap Sampling",
+      "body": "A bootstrap sample of size n is drawn with replacement from the training set. By the birthday paradox, approximately 1 − (1−1/n)ⁿ → 1 − 1/e ≈ 63.2% of unique training points appear in any given bootstrap sample. The remaining ~36.8% are the OOB (out-of-bag) samples for that model. [1]",
+      "formula": "P(point appears) = 1 − (1 − 1/n)ⁿ → 1 − e⁻¹ ≈ 0.632"
+    },
+    {
+      "heading": "Aggregation",
+      "body": "Regression: ŷ_bag(x) = (1/B) Σᵦ ŷᵦ(x). Classification: majority vote ŷ_bag(x) = mode{ŷᵦ(x)}, or soft vote (average of predicted probabilities). Soft voting is generally preferred as it retains probability information. B ≥ 50 is usually sufficient; more trees help but with diminishing returns. [1]"
+    },
+    {
+      "heading": "Variance Reduction Analysis",
+      "body": "For B models with pairwise correlation ρ and individual variance σ²: Var(ŷ_bag) = ρσ² + (1−ρ)σ²/B. As B → ∞: variance → ρσ². De-correlating models (via feature subsampling in Random Forest) reduces ρ and thus the floor variance. For uncorrelated models (ρ=0), variance → 0 as B → ∞. [1]",
+      "formula": "Var(ŷ_bag) = ρσ² + (1−ρ)σ²/B"
+    },
+    {
+      "heading": "Out-of-Bag Error",
+      "body": "For each training point xᵢ, compute the prediction using only the B_OOB(i) trees for which xᵢ was OOB: ŷ_OOB(xᵢ) = (1/|B_OOB(i)|) Σᵦ∈B_OOB(i) ŷᵦ(xᵢ). OOB error = L(y, ŷ_OOB) over all i. For large B, each point is OOB for ~37% of trees, giving a reliable estimate without cross-validation. [1]"
+    },
+    {
+      "heading": "When Bagging Fails",
+      "body": "Bagging does not reduce bias — it cannot fix an underfitting model. If individual trees are shallow (high bias, low variance), bagging them gives a model with similar high bias. Bagging also hurts interpretability: a single tree is a readable flowchart; a forest is a black box. For low-variance stable models (linear regression, Naive Bayes), bagging gives negligible benefit. [1]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: Bagging",
+  "youtubeUrl": "https://www.youtube.com/embed/2Mg8QD0F1dQ",
+  "takeaways": [
+    "Bagging trains B models on bootstrap samples and averages predictions — reducing variance without increasing bias. [1]",
+    "Variance reduction: Var(ŷ_bag) = ρσ² + (1−ρ)σ²/B; reducing ρ (correlation) amplifies the benefit. [1]",
+    "~63.2% of training data appears in each bootstrap sample; the rest are OOB samples for free validation. [1]",
+    "Bagging only helps high-variance (unstable) learners — it does nothing for bias. [1]",
+    "Random Forest = Bagging + feature subsampling: the feature subsampling reduces ρ significantly. [1]",
+    "Soft vote (average probabilities) outperforms hard majority vote — always prefer it for classification. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does bagging hurt interpretability?",
+      "a": "A single decision tree produces human-readable rules (if-then-else paths). Once you bag 100 trees and average their predictions, there is no single interpretable model — only an average. You lose the ability to trace a prediction through a single flowchart. This is the fundamental interpretability/accuracy tradeoff. SHAP values partially restore interpretability for ensembles. [1]"
+    },
+    {
+      "q": "Can bagging be applied to any model?",
+      "a": "Yes — bagging is model-agnostic. You can bag linear models, k-NN, SVMs, or neural networks. In practice it is most effective for unstable high-variance models. For linear models, bagging gives nearly identical predictions to a single model (linear regression is very stable), so it is wasteful. For neural networks, bagging is expensive but effective — MC Dropout is a cheaper approximation. [1]"
+    },
+    {
+      "q": "What is Pasting and how does it differ from Bagging?",
+      "a": "Pasting draws samples without replacement (random subsets rather than bootstrap samples). Because samples don't overlap, models are more diverse (less correlated) but each model is trained on less data — higher individual bias. Bagging (with replacement) keeps each bootstrap at size n, using the overlap between samples to ensure each model is well-fit. Pasting is rarely used in practice. [1]"
+    },
+    {
+      "q": "What is the relationship between bagging and model stability?",
+      "a": "Breiman (1996) defined a procedure as stable if small changes in training data lead to small changes in predictions. Linear regression is highly stable; deep decision trees are unstable. The instability of a procedure directly determines how much bagging helps — unstable procedures benefit enormously; stable ones barely at all. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Breiman — Bagging Predictors (1996), Machine Learning 24(2)", "url": "https://link.springer.com/article/10.1007/BF00058655" },
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 8.7", "url": "https://hastie.su.domains/ElemStatLearn/" }
+  ]
+}

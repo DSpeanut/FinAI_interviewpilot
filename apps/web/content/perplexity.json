@@ -1,0 +1,64 @@
+{
+  "eli3": [
+    "Perplexity measures how well a language model predicts a sequence of text. Formally, PPL(W) = P(w₁,…,wₙ)^{−1/n} — the inverse geometric mean probability per token. Low perplexity = the model assigns high probability to the test text = the model is not surprised. A perplexity of K means the model is as uncertain as if it had to choose uniformly among K alternatives at each step.",
+    "Perplexity is related to cross-entropy: PPL = exp(H), where H = −(1/n)Σlog₂P(wᵢ|context) is the per-token cross-entropy in bits. If a fair coin has entropy H=1 bit (2 options), perplexity is 2. For English text modeled by an N-gram LM, perplexity might be 100–1000. Modern LLMs achieve perplexity < 10 on Wikitext-103, meaning they're nearly as good as seeing the answer — about 10 options on average.",
+    "Perplexity has limitations: (1) it's vocabulary- and tokenizer-dependent — you can't directly compare perplexities across models with different tokenizers; (2) lower perplexity doesn't always mean better downstream task performance (BERT has no direct perplexity because it's not autoregressive); (3) perplexity ignores factual accuracy — a model can be fluent but wrong. Despite these, it's the standard intrinsic evaluation metric for LMs."
+  ],
+  "whenWhy": [
+    {
+      "title": "Comparing language model quality",
+      "body": "Perplexity is the standard metric for comparing LMs on the same benchmark (Penn Treebank, Wikitext-103, C4). Lower perplexity = better LM. Used to track progress: LSTM LMs achieved PPL ~60 on Penn Treebank; transformers now achieve ~18. Important: both models must use the same test set and the same tokenizer for a fair comparison. Different tokenizations yield different perplexities even for identical models (word-level vs. BPE)."
+    },
+    {
+      "title": "Hyperparameter tuning and model selection",
+      "body": "Perplexity on a held-out validation set is used to tune LM hyperparameters: learning rate, model size, N-gram order, smoothing parameters. For fine-tuning LLMs, perplexity on a task-specific corpus signals whether the model is adapting to the domain. Domain adaptation: a model fine-tuned on medical text should have lower perplexity on medical test documents than the base model. Perplexity is fast to compute — more practical than running downstream task evaluation during training."
+    },
+    {
+      "title": "Detecting out-of-distribution text",
+      "body": "High perplexity indicates text that is out-of-distribution for the model. Applications: (1) LM-based anomaly detection — flag text with anomalously high perplexity; (2) plagiarism / AI detection — AI-generated text has very low perplexity under the generating model; (3) text quality filtering — high-perplexity data (garbled text, scraped HTML) can be removed from pre-training corpora. GPT-3's training data used perplexity-based quality filtering."
+    }
+  ],
+  "deepDiveIntro": [
+    "Perplexity derivation: Shannon entropy H(p) = −Σw p(w) log p(w) measures uncertainty. Cross-entropy H(p, q) = −Σw p(w) log q(w) measures how well model q approximates true distribution p. For a test corpus W = w₁,…,wₙ: H(W, q) ≈ −(1/n) Σᵢ log q(wᵢ|w₁,…,wᵢ₋₁) (empirical cross-entropy). Perplexity: PPL = 2^{H(W,q)} (base-2 bits) or exp(H(W,q)) (natural log, as used in practice with PyTorch cross-entropy loss).",
+    "Bits-per-character (BPC) and bits-per-word (BPW) are related metrics: BPC = −(1/|chars|) Σᵢ log₂P(charᵢ|prev chars); used for character-level LMs. Relation: if tokenizer averages k characters per token, then BPC ≈ BPW/k approximately. For subword LMs, the 'per-token perplexity' depends heavily on tokenization — SentencePiece with 32K vocab and GPT-2 BPE with 50K vocab give different per-token perplexities for the same underlying model quality."
+  ],
+  "deepDive": [
+    {
+      "heading": "Perplexity Formula and Cross-Entropy",
+      "body": "PPL(W) = exp(−(1/n) Σᵢ₌₁ⁿ log P(wᵢ|w₁,…,wᵢ₋₁)). For an autoregressive LM, this is directly the exponentiated per-token loss. In PyTorch: loss = cross_entropy(logits, targets, reduction='mean'); ppl = torch.exp(loss). Cross-entropy in nats (natural log) → PPL = e^{loss}. Cross-entropy in bits (log₂) → PPL = 2^{loss}. PyTorch/HuggingFace use natural log by default. The test set should be processed as a single long sequence (or with stride to avoid boundary effects). [1]",
+      "formula": "PPL(W) = exp(−(1/n) Σᵢ log P(wᵢ | w₁,…,wᵢ₋₁))"
+    },
+    {
+      "heading": "Tokenizer Dependency and Comparability",
+      "body": "Perplexity is not comparable across tokenizers. Word-level LM on 'unhappiness': 1 token. BPE LM: 'un', 'happiness' = 2 tokens. Character LM: 11 tokens. Predicting fewer, larger tokens is a harder problem per-token (more choices per step) but covers more text per step. To normalize: bits-per-character (BPC) is tokenizer-agnostic — convert by PPL_bpc = exp(H_chars). Several papers (e.g., GPT-2 evaluation) report BPB (bits-per-byte) to allow cross-tokenizer comparison. Always verify what tokenizer and test set is used when comparing published perplexities. [1]"
+    },
+    {
+      "heading": "Sliding Window Evaluation for Long Contexts",
+      "body": "Problem: if a test document is longer than the model's context window (e.g., 4096 tokens), it must be split. Simple split: divide into non-overlapping chunks — the beginning of each chunk has no context (perplexity spike). Sliding window (stride s): evaluate each token position using up to context_length tokens of left context, sliding by stride s per step. Full non-overlapping stride gives worst estimates; stride=1 gives best estimates but is O(n²). Standard practice: stride = context_length/2. HuggingFace Transformers provides this evaluation in examples/pytorch/language-modeling/. [1]"
+    },
+    {
+      "heading": "Perplexity vs. Downstream Task Performance",
+      "body": "Perplexity measures LM quality in-distribution; downstream task performance reflects model knowledge and reasoning. Correlation: models with lower perplexity generally perform better on downstream tasks, but the relationship is not perfect. Anomalies: (1) A model fine-tuned on a specific domain (medical text) gets lower medical perplexity but may not improve medical QA; (2) RLHF-aligned models can have higher perplexity than base models on natural text (alignment restricts distribution) but much better helpfulness; (3) Quantized models (int4) have higher perplexity but similar task performance due to task headroom. [1]"
+    }
+  ],
+  "takeaways": [
+    "PPL = exp(−(1/n) Σ log P(wᵢ|context)) = e^{mean CE loss}; lower = better LM. [1]",
+    "Perplexity of K ≈ model has K-way uniform uncertainty at each step. [1]",
+    "Tokenizer-dependent: BPC/BPB normalizes for cross-model comparison. [1]",
+    "Sliding window with stride avoids boundary effects for long documents. [1]",
+    "Lower perplexity ≠ better task performance; alignment can raise perplexity while improving usefulness. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does perplexity explode if any token has probability zero?",
+      "a": "PPL = exp(−(1/n) Σ log P(wᵢ|context)). If any P(wᵢ|context) = 0, then log P = −∞ → PPL = ∞. This is why N-gram LMs must use smoothing (Kneser-Ney, Laplace) — without smoothing, any out-of-vocabulary word in the test set gives infinite perplexity. For neural LMs with softmax output, P > 0 for all tokens by construction (softmax is always positive). However, if a test token is not in the model's vocabulary (different tokenizer), the corresponding probability is undefined. Always ensure test data uses the same tokenizer as the model. [1]"
+    },
+    {
+      "q": "What is the relationship between perplexity and bits-per-character (BPC)?",
+      "a": "BPC = −(1/|chars|) Σᵢ log₂ P(charᵢ|prev chars). For a character-level LM, PPL = 2^{BPC} (base-2 bits). For a subword LM, converting to BPC: BPC = (1/|chars|) Σᵢ log₂ P(tokenᵢ|prev tokens) × (chars_per_token). This requires knowing the average characters per token. BPC values for English: human upper bound ≈ 0.7–1.0 BPC (Shannon's estimate), character LSTM ≈ 1.3 BPC, good character transformer ≈ 0.97 BPC. BPC is more interpretable and allows cross-model comparison regardless of tokenization. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Jurafsky & Martin — Speech and Language Processing (3rd ed.), Ch. 3: N-gram Language Models", "url": "https://web.stanford.edu/~jurafsky/slp3/" }
+  ]
+}

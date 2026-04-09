@@ -1,0 +1,73 @@
+{
+  "eli3": [
+    "The p-value is the probability of observing a test statistic at least as extreme as the one computed, assuming the null hypothesis H₀ is true. It is NOT the probability that H₀ is true, NOT the probability the result is due to chance, and NOT the probability of making an error by rejecting H₀.",
+    "A small p-value (e.g., p < 0.05) means the observed data would be unlikely if H₀ were true — this is evidence against H₀. But 'unlikely under H₀' is not the same as 'likely not due to H₀'. A large sample can produce p < 0.05 for a trivially small effect; always pair p-values with effect size estimates.",
+    "The threshold α = 0.05 is a convention introduced by R.A. Fisher, not a fundamental truth. The ASA (2016) explicitly warns against using 'p < 0.05' as the sole criterion for scientific conclusions. A p-value is one piece of evidence, not a binary verdict."
+  ],
+  "whenWhy": [
+    {
+      "title": "Quantifying evidence against the null hypothesis",
+      "body": "The p-value measures how surprising the observed data is under H₀. A p-value of 0.003 means data this extreme occurs only 0.3% of the time under H₀ — strong evidence against H₀. A p-value of 0.4 means the data is quite consistent with H₀. This is the primary use: as a continuous measure of evidence, not a binary pass/fail."
+    },
+    {
+      "title": "Controlling Type I error in decision procedures",
+      "body": "The Neyman-Pearson framework uses a fixed threshold α to control the long-run Type I error rate: P(reject H₀ | H₀ true) = α. Reject H₀ when p < α guarantees that across many independent tests, the false positive rate is α. This is a frequentist decision rule, not a measure of how much evidence you have in a specific test."
+    },
+    {
+      "title": "Multiple testing: p-values need correction",
+      "body": "If you run 100 independent tests at α = 0.05 when all H₀ are true, you expect 5 false positives. Multiple testing corrections (Bonferroni: α/m; Benjamini-Hochberg: controls FDR at q) are essential in genomics, A/B tests with multiple metrics, and any multi-comparison setting."
+    },
+    {
+      "title": "What p-values cannot tell you",
+      "body": "A p-value cannot tell you: (1) the probability H₀ is true; (2) whether an effect is practically significant; (3) whether the study will replicate. Large samples produce small p-values for negligible effects — always report effect size and CI alongside the p-value."
+    }
+  ],
+  "deepDiveIntro": [
+    "Formally: given test statistic T and observed value t_obs, the p-value is p = P(T ≥ t_obs | H₀) for one-sided tests (right), P(T ≤ t_obs | H₀) for left-sided, and P(|T| ≥ |t_obs| | H₀) for two-sided tests against a symmetric distribution. Under H₀, the p-value is Uniform(0,1) — this is the foundation of validity: if H₀ is true, P(p ≤ α) = α for all α ∈ [0,1].",
+    "The p-value is a function of the data (through T) and the null model. It is NOT a Bayesian posterior: P(H₀ | data) ≠ p-value. Bayesian analysis of the same data would require specifying a prior over H₀ and Hₐ and computing a Bayes factor — a fundamentally different quantity."
+  ],
+  "deepDive": [
+    {
+      "heading": "Definition and Uniformity Under H₀",
+      "body": "p = P(T ≥ t_obs | H₀) where T is the test statistic with known null distribution. If T ~ N(0,1) under H₀ and t_obs = 2.0, then p = P(Z ≥ 2.0) = 0.023 (one-sided). Under H₀, the p-value U = F_{H₀}(T) is Uniform(0,1) (by the probability integral transform) when the null distribution is continuous. This is why P(p ≤ α | H₀) = α exactly. [1]",
+      "formula": "p-value = P(T ≥ t_obs | H₀)"
+    },
+    {
+      "heading": "Type I and Type II Errors",
+      "body": "Type I error (α): reject H₀ when H₀ is true. P(Type I) = α by construction. Type II error (β): fail to reject H₀ when Hₐ is true. Power = 1 − β. The Neyman-Pearson lemma states that the likelihood ratio test is the most powerful test at a given α. Reducing α increases β (more Type II errors); increasing n reduces β without affecting α. [1]",
+      "formula": "P(reject H₀ | H₀ true) = α,   Power = P(reject H₀ | Hₐ true) = 1 − β"
+    },
+    {
+      "heading": "ASA 2016 Principles on p-values",
+      "body": "The American Statistical Association (2016) statement on p-values: (1) P-values can indicate how incompatible data are with H₀. (2) P-values do not measure the probability that H₀ is true. (3) Scientific conclusions should not be based only on whether p < 0.05. (4) Proper inference requires full reporting: effect sizes, CIs, and study design. (5) P-value does not measure effect size or importance. (6) P-value alone does not measure evidence for a model or hypothesis. [2]"
+    },
+    {
+      "heading": "p-hacking and Reproducibility",
+      "body": "p-hacking: selectively reporting analyses until p < 0.05. Because each test has a 5% false positive rate under H₀, running many analyses inflates Type I errors without correction. Pre-registration (specifying hypotheses and analysis plan before seeing data) and reporting all analyses (significant and non-significant) are essential practices. The replication crisis in psychology/medicine is partly attributable to widespread p-hacking and publication bias. [2]"
+    }
+  ],
+  "youtubeLabel": "p-values: What They Are and How to Interpret Them — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/vemZtEM63GY",
+  "takeaways": [
+    "p-value = P(T ≥ t_obs | H₀): probability of data at least this extreme if H₀ were true. [1]",
+    "Under H₀, p ~ Uniform(0,1): P(p ≤ α | H₀) = α (the Type I error rate). [1]",
+    "p-value is NOT P(H₀ is true | data). That requires Bayesian reasoning with a prior. [1]",
+    "Small p ≠ large effect. Large n can produce tiny p-values for negligible effects — always report effect size and CI. [1]",
+    "Multiple testing: each test at α = 0.05 risks 5% false positives; apply Bonferroni or BH correction. [1]",
+    "ASA (2016): do not use p < 0.05 as the sole criterion for scientific conclusions. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "If p = 0.04, what is the probability that H₀ is true?",
+      "a": "Unknown — p-values don't answer this question. To compute P(H₀ | data), you need Bayes' theorem: P(H₀|data) = P(data|H₀)P(H₀)/P(data). This requires specifying P(H₀) (prior probability that H₀ is true). With plausible priors in many settings, p = 0.05 corresponds to P(H₀ | data) = 0.20–0.50 — far from the commonly assumed near-zero. This is the 'p-value fallacy'. [2]"
+    },
+    {
+      "q": "Why is a p-value Uniform(0,1) under H₀?",
+      "a": "By the probability integral transform: if T has CDF F under H₀, then U = F(T) ~ Uniform(0,1). The p-value for a one-sided right test is p = 1 − F(T), so P(p ≤ α | H₀) = P(1−F(T) ≤ α | H₀) = P(F(T) ≥ 1−α | H₀) = α (since F(T) ~ Uniform(0,1)). This holds exactly for continuous T; for discrete distributions, p is super-uniform (P(p ≤ α) ≤ α), meaning the test is conservative. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 8", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" },
+    { "label": "Wasserstein & Lazar (2016) — The ASA Statement on p-Values, The American Statistician 70(2)", "url": "https://doi.org/10.1080/00031305.2016.1154108" }
+  ]
+}

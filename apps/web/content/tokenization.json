@@ -1,0 +1,71 @@
+{
+  "eli3": [
+    "Tokenization splits raw text into discrete units (tokens) that a model can process. Tokens can be words, subwords, characters, or bytes — the choice affects vocabulary size, handling of unknown words, and model capacity. Word tokenization splits on whitespace/punctuation; character tokenization uses individual characters; subword tokenization (BPE, WordPiece, SentencePiece) sits between the two.",
+    "Subword tokenization is the modern standard for LLMs. BPE (Byte-Pair Encoding) starts with characters and iteratively merges the most frequent adjacent pair into a new token until a target vocabulary size is reached. WordPiece (used by BERT) uses a greedy likelihood-maximizing merge instead. SentencePiece works directly on raw Unicode without pre-tokenization, making it language-agnostic.",
+    "The tokenizer determines the vocabulary — the set of all possible tokens. GPT-2/GPT-3 use BPE with vocab size 50,257; BERT uses WordPiece with vocab size 30,522. The same text maps to different token sequences under different tokenizers. A key metric: tokens per word (GPT-4 averages ~1.3 tokens/word for English). Longer tokenizations → more compute, shorter context window in practice."
+  ],
+  "whenWhy": [
+    {
+      "title": "Preprocessing step for all NLP models",
+      "body": "Every NLP pipeline — from TF-IDF to transformers — requires tokenization as the first step: raw text → token sequence → model input. The tokenizer must match the model it was trained with exactly; using a different tokenizer at inference gives nonsensical outputs. Tokenizers are trained on data, not hand-crafted, and are saved alongside model weights."
+    },
+    {
+      "title": "Handling out-of-vocabulary words",
+      "body": "Word-level tokenizers fail on unseen words (OOV) — common for names, technical terms, code, and misspellings. Subword tokenizers handle any word by decomposing it into known subword units: 'unhappiness' → ['un', '##happi', '##ness'] (BERT). This gives effectively unlimited vocabulary coverage with a fixed-size vocabulary."
+    },
+    {
+      "title": "Context window and cost calculations",
+      "body": "LLM APIs (OpenAI, Anthropic) charge by token. Context windows are measured in tokens (GPT-4: 128K tokens). Tokenization efficiency matters: a 1,000-word document might be 1,300 tokens for English, but 2,000+ for non-Latin scripts (Chinese, Arabic) depending on the tokenizer. tiktoken (OpenAI's tokenizer library) counts tokens without inference."
+    },
+    {
+      "title": "Multilingual and code tokenization",
+      "body": "Multilingual models (mBERT, XLM-R) use shared subword vocabularies across 100+ languages. Languages with large character sets (Chinese, Japanese) may need more tokens per word under byte-level BPE, effectively reducing their context window capacity. Code tokenizers (Codex, CodeLlama) are often trained with code-heavy corpora, giving common programming constructs their own tokens."
+    }
+  ],
+  "deepDiveIntro": [
+    "Byte-Pair Encoding (BPE, Sennrich et al. 2016): (1) Initialize vocabulary with all individual characters. (2) Count all adjacent symbol pairs. (3) Merge the most frequent pair into a new symbol. (4) Repeat until target vocab size. Encoding a new word: greedily apply merges in the order learned. BPE was originally a compression algorithm; its application to NLP enabled open-vocabulary NMT.",
+    "WordPiece (Schuster & Nakamura 2012, used by BERT): instead of the most frequent pair, merge the pair that maximizes the likelihood of the training data — i.e., merge (A,B) if P(AB)/P(A)P(B) is maximized. Tokens within a word that are not the first are prefixed with '##' to indicate continuation. SentencePiece (Kudo & Richardson 2018): language-agnostic — treats the input as a sequence of Unicode characters, includes whitespace as a token character (▁), enabling lossless roundtrip tokenization."
+  ],
+  "deepDive": [
+    {
+      "heading": "BPE Algorithm",
+      "body": "Training: start with character vocabulary V = {a,b,…,z, …}. Count all adjacent bigrams in corpus. Merge the most frequent bigram (e.g., 'e','s' → 'es'). Add 'es' to V, update counts. Repeat K times (K = target vocab size − initial size). Inference: given a word, apply merges in learned order (greedy left-to-right). Result: frequent words → single token; rare words → multiple subword tokens. GPT-2 uses byte-level BPE: vocabulary is over 256 raw bytes, ensuring any Unicode text is tokenizable. [1]"
+    },
+    {
+      "heading": "Special Tokens",
+      "body": "Tokenizers add special tokens with specific meanings: [CLS] (BERT — classification token, first position), [SEP] (BERT — sentence separator), [PAD] (padding to uniform length), [MASK] (MLM training), [UNK] (unknown — rare in subword tokenizers), <s> / </s> (GPT-2 sentence start/end), <|endoftext|> (GPT — document boundary). Special tokens are assigned IDs outside the regular vocabulary range and are never split by the tokenizer. [1]",
+      "formula": "token_ids = tokenizer.encode(text)  →  [CLS_ID, tok1_ID, …, tokN_ID, SEP_ID]"
+    },
+    {
+      "heading": "Tokenization and Morphology",
+      "body": "BPE and WordPiece learn subword splits from frequency statistics, not linguistic morphology. This means 'running' might tokenize as ['running'] (single token if frequent) or ['run', '##ning'], while 'rerunning' might be ['re', '##run', '##ning']. The splits are corpus-dependent and language-agnostic. For languages with rich morphology (Finnish, Turkish), subword tokenizers are essential — inflected forms share subwords, enabling generalization across morphological variants. [1]"
+    },
+    {
+      "heading": "Tokenization Artifacts and Sensitivity",
+      "body": "LLMs are sensitive to tokenization: 'token healing' (GPT boundary effects), capitalization ('Hello' vs 'hello' may be different tokens), leading spaces (' hello' ≠ 'hello' in GPT tokenizers — BPE includes space in token boundary). Arithmetic and spelling tasks are harder because numbers and words fragment unpredictably: '1024' might be ['10', '24'] or ['1024'] depending on frequency. This is a fundamental limitation — not a bug — of subword tokenization. [2]"
+    }
+  ],
+  "youtubeLabel": "Tokenization — Andrej Karpathy",
+  "youtubeUrl": "https://www.youtube.com/embed/zduSFxRajkE",
+  "takeaways": [
+    "BPE: iteratively merge most-frequent adjacent pairs; byte-level BPE covers any Unicode input. [1]",
+    "WordPiece: merge pair maximizing likelihood (P(AB)/P(A)P(B)); used by BERT with '##' continuation prefix. [1]",
+    "SentencePiece: language-agnostic, treats whitespace as a character, lossless roundtrip. [1]",
+    "Special tokens ([CLS],[SEP],[PAD]) are fixed IDs added by the tokenizer, not derived from text. [1]",
+    "LLMs are sensitive to tokenization artifacts: capitalization, spaces, number splits differ across tokenizers. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What happens when the same word tokenizes differently in different contexts?",
+      "a": "In BPE, the tokenization of a word is context-independent — each word is tokenized independently (after pre-tokenization splits on whitespace/punctuation). However, 'capitalization' and 'leading space' DO matter: in GPT tokenizers, ' word' (with space) and 'word' (no space) produce different tokens because the space is absorbed into the token. In SentencePiece, the ▁ prefix encodes the word boundary. This means identical-looking words in different positions can have different token IDs. [1]"
+    },
+    {
+      "q": "How does tokenization affect cross-lingual transfer?",
+      "a": "Multilingual tokenizers (mBERT, XLM-R) share a vocabulary across languages. Languages with more training data get more tokens in the vocabulary, giving them more efficient encoding. Low-resource languages are 'fertility-disadvantaged': they require more tokens per word, effectively getting a smaller context window and potentially worse representations. The imbalance in tokenizer fertility across languages is a known limitation of multilingual models — addressed by oversampling low-resource languages during tokenizer training. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Jurafsky & Martin — Speech and Language Processing (3rd ed.), Ch. 2", "url": "https://web.stanford.edu/~jurafsky/slp3/" },
+    { "label": "Sennrich, Haddow & Birch (2016) — Neural Machine Translation of Rare Words with Subword Units, ACL 2016", "url": "https://aclanthology.org/P16-1162/" }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "eli3": [
+    "Emergent abilities are capabilities that appear suddenly in large language models at certain scale thresholds, absent in smaller models but present in larger ones — without being explicitly trained for. Examples: multi-step arithmetic, chain-of-thought reasoning, word analogy, multilingual translation, code generation. GPT-3 (175B) showed few-shot learning abilities that GPT-2 (1.5B) largely lacked.",
+    "Wei et al. (2022) documented ~137 emergent tasks across GPT-3, PaLM, LaMDA, and other large models. The pattern: accuracy near random (0%) below a critical scale, then jumps sharply to significant accuracy above it — a phase transition rather than smooth improvement. This distinguishes emergent abilities from simply 'better performance' which scales smoothly.",
+    "The emergence debate: Schaeffer et al. (2023) argue emergence is an artifact of discontinuous metrics (accuracy on multi-step tasks). With continuous metrics (log-likelihood, expected calibration), capabilities scale smoothly — no phase transition. The practical takeaway remains: very large models (>100B params) exhibit qualitatively useful behaviors (complex reasoning, instruction following) that smaller models cannot replicate, regardless of whether this is a true phase transition."
+  ],
+  "whenWhy": [
+    {
+      "title": "Understanding capability thresholds for LLM selection",
+      "body": "Knowing which capabilities emerge at which scales helps select the right model for a task. Chain-of-thought reasoning: emerges at ~60B parameters (Wei et al. 2022). Instruction following: emerges at ~68B (FLAN fine-tuning amplifies). Mathematical reasoning: emerges at ~540B (PaLM) then improves with fine-tuning (Minerva). For tasks requiring complex multi-step reasoning, models below ~10B parameters may be fundamentally insufficient — not just less accurate, but qualitatively incapable."
+    },
+    {
+      "title": "In-context few-shot learning",
+      "body": "Few-shot ICL — the ability to perform a task from a handful of examples in the prompt — is an emergent ability at GPT-3 scale. Smaller models (GPT-2, 1.5B) show minimal ICL benefit from examples. At 175B+, ICL enables classification, translation, and reasoning from 1–10 examples with no gradient updates. This emergence made GPT-3 a general-purpose system. Understanding ICL emergence helps decide when prompting vs. fine-tuning is the right approach."
+    },
+    {
+      "title": "Chain-of-thought as an emergent interface",
+      "body": "Chain-of-thought (CoT) prompting (Wei et al. 2022): instruct the model to produce intermediate reasoning steps before the final answer. CoT only helps at ≥60B parameters — for smaller models, it hurts (produces wrong intermediate steps that lead the model astray). For math word problems, CoT at PaLM 540B achieves 58% on GSM8K vs 18% without CoT. CoT is an emerged capability that can be unlocked by prompting at sufficient scale."
+    }
+  ],
+  "deepDiveIntro": [
+    "Formal definition (Wei et al. 2022): an emergent ability is a capability that is not present in smaller models but is present in larger models, where 'present' is above random-chance performance on a specific benchmark. Operationalized as: plot accuracy vs. model size (log scale) — if the curve shows a sharp knee (near-zero below threshold, significant above), the ability is emergent.",
+    "Examples of emergent tasks by scale (from Wei et al. 2022): modified arithmetic (≥100B), word analogy (≥60B), five-letter word unscrambling (≥60B), concept understanding (≥60B), multi-step reasoning in BIG-Bench (≥100B). These were observed across GPT-3, PaLM, Gopher, Chinchilla — emergent abilities appear to be robust across architectures at the same scale."
+  ],
+  "deepDive": [
+    {
+      "heading": "Documented Emergent Abilities",
+      "body": "Wei et al. (2022) catalogued 137 emergent tasks from BIG-Bench (206-task benchmark). Representative examples: (1) Three-digit addition: < 8B: ~0% accuracy; > 100B: ~80%; (2) Chain-of-thought math: < 60B: CoT hurts; > 60B: CoT helps significantly; (3) Word unscrambling: < 60B: ~random; > 60B: significant; (4) IPA (International Phonetic Alphabet) transcription: absent below 100B. Tasks that need many sub-steps are more likely to emerge, because each step has >0 error rate, and the product probability (all steps correct) only becomes non-negligible at high per-step accuracy. [1]",
+      "formula": "P(all k steps correct) = p_step^k → non-negligible only when p_step is high enough"
+    },
+    {
+      "heading": "Emergence as Metric Artifact (Schaeffer et al. 2023)",
+      "body": "Schaeffer et al. (2023) argue: emergent appearance is caused by non-linear (discontinuous) metrics. Multi-step arithmetic accuracy: correct only if all digits match → binary metric. Log-probability or expected score: smooth. Experiment: relabel a 'emergent' task with a continuous scoring metric → smooth scaling curve, no phase transition. Implication: what appears as emergence may just be smooth log-probability improvement crossing a threshold for correct token generation. However, this doesn't fully explain why capabilities appear usable only above certain scales from a practitioner perspective. [3]"
+    },
+    {
+      "heading": "Instruction Tuning Amplifies Emergent Abilities",
+      "body": "Wei et al. (2022) also showed that instruction fine-tuning (FLAN) significantly improves zero-shot emergent abilities. FLAN (Finetuned LAnguage Net): fine-tune on 62 NLP datasets phrased as instructions. At 100B+ scale, FLAN improves zero-shot performance by 16% average over untuned GPT. Below 100B, instruction tuning provides minimal benefit — another emergent interaction between scale and fine-tuning. The implication: large models + instruction tuning is necessary for reliable zero-shot task performance. [2]"
+    },
+    {
+      "heading": "Practical Implications: Which Scale for Which Task",
+      "body": "Empirical scale thresholds for production tasks: (1) Simple classification, sentiment: 7B+ sufficient; (2) Multi-step reasoning, math word problems: 70B+ needed; (3) Code generation (HumanEval): 13B+ for basic, 70B+ for complex; (4) Instruction following (RLHF quality): 7B+ (Llama 2-chat 7B is competitive); (5) Complex reasoning with tools (ReAct, function calling): 70B+. However, fine-tuning smaller models on task-specific data can recover much of the 70B advantage for specific tasks — emergent abilities reflect zero/few-shot behavior, not fine-tuned performance. [1]"
+    }
+  ],
+  "takeaways": [
+    "Emergent abilities: absent at small scale, appear sharply above a threshold — documented in 137+ tasks. [1]",
+    "Chain-of-thought reasoning: emerges at ~60B parameters; CoT hurts smaller models. [1]",
+    "Emergence may be a metric artifact (Schaeffer 2023) — continuous metrics show smooth scaling. [3]",
+    "Instruction tuning amplifies emergent abilities but only at 100B+ scale. [2]",
+    "Practical threshold: 70B+ for complex multi-step reasoning; 7B+ sufficient for classification. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Does emergence mean we can't predict LLM capabilities from smaller models?",
+      "a": "For standard smooth-scaling metrics (perplexity, log-likelihood), scaling laws do predict larger model performance from smaller models. Emergence challenges prediction for specific benchmark accuracy metrics: a model might have near-zero accuracy at 10B and unknown accuracy at 100B before you train it. Mitigation strategies: (1) Use continuous metrics (log-likelihood of correct answer) which scale smoothly; (2) Train intermediate-scale models (1B, 10B, 30B) and look for inflection points; (3) Use BIG-Bench Lite (a subset of 24 challenging tasks) for early capability assessment. The Chinchilla FLOPs-based prediction framework works well for perplexity; per-task accuracy emergence remains harder to predict. [1][3]"
+    },
+    {
+      "q": "What is the relationship between emergent abilities and prompt engineering?",
+      "a": "Many emergent abilities can be unlocked or suppressed by prompting. Chain-of-thought: 'Let's think step by step' (Kojima et al. 2022) triggers CoT reasoning at ≥60B — zero-shot prompting that activates an emergent ability. Self-consistency (Wang et al. 2023): sample multiple CoT paths, majority vote — amplifies emergent math reasoning at 540B. Least-to-most prompting: decompose complex problems into subproblems — unlocks generalization at 60B. Key insight: emergent abilities are latent in the model at certain scales, and prompt engineering is the interface for activating them. This is why prompt engineering is scale-dependent — techniques effective at 175B may not work at 7B. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Wei et al. (2022) — Emergent Abilities of Large Language Models, TMLR 2022", "url": "https://arxiv.org/abs/2206.07682" },
+    { "label": "Wei et al. (2022) — Finetuned Language Models Are Zero-Shot Learners (FLAN), ICLR 2022", "url": "https://arxiv.org/abs/2109.01652" },
+    { "label": "Schaeffer et al. (2023) — Are Emergent Abilities of Large Language Models a Mirage?, NeurIPS 2023", "url": "https://arxiv.org/abs/2304.15004" }
+  ]
+}

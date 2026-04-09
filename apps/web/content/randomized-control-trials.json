@@ -1,0 +1,65 @@
+{
+  "eli3": [
+    "A Randomized Controlled Trial (RCT) randomly assigns participants to a treatment group or a control group (which receives a placebo or standard of care). Randomization is the defining feature: it makes the two groups statistically equivalent at baseline, so any subsequent difference in outcomes can be causally attributed to the treatment — not to pre-existing differences.",
+    "Blinding prevents knowledge of treatment assignment from influencing outcomes or assessment. Single-blind: participants don't know their assignment (reduces placebo effect). Double-blind: neither participants nor outcome assessors know assignments (also prevents observer bias). Triple-blind: data analysts are also blinded. The gold standard for drug trials is double-blind placebo-controlled RCT.",
+    "Intention-to-treat (ITT) analysis: analyze all participants as originally randomized, regardless of whether they completed the treatment. This preserves the benefits of randomization and gives an unbiased estimate of the average treatment effect in the population. Per-protocol analysis (only those who completed treatment) is biased and underestimates ITT — it's what the treatment does in idealized conditions, not in practice."
+  ],
+  "whenWhy": [
+    {
+      "title": "Establishing causality in clinical medicine",
+      "body": "RCTs are required by regulatory agencies (FDA, EMA) for drug approval because they provide the strongest causal evidence. Observational studies suffer from confounding — patients who receive a treatment are different from those who don't. Randomization balances known and unknown confounders. Cochrane reviews rank RCTs at the top of the evidence hierarchy for clinical interventions."
+    },
+    {
+      "title": "Policy evaluation and program assessment",
+      "body": "Social science RCTs (randomized evaluations) by J-PAL and IPA test the effectiveness of development interventions (cash transfers, deworming, microfinance). Randomization at the individual or cluster level provides unbiased ATE estimates. The 2019 Nobel Prize in Economics recognized Banerjee, Duflo, and Kremer for their work applying RCTs to global poverty."
+    },
+    {
+      "title": "When observational methods are insufficient",
+      "body": "Observational methods (regression adjustment, matching, IV) can reduce confounding but cannot fully eliminate it when unmeasured confounders exist. RCTs are appropriate when: (1) the intervention can be ethically randomized; (2) there is genuine uncertainty about the treatment effect; (3) the effect of interest is the ATE (average treatment effect in the population). When randomization is unethical or infeasible, quasi-experimental methods (DiD, RDD, IV) are alternatives."
+    }
+  ],
+  "deepDiveIntro": [
+    "Potential outcomes framework (Rubin, 1974): each unit i has potential outcome Yᵢ(1) under treatment and Yᵢ(0) under control. The unit-level treatment effect is τᵢ = Yᵢ(1) − Yᵢ(0). The fundamental problem of causal inference: we observe only one potential outcome per unit (either Yᵢ(1) or Yᵢ(0), not both). The average treatment effect (ATE) = E[Yᵢ(1) − Yᵢ(0)] = E[Yᵢ(1)] − E[Yᵢ(0)].",
+    "Under randomization: Zᵢ ⊥ (Yᵢ(0), Yᵢ(1)) — treatment assignment is independent of potential outcomes. Then E[Y|Z=1] = E[Yᵢ(1)] and E[Y|Z=0] = E[Yᵢ(0)], so the ATE = E[Y|Z=1] − E[Y|Z=0] = x̄_treatment − x̄_control. The difference-in-means estimator is unbiased for the ATE under randomization."
+  ],
+  "deepDive": [
+    {
+      "heading": "Randomization Methods",
+      "body": "Simple randomization: flip a coin for each participant. Can produce unequal group sizes by chance. Restricted randomization: (1) blocked randomization — within blocks of size 2k, ensure exactly k treated; guarantees balance at the end of each block and preserves balance if trial stops early; (2) stratified randomization — randomize within strata of key prognostic variables (age, disease severity) to ensure balance on these; (3) minimization (adaptive) — adaptively assign to minimize imbalance on multiple covariates. [1]",
+      "formula": "ATE = E[Y(1)] − E[Y(0)] = E[Y|Z=1] − E[Y|Z=0]  [under randomization]"
+    },
+    {
+      "heading": "Intention-to-Treat vs Per-Protocol",
+      "body": "ITT: analyze by randomized assignment. Estimand: ATE in the randomized population. Unbiased under randomization regardless of non-compliance. Per-protocol (PP): restrict to those who completed treatment as assigned. Biased: compliers may be systematically different from non-compliers. Modified ITT (mITT): pre-specified partial exclusion (e.g., exclude those with no baseline assessment). Complier Average Causal Effect (CACE = LATE): the effect among those who would comply with whichever treatment they were assigned — estimated via IV with randomization as instrument. [1]"
+    },
+    {
+      "heading": "Covariate Adjustment: ANCOVA",
+      "body": "Including baseline covariates (ANCOVA) in the analysis of an RCT reduces residual variance and increases power without introducing bias — because covariates are independent of treatment by randomization. Model: Yᵢ = α + τZᵢ + βXᵢ + εᵢ. The estimate τ̂ is unbiased for ATE; its variance is reduced by (1−ρ²)·Var_unadjusted, where ρ is the correlation between X and Y. For RCTs with strong prognostic covariates (e.g., baseline of the outcome), ANCOVA can halve the required sample size. [1]"
+    },
+    {
+      "heading": "Cluster Randomized Trials",
+      "body": "When randomizing individuals is not feasible (school interventions, community health programs, contamination risk), randomize clusters (schools, villages, clinics). Key design considerations: ICC (intraclass correlation) inflates required number of clusters via DEFF ≈ 1+(m−1)·ICC. For ICC = 0.05, cluster size m = 30: DEFF ≈ 2.45 — need 2.45× the number of participants vs individual RCT. Analysis must account for clustering: mixed effects models, GEE, or cluster-level analysis (analyze cluster means). Randomization at cluster level protects against contamination between treatment and control. [1]"
+    }
+  ],
+  "takeaways": [
+    "Randomization ensures Zᵢ ⊥ (Yᵢ(0),Yᵢ(1)): difference-in-means is unbiased for ATE. [1]",
+    "ITT preserves randomization benefits; per-protocol analysis is biased due to self-selection in compliance. [1]",
+    "ANCOVA (covariate adjustment) increases power without biasing ATE estimate in RCTs. [1]",
+    "Blocked randomization guarantees balance at block boundaries; stratified randomization balances prognostic variables. [1]",
+    "Cluster RCTs: DEFF ≈ 1+(m−1)·ICC; analyze with mixed models or GEE accounting for clustering. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What if a significant proportion of participants drop out of the trial?",
+      "a": "Dropout (attrition) is a threat to internal validity if it is differential (related to treatment). ITT with missing outcome data requires imputation or sensitivity analysis. Approaches: complete case analysis (biased if MAR violated), multiple imputation (valid under MAR), worst-case sensitivity analysis (tipping point analysis: how much would dropout need to be to reverse the conclusion?). Pre-registering a missing data handling plan before unblinding is essential. [1]"
+    },
+    {
+      "q": "Can regression analysis of RCT data mislead?",
+      "a": "Post-randomization covariate adjustment for variables measured after treatment assignment (mediators or colliders) can introduce bias — only baseline (pre-randomization) covariates should be adjusted. Adding non-pre-specified subgroup analyses creates multiple testing problems and can produce spurious interaction effects. Subgroup analyses should be pre-specified, limited in number, and treated as exploratory (not confirmatory). The primary analysis should be pre-registered with the analysis plan. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Rubin (1974) — Estimating Causal Effects of Treatments in Randomized and Nonrandomized Studies, J. Ed. Psychology 66(5)", "url": "https://doi.org/10.1037/h0037350" },
+    { "label": "Senn — Statistical Issues in Drug Development (2nd ed.)", "url": "https://www.wiley.com/en-us/Statistical+Issues+in+Drug+Development%2C+2nd+Edition-p-9780470018774" }
+  ]
+}

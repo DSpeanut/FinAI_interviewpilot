@@ -1,0 +1,63 @@
+{
+  "eli3": [
+    "Chunking is the process of splitting documents into smaller pieces (chunks) for indexing in a RAG system. Documents are often too large to embed as a whole — most embedding models have a max input of 512–8192 tokens. Each chunk is embedded as a single vector and stored in the vector database. At query time, the most relevant chunks are retrieved, not entire documents.",
+    "The chunk size fundamentally affects RAG quality: too small (< 100 tokens) → chunks lack enough context, embeddings may not capture the relevant concept, retrieved text is incomplete. Too large (> 1000 tokens) → chunks cover many topics, embeddings average over too much content, relevant information is diluted — harder to find the right chunk, and retrieved text fills the context window with irrelevant content.",
+    "Key chunking strategies range from simple (fixed-size with overlap) to advanced (semantic, parent-child, hierarchical). The best strategy depends on document type: code needs function-level chunking, PDFs need section-level chunking, conversations need turn-level chunking. There is no universally optimal chunk size — test empirically with RAGAS metrics (context precision, answer faithfulness) on representative queries."
+  ],
+  "whenWhy": [
+    {
+      "title": "Fixed-size chunking for uniform documents",
+      "body": "The simplest approach: split documents into chunks of exactly N tokens (or characters) with O tokens of overlap. LangChain RecursiveCharacterTextSplitter with chunk_size=512 and chunk_overlap=50 is the most common default. Works well for uniform prose (articles, reports). Overlap ensures sentences that span a boundary are captured in both adjacent chunks. Limitations: ignores document structure — may split mid-sentence, mid-paragraph, or mid-idea."
+    },
+    {
+      "title": "Semantic chunking for heterogeneous documents",
+      "body": "Split at natural boundaries rather than fixed counts. Sentence-based: split at sentence boundaries. Paragraph-based: split at double newlines. Section-based: use document headers (Markdown #, HTML <h1>). Recursive splitting (LangChain default): try paragraph boundaries first, then sentence, then character — smallest granularity that keeps chunks under the size limit. This preserves semantic coherence within chunks and is generally more effective than fixed-size splitting."
+    },
+    {
+      "title": "Parent-child chunking for balanced precision and context",
+      "body": "Small child chunks (~128 tokens) are embedded for precise retrieval — the embedding captures a specific concept. When a child chunk is retrieved, the corresponding large parent chunk (~512 tokens) is passed to the LLM, providing richer context. This separates the retrieval granularity from the generation granularity. LlamaIndex NodeParser supports parent-child chunking natively. Particularly effective for technical documentation where a specific sentence is the answer but needs surrounding context for the LLM."
+    }
+  ],
+  "deepDiveIntro": [
+    "Chunking parameters: chunk_size (max tokens per chunk), chunk_overlap (tokens shared between adjacent chunks), separators (list of boundary characters to try in order). LangChain RecursiveCharacterTextSplitter separators: ['\\n\\n', '\\n', ' ', '']. Process: try to split on '\\n\\n' (paragraphs); if a paragraph is still too large, split on '\\n', then on spaces. This preserves paragraph structure when possible.",
+    "Embedding model context length affects chunking: OpenAI text-embedding-3-small: 8191 tokens max. sentence-transformers/all-MiniLM-L6-v2: 512 tokens max. If chunks exceed the embedding model's limit, the text is truncated — content beyond the limit is silently dropped. Always chunk to < 90% of the embedding model's limit, not the LLM's context window limit. These are different: the embedding model encodes each chunk independently; the LLM uses the concatenated retrieved chunks."
+  ],
+  "deepDive": [
+    {
+      "heading": "Fixed-Size vs. Semantic Chunking",
+      "body": "Fixed-size chunking: deterministic, fast, easy to implement. chunk_size=512 tokens with chunk_overlap=50 is a reasonable default. Problem: 'The deal was signed on January 1st, 2024 [chunk boundary] for $1.5 billion by Company X.' — the key fact is split across chunks. Recursive/semantic: split at '\\n\\n' (paragraph) → ensures the full fact is in one chunk. Rule of thumb: use recursive splitting with paragraph → sentence → character hierarchy rather than raw fixed-size. Fixed-size is acceptable only for very uniform prose (news articles, Wikipedia). [1]"
+    },
+    {
+      "heading": "Sentence Window Retrieval",
+      "body": "Retrieve based on individual sentences (tiny chunks), but pass a window of ±k surrounding sentences to the LLM. Example: k=3 → if sentence 15 is retrieved, pass sentences 12–18. Advantage: sentence-level embeddings are very precise — capture a single concept cleanly. The surrounding window provides the context the LLM needs to generate a good answer. Disadvantage: increases the number of chunks (slower indexing and retrieval), and the window may still miss cross-paragraph context. LlamaIndex SentenceWindowNodeParser implements this pattern. [1]"
+    },
+    {
+      "heading": "Document-Specific Chunking Strategies",
+      "body": "Code: chunk by function/class — split on `def ` or `class ` boundaries. Never split within a function (semantic coherence). Each function is a self-contained unit with its own docstring. PDF tables: extract as structured data (CSV), embed as text representation separately from prose. Conversations: chunk by turn or by session; preserve speaker labels. Legal documents: chunk by section (§1, §2) preserving section numbers in metadata. Q&A pairs: each Q&A pair as one chunk — already in the ideal retrieval unit. Store document metadata (source URL, page number, section title) with each chunk for citation. [1]"
+    },
+    {
+      "heading": "Evaluating Chunk Quality with RAGAS",
+      "body": "Chunking quality metrics: (1) Context precision — are retrieved chunks relevant? Measure: % of retrieved chunks that are relevant to the query. (2) Context recall — do retrieved chunks cover the answer? Measure: % of answer facts that appear in retrieved chunks. Experiment protocol: try chunk_size ∈ {128, 256, 512, 1024} and chunk_overlap ∈ {0, 50, 100} on a held-out evaluation set of (question, ground_truth_answer) pairs. Use RAGAS to compute metrics for each configuration. Typical finding: chunk_size=256–512 with chunk_overlap=20–50 is optimal for prose. [1]"
+    }
+  ],
+  "takeaways": [
+    "Chunk size trade-off: small = precise embedding, incomplete context; large = more context, diluted embedding. [1]",
+    "Recursive splitting (paragraph → sentence → character) preserves semantic boundaries vs fixed-size. [1]",
+    "Parent-child: embed small chunks, retrieve large parent — separate retrieval precision from generation context. [1]",
+    "Sentence window: embed sentences, pass ±k surrounding sentences to LLM — ultra-precise retrieval. [1]",
+    "Evaluate with RAGAS context precision/recall across chunk_size and overlap configurations. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How does chunk overlap help and when does it hurt?",
+      "a": "Chunk overlap (50–100 tokens of shared content between adjacent chunks): helps by ensuring that information at a chunk boundary (a key sentence split between chunk i and i+1) is fully represented in at least one chunk. Prevents losing facts at boundaries. However, overlap increases total chunk count by overlap_fraction/(1-overlap_fraction): 50-token overlap on 512-token chunks increases chunk count by ~10%. At high overlap (>30%), chunk count increases significantly, slowing indexing and retrieval. Also, high overlap causes redundant chunks to be retrieved — the top-k results may be near-duplicate, wasting the context window on the same information. Typical best practice: chunk_overlap ≈ 10–15% of chunk_size (50 tokens for 512-token chunks). [1]"
+    },
+    {
+      "q": "What is the difference between chunking for RAG and for fine-tuning?",
+      "a": "RAG chunking: optimize for retrieval precision and context richness — each chunk should be a self-contained, topically coherent unit that answers one specific type of question. The embedding represents the chunk's topic. Fine-tuning data preparation: chunks should be (instruction, response) pairs — the model learns to produce a specific output given a specific input. For knowledge injection via fine-tuning, chunks might be (question about the document, answer from the document) pairs rather than raw document segments. The two chunking strategies have different objectives: RAG chunks need to match query semantics; fine-tuning examples need to teach a specific input-output behavior. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Gao et al. (2023) — Retrieval-Augmented Generation for Large Language Models: A Survey", "url": "https://arxiv.org/abs/2312.10997" }
+  ]
+}

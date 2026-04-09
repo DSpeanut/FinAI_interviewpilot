@@ -1,0 +1,68 @@
+{
+  "eli3": [
+    "MAP (Maximum A Posteriori) estimation finds the mode of the posterior distribution: θ̂_MAP = argmax P(θ|x) = argmax [log P(x|θ) + log P(θ)]. It's MLE plus a regularization term from the log-prior. With a flat prior, MAP reduces to MLE exactly.",
+    "With a Gaussian prior N(0,τ²) on each coefficient, log P(θ) = −||θ||²/(2τ²) + const. Adding this to the log-likelihood gives: θ̂_MAP = argmax [ℓ(θ) − λ||θ||²], where λ = 1/(2τ²). This is exactly Ridge regression. With Laplace priors, MAP gives Lasso. Thus, regularized ML estimation is Bayesian MAP with specific priors.",
+    "MAP is a point estimate — it uses only the mode of the posterior, discarding all information about posterior shape. It's faster than full Bayesian inference but misses uncertainty. For symmetric unimodal posteriors, MAP equals the posterior mean; for skewed posteriors, they diverge. A MAP estimate with no uncertainty quantification can be overconfident."
+  ],
+  "whenWhy": [
+    {
+      "title": "Regularized regression: MAP = penalized MLE",
+      "body": "Ridge regression (L2): Gaussian prior N(0,1/λ) → MAP adds −λΣθᵢ² to log-likelihood. Lasso (L1): Laplace prior → MAP adds −λΣ|θᵢ|. Elastic net: mixture of Gaussian and Laplace priors → MAP adds −λ₁Σ|θᵢ| − λ₂Σθᵢ². This equivalence provides a Bayesian interpretation of regularization: the penalty term is −log P(θ), and λ controls prior strength (small λ = weak prior, large λ = strong shrinkage)."
+    },
+    {
+      "title": "Computationally efficient posterior approximation",
+      "body": "When full posterior computation (MCMC) is expensive, MAP provides a fast point estimate. The Laplace approximation builds on MAP: after finding θ̂_MAP, approximate the posterior as Gaussian centered at θ̂_MAP with covariance [−H]⁻¹ (inverse negative Hessian). This enables uncertainty estimation without full MCMC. Used in neural networks (Laplace-approximated Bayesian NNs)."
+    },
+    {
+      "title": "Avoiding data sparsity issues",
+      "body": "MLE in logistic regression gives infinite estimates when classes are perfectly separable (complete separation). A Gaussian prior (MAP) regularizes these estimates to finite values. Similarly, in sparse data settings (few observations per parameter), MAP with a regularizing prior prevents overfitting that MLE produces. It's the default in Bayesian logistic regression."
+    }
+  ],
+  "deepDiveIntro": [
+    "θ̂_MAP = argmax_θ P(θ|x) = argmax_θ [log P(x|θ) + log P(θ)]. This combines the log-likelihood (data fit) with the log-prior (regularization). The gradient condition at the MAP: ∂ log P(x|θ)/∂θ + ∂ log P(θ)/∂θ = 0. Compare to MLE: ∂ log P(x|θ)/∂θ = 0.",
+    "Key difference from MLE: MAP is not invariant to reparametrization. If θ̂ is the MAP for θ, g(θ̂) is generally NOT the MAP for g(θ) (because the Jacobian of the transformation changes the prior). This contrasts with MLE's invariance property. The posterior mean and posterior median ARE transformation-invariant (in the limit of the full posterior)."
+  ],
+  "deepDive": [
+    {
+      "heading": "MAP with Gaussian Prior = Ridge Regression",
+      "body": "Likelihood: y|X,θ ~ N(Xθ, σ²I). Prior: θ ~ N(0, τ²I). Log-posterior: −||y−Xθ||²/(2σ²) − ||θ||²/(2τ²) + const. Maximizing ↔ minimizing ||y−Xθ||² + λ||θ||² where λ = σ²/τ². MAP solution: θ̂_MAP = (X'X + λI)⁻¹X'y — identical to Ridge regression. Smaller τ² (stronger prior) → larger λ → more shrinkage. [1]",
+      "formula": "θ̂_MAP = (X'X + λI)⁻¹ X'y,  λ = σ²/τ²  [Ridge]"
+    },
+    {
+      "heading": "MAP with Laplace Prior = Lasso",
+      "body": "Prior: θⱼ ~ Laplace(0, b) → log P(θ) = −||θ||₁/b + const. Log-posterior maximization: minimize ||y−Xθ||² + λ||θ||₁ with λ = 2σ²/b. This is the Lasso — the Laplace prior induces sparsity (L1 penalty creates a corner solution at θⱼ = 0). Unlike Ridge, Lasso cannot be solved analytically; coordinate descent (LARS algorithm) is used. [1]",
+      "formula": "θ̂_MAP = argmin ||y − Xθ||² + λ||θ||₁  [Lasso]"
+    },
+    {
+      "heading": "Posterior Mode vs Mean vs Median",
+      "body": "For a symmetric, unimodal posterior (e.g., Gaussian): MAP = posterior mean = posterior median. For an asymmetric posterior (e.g., Beta(1,10) for a small probability): MAP < median < mean. Under squared error loss, the optimal Bayes estimator is the posterior mean. Under absolute error loss, the posterior median. Under 0-1 loss (predict the most likely value), the posterior mode (MAP). Choice of loss function dictates which posterior summary to use. [1]"
+    },
+    {
+      "heading": "Laplace Approximation Around MAP",
+      "body": "The Laplace approximation centers a Gaussian at θ̂_MAP: log P(θ|x) ≈ log P(θ̂_MAP|x) − ½(θ−θ̂_MAP)'[−H](θ−θ̂_MAP), where H = ∂²log P(θ|x)/∂θ² evaluated at θ̂_MAP. The approximate posterior is N(θ̂_MAP, [−H]⁻¹). The approximate log marginal likelihood is: log P(x) ≈ log P(x|θ̂_MAP) + log P(θ̂_MAP) + d/2·log(2π) − ½log|−H|. For the linear regression MAP: [−H]⁻¹ = σ²(X'X + λI)⁻¹. [1]"
+    }
+  ],
+  "youtubeLabel": "MAP vs MLE — Mutual Information",
+  "youtubeUrl": "https://www.youtube.com/embed/kkhdIriddSI",
+  "takeaways": [
+    "θ̂_MAP = argmax [log P(x|θ) + log P(θ)]: MLE + log-prior regularization. [1]",
+    "Gaussian prior → Ridge regression; Laplace prior → Lasso. λ encodes prior strength. [1]",
+    "MAP is NOT reparametrization-invariant, unlike MLE. g(θ̂_MAP) ≠ MAP for g(θ). [1]",
+    "Posterior mean minimizes squared error loss; MAP minimizes 0-1 loss; posterior median minimizes absolute error. [1]",
+    "Laplace approximation: posterior ≈ N(θ̂_MAP, [−H]⁻¹) — enables uncertainty estimation without MCMC. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Does MAP always give a better estimate than MLE?",
+      "a": "Not necessarily. MAP is better when the prior is informative and correct (or approximately correct), but can be worse than MLE if the prior is misspecified — biasing estimates away from the truth. For very large n, MLE and MAP converge to the same estimate (the likelihood overwhelms the prior). MAP is most valuable for small n or high-dimensional settings where regularization reduces variance without too much bias. [1]"
+    },
+    {
+      "q": "What happens to MAP in high dimensions?",
+      "a": "In high dimensions (p >> 1), the posterior mode (MAP) becomes an increasingly poor summary of the posterior — the typical set (where most posterior mass lives) moves away from the mode in high-dimensional Gaussians (the shell of highest probability is at radius √d from the mean, not at the center). Full MCMC or variational inference better captures the posterior geometry. MAP overfits in Bayesian neural networks with millions of parameters. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Bishop — Pattern Recognition and Machine Learning, Ch. 3, 4", "url": "https://www.microsoft.com/en-us/research/uploads/prod/2006/01/Bishop-Pattern-Recognition-and-Machine-Learning-2006.pdf" },
+    { "label": "Gelman et al. — Bayesian Data Analysis (3rd ed.), Ch. 4", "url": "http://www.stat.columbia.edu/~gelman/book/" }
+  ]
+}

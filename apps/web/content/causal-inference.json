@@ -1,0 +1,71 @@
+{
+  "eli3": [
+    "Causal inference is the science of estimating the effect of an intervention (cause) on an outcome, not just predicting their association. Correlation ≠ causation: countries with more TVs have lower infant mortality, but buying TVs won't save babies (wealth is the common cause). Causal inference methods distinguish the causal effect of X on Y from the confounded observed association.",
+    "The potential outcomes framework (Rubin) and structural causal models (Pearl's DAGs) are the two main formalisms. Both answer: E[Y(1) − Y(0)] = ATE (Average Treatment Effect) — the average difference in outcome if everyone received treatment vs if everyone received control. The challenge is fundamental: we only observe one potential outcome per unit (the one that actually occurred).",
+    "When RCTs are infeasible, quasi-experimental methods estimate causal effects from observational data by exploiting specific sources of variation that mimic randomization: instrumental variables (IV) use an exogenous shock, difference-in-differences (DiD) uses panel data with a treatment timing discontinuity, regression discontinuity (RDD) exploits a cutoff rule, and propensity score matching adjusts for measured confounders."
+  ],
+  "whenWhy": [
+    {
+      "title": "Estimating policy effects from observational data",
+      "body": "Government policies cannot be randomly assigned — we can't randomly assign people to minimum wage levels, education policies, or tax rates. DiD, RDD, and IV use policy variation as natural experiments. Example: Card & Krueger (1994) used DiD with New Jersey's minimum wage increase (treatment) vs Pennsylvania (control) to estimate the effect on employment, finding no negative effect — contradicting standard economic theory."
+    },
+    {
+      "title": "Difference-in-differences: exploiting policy timing",
+      "body": "DiD: compare the change in outcome for the treated group (before and after treatment) to the change for the control group (same period). DiD estimator = (ȳ_treated_post − ȳ_treated_pre) − (ȳ_control_post − ȳ_control_pre). Identifying assumption: parallel trends — treated and control groups would have followed the same trend in the absence of treatment. Test: compare pre-treatment trends; placebo tests using pre-treatment periods as 'fake' treatments."
+    },
+    {
+      "title": "Instrumental variables: exploiting exogenous variation",
+      "body": "IV estimation: find an instrument Z that (1) affects X (relevance: Cov(Z,X) ≠ 0), (2) affects Y only through X (exclusion restriction), (3) is independent of unmeasured confounders. IV estimator: β_IV = Cov(Z,Y)/Cov(Z,X) = (reduced form)/(first stage). Estimates LATE (Local ATE) — the effect for compliers (those whose treatment status changes with Z). Classic instruments: draft lottery for military service, geographic distance to college for education effect on wages."
+    },
+    {
+      "title": "Regression discontinuity: exploiting cutoff rules",
+      "body": "RDD: when treatment is assigned based on whether a running variable R exceeds a threshold c (e.g., scholarship for test score ≥ 70), compare outcomes just above and below the cutoff. The ATE at the threshold: τ = lim_{r↓c} E[Y|R=r] − lim_{r↑c} E[Y|R=r]. Identification: individuals just above and below c are similar (local randomization near c). Sharp RDD: deterministic assignment. Fuzzy RDD: probabilistic — use RDD as first stage in IV."
+    }
+  ],
+  "deepDiveIntro": [
+    "Potential outcomes notation: for each unit i and treatment value t, Yᵢ(t) is the outcome if i were assigned to t. Observed outcome: Yᵢ = Yᵢ(Zᵢ). ATE = E[Y(1)−Y(0)]; ATT (average treatment effect on the treated) = E[Y(1)−Y(0)|Z=1]. Under unconfoundedness (Yᵢ(0),Yᵢ(1)) ⊥ Zᵢ|Xᵢ (all confounders X measured), ATE is identified by regression adjustment or propensity score methods.",
+    "SUTVA (Stable Unit Treatment Value Assumption): (1) no interference — Yᵢ(z₁,…,zₙ) = Yᵢ(zᵢ) (unit i's outcome depends only on its own treatment); (2) consistency — the potential outcome under the observed treatment equals the observed outcome. Both are often violated in practice (network effects violate (1); treatment variation violates (2))."
+  ],
+  "deepDive": [
+    {
+      "heading": "Difference-in-Differences",
+      "body": "DiD model: Yᵢₜ = α + β₁Treatᵢ + β₂Postₜ + τ(Treatᵢ × Postₜ) + εᵢₜ. τ is the DiD estimator of the ATE. Parallel trends assumption: E[Y(0)ᵢₜ − Y(0)ᵢ,ₜ₋₁ | Treatᵢ = 1] = E[Y(0)ᵢₜ − Y(0)ᵢ,ₜ₋₁ | Treatᵢ = 0] — the counterfactual trend for the treated group equals the observed trend for the control. Recent work (Callaway & Sant'Anna 2021, Goodman-Bacon 2021): staggered treatment timing (different units treated at different times) invalidates the standard two-way FE estimator. [1]",
+      "formula": "τ_DiD = (ȳ_treat,post − ȳ_treat,pre) − (ȳ_ctrl,post − ȳ_ctrl,pre)"
+    },
+    {
+      "heading": "Instrumental Variables (2SLS)",
+      "body": "Two-Stage Least Squares (2SLS): Stage 1: regress X on Z and controls W to get X̂. Stage 2: regress Y on X̂ and W. 2SLS estimate β_IV = (Z'MX)⁻¹Z'My (where M projects out W). Interpretation: LATE = E[Y(1)−Y(0) | compliers]. Weak instruments (F < 10 in first stage) cause severe small-sample bias toward OLS. Test: Cragg-Donald/Kleibergen-Paap F-statistic for first stage strength. Over-identification test (Sargan-Hansen) checks exclusion restriction when multiple instruments are used. [1]",
+      "formula": "β_IV = Cov(Z, Y) / Cov(Z, X)  [LATE for compliers]"
+    },
+    {
+      "heading": "Regression Discontinuity Design",
+      "body": "Sharp RDD: τ = E[Y(1)−Y(0)|R=c] = lim_{r↓c}E[Y|R=r] − lim_{r↑c}E[Y|R=r]. Estimated via local linear regression on each side of the cutoff with bandwidth h (chosen via cross-validation or MSE-optimal bandwidth: Imbens & Kalyanaraman 2012). Kernel weighting (triangular kernel preferred) down-weights observations far from c. Validity tests: (1) McCrary density test — no bunching at cutoff; (2) covariate continuity at cutoff; (3) placebo outcomes. [1]",
+      "formula": "τ_RDD = lim_{r↓c} E[Y|R=r] − lim_{r↑c} E[Y|R=r]"
+    },
+    {
+      "heading": "Propensity Score Matching",
+      "body": "Under unconfoundedness (Y(0),Y(1)) ⊥ Z|X: ATE identified as E_X[E[Y|Z=1,X] − E[Y|Z=0,X]]. Propensity score e(X) = P(Z=1|X) is a balancing score — conditioning on e(X) blocks all backdoor paths through X. Matching: pair each treated unit with one or more control units with similar e(X). ATT = (1/n₁)Σᵢ:Zᵢ=1 [Yᵢ − Ŷᵢ(0)] where Ŷᵢ(0) is the matched control outcome. Doubly robust estimators (AIPW) are consistent if either the propensity score or outcome model is correct. [1]"
+    }
+  ],
+  "takeaways": [
+    "ATE = E[Y(1)−Y(0)]; identified under unconfoundedness by regression adjustment or propensity score. [1]",
+    "DiD: τ = (ȳ_treat,post−ȳ_treat,pre) − (ȳ_ctrl,post−ȳ_ctrl,pre); requires parallel trends assumption. [1]",
+    "IV: β_IV = Cov(Z,Y)/Cov(Z,X); estimates LATE for compliers; weak instruments bias toward OLS. [1]",
+    "RDD: compares outcomes just above/below assignment threshold; local linear regression with optimal bandwidth. [1]",
+    "Doubly robust (AIPW): consistent if either propensity score or outcome model is correctly specified. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What is the difference between ATE, ATT, and LATE?",
+      "a": "ATE = E[Y(1)−Y(0)]: average over the full population. ATT = E[Y(1)−Y(0)|Z=1]: average over the treated. ATT is what matters if the treatment would only be applied to similar people as currently treated (replicating a program). LATE = E[Y(1)−Y(0)|complier]: IV estimates the effect only for those whose treatment status responds to the instrument — not necessarily the same as ATE or ATT. These estimands can differ substantially when treatment effects are heterogeneous. [1]"
+    },
+    {
+      "q": "When does the parallel trends assumption fail in DiD?",
+      "a": "Parallel trends fails when: (1) the treatment is endogenous — treated units were already on a different trend pre-treatment (Ashenfelter's dip); (2) there are spillovers — control units are affected by the treatment (SUTVA violation); (3) the composition of groups changes over time (attrition, migration); (4) anticipation effects — treated units change behavior before treatment. Pre-treatment trend tests (event studies) check parallel trends before treatment but cannot test post-treatment counterfactual. Synthetic control (Abadie et al.) constructs a weighted control that matches the treated pre-trends. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Angrist & Pischke — Mostly Harmless Econometrics, Ch. 3–6", "url": "https://press.princeton.edu/books/paperback/9780691120355/mostly-harmless-econometrics" },
+    { "label": "Pearl — Causality: Models, Reasoning, and Inference (2nd ed.)", "url": "https://doi.org/10.1017/CBO9780511803161" }
+  ]
+}

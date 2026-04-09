@@ -1,0 +1,86 @@
+{
+  "eli3": [
+    "Imagine you have photos of faces from 10 different people and want to compress them to 2D in a way that keeps each person's photos clustered together. PCA would find the directions with the most pixel variation — but that might be lighting, not identity. LDA as dimensionality reduction specifically finds the directions that best separate the 10 people.",
+    "LDA projects high-dimensional data onto a low-dimensional subspace that maximises the ratio of between-class separation to within-class spread. The result is a compact representation where different classes are as far apart as possible relative to how spread out they are internally.",
+    "The key limit: you can only find K−1 useful dimensions (where K is the number of classes), because the K class means span at most a K−1 dimensional subspace. For 10 classes you get at most 9 discriminant dimensions."
+  ],
+  "whenWhy": [
+    {
+      "title": "Supervised dimensionality reduction",
+      "body": "When class labels are available, LDA finds a projection that maximises class separability — outperforming PCA for classification tasks. LDA features tend to make downstream classifiers more accurate with fewer dimensions."
+    },
+    {
+      "title": "Compact multi-class visualisation",
+      "body": "For K-class problems, project to K−1 = 2 dimensions and visualise class separation directly. This is particularly useful for face recognition (eigenfaces alternative), text categorisation, and medical diagnosis where class separability is the primary goal."
+    },
+    {
+      "title": "Pre-processing before linear classifiers",
+      "body": "Projecting to LDA space before logistic regression or SVM often improves accuracy by removing within-class variation that doesn't help classification. The LDA features are by construction the most discriminative directions."
+    },
+    {
+      "title": "When PCA fails to separate classes",
+      "body": "PCA maximises variance regardless of class labels. If the dominant variance direction is within-class (e.g. lighting variation in face images), PCA mixes classes. LDA explicitly optimises class separation and finds a projection where PCA's first component would fail."
+    }
+  ],
+  "deepDiveIntro": [
+    "LDA as dimensionality reduction (Fisher Discriminant Analysis) finds the projection matrix W that maximises the Fisher criterion: the ratio of between-class scatter to within-class scatter. This generalises Fisher's original two-class linear discriminant to the multi-class case.",
+    "The solution is the generalised eigenvalue problem Sᴮw = λSᵂw, where Sᴮ is the between-class scatter matrix and Sᵂ is the within-class scatter matrix. The eigenvectors corresponding to the K−1 largest eigenvalues form the discriminant subspace."
+  ],
+  "visualizationType": "lda-dimensionality",
+  "deepDive": [
+    {
+      "heading": "Between-Class and Within-Class Scatter",
+      "body": "Within-class scatter: Sᵂ = Σₖ Σᵢ∈Cₖ (xᵢ−μₖ)(xᵢ−μₖ)ᵀ (total spread within each class). Between-class scatter: Sᴮ = Σₖ nₖ(μₖ−μ)(μₖ−μ)ᵀ (spread of class means around the global mean μ). Fisher criterion: maximise J(W) = |WᵀSᴮW| / |WᵀSᵂW|. [1]",
+      "formula": "J(W) = |WᵀSᴮW| / |WᵀSᵂW|"
+    },
+    {
+      "heading": "Generalised Eigenvalue Problem",
+      "body": "The columns of W that maximise J(W) are the eigenvectors of Sᵂ⁻¹Sᴮ: Sᴮwⱼ = λⱼSᵂwⱼ, or equivalently the eigenvectors of Sᵂ⁻¹Sᴮ. Sort eigenvectors by decreasing eigenvalue. Project data: Z = XW, where W ∈ ℝᵖˣᵈ and d ≤ K−1. The eigenvalue λⱼ measures how much between-class variance is captured by direction j relative to within-class variance. [1]",
+      "formula": "Sᵂ⁻¹Sᴮ wⱼ = λⱼ wⱼ"
+    },
+    {
+      "heading": "Maximum Rank: K−1 Dimensions",
+      "body": "Sᴮ has rank at most K−1 (it is the outer product of K class-mean deviation vectors, which lie in a K−1 dimensional affine subspace). Therefore Sᵂ⁻¹Sᴮ has at most K−1 non-zero eigenvalues — there are at most K−1 discriminant directions. For binary classification (K=2), LDA reduces to a single discriminant vector. [1]"
+    },
+    {
+      "heading": "LDA vs PCA for Classification",
+      "body": "PCA: unsupervised, maximises total variance, finds axes where data spreads most regardless of class labels. LDA: supervised, maximises between-class to within-class variance ratio, finds axes that best separate classes. For visualisation of class structure, LDA almost always produces clearer class separation. For general-purpose compression without class information, PCA is appropriate. [1][2]"
+    },
+    {
+      "heading": "Regularisation for High Dimensions",
+      "body": "When n < p, Sᵂ is singular and Sᵂ⁻¹ does not exist. Solutions: (1) apply PCA first to reduce to n−K dimensions, then apply LDA (PCA + LDA pipeline); (2) regularise Sᵂ → (1−α)Sᵂ + αI (regularised discriminant analysis); (3) use pseudo-inverse. Scikit-learn's LinearDiscriminantAnalysis with solver='svd' handles this automatically without forming Sᵂ explicitly. [1]"
+    }
+  ],
+  "youtubeLabel": "StatQuest: LDA as Dimensionality Reduction",
+  "youtubeUrl": "https://www.youtube.com/embed/azXCzI57Yfc",
+  "takeaways": [
+    "LDA projection maximises J(W) = |WᵀSᴮW|/|WᵀSᵂW| — between-class to within-class scatter ratio. [1]",
+    "Solution: eigenvectors of Sᵂ⁻¹Sᴮ; at most K−1 non-trivial dimensions available (K = number of classes). [1]",
+    "LDA is supervised — uses class labels; PCA is unsupervised — maximises total variance. [1]",
+    "Project with Z = XW; downstream classifiers on Z often outperform those on PCA features. [1]",
+    "Regularise Sᵂ when p > n to avoid singularity. [1]",
+    "LDA and PCA can be combined: PCA first for noise reduction, then LDA for class separation. [1][2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How is LDA as dimensionality reduction related to LDA as a classifier?",
+      "a": "They are the same model viewed differently. When used as a classifier, LDA computes posterior probabilities P(y=k|x) under Gaussian assumptions and classifies to the highest-posterior class. When used for dimensionality reduction, we extract the discriminant directions W and project data to Z = XW, discarding the Gaussian assumption. The discriminant axes are the same in both views. [1]"
+    },
+    {
+      "q": "What happens when classes have very different sizes?",
+      "a": "Sᴮ = Σₖ nₖ(μₖ−μ)(μₖ−μ)ᵀ weights class means by class size nₖ. Large classes dominate the between-class scatter. Small classes get low weight and may not be well-separated in the LDA projection. Rebalance by using class-weighted scatter matrices (divide each class contribution by nₖ) or by subsampling/oversampling classes. [1]"
+    },
+    {
+      "q": "Why does LDA outperform PCA for face recognition?",
+      "a": "In face recognition (p ≈ 10,000 pixels, K ≈ 40 classes), the dominant variance directions (PCA, 'eigenfaces') capture lighting, expression, and pose — not identity. LDA ('Fisherfaces') explicitly finds the 39 directions that best separate identities while being invariant to within-class variation. The dimensionality is also dramatically lower (39 vs hundreds for PCA), making it more computationally efficient. [1][2]"
+    },
+    {
+      "q": "Can LDA be applied to regression (continuous targets)?",
+      "a": "Not directly — the Fisher criterion requires discrete class labels. For continuous targets, use Partial Least Squares (PLS) which finds directions that maximise covariance between X and y, or Canonical Correlation Analysis (CCA) which maximises correlation. Both generalise the discriminant analysis idea to continuous responses. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 4.3", "url": "https://hastie.su.domains/ElemStatLearn/" },
+    { "label": "James et al. — An Introduction to Statistical Learning, Ch. 4", "url": "https://www.statlearning.com/" }
+  ]
+}

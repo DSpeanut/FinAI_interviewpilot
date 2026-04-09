@@ -1,0 +1,86 @@
+{
+  "eli3": [
+    "An autoencoder is a neural network trained to compress data into a small code and then reconstruct the original from that code. The network has two parts: an encoder that squeezes the input down to a bottleneck, and a decoder that tries to rebuild the original from the bottleneck.",
+    "Since the bottleneck forces the network to discard unimportant information, it must learn which aspects of the data are most essential. After training, the bottleneck representation — the latent code — is a compact, informative representation of the input.",
+    "Unlike PCA (which finds linear compressions), autoencoders use non-linear transformations (ReLU, sigmoid activations), so they can capture complex, non-linear structure in the data. The tradeoff is that they require more data, more compute, and are harder to interpret."
+  ],
+  "whenWhy": [
+    {
+      "title": "Non-linear dimensionality reduction",
+      "body": "Autoencoders capture non-linear manifold structure that PCA and LDA miss. For image, audio, or text data, the useful information lies on a highly non-linear low-dimensional manifold — autoencoders learn this manifold's coordinate system."
+    },
+    {
+      "title": "Anomaly detection via reconstruction error",
+      "body": "Train the autoencoder on normal data only. At inference, abnormal inputs will have high reconstruction error — the decoder cannot faithfully reconstruct something it has never seen. This makes autoencoders one of the most effective approaches for unsupervised anomaly detection."
+    },
+    {
+      "title": "Pre-training and representation learning",
+      "body": "The encoder's latent representation can be used as features for downstream supervised models. Pre-training an autoencoder on unlabelled data, then fine-tuning the encoder with limited labelled data, is a classic semi-supervised learning strategy."
+    },
+    {
+      "title": "Generative modelling (Variational Autoencoders)",
+      "body": "Variational Autoencoders (VAEs) impose a Gaussian prior on the latent space, enabling sampling and interpolation. VAEs are a principled probabilistic generative model — a foundation for modern image and audio generation."
+    }
+  ],
+  "deepDiveIntro": [
+    "An autoencoder consists of an encoder f: ℝᵖ → ℝᵈ (d << p) and a decoder g: ℝᵈ → ℝᵖ. Both are neural networks. The model is trained to minimise reconstruction loss between input x and output g(f(x)). The bottleneck forces the network to learn a compressed representation.",
+    "The bottleneck dimension d controls the compression ratio and the richness of the learned representation. Undercomplete autoencoders (d << p) learn to compress. Overcomplete autoencoders (d > p) require regularisation (denoising, sparse, contractive) to learn useful representations."
+  ],
+  "visualizationType": "autoencoders",
+  "deepDive": [
+    {
+      "heading": "Architecture: Encoder–Bottleneck–Decoder",
+      "body": "Encoder: x → z = f_θ(x), typically a stack of fully-connected or convolutional layers with decreasing width. Bottleneck: z ∈ ℝᵈ (latent code). Decoder: z → x̂ = g_φ(z), typically a mirror of the encoder with increasing width. Training minimises: L = ||x − g_φ(f_θ(x))||² (MSE) for continuous inputs, or binary cross-entropy for binary inputs. [1][2]",
+      "formula": "L(θ,φ) = ||x − g_φ(f_θ(x))||²"
+    },
+    {
+      "heading": "Undercomplete vs Overcomplete",
+      "body": "Undercomplete (d < p): bottleneck forces compression — the autoencoder must discard redundancy. If the encoder and decoder are linear, an undercomplete autoencoder recovers the same subspace as PCA. With non-linear activations, it finds non-linear manifolds. Overcomplete (d ≥ p): without regularisation, the network can learn the identity mapping (copy input to output) without learning useful structure. Regularisation is required. [1]"
+    },
+    {
+      "heading": "Regularised Autoencoders",
+      "body": "Denoising AE: train to reconstruct clean x from corrupted x̃ = corrupt(x) (e.g. add Gaussian noise or randomly zero out features). Forces the encoder to learn robust features insensitive to small perturbations. Sparse AE: add L1 penalty on activations — only a few latent units are active per input. Contractive AE: penalise the Frobenius norm of the Jacobian ||∂f/∂x||²_F — encourages invariance to small input changes. [1]"
+    },
+    {
+      "heading": "Variational Autoencoder (VAE)",
+      "body": "VAE (Kingma & Welling, 2014) replaces the deterministic latent code z with a stochastic code: the encoder outputs μ and σ of a Gaussian q(z|x) ≈ N(μ,σ²I). The decoder receives z ~ q(z|x). The objective (ELBO) = reconstruction term − KL divergence term: L = E[log p(x|z)] − KL(q(z|x)||p(z)). The KL term regularises the posterior toward the prior N(0,I), enabling sampling. [1]",
+      "formula": "ELBO = E_{z~q(z|x)}[log p(x|z)] − KL(q(z|x)‖N(0,I))"
+    },
+    {
+      "heading": "Autoencoder vs PCA",
+      "body": "PCA: linear, global optimum (eigendecomposition), interpretable components, can reconstruct exactly. AE: non-linear (with activation functions), local optimum (gradient descent), black-box features. If encoder and decoder are linear (no activations), the AE's latent space spans the same subspace as PCA (but may rotate within it). Non-linear activations allow AEs to capture curved manifolds that PCA cannot represent. [1][2]"
+    }
+  ],
+  "youtubeLabel": "Autoencoders Explained",
+  "youtubeUrl": "https://www.youtube.com/embed/qiUEgSCyY5o",
+  "takeaways": [
+    "Autoencoder = encoder (compress) + decoder (reconstruct); trained to minimise reconstruction loss. [1]",
+    "The bottleneck z forces the network to learn the most informative low-dimensional representation. [1]",
+    "Undercomplete AE learns a compression; overcomplete AE needs regularisation (denoising, sparse, contractive). [1]",
+    "Reconstruction error at inference is a powerful anomaly score — high error = unusual input. [1]",
+    "VAE adds a Gaussian prior on z via KL penalty, enabling principled sampling from the latent space. [1]",
+    "Linear AE with no activations recovers the PCA subspace; non-linear activations capture curved manifolds. [1][2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why can't a linear autoencoder do better than PCA?",
+      "a": "A linear autoencoder (no activation functions) optimises the Frobenius reconstruction error over all linear rank-d projections. The Eckart-Young theorem states that the best rank-d linear approximation is the PCA projection. Therefore, a linear autoencoder converges to the PCA solution (up to rotation within the subspace). Non-linear activations are essential for AEs to outperform PCA. [1]"
+    },
+    {
+      "q": "What is the posterior collapse problem in VAEs?",
+      "a": "Posterior collapse occurs when the decoder is so powerful that it ignores z entirely — generating good reconstructions from the prior alone. The KL term then collapses to 0 (q(z|x) = p(z) for all x), meaning the encoder has learned nothing. This happens with powerful autoregressive decoders. Fixes: KL annealing (gradually increase KL weight during training), free bits (allow some KL before penalising), or weaker decoders. [1]"
+    },
+    {
+      "q": "How do you choose the bottleneck dimension d?",
+      "a": "For anomaly detection: d should be large enough to reconstruct normal data faithfully but small enough to fail on anomalies. Try d from 2 to p/10 and evaluate reconstruction error on a validation set. For downstream supervised learning: treat d as a hyperparameter and cross-validate. For visualisation: d = 2 or 3. For generative VAEs: d = 64–512 is typical for image tasks. [1]"
+    },
+    {
+      "q": "What is the reparameterisation trick in VAEs?",
+      "a": "Sampling z ~ N(μ,σ²) is non-differentiable — gradients cannot pass through random nodes via backprop. The reparameterisation trick writes z = μ + σ·ε where ε ~ N(0,I). Now z is a deterministic function of the encoder parameters and ε. Gradients flow through μ and σ normally; ε is just random noise. This makes end-to-end training with backpropagation possible. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Goodfellow, Bengio & Courville — Deep Learning, Ch. 14 (Autoencoders)", "url": "https://www.deeplearningbook.org/" },
+    { "label": "Hastie, Tibshirani & Friedman — The Elements of Statistical Learning, Ch. 14.5", "url": "https://hastie.su.domains/ElemStatLearn/" }
+  ]
+}

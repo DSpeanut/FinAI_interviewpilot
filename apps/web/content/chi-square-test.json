@@ -1,0 +1,75 @@
+{
+  "eli3": [
+    "The chi-square test asks: are categorical variables independent? If you survey people about their political affiliation and their preferred news source, is there a relationship — or are they independent? Chi-square compares the observed cell counts in a contingency table to the counts you would expect if the variables were independent.",
+    "Expected count for a cell = (row total × column total) / grand total. The chi-square statistic sums up (observed − expected)²/expected across all cells. If the variables are truly independent, this should be small. If it is large, we reject independence.",
+    "The chi-square distribution is the distribution of the sum of squared standard normals: if Z₁,…,Zₖ ~ N(0,1) independently, then Z₁²+…+Zₖ² ~ χ²(k). For a contingency table with r rows and c columns, the test statistic follows χ²((r−1)(c−1)) under the null of independence."
+  ],
+  "whenWhy": [
+    {
+      "title": "Testing independence between categorical variables",
+      "body": "Chi-square test of independence: are two categorical variables related? Examples: is treatment assignment independent of patient outcome? Is product category independent of region? This is one of the most commonly used tests in survey analysis, clinical trials, and A/B tests with categorical outcomes."
+    },
+    {
+      "title": "Goodness-of-fit: does data fit a hypothesised distribution?",
+      "body": "Chi-square goodness-of-fit test: H₀: data follows a specified distribution. Compare observed frequencies to expected frequencies under H₀. Used for: testing if dice are fair, testing if word counts follow Zipf's law, or testing if a feature follows a normal distribution (after binning)."
+    },
+    {
+      "title": "Feature selection for categorical predictors",
+      "body": "In ML, chi-square test is used for feature selection with categorical features and categorical targets. Features with low χ² (p-value > threshold) are approximately independent of the target and may be dropped. Scikit-learn's chi2 selector implements this for text classification (word frequency vs class label)."
+    },
+    {
+      "title": "Model calibration and distribution testing",
+      "body": "After fitting a model, chi-square tests compare observed vs model-predicted frequencies across bins (Hosmer-Lemeshow test for logistic regression calibration). High χ² indicates poor model fit. Also used to test if residuals follow the hypothesised distribution."
+    }
+  ],
+  "deepDiveIntro": [
+    "Chi-square test of independence: for a r×c contingency table with cell counts Oᵢⱼ, expected counts Eᵢⱼ = (Rᵢ × Cⱼ)/n where Rᵢ is row i total, Cⱼ is column j total, n is grand total. Test statistic: χ² = Σᵢⱼ (Oᵢⱼ − Eᵢⱼ)²/Eᵢⱼ. Under H₀ (independence), χ² →_d χ²((r−1)(c−1)) as n→∞ (Pearson 1900).",
+    "The chi-square test is a large-sample test — the approximation is valid when all expected cell counts Eᵢⱼ ≥ 5 (rule of thumb; some sources use ≥ 1 for all cells and ≥ 5 for 80% of cells). For small expected counts, use Fisher's exact test (2×2 tables) or an exact multinomial test."
+  ],
+  "visualizationType": "chi-square-test",
+  "deepDive": [
+    {
+      "heading": "Pearson Chi-Square Statistic",
+      "body": "χ² = Σᵢ₌₁ʳ Σⱼ₌₁ᶜ (Oᵢⱼ − Eᵢⱼ)² / Eᵢⱼ where Eᵢⱼ = Rᵢ·Cⱼ/n. Under H₀: χ² →_d χ²((r−1)(c−1)). Degrees of freedom = (r−1)(c−1): r−1 constraints from row marginals, c−1 from column marginals, and 1 for the grand total already fixed. Reject H₀ at level α if χ² > χ²_{(r−1)(c−1), α}. [1]",
+      "formula": "χ² = Σᵢⱼ (Oᵢⱼ − Eᵢⱼ)² / Eᵢⱼ"
+    },
+    {
+      "heading": "Chi-Square Distribution",
+      "body": "χ²(k) = Σᵢ₌₁ᵏ Zᵢ² where Zᵢ ~ N(0,1) iid. Mean = k, Variance = 2k. Right-skewed for small k; approaches N(k, 2k) for large k. Always non-negative (sum of squares). PDF: f(x) = x^{k/2−1} e^{−x/2} / (2^{k/2} Γ(k/2)) for x > 0. Critical values: χ²(1,0.05)=3.84, χ²(2,0.05)=5.99, χ²(3,0.05)=7.81. [1]"
+    },
+    {
+      "heading": "Goodness-of-Fit Test",
+      "body": "H₀: data follows distribution F₀. Bin data into k cells with observed counts Oᵢ and expected counts Eᵢ = n·pᵢ where pᵢ = P₀(cell i). χ² = Σᵢ(Oᵢ−Eᵢ)²/Eᵢ ~ χ²(k−1−m) where m = number of parameters estimated from data. If testing a specified normal distribution: m=0; if estimating μ and σ from data first: m=2. [1]",
+      "formula": "χ² = Σᵢ (Oᵢ − Eᵢ)² / Eᵢ  ~  χ²(k − 1 − m)"
+    },
+    {
+      "heading": "Effect Size: Cramér's V",
+      "body": "χ² is not a measure of effect size — it grows with n even for fixed association. Cramér's V = √(χ²/(n·min(r−1,c−1))) ∈ [0,1]. V=0: complete independence; V=1: perfect association. For 2×2 tables: V = phi coefficient = √(χ²/n). Cohen's conventions: V ≈ 0.1 (small), 0.3 (medium), 0.5 (large). [1][2]",
+      "formula": "V = √(χ² / (n · min(r−1, c−1)))"
+    }
+  ],
+  "youtubeLabel": "Chi-Square Test — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/2QeDRsxSF9M",
+  "takeaways": [
+    "χ² = Σ(O−E)²/E with E = row_total × col_total / n; ~ χ²((r−1)(c−1)) under independence. [1]",
+    "Valid when all expected counts Eᵢⱼ ≥ 5; use Fisher's exact test for small cells (2×2 tables). [1]",
+    "Goodness-of-fit: χ² ~ χ²(k−1−m) where m = parameters estimated; accounts for df used fitting. [1]",
+    "χ² increases with n for fixed association — use Cramér's V for effect size, not χ² alone. [1][2]",
+    "Chi-square test is asymptotic (large-sample); for small expected counts prefer exact tests. [1]",
+    "Used in ML feature selection: chi2 test selects categorical features most associated with target. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "When should you use Fisher's exact test instead of chi-square?",
+      "a": "Use Fisher's exact test for 2×2 tables when any expected count Eᵢⱼ < 5 (or sample size n < 20). Fisher's test conditions on the marginal totals being fixed and computes the exact hypergeometric probability of the observed or more extreme tables. It is computationally feasible for 2×2 tables; for larger tables, exact tests become expensive and approximate chi-square is usually sufficient if n is large. [1]"
+    },
+    {
+      "q": "Why do we subtract the number of estimated parameters from the degrees of freedom in the goodness-of-fit test?",
+      "a": "Each parameter estimated from the data 'uses up' one degree of freedom — the expected counts Eᵢ become dependent on the data, reducing the effective number of free comparisons. Failing to subtract m makes the test too liberal (rejects too often). For example, testing normality after estimating μ̂ and σ̂ from the same data: df = k − 1 − 2 = k − 3, not k − 1. [1]"
+    }
+  ],
+  "sources": [
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 10", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" },
+    { "label": "Agresti — An Introduction to Categorical Data Analysis (3rd ed.), Ch. 2", "url": "https://www.wiley.com/en-us/An+Introduction+to+Categorical+Data+Analysis%2C+3rd+Edition-p-9781119405269" }
+  ]
+}
