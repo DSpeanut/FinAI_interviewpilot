@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Monte Carlo simulation in finance means generating thousands of random scenarios for how markets might evolve, then averaging the outcomes to estimate prices or risks. Instead of solving complex equations analytically, you simulate many possible futures and let the law of large numbers give you the answer.",
+    "Example: pricing an Asian option (payoff = average stock price over a year minus strike). There's no simple formula for this. But you can simulate 100,000 stock price paths under GBM, compute the average price on each path, calculate the payoff, average across all paths, and discount — that's the price. Any path-dependent option can be priced this way.",
+    "Monte Carlo is universal: it works for any payoff structure, any number of assets, any correlation structure. The cost is computation time and statistical noise (the estimate improves at rate 1/√N, so 100× more simulations reduces error by 10×). Variance reduction techniques dramatically reduce the number of simulations needed."
+  ],
+  "whenWhy": [
+    {
+      "title": "Monte Carlo for option pricing",
+      "body": "Algorithm for European option under GBM: (1) Generate N paths: for each path i, draw Z_i ~ N(0,1); compute S_T^i = S₀ exp[(r - σ²/2)T + σ√T Z_i]; (2) Compute payoffs: C_i = max(S_T^i - K, 0); (3) Average and discount: Ĉ = e^{-rT} × (1/N) Σ C_i; (4) Standard error: SE = e^{-rT} × std(C_i) / √N. For path-dependent options (Asian, barrier, lookback): simulate the full path at discrete time steps Δt = T/m, not just the terminal value. Asian call: C = max(mean(S_1, ..., S_m) - K, 0). Barrier: check if the path crosses the barrier at each time step. Lookback: payoff depends on max or min of the path. Monte Carlo is the only practical method for high-dimensional derivatives (e.g., basket options on 100 correlated assets)."
+    },
+    {
+      "title": "Monte Carlo for portfolio risk (VaR and CVaR)",
+      "body": "Risk calculation: simulate N portfolio P&L scenarios over a horizon (e.g., 1 day, 10 days). Steps: (1) Estimate covariance matrix Σ of portfolio factors (equity indices, rates, FX); (2) Simulate N factor scenarios: ΔF ~ N(0, Σ) or use historical bootstrap; (3) Reprice portfolio in each scenario using full valuation (not delta approximation): P&L_i = V(F + ΔF_i) - V(F); (4) VaR at 99%: -5th percentile of P&L distribution; CVaR: average of bottom 1% of P&L. Full valuation is crucial for options-heavy portfolios where linear approximation (delta-gamma) is inaccurate. Monte Carlo VaR captures: non-linear payoffs, correlation structure, fat tails (if using historical bootstrap or t-distributed shocks)."
+    },
+    {
+      "title": "Variance reduction: antithetic variates and control variates",
+      "body": "Antithetic variates: for each random draw Z, also use -Z. The pair (Z, -Z) has the same marginal distribution but negative covariance. The estimator Ĉ = e^{-rT}/N × Σ [C(Z_i) + C(-Z_i)]/2 has lower variance than using either alone. Variance reduction: up to 50% fewer simulations needed. Control variate: let X be a variable correlated with the option payoff, with known expectation E[X] (e.g., stock terminal price S_T under the risk-neutral measure has E[S_T] = S₀e^{rT}). Adjusted estimator: Ĉ_adj = Ĉ + β × (E[X] - X̄), where β = Cov(C, X)/Var(X) and X̄ is the sample mean of X. This reduces variance by the correlation² between C and X. Quasi-Monte Carlo (QMC): use low-discrepancy sequences (Sobol, Halton) instead of pseudo-random numbers — converges at rate O(1/N) rather than O(1/√N) in low dimensions."
+    }
+  ],
+  "deepDiveIntro": [
+    "Convergence: MC estimator Ĉ has E[Ĉ] = true price C, SE(Ĉ) = σ_C/√N. For N = 10,000 simulations and σ_C = 5: SE = 0.05 (1 basis point). Confidence interval: Ĉ ± 1.96 × σ_C/√N (95% CI). Required N for precision ε: N = (1.96 σ_C/ε)². For σ_C = 5 and ε = 0.01: N = (980)² ≈ 960,000 — 1M simulations for 1bp precision. This is why variance reduction is essential. Correlation simulation: generate correlated GBMs using Cholesky decomposition: if assets have correlation matrix ρ, decompose ρ = L Lᵀ; draw Z ~ N(0,I); compute correlated shocks ε = L Z; simulate each asset using its own ε_i."
+  ],
+  "deepDive": [
+    {
+      "heading": "Longstaff-Schwartz: American Options via Monte Carlo",
+      "body": "American options can be exercised early — the holder compares immediate exercise value to continuation value at each time step. This requires backward induction, which is not directly compatible with forward Monte Carlo simulation. Longstaff & Schwartz (2001) solved this with the Least Squares Monte Carlo (LSM) algorithm: (1) Simulate N forward paths; (2) Work backward from expiry: at each time step t, use regression to estimate continuation value as a function of current stock price; (3) Regression: continuation_value ≈ α₀ + α₁S + α₂S²; (4) Compare immediate exercise vs. estimated continuation value; (5) Exercise immediately if exercise value > estimated continuation value. The regression uses in-the-money paths only (only consider early exercise when it's worthwhile). This algorithm is now standard for: American options, Bermudan options (exercise at specific dates), callable bonds, prepayable mortgages. [1]"
+    },
+    {
+      "heading": "Monte Carlo for Mortgage-Backed Securities and Prepayment Models",
+      "body": "Mortgage-backed securities (MBS) have path-dependent cash flows: homeowners prepay mortgages when interest rates fall (refinancing). Prepayment speed depends on the entire path of interest rates, not just current rates. Monte Carlo is essential: (1) Simulate N interest rate paths under the risk-neutral measure; (2) For each path, apply the prepayment model to determine monthly cash flows (scheduled principal + interest + prepayments); (3) Discount cash flows at path-specific discount rates; (4) Average across paths = MBS price. Prepayment model inputs: current vs. original mortgage rate (refinancing incentive), seasoning (newer mortgages prepay less), burnout (mortgages that didn't prepay despite incentive are less likely to prepay in future — 'burnout' effect). The burnout effect is inherently path-dependent — it requires simulating the full history of rate exposure for each mortgage cohort. [2]"
+    },
+    {
+      "heading": "Parallelisation and GPU Acceleration",
+      "body": "Monte Carlo is embarrassingly parallel — each simulation path is independent. GPU acceleration: NVIDIA CUDA allows 10,000+ parallel threads; a GPU can run 10M option pricing simulations in milliseconds vs. minutes on CPU. Modern GPU-accelerated finance: risk calculations for large derivatives portfolios run in real-time on GPU farms. Library: QuantLib (open source), CUDA Thrust, and proprietary risk engines. For very high-dimensional problems (1000 risk factors, 100,000 instruments), Monte Carlo remains the only feasible method — analytical and tree-based methods don't scale. The 'curse of dimensionality' that kills grid-based methods doesn't affect Monte Carlo (standard error is O(1/√N) regardless of dimension). For financial institutions: real-time CVA/XVA calculation requires Monte Carlo over millions of paths × thousands of instruments — only feasible with GPU clusters. [2]"
+    }
+  ],
+  "takeaways": [
+    "MC pricing: simulate N paths, compute payoffs, average and discount: V₀ = e^{-rT} × (1/N) Σ V_T^i. [1]",
+    "Convergence: SE = σ/√N — halving error requires 4× more simulations; use variance reduction. [1]",
+    "Antithetic variates: use ±Z pairs; control variates: exploit known expectations of correlated variables. [1]",
+    "Longstaff-Schwartz LSM: American options via backward induction + regression for continuation values. [1]",
+    "Path-dependent MBS, exotic options require full-path simulation — no analytical alternative. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle the speed-accuracy tradeoff in production risk systems?",
+      "a": "In production, computing the full Monte Carlo VaR for a large portfolio (10,000 positions, 100,000 simulations) is computationally expensive. Speed-accuracy tradeoffs: (1) Delta-gamma approximation: approximate option P&L using Taylor expansion to second order in factor changes — much faster, but inaccurate for large moves or highly convex payoffs; (2) Proxy repricing: calibrate a fast analytical approximation for each instrument; use Monte Carlo only for a small subset and interpolate the rest; (3) Importance sampling: oversample the tail scenarios (where losses are large) and reweight — fewer paths needed for accurate tail estimation; (4) GPU acceleration: brute-force MC but on GPU hardware (1000× speedup); (5) Nested MC: for CVA calculation, the outer simulation models counterparty defaults; the inner simulation values the derivatives portfolio — replace inner MC with approximation (regression-based)."
+    },
+    {
+      "q": "What are the key differences between historical and parametric Monte Carlo?",
+      "a": "Parametric MC (Normal/GBM): generate factor shocks from a fitted parametric distribution (multivariate normal with estimated Σ). Pros: smooth risk estimates, extrapolates to scenarios not in historical data, easy to modify correlation structure. Cons: parametric assumptions may be wrong (fat tails, correlation breakdown in crises). Historical bootstrap: resample from the actual historical return distribution (e.g., 10 years × 252 days = 2,520 days of history). Pros: captures actual fat tails and dependency structure; no distributional assumption. Cons: only samples what happened historically; unable to model extreme but unprecedented events; limited sample for tail estimation. Filtered historical simulation: apply GARCH to scale historical returns to current volatility level, then bootstrap — combines the benefits of both. This is the standard approach in sophisticated risk systems: it captures fat tails from history while adapting to current market regime."
+    }
+  ],
+  "sources": [
+    { "label": "Longstaff, F.A. & Schwartz, E.S. (2001) — Valuing American Options by Simulation, RFS", "url": "https://doi.org/10.1093/rfs/14.1.113" },
+    { "label": "Glasserman, P. — Monte Carlo Methods in Financial Engineering, Springer", "url": "https://link.springer.com/book/10.1007/978-0-387-21617-1" }
+  ]
+}

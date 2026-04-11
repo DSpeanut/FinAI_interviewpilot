@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "The value factor is the tendency of 'cheap' stocks (low price relative to fundamentals like earnings, book value, or cash flow) to outperform 'expensive' stocks over time. It's one of the most documented and debated anomalies in finance — markets seem to systematically underprice boring, out-of-favour companies and overprice exciting, high-growth ones.",
+    "The classic measure is book-to-market ratio (B/M): high B/M = value stock (cheap), low B/M = growth stock (expensive). Other metrics: price-to-earnings (P/E), enterprise value-to-EBITDA (EV/EBITDA), price-to-free cash flow (P/FCF), price-to-sales (P/S). The value premium (return of cheap minus expensive stocks) has averaged ~3-5% per year historically across many countries and asset classes.",
+    "Value investing traces to Benjamin Graham and Warren Buffett, but the academic factor was formalised by Fama-French (1992). The premium survives transaction costs and is present in equities, bonds, currencies, and commodities — suggesting it's a genuine risk premium or systematic behavioural bias, not just an equity anomaly."
+  ],
+  "whenWhy": [
+    {
+      "title": "Constructing value factor portfolios",
+      "body": "A long-short value portfolio: long top quintile (cheapest) stocks and short bottom quintile (most expensive) stocks, ranked by B/M or composite value score. Industry-neutral construction is important because cheapness should be measured relative to industry peers (banks always have high B/M; tech always has low B/M). Process: (1) Rank stocks within each GICS sector by composite value score; (2) Long top 20%, short bottom 20% within each sector; (3) Dollar-neutral and beta-neutral. Composite value scores combining multiple metrics (P/E + P/FCF + EV/EBITDA) reduce single-metric noise. AQR's value composite uses B/P, E/P, CF/P, S/P weighted equally."
+    },
+    {
+      "title": "Value in multi-factor models",
+      "body": "Value has a known negative correlation with momentum (approx. -0.5 historically). Combining value and momentum captures their diversification benefit — their Sharpe ratios are individually ~0.3-0.5 but combined ~0.7-0.9. This diversification is the main practical argument for multi-factor investing. Value also has positive correlation with quality in some implementations but negative in others depending on definition. A common portfolio construction: value (long cheap) + quality (long profitable/safe) = 'GARP' (growth at a reasonable price) — quality filters out value traps (cheap stocks that deserve to be cheap because they're declining businesses)."
+    },
+    {
+      "title": "Diagnosing value vs. value trap",
+      "body": "Not all cheap stocks are good investments — value traps are stocks that appear cheap but continue declining in fundamentals. Quality filters: (1) Piotroski F-score (9-point accounting quality screen: profitability, leverage, operating efficiency trends); high F-score + low P/B = high-quality value; (2) Profitability (gross profit/assets, ROE): combine value + quality to avoid distressed cheap stocks; (3) Earnings revisions: stocks with low P/E but declining analyst estimates are often traps. The 'quality-value' combination (popularised by James O'Shaughnessy) is more stable and less exposed to financial distress than pure value."
+    }
+  ],
+  "deepDiveIntro": [
+    "Value metrics hierarchy (from most to least commonly used in academic and practitioner research): (1) B/M (book-to-market): cleanest theoretically but increasingly noisy due to intangibles; (2) E/P (earnings yield = 1/P/E): requires stable earnings; cyclically adjusted P/E (CAPE/Shiller P/E) uses 10-year average earnings; (3) CF/P (cash flow yield): more robust than earnings to accounting choices; (4) EV/EBITDA: capital-structure-neutral; better for comparing across leverage levels; (5) P/S (price-to-sales): useful when earnings are negative; (6) Dividend yield: subset of value, captures income; misses growth companies that reinvest. Practitioners increasingly use composite scores combining multiple metrics to reduce noise."
+  ],
+  "deepDive": [
+    {
+      "heading": "The Intangibles Problem and Value's Measurement Crisis",
+      "body": "Book value was designed for industrial-age companies with tangible assets. Modern firms (tech, pharma, software) create value through R&D, brands, and data — largely expensed rather than capitalised under GAAP. A company spending $10B/year on R&D has zero R&D asset on its balance sheet, but enormous economic value. This makes B/M a systematically noisy signal for asset-light firms. Evidence: the value premium has been weaker in sectors with high intangible intensity (tech, healthcare) and stronger in tangible-heavy sectors (financials, energy, utilities). Proposed solutions: (1) Adjust book value for capitalised R&D and advertising (Lev & Srivastava 2019); (2) Use cash-flow-based metrics that don't depend on book value; (3) Use enterprise value / tangible capital. The HML factor constructed from adjusted book values shows stronger post-2000 performance than standard HML. [1]"
+    },
+    {
+      "heading": "Value Spread and Timing the Value Premium",
+      "body": "The value spread measures the current cheapness dispersion between value and growth stocks. High value spread = value stocks are cheap relative to growth stocks (wide valuation gap); predicts higher future value premium. As of 2020, the value spread was at historical extremes (growth stocks had extreme valuations), which preceded the 2021-2022 value recovery. AQR has shown that the value spread has significant predictive power for factor returns at 5-year horizons (not usefully predictive short-term). Practical use: dynamically increase value exposure when the spread is wide (cheap value stocks vs. expensive growth stocks); reduce exposure when the spread is narrow (value stocks already relatively expensive). This is related to strategic asset allocation across factors — rebalance toward factors with higher expected premia. [2]"
+    },
+    {
+      "heading": "Value Across Asset Classes",
+      "body": "Value works not just in equities but across fixed income, currencies, and commodities — suggesting a universal risk premium rather than an equity-specific anomaly. Fixed income value: bonds with high yield relative to fundamentals (e.g., credit spreads elevated vs. historical default rates). Currency value: Purchasing Power Parity (PPP) — currencies trading below PPP fair value tend to appreciate. Use 5-year real exchange rate deviation from PPP as the value signal. Commodity value: basis (spot minus futures price) or roll yield as a value measure; backwardated commodities (positive roll yield) outperform. Asness, Moskowitz & Pedersen (2013) documented value and momentum across eight asset classes simultaneously — the correlation of value signals across asset classes is low, providing further diversification. [2]"
+    }
+  ],
+  "takeaways": [
+    "Value premium: cheap stocks (high B/M, low P/E, low P/CF) outperform expensive stocks by ~3-5% per year historically. [1]",
+    "Intangibles problem: B/M increasingly noisy for asset-light firms; prefer cash-flow-based metrics or adjusted book value. [1]",
+    "Value × quality combination reduces value traps and improves Sharpe ratio vs. pure value. [1]",
+    "Value spread predicts medium-term value premium: high spread → higher expected future value return. [2]",
+    "Value premium is universal across equities, bonds, currencies, and commodities. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Is the value premium dead after the 2017-2020 drawdown?",
+      "a": "The value premium's 2017-2020 drawdown was the worst in its history, leading many to declare it 'dead.' However: (1) The value spread (cheapness of value vs. growth) reached historical extremes in 2020, as growth stocks hit extreme valuations; (2) Since 2021, value has strongly outperformed as interest rates rose — consistent with the duration explanation (growth stocks are long-duration assets that suffer when rates rise); (3) Out-of-sample international evidence continues to support value; (4) The premium has historically been cyclical — long periods of underperformance followed by recovery. The more defensible conclusion: pure B/M value has structural measurement problems due to intangibles, but more sophisticated value measures (composite, industry-relative, cash-flow-based) remain valid."
+    },
+    {
+      "q": "How does leverage affect the value factor?",
+      "a": "Value stocks tend to have higher financial leverage than growth stocks (they're often in capital-intensive, mature industries). This creates two complications: (1) In credit crises (2008-2009), value stocks suffer disproportionately — they're more exposed to financial distress risk, which is correlated with the market factor; this is evidence for the risk-based explanation; (2) The value factor return partially reflects leverage risk premium, not just valuation mean-reversion. To isolate pure valuation cheapness from leverage: use enterprise value / EBITDA or price-to-free-cash-flow (capital-structure-neutral) rather than equity-only B/M. AQR's HML-devil (using market-value-based book/market updated more frequently) partially addresses this."
+    }
+  ],
+  "sources": [
+    { "label": "Fama, E.F. & French, K.R. (1992) — The Cross-Section of Expected Stock Returns, JF", "url": "https://doi.org/10.1111/j.1540-6261.1992.tb04398.x" },
+    { "label": "Asness, C., Moskowitz, T. & Pedersen, L. (2013) — Value and Momentum Everywhere, JF", "url": "https://doi.org/10.1111/jofi.12021" }
+  ]
+}

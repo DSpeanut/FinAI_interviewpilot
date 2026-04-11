@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Walk-forward testing is a rigorous method for evaluating trading strategies that mimics how they would actually be deployed live. Instead of testing on the entire historical dataset at once (which can lead to overfitting), you divide history into sequential windows: train on earlier data, test on the immediately following period, then advance the window and repeat.",
+    "Think of it as simulating strategy development month by month: at the start of January 2020, you have all data up to December 2019. You calibrate your strategy on that data, trade in January 2020, then see what actually happened. Then advance one month, retrain, trade February 2020, and so on. Each test period was genuinely out-of-sample when you were 'in it'.",
+    "Walk-forward testing provides a realistic estimate of live performance because it correctly separates what you knew from what you didn't know at each point. It also shows whether the strategy is consistently profitable across different market regimes — not just a single lucky period."
+  ],
+  "whenWhy": [
+    {
+      "title": "Walk-forward design: anchored vs. rolling windows",
+      "body": "Two variants: (1) Anchored (expanding) window: training always starts at the same origin (e.g., Jan 2000); the window grows as you advance. Test period: 3-12 months. Advantage: more training data over time; stable parameter estimates. Disadvantage: strategy parameters change slowly; old data may be irrelevant; (2) Rolling window: training window of fixed length (e.g., 5 years) advances together with the test period. Advantage: focuses on recent regimes; more sensitive to structural changes. Disadvantage: discards old data that may still be valuable. Design decisions: test period length (shorter = more walk-forward windows = better statistics; longer = more stable performance measurement); rebalancing frequency (match to strategy signal frequency); overlap between test windows (non-overlapping is cleanest statistically). Typical setup for a monthly-rebalanced equity factor strategy: anchored training from 2000, 12-month test windows, 20 walk-forward periods over 20 years."
+    },
+    {
+      "title": "Cross-validation for time series: why standard k-fold fails",
+      "body": "Standard k-fold cross-validation randomly shuffles data into folds — this is invalid for time series because: (1) Financial returns have autocorrelation: shuffling destroys the time dependence that makes the signal work; (2) Future leakage: a random fold might include both 'past' and 'future' data relative to some test observations; a model trained on 'future' data and tested on 'past' data creates look-ahead bias. Correct approaches: (1) TimeSeriesSplit (scikit-learn): each fold uses all data before the test period as training; no random shuffling; (2) Purged cross-validation (Lopez de Prado): add an embargo gap between train and test — if signal at time t uses returns from [t-20, t], add a 20-day gap between train end and test start to prevent leakage; (3) Combinatorial purged cross-validation (CPCV): test all possible (train, test) combinations while respecting temporal order; provides distribution of Sharpe ratios."
+    },
+    {
+      "title": "Interpreting walk-forward results",
+      "body": "Walk-forward output: series of test-period returns for each walk-forward window. Analysis: (1) Cumulative performance across all test periods = the realistic expected strategy performance; (2) Sharpe ratio should be computed from this cumulative out-of-sample return series; (3) Consistency check: what fraction of walk-forward windows were profitable? Good strategy: 60-70%+ of periods profitable; (4) Regime analysis: does the strategy perform consistently across different market conditions (bull/bear, high/low vol)? (5) Parameter stability: if strategy parameters change dramatically between walk-forward windows, the strategy is overfit to each subperiod; (6) In-sample vs. out-of-sample gap: if in-sample Sharpe is 2.0 and out-of-sample is 0.5, there's severe overfitting. Acceptable ratio: out-of-sample Sharpe ≥ 50% of in-sample Sharpe."
+    }
+  ],
+  "deepDiveIntro": [
+    "Statistical requirements for walk-forward results: (1) Minimum number of walk-forward windows: 10+ for meaningful statistics (allows computing mean, std, and basic distributional properties of per-window returns); (2) Each window must be long enough to be statistically meaningful: if testing monthly signal, each window should be at least 12 months (12 independent return observations); (3) Autocorrelation adjustment: if monthly returns are autocorrelated, effective sample size < number of months; Newey-West standard errors account for this; (4) Proper t-test for walk-forward: t = mean(window_returns) / (std(window_returns) / √N_windows) — tests whether average walk-forward period return > 0. For 20 windows and σ = 5% per period, minimum mean return for 2-sigma significance ≈ 2.2%/period."
+  ],
+  "deepDive": [
+    {
+      "heading": "Purged and Embargoed Cross-Validation",
+      "body": "Standard walk-forward uses a hard train/test split: train on [0, T₁], test on [T₁, T₂], advance. Lopez de Prado introduced two refinements: (1) Purging: if the training labels use forward returns (e.g., the label at time t is the 20-day forward return), then observations near the train/test boundary overlap: the label for t = T₁ - 5 days includes returns up to T₁ + 15 days — these labels are contaminated by test-period data. Solution: purge training observations whose label period overlaps with the test period; (2) Embargo: even after purging, features might have serial correlation — a strong signal in the training period might just persist due to autocorrelation into the test period. Add an embargo gap of H periods after the training period: ignore data in [T₁, T₁ + H] entirely. Embargo length H should equal the signal autocorrelation horizon (e.g., 60 days for a momentum signal with 60-day half-life). These safeguards reduce test-set contamination to near zero. [1]"
+    },
+    {
+      "heading": "Combinatorial Purged Cross-Validation (CPCV)",
+      "body": "Standard walk-forward gives a single out-of-sample Sharpe ratio — one estimate. Combinatorial Purged Cross-Validation (CPCV) provides a distribution of Sharpe ratios by testing all valid (train, test) combinations. Algorithm: divide [0, T] into N groups; for each combination of k groups as test set (all N choose k combinations), train on remaining N-k groups (in temporal order) and test on the k groups; apply purging and embargo between adjacent train/test windows. Output: (N choose k) Sharpe ratios — a distribution. From this distribution: (1) Probability of Backtest Overfitting (PBO) = fraction of scenarios where test Sharpe < 0; (2) Median performance estimate: more robust than single estimate; (3) Distribution width: narrow = strategy is robust; wide = highly variable, potentially overfit. CPCV with N=10, k=2 gives C(10,2) = 45 Sharpe estimates. Computationally expensive but provides the most rigorous strategy evaluation available. [1]"
+    },
+    {
+      "heading": "Parameter Sensitivity Analysis",
+      "body": "A robust strategy should be insensitive to small changes in parameters — the 'flat maximum' principle. Analysis: compute the walk-forward Sharpe for a grid of parameter combinations (e.g., lookback window: 3, 6, 9, 12 months; holding period: 1, 2, 3 months). Visualise as a heatmap. A robust strategy: the Sharpe should be positive across most of the parameter grid; the optimum should be a plateau, not a sharp spike. A fragile (overfit) strategy: the optimum is a spike — tiny changes in parameters dramatically reduce Sharpe. Formal test (White's Reality Check): does the strategy's performance on the selected parameter set exceed what would be expected if you tried all combinations and selected the best by chance? White's bootstrap procedure provides a p-value for the null hypothesis that the best strategy has zero skill. The test adjusts for the number of parameter combinations tested. [2]"
+    }
+  ],
+  "takeaways": [
+    "Walk-forward: train on history up to t, test on [t, t+T], advance; out-of-sample performance is the realistic estimate. [1]",
+    "Standard k-fold invalid for time series; use TimeSeriesSplit, purged CV, or CPCV. [1]",
+    "Purging: remove training labels whose forward return window overlaps with test period. Embargo: skip H periods after train split. [1]",
+    "CPCV: all N choose k train/test combinations → distribution of Sharpe ratios → PBO measure. [1]",
+    "Parameter sensitivity: robust strategy has flat Sharpe across parameter grid; overfitted has single spike. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What is the optimal length for the walk-forward test window?",
+      "a": "The test window length involves a tradeoff: (1) Shorter test window (e.g., 1 month): more walk-forward windows, better statistics, but each window's Sharpe estimate is very noisy (1 month = 21 data points). (2) Longer test window (e.g., 12 months): fewer windows, fewer statistical observations of the distribution, but each window's Sharpe is more reliable. Recommendation: for daily strategies (signal computed daily), use 3-6 month test windows to get 60-120 independent observations per window while having 20+ windows over 10 years. For monthly strategies (signal computed monthly), use 12-24 month test windows to get 12-24 observations per window. The walk-forward Sharpe is computed from the full out-of-sample return series — the test window length affects only how you partition the data, not the final Sharpe (as long as all test periods are non-overlapping and contiguous)."
+    },
+    {
+      "q": "How do you handle regime changes in walk-forward testing?",
+      "a": "Walk-forward testing naturally captures regime changes if the history spans multiple regimes. Critical: your walk-forward history must include at least 2 full economic cycles (bear and bull markets, high and low volatility regimes). Analysis: tag each walk-forward window by regime (NBER recession indicator, VIX level, credit spread level). Plot strategy performance by regime. A robust strategy performs positively across most regimes; an overfit or regime-specific strategy only works in one environment. For strategies expected to be regime-dependent (e.g., momentum strategy that is known to fail in recoveries), this is a feature, not a bug — but you need to be explicit about when you'd reduce the strategy's allocation in the portfolio. Regime-switching approach: allocate to strategy only when the regime indicator signals a favorable regime; test this overlay in walk-forward as well."
+    }
+  ],
+  "sources": [
+    { "label": "Lopez de Prado, M. — Advances in Financial Machine Learning, Wiley", "url": "https://www.wiley.com/en-us/Advances+in+Financial+Machine+Learning-p-9781119482086" },
+    { "label": "White, H. (2000) — A Reality Check for Data Snooping, Econometrica", "url": "https://doi.org/10.1111/1468-0262.00152" }
+  ]
+}

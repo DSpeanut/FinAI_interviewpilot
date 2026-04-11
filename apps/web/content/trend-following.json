@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Trend following is the strategy of buying assets that have been going up and shorting assets that have been going down — following price trends across markets. Unlike equity momentum (which is relative, comparing stocks to each other), trend following is absolute: it goes long or short any individual market based solely on whether that market has been rising or falling.",
+    "Trend following is implemented on futures markets: equity index futures, bond futures, currency futures, commodity futures. A simple implementation: if an asset's trailing 12-month return is positive, go long; if negative, go short. Scale position size inversely to volatility (volatility targeting) so each position contributes equal risk. The result is a strategy with near-zero correlation to equities and bonds over full cycles, and positive performance during equity market crashes.",
+    "Trend following has a 100+ year documented track record — the same basic signal (moving average crossover or past return) has worked across asset classes, geographies, and time periods. Major practitioners: AQR (QMOM), Man AHL, Winton Group, Campbell & Company. The collective industry managing trend-following CTA strategies is over $300B."
+  ],
+  "whenWhy": [
+    {
+      "title": "Classic implementations: moving average and breakout",
+      "body": "Moving average crossover: go long when the short-term moving average (e.g., 50-day) crosses above the long-term MA (e.g., 200-day); go short when the reverse. The 200-day MA is widely followed, partly creating the very trend it detects. Breakout: go long when price breaks above the N-day high; go short when price breaks below the N-day low. Donchian 20-day channel: go long on 20-day high, short on 20-day low. These simple rules have worked across US equities (200-day MA), commodities, bonds, and currencies for decades. Volatility targeting: position size = target_vol / realized_vol × max_position. If an asset has 2× average volatility, hold half the nominal position — normalises risk contribution across markets and over time."
+    },
+    {
+      "title": "Why trend following works: the 'crisis alpha' property",
+      "body": "Trend following provides positive returns during equity market crashes — called 'crisis alpha.' Mechanism: when equity markets enter bear markets, they trend down persistently (2000-2002, 2008-2009). Trend following models short equities and often go long bonds (which rally during equity crises) and short commodities (which fall in recessions). This creates naturally negative correlation to equities during sustained drawdowns. Evidence: CTA indices gained +14% in 2008 while equities fell 38%. The crisis alpha comes from the fact that major market dislocations (recessions, financial crises, commodity shocks) tend to produce sustained trends rather than random noise. Trend following essentially buys insurance against sustained market dislocations — and earns the insurance premium over time."
+    },
+    {
+      "title": "Multi-speed trend: combining lookback horizons",
+      "body": "Different lookback windows capture different trend frequencies. Short-term (1-month): captures fast, volatile trends; high turnover; noisier signal. Medium-term (3-12 months): the core trend signal; best risk-adjusted performance historically. Long-term (24 months): captures major secular trends; low turnover; smoother but slower. Most systematic trend-following programs combine multiple lookback windows to diversify across trend frequencies. Weight allocation: typically 20% short, 60% medium, 20% long (by signal weight). The combination reduces whipsawing (entering and exiting positions too frequently due to short-horizon noise) while maintaining responsiveness to genuine trend changes. Time-series momentum (Moskowitz et al. 2012) is the academic formalisation of this multi-speed approach."
+    }
+  ],
+  "deepDiveIntro": [
+    "Standard time-series momentum signal: r^{(k)}_t = (P_t - P_{t-k}) / P_{t-k}. Volatility-scaled position: w_t = sign(r^{(k)}_t) × (σ_target / σ_t), where σ_t is the trailing volatility estimate (e.g., 60-day exponentially weighted). Net leverage: Σ|w_i| typically 3-10× in futures programs (futures are highly leveraged instruments). Multi-market trend portfolio: trade N uncorrelated markets; portfolio volatility ≈ σ_target × √N / √N = σ_target (each market contributes independently). This diversification allows higher gross leverage with controlled portfolio risk. Capacity: trend following in liquid futures is extremely high-capacity (hundreds of billions possible) — no market impact issues in major futures markets."
+  ],
+  "deepDive": [
+    {
+      "heading": "The Option-Like Payoff of Trend Following",
+      "body": "Trend following has a return distribution that resembles a long straddle (buying both put and call options): moderate losses in trending-less (choppy, range-bound) markets, large gains in strongly trending markets in either direction. The payoff is convex: small losses when markets move sideways, large gains when markets trend strongly. Fung & Hsieh (2001) formalised this: trend-following returns can be replicated by a portfolio of lookback straddles — options that always pay the maximum range of prices over a lookback window. The option premium is the cost of trend following in choppy markets (the Sharpe in low-trend environments). The convexity is valuable for portfolio diversification — it provides insurance against tail events (which tend to be trending) and earns the variance risk premium over time. [1]"
+    },
+    {
+      "heading": "Trend Following in Different Market Regimes",
+      "body": "Trend following performance is highly regime-dependent: Strong performance: sustained directional moves — 2008 (short equities, long bonds), 2014-2015 (short oil), 2022 (short bonds and equities, long USD). Poor performance: choppy, range-bound markets with frequent reversals — 2009 recovery rally (whipsawing after short equity positions), 2011 European debt crisis (rapid reversals), 2018 (brief trend reversals in Q4). The Sharpe ratio in trending environments: ~1.5-2.0. In choppy environments: ~-0.5 to 0. Over full cycles: ~0.5-0.7. Regime identification: the trend strength indicator uses the ratio of the absolute trend signal to its historical norm. When trend strength is high across all asset classes simultaneously (e.g., 2022), trend-following performance is likely high. When trend strength is low, reduce exposure proactively. [2]"
+    },
+    {
+      "heading": "Transaction Costs and Turnover Management",
+      "body": "Trend following in futures has low transaction costs (~0.01-0.05% per trade) but moderate turnover (50-200% per year depending on lookback speed). Estimated transaction costs: 0.1-0.5% of AUM per year for a well-managed CTA program. Cost management strategies: (1) Slower signals: longer lookback windows reduce turnover at some cost in signal freshness; (2) Trade buffers: only trade when position deviation from target exceeds a buffer (e.g., 10% of target) — reduces unnecessary small rebalances; (3) Transaction cost aware optimisation: reduce positions of signals that require crossing the bid-ask spread by large amounts; (4) Cross-asset netting: when adding exposure to one futures contract can be partly offset by rolling another, net the trades. Implementation shortfall: the difference between theoretical signal entry and actual execution price; measured and minimised through optimal execution timing. [2]"
+    }
+  ],
+  "takeaways": [
+    "Trend following: long assets with positive trailing returns, short assets with negative; volatility-scale positions. [1]",
+    "Crisis alpha: trend following gains in sustained equity crashes (2008: +14% CTA vs. -38% S&P). [1]",
+    "Option-like payoff: convex — small losses in choppy markets, large gains in trending markets (long straddle analogy). [1]",
+    "Best lookback: medium-term (3-12 months); combine multiple speeds to reduce whipsawing. [2]",
+    "High capacity: liquid futures markets allow hundreds of billions in AUM without market impact. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Does trend following still work after widespread adoption?",
+      "a": "Trend following has faced increased competition as CTA AUM grew from ~$10B in 1990 to ~$300B+ by 2020. Academic evidence (Hurst, Ooi & Pedersen 2017): 100-year data shows consistent trend-following returns before and after institutional adoption. The mechanism — trends persist because markets are driven by fundamental shocks (recessions, policy changes, commodity supply shocks) that unfold over months to years — is unlikely to be fully arbitraged. However: (1) Trend strength has been lower in the 2010s than historical norms (unusually low macro volatility, consistent Fed put); (2) Crowding creates simultaneous entry/exit, amplifying volatility; (3) Capacity limits may exist for very short-term trend signals. Consensus view: long-term trend (12+ months) remains robust; short-term trend faces more competition."
+    },
+    {
+      "q": "How does trend following interact with carry strategies?",
+      "a": "Carry (earning higher-yielding assets funded by lower-yielding) is the opposite of trend in terms of crisis behavior: carry strategies tend to crash suddenly when markets unwind (carry unwinds in risk-off environments). Trend following tends to profit during these same unwinds (it goes short risk assets as they fall). This negative correlation makes carry + trend a powerful combination: when carry earns the risk premium in stable environments, trend provides insurance when carry crashes. Practical combination: equal risk-weight carry and trend across the same futures universe. Historical performance of carry + trend: Sharpe ~0.8-1.0 vs. ~0.5-0.7 for each alone. This is one of the most robust multi-strategy combinations in liquid futures."
+    }
+  ],
+  "sources": [
+    { "label": "Fung, W. & Hsieh, D.A. (2001) — The Risk in Hedge Fund Strategies: Theory and Evidence from Trend Followers, RFS", "url": "https://doi.org/10.1093/rfs/14.2.313" },
+    { "label": "Moskowitz, T., Ooi, Y.H. & Pedersen, L.H. (2012) — Time Series Momentum, JFE", "url": "https://doi.org/10.1016/j.jfineco.2011.11.003" }
+  ]
+}

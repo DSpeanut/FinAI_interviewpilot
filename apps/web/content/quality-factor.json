@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "The quality factor captures the premium earned by owning financially healthy, profitable, well-managed companies over low-quality, financially stressed ones. Unlike value (cheap) or momentum (trending up), quality focuses on the business itself: high profitability, stable earnings, low debt, strong cash generation, and efficient capital allocation.",
+    "Quality has multiple definitions depending on the researcher or practitioner: Fama-French use RMW (Robust Minus Weak operating profitability); Asness et al. (AQR) use a composite of profitability, growth, safety, and payout; Novy-Marx uses gross profit / assets; Piotroski uses a 9-point accounting quality F-score. Despite definitional variation, all quality measures point in the same direction: profitable, safe, growing companies outperform.",
+    "Quality is unusual among factors because it's positively correlated with growth (quality companies often trade at high valuations) but still generates excess returns. This makes it complementary to value: quality filters out value traps (cheap but declining companies), while value prevents overpaying for quality. The quality-value combination ('GARP' — growth at a reasonable price) is one of the most practitioner-friendly factor approaches."
+  ],
+  "whenWhy": [
+    {
+      "title": "Using quality to avoid value traps",
+      "body": "A value trap is a stock that appears cheap by valuation metrics but continues declining because its business is fundamentally impaired. Examples: retail companies with low P/E but declining foot traffic; energy companies with low P/B but high debt and falling reserves. Quality filters: high Piotroski F-score (financial health: profitability + leverage + efficiency improving), high ROE with low leverage, positive earnings revisions. Process: rank stocks by value (e.g., EV/EBITDA) and quality (e.g., Piotroski F-score); go long stocks that are simultaneously cheap AND high-quality; avoid or short cheap-but-deteriorating stocks. The quality screen eliminates ~30% of value stocks (the traps) and significantly improves the value factor's Sharpe ratio."
+    },
+    {
+      "title": "Quality as a defensive factor",
+      "body": "Quality stocks tend to outperform during market downturns: profitable, low-leverage companies with stable earnings are more resilient in recessions. This makes quality a 'defensive factor' — it provides crash protection that value and momentum don't. Evidence: quality outperformed in 2001, 2008, 2020 downturns. The low-volatility and quality factors are correlated (~+0.4) because low-beta stocks are often high-quality (stable, profitable). For a risk-managed portfolio, quality provides positive excess return and negative market beta — a rare combination. This is consistent with the defensive anomaly: low-risk assets outperform risk-adjusted predictions, possibly due to institutional leverage constraints (funds can't easily leverage; they over-buy high-beta stocks, making low-beta stocks underpriced)."
+    },
+    {
+      "title": "Gross profitability as a clean quality signal",
+      "body": "Novy-Marx (2013) showed gross profit / total assets is the cleanest quality signal — it predicts returns as strongly as B/M but with opposite sign (high gross profit → high returns; high B/M → high returns; together they're powerful). Why gross profit (not net)? Net profit is after many accounting choices (depreciation, amortisation, provisions); gross profit (revenue minus COGS) is cleaner and less subject to management manipulation. It measures the fundamental profitability of the core business before capital structure and accounting choices. Practitioners: Dimensional Fund Advisors incorporated profitability (gross profit/assets) into their fund construction in 2013; AQR's quality composite includes gross profitability alongside other metrics."
+    }
+  ],
+  "deepDiveIntro": [
+    "Key quality metrics: (1) Gross profit / assets (Novy-Marx): cleanest profitability measure; (2) ROE (return on equity): earnings/book value; sensitive to leverage; (3) ROA (return on assets): earnings/assets; leverage-neutral; (4) Operating cash flow / assets: cash-based, manipulation-resistant; (5) Piotroski F-score (0-9): 3 profitability signals + 3 leverage/liquidity signals + 3 operating efficiency signals; ≥7 = high quality; ≤2 = low quality; (6) Accruals ratio: (net income - operating cash flow) / assets; high accruals = earnings manipulation risk. AQR quality composite: weights profitability (gross profit/assets, ROE, ROA, CFO/assets, gross margin, F-score), growth (5-year growth in profitability), safety (market beta, idiosyncratic vol, leverage, Altman Z-score), and payout (total net payout / 5-year average assets) equally."
+  ],
+  "deepDive": [
+    {
+      "heading": "The Quality-Value Interaction",
+      "body": "Quality and value have low to slightly negative unconditional correlation (~-0.1 to -0.3): quality companies are often expensive; cheap companies are often low quality. But their combination outperforms each alone. Piotroski (2000): within the cheapest value stocks (high B/M), high-F-score stocks returned 23%/year vs. low-F-score stocks 5%/year over 1976-1996. The high-F-score/high-B/M combination combines both premia; the low-F-score/high-B/M combination (value traps) destroys the value premium. This suggests quality is a more powerful modifier of value than a standalone factor. Sloan (1996) showed high-accrual stocks underperform: when earnings are driven by accruals rather than cash flows, future earnings tend to disappoint. Combining value (low price/cash flow) and quality (low accruals) is particularly powerful. [1]"
+    },
+    {
+      "heading": "Earnings Quality and Accounting Red Flags",
+      "body": "Quality investing requires understanding accounting quality — whether reported earnings reflect genuine economic value or are managed/manipulated. Red flags: (1) High accruals: (net income - operating cash flow) / assets; signals aggressive revenue recognition; (2) Increasing receivables faster than revenue: suggests channel stuffing; (3) Gross margin expansion without revenue growth: possible cost capitalisation; (4) Cash conversion cycle deteriorating: inventory building up, receivables not collecting; (5) Off-balance sheet liabilities: operating leases (pre-IFRS 16), pension obligations; (6) Revenue concentration: top customer >30% of revenue creates earnings volatility. The Beneish M-score uses 8 financial ratios to detect earnings manipulation. Academic evidence: firms with high accruals underperform by 10-14% over the following year (Sloan 1996). Investment funds screen for these red flags systematically before including stocks in quality portfolios. [2]"
+    },
+    {
+      "heading": "Quality Factor in International Markets",
+      "body": "Quality works globally but with some regional differences. Profitability (RMW in Fama-French five-factor): robust in North America, Europe, and Asia-Pacific; somewhat weaker in Japan and emerging markets. Piotroski F-score works globally across all major equity markets. The defensive aspect of quality (outperformance during downturns) is universal. Key regional differences: Japanese corporate governance historically featured cross-shareholdings and management entrenchment, reducing the efficiency of quality signals; recent governance reforms (2014 Corporate Governance Code) have strengthened quality factor performance in Japan. Emerging markets quality requires additional robustness: different accounting standards (IFRS vs. local GAAP vs. US GAAP), variable earnings quality, and political/currency risks that can overwhelm fundamental quality signals. [1]"
+    }
+  ],
+  "takeaways": [
+    "Quality measures: gross profit/assets (cleanest), ROE, ROA, cash flow, Piotroski F-score, accruals ratio. [1]",
+    "Quality + value eliminates value traps: within high-B/M stocks, high F-score outperforms low F-score by ~18%/year. [1]",
+    "Quality is defensive: outperforms in downturns; correlated with low-volatility factor (~+0.4). [1]",
+    "High accruals predict future earnings disappointment; (net income - CFO) / assets is a key red flag. [2]",
+    "AQR quality composite: profitability + growth + safety + payout — reduces single-metric noise. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Can quality stocks be expensive and still be a good investment?",
+      "a": "Yes — the quality factor generates positive returns even controlling for price (i.e., even among expensive stocks, high-quality ones outperform low-quality ones). This is the key finding of Novy-Marx (2013) and Asness et al. (2019): quality is not just a disguised value tilt. Intuitively, if markets are even partially efficient about pricing quality, high-quality companies might be slightly overpriced, but their superior fundamentals mean earnings grow faster than the market expects — generating positive surprise and outperformance. The practical implication: a 'quality at a high price' portfolio (expensive but very high quality) still outperforms the market; but a 'quality at a reasonable price' portfolio (quality + value combined) outperforms most."
+    },
+    {
+      "q": "How do share buybacks affect quality factor signals?",
+      "a": "Share buybacks create complications: (1) Buybacks reduce book value (shares repurchased go to treasury, reducing equity), which makes B/M higher — the company looks cheaper by value metrics; (2) Buybacks with debt financing reduce the Altman Z-score (leverage increases) — the company looks worse on safety metrics; (3) EPS increases mechanically (fewer shares), potentially improving P/E-based value metrics without genuine profitability improvement. AQR's quality composite handles this through the payout component: high net payout (dividends + buybacks net of issuance) is a positive quality signal — it indicates the firm generates excess cash and returns it rather than investing in low-return projects. But debt-funded buybacks (negative net payout to equity + positive net issuance of debt) are a red flag and correctly penalised."
+    }
+  ],
+  "sources": [
+    { "label": "Novy-Marx, R. (2013) — The Other Side of Value: The Gross Profitability Premium, JFE", "url": "https://doi.org/10.1016/j.jfineco.2013.01.003" },
+    { "label": "Sloan, R.G. (1996) — Do Stock Prices Fully Reflect Information in Accruals?, The Accounting Review", "url": "https://www.jstor.org/stable/248290" }
+  ]
+}

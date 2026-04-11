@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Statistical arbitrage (stat arb) is a quantitative trading strategy that exploits small, temporary mispricings between related securities using statistical models. Unlike classical arbitrage (risk-free profit from identical assets at different prices), stat arb involves probabilistic, not certain, profits — you make money on average across many trades, not on every single trade.",
+    "The core idea: identify pairs or groups of assets whose prices move together historically (cointegration). When their prices diverge temporarily, bet on reversion to the historical relationship. If stock A and stock B are in the same industry and usually trade at a 2:1 price ratio, and today the ratio is 2.5:1, a stat arb strategy shorts the expensive one and buys the cheap one, waiting for the ratio to revert.",
+    "Stat arb is a market-neutral strategy — profits don't depend on whether markets go up or down. Positions are hedged so the portfolio has near-zero net exposure to market movements. It profits from relative mispricing, not directional bets. This makes it a true alternative return source, uncorrelated with equity/bond market returns."
+  ],
+  "whenWhy": [
+    {
+      "title": "Pairs trading: the simplest stat arb",
+      "body": "Pairs trading: identify two stocks with high historical price correlation (same industry, similar business model — e.g., Coca-Cola and Pepsi). Model the spread: s_t = log(P_A) - β × log(P_B). Estimate β via OLS or Kalman filter. When s_t deviates from its mean by > 2σ, trade: short the expensive stock, long the cheap stock. Close when spread reverts to mean. Key statistics: half-life of mean reversion (time to return 50% of deviation toward mean), estimated by AR(1): s_t = α + φ × s_{t-1} + ε_t. Half-life = -log(2)/log(φ). Faster mean reversion (shorter half-life) → more frequent trades, lower holding risk, but higher turnover cost."
+    },
+    {
+      "title": "Mean-reversion at portfolio scale",
+      "body": "Modern stat arb operates at portfolio scale rather than single pairs. PCA-based approach: decompose a universe of stocks into principal components (common factors). The residuals (idiosyncratic components) are theoretically mean-reverting. Trade: when a stock's residual deviates significantly from zero, expect it to revert; go long stocks with very negative residuals, short stocks with very positive residuals. This is essentially a market-neutral factor strategy targeting idiosyncratic return. Challenges: PCA factors are statistical, not economic — interpretation is hard; factors evolve over time requiring rolling re-estimation; the strategy has high turnover requiring low transaction costs to be profitable."
+    },
+    {
+      "title": "ETF arbitrage and index arbitrage",
+      "body": "ETF arbitrage: an ETF's market price should equal its net asset value (NAV = weighted sum of underlying holdings). When price deviates from NAV by more than transaction costs, authorised participants (APs) arbitrage it closed by creating/redeeming ETF shares in exchange for underlying baskets. This is low-risk stat arb. Index arbitrage: when the S&P 500 futures price deviates from its fair value (spot + cost of carry - dividends), traders simultaneously buy the cheap instrument and sell the expensive one. This 'cash and carry' arbitrage keeps futures pricing efficient. For quantitative funds, these strategies are low-alpha but high-capacity and provide income to support larger systematic operations."
+    }
+  ],
+  "deepDiveIntro": [
+    "Cointegration test (Engle-Granger): for two price series P_A and P_B, run regression P_A = α + β P_B + ε. Test residuals ε for stationarity using ADF test. If ε is stationary, the pair is cointegrated — the spread is mean-reverting. The Johansen test generalises to multiple assets. Ornstein-Uhlenbeck process models the spread: dX_t = κ(μ - X_t)dt + σ dW_t, where κ is mean reversion speed, μ is equilibrium spread, σ is volatility. Half-life = log(2)/κ. Optimal entry/exit (Bertram 2010): enter at ±entry_threshold × σ, exit at 0 (or ±exit_threshold). Optimal thresholds balance frequency of trades vs. profit per trade given transaction costs."
+  ],
+  "deepDive": [
+    {
+      "heading": "Alpha Decay and Capacity Constraints",
+      "body": "Stat arb signals decay over time due to: (1) crowding — as more capital pursues the same mispricings, the deviations become smaller and shorter-lived; (2) market structure changes — increasing algorithmic trading has made many stat arb opportunities persist for milliseconds rather than days; (3) relationship breakdown — pairs that were historically correlated (same industry) can diverge structurally (e.g., Amazon entering retail disrupted the retail sector cointegration). Evidence: academic pairs trading papers documented 3-5% monthly returns in the 1990s; by the 2010s, after-cost returns had compressed to near zero in standard implementations. To sustain alpha, stat arb funds must: (1) expand the universe to new relationships (cross-asset, cross-market); (2) move to higher frequency (requires sophisticated infrastructure); (3) use more sophisticated models (ML-based relationship discovery). [1]"
+    },
+    {
+      "heading": "Risk Management in Stat Arb",
+      "body": "Stat arb appears low-risk (market-neutral, many positions) but has specific failure modes: (1) Correlation breakdown: pairs that historically co-moved can diverge permanently (structural break). A position hoping for reversion in a permanently broken pair suffers unbounded losses — this requires position-level stop-losses; (2) Crowded unwind: when many stat arb funds hold similar positions, a market shock can trigger simultaneous unwinding ('quant meltdown'). Example: August 2007 quant crisis — many stat arb funds simultaneously unwound positions, causing correlated losses across seemingly unrelated strategies; (3) Funding liquidity risk: stat arb requires leverage; in credit crises, margin calls force liquidation at worst prices. Risk management: stop-losses on individual pairs, portfolio-level gross exposure limits, stress tests for correlated unwind scenarios, diversification across signal types and asset classes. [2]"
+    },
+    {
+      "heading": "Machine Learning in Stat Arb Signal Generation",
+      "body": "Traditional stat arb uses linear cointegration models. ML extensions: (1) LSTM-based spread prediction: train recurrent networks on spread time series to predict next-period direction and magnitude; (2) Graph neural networks (GNNs): model the market as a graph where edges represent correlation/cointegration relationships; use GNNs to identify mispricings in the graph structure; (3) Reinforcement learning: train an agent to optimise entry/exit thresholds dynamically rather than using fixed statistical thresholds — the agent learns when deviations are likely to mean-revert vs. diverge further; (4) Alternative data signals: NLP sentiment from news/social media can explain spread deviations that are not captured by price data alone. Key challenge with ML in stat arb: overfitting to historical co-movement patterns that don't persist; small sample size for rare events; non-stationarity. Walk-forward validation and strict out-of-sample testing are essential. [1]"
+    }
+  ],
+  "takeaways": [
+    "Stat arb exploits temporary mispricings between cointegrated assets — profits from spread mean-reversion, not directional bets. [1]",
+    "Cointegration test (Engle-Granger/Johansen): residuals of the price relationship should be stationary. [1]",
+    "Half-life = log(2)/κ (O-U process): shorter half-life = faster reversion = higher-frequency trading needed. [1]",
+    "August 2007 quant crisis: crowded stat arb unwinds caused correlated losses — diversify across signal types. [2]",
+    "Alpha decay due to crowding; modern stat arb requires ML-based signal generation or alternative data. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you distinguish mean reversion from a structural break?",
+      "a": "This is the central challenge: a spread that's been widening for 3 months could be (a) a large deviation about to revert or (b) a structural break in the relationship. Quantitative approaches: (1) Kalman filter for dynamic hedge ratio estimation — if the filter's estimated β is rapidly changing, the relationship is unstable (likely structural break); (2) Rolling cointegration test: re-run the Engle-Granger test on a rolling window; if p-value rises above 0.05, the pair is no longer cointegrated; exit the position; (3) Regime detection: cluster the spread's dynamics into 'stable' and 'regime-change' states using HMM; reduce position size in regime-change state. Practical heuristic: set a maximum holding period (e.g., 30 days); if the spread hasn't reverted, exit regardless — capping the loss on structural breaks."
+    },
+    {
+      "q": "What is the role of transaction costs in determining stat arb viability?",
+      "a": "Transaction costs are the primary determinant of whether a stat arb strategy is profitable in practice. A strategy that generates 0.2% per trade gross profit is only viable if round-trip transaction costs (bid-ask spread + market impact + commission) are below 0.2%. For liquid large-cap equities: total transaction costs ~0.05-0.1% round trip; many stat arb signals are viable. For small-caps: costs ~0.5-2%; eliminates most short-horizon signals. For ETFs: ~0.01-0.05%; highly viable. For international pairs (different exchanges, FX conversion): costs 0.2-0.5% + FX hedging. Break-even analysis: given signal Sharpe (pre-cost), turnover, and position size — is post-cost Sharpe positive? Rule of thumb: a stat arb strategy needs gross Sharpe >1.5 to survive realistic transaction costs in moderately liquid markets."
+    }
+  ],
+  "sources": [
+    { "label": "Gatev, E., Goetzmann, W.N. & Rouwenhorst, K.G. (2006) — Pairs Trading: Performance of a Relative-Value Arbitrage Rule, RFS", "url": "https://doi.org/10.1093/rfs/hhj020" },
+    { "label": "Khandani, A.E. & Lo, A.W. (2011) — What Happened To The Quants In August 2007?, JIM", "url": "https://doi.org/10.3905/jpm.2008.35.1.29" }
+  ]
+}

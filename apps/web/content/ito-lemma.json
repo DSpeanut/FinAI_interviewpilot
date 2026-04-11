@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Ito's lemma is the chain rule of stochastic calculus. In ordinary calculus, if y = f(x) and x changes by dx, then dy = f'(x) dx. But when x follows a random process (Brownian motion), there's an extra term: dy = f'(x) dx + ½ f''(x) (dx)². The second-order term survives because Brownian motion increments have (dW)² = dt, not zero.",
+    "This extra term changes everything in finance. It's why the log of a stock price grows at μ - σ²/2, not μ (a fact crucial for understanding long-term portfolio returns). It's how Black and Scholes derived their option pricing formula. It's the foundation of all continuous-time finance.",
+    "Intuition for (dW)² = dt: the variance of a Brownian increment over time dt is exactly dt. In ordinary calculus, infinitesimal increments squared are negligible (dx² → 0). But Brownian motion is so rough that its squared increments are not negligible — they accumulate to a finite quantity over time."
+  ],
+  "whenWhy": [
+    {
+      "title": "Applying Ito's lemma: from GBM to log-normal",
+      "body": "Given S follows GBM: dS = μS dt + σS dW. Define f(S) = ln(S). By Ito's lemma: d(ln S) = (∂ln S/∂S) dS + ½ (∂²ln S/∂S²)(dS)². Compute: ∂ln S/∂S = 1/S; ∂²ln S/∂S² = -1/S². Substitute: d(ln S) = (1/S)(μS dt + σS dW) + ½(-1/S²)(σS)² dt = μ dt + σ dW - σ²/2 dt = (μ - σ²/2) dt + σ dW. This is the log-return process: normally distributed with drift (μ - σ²/2) and diffusion σ. The -σ²/2 correction (the Jensen/Ito correction) is critical — it means the median log-return is less than the mean return μ. For μ = 10%, σ = 20%: median annual return = 10% - 2% = 8%. The -σ²/2 correction explains why volatile investments underperform less volatile ones at the same arithmetic mean return."
+    },
+    {
+      "title": "Ito's lemma for option pricing (Black-Scholes PDE)",
+      "body": "Black-Scholes derived their PDE using Ito's lemma on V(S,t), the option value. Given dS = μS dt + σS dW, apply Ito's lemma to V(S,t): dV = (∂V/∂t + μS ∂V/∂S + ½σ²S² ∂²V/∂S²) dt + σS ∂V/∂S dW. Form a delta-hedged portfolio: Π = V - (∂V/∂S) × S. The dW terms cancel (this is the delta hedge). The portfolio is instantaneously riskless: dΠ = r Π dt (must earn risk-free rate by no-arbitrage). This yields the Black-Scholes PDE: ∂V/∂t + rS ∂V/∂S + ½σ²S² ∂²V/∂S² - rV = 0. Solved with boundary condition V(S,T) = max(S-K, 0) for a call, gives the Black-Scholes formula."
+    },
+    {
+      "title": "Ito's product rule and integration by parts",
+      "body": "Ito's product rule: d(XY) = X dY + Y dX + dX dY. The extra term dX dY is the covariation — survives when X and Y are both driven by the same Brownian motion. For two processes: dX = a dt + b dW, dY = c dt + d dW (same W): d(XY) = X dY + Y dX + bd dt (the covariation). This is used in: (1) Stochastic integration by parts (useful for pricing claims on correlated assets); (2) Deriving dynamics of portfolio value (if portfolio has two risky assets driven by correlated Brownian motions); (3) Martingale representation — any martingale driven by Brownian motion can be written as a stochastic integral. Applications in fixed income: pricing of interest rate derivatives where the bond price and rate are both driven by Brownian motion requires Ito's product rule."
+    }
+  ],
+  "deepDiveIntro": [
+    "Ito's lemma (one-dimensional, time-homogeneous): for f(X_t) where dX_t = a(X_t,t) dt + b(X_t,t) dW_t: df(X_t) = f'(X_t) dX_t + ½ f''(X_t)(dX_t)² = [a f' + ½ b² f''] dt + b f' dW_t. The key: (dW)² = dt (quadratic variation of Brownian motion), (dW)(dt) = 0, (dt)² = 0. Two-dimensional Ito's lemma: for f(X_t, Y_t): df = ∂f/∂x dX + ∂f/∂y dY + ½ ∂²f/∂x² (dX)² + ∂²f/∂x∂y dX dY + ½ ∂²f/∂y² (dY)². General form (time-dependent): df(X_t, t) includes the ∂f/∂t dt term (the 'theta' in options). This generalises to vector processes with correlated Brownian motions."
+  ],
+  "deepDive": [
+    {
+      "heading": "Quadratic Variation: Why (dW)² = dt",
+      "body": "The quadratic variation of a process X_t is [X,X]_T = lim_{||Π||→0} Σ (X_{t_{i+1}} - X_{t_i})². For Brownian motion W_t, the quadratic variation is [W,W]_T = T (deterministic). Proof sketch: E[(ΔW_i)²] = Δt_i (by Brownian motion increments variance); summing over all intervals gives T. Variance of the sum converges to 0 as mesh size goes to 0. This means (dW)² = dt in the Ito integral sense — not just on average, but almost surely (pathwise). Contrast: for a smooth function f(t), [f,f]_T = 0 (ordinary calculus). For Brownian motion: [W,W]_T = T ≠ 0. The non-zero quadratic variation is why Brownian motion is non-differentiable and why ordinary calculus fails. It's also why Ito integrals require the extra ½ b² f'' dt correction term. [1]"
+    },
+    {
+      "heading": "Ito vs. Stratonovich Integrals",
+      "body": "Two conventions for stochastic integrals: Ito integral: ∫₀ᵀ f(t) dW_t uses left-endpoint evaluation (non-anticipating). Stratonovich integral: ∫₀ᵀ f(t) ∘ dW_t uses midpoint evaluation. Key difference: Ito integral is a martingale (zero mean); Stratonovich integral obeys the ordinary chain rule but is not a martingale. For Ito: d(W²) = 2W dW + dt (the extra dt is the Ito correction). For Stratonovich: d(W²) = 2W ∘ dW (no correction, ordinary chain rule). Interpretation: Stratonovich integral is more natural for physics (where noise is physical and has correlations on short time scales); Ito integral is more natural for finance (non-anticipating: trading decisions at time t cannot depend on future prices). The connection: ∫f dW (Ito) = ∫f ∘ dW (Stratonovich) - ½ ∫f' dt. Finance universally uses Ito; physics often uses Stratonovich. [1]"
+    },
+    {
+      "heading": "Ito's Lemma and the Numeraire Change",
+      "body": "A numeraire is the asset used to express prices. Changing the numeraire changes the drift but not the diffusion of an asset price process. Girsanov's theorem: the change from physical measure (P, with drift μ) to risk-neutral measure (Q, with drift r) is a change of numeraire (from money market account to the risk-neutral measure). Under Q: dS = r S dt + σ S dW^Q. Ito's lemma allows deriving the dynamics of S/N_t (price in units of numeraire N_t) under any numeraire. This is essential for pricing: (1) Bond numeraire: use the bond as numeraire for interest rate derivatives (T-forward measure); (2) Stock numeraire: use the stock as numeraire for pricing exchange options; (3) Swap measure: use the annuity as numeraire for swaption pricing. The numeraire-free pricing equation: V_t/N_t is a martingale under the measure associated with numeraire N_t. This unification simplifies exotic derivatives pricing. [2]"
+    }
+  ],
+  "takeaways": [
+    "Ito's lemma: df = f' dX + ½ f'' (dX)² because (dW)² = dt for Brownian motion (non-zero quadratic variation). [1]",
+    "Applied to ln(S): d(ln S) = (μ - σ²/2) dt + σ dW — the -σ²/2 Ito correction is crucial for long-run returns. [1]",
+    "Black-Scholes PDE derived by applying Ito's lemma to V(S,t) and forming a delta-hedged portfolio. [1]",
+    "Ito integral is non-anticipating (left-endpoint); Stratonovich uses ordinary chain rule but is anticipating. [1]",
+    "Girsanov's theorem: change from P (drift μ) to Q (drift r) for risk-neutral pricing is a numeraire change. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What happens to Ito's lemma when the function is not twice differentiable?",
+      "a": "Ito's lemma requires f to be twice continuously differentiable (C² in S). Problems arise for: (1) Option payoffs: max(S-K, 0) is not differentiable at S=K; the second derivative is a Dirac delta at K — but the integral is well-defined and Black-Scholes still works via the Feynman-Kac theorem; (2) Barrier options: payoffs that switch at barrier levels require careful treatment at the boundary (local time at the barrier contributes to the Ito correction via the Tanaka formula); (3) Lookback options: payoffs depend on running maximum max_{t≤T} S_t — handled via reflection principle of Brownian motion. The Tanaka-Meyer formula extends Ito to convex but non-smooth functions, making the local time at non-smooth points explicit."
+    },
+    {
+      "q": "How does Ito's lemma extend to jump processes?",
+      "a": "For a jump-diffusion process (Merton model): dS = μS dt + σS dW + S dJ, where J is a compound Poisson process with jump sizes {Z_i}. Ito's lemma for jump processes: df = [a f' + ½ b² f''] dt + b f' dW + Σ [f(S + ΔS_i) - f(S)] dJ_i. The extra jump term accounts for discrete jumps — the function value jumps discontinuously. For ln(S): d(ln S) = (μ - σ²/2) dt + σ dW + ln(1 + ΔS/S) dJ. The jump contribution to the log-return is ln(1 + Z), not Z — important for fat-tail modelling. Merton (1976) derives a closed-form option pricing formula for this process as a sum of Black-Scholes formulas weighted by Poisson probabilities."
+    }
+  ],
+  "sources": [
+    { "label": "Oksendal, B. — Stochastic Differential Equations (6th ed.), Springer", "url": "https://link.springer.com/book/10.1007/978-3-642-14394-6" },
+    { "label": "Shreve, S.E. — Stochastic Calculus for Finance II, Springer", "url": "https://link.springer.com/book/10.1007/978-1-4757-4296-1" }
+  ]
+}

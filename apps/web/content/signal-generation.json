@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "A signal is a quantitative measure that predicts future asset returns. Signal generation is the process of turning raw data (prices, fundamentals, alternative data) into a numerical score that says how attractive an asset is to buy or sell. Good signals are: predictive (they actually work), robust (they work across markets and time periods), and independent (they add information beyond what other signals already capture).",
+    "Signals exist at every data layer: price-based (momentum, mean reversion, volatility), fundamental (earnings yield, cash flow yield, growth), alternative data (satellite imagery of parking lots, credit card transactions, social media sentiment). Each captures a different market inefficiency. A portfolio of uncorrelated signals has much better risk-adjusted performance than any single signal alone.",
+    "The lifecycle of a signal: research (discover the signal on historical data), validation (test it out-of-sample, internationally, across asset classes), implementation (convert to a tradeable portfolio), monitoring (track live performance and decay). Most signals decay after publication; practitioners need a continuous research pipeline to discover new signals."
+  ],
+  "whenWhy": [
+    {
+      "title": "Price-based signal construction",
+      "body": "Standard price-based signals: (1) Momentum: r_{t-12,t-1} (12-1 month past return) — captures trend; (2) Short-term reversal: -r_{t-1,t} (negative last-month return) — captures microstructure bounce; (3) Idiosyncratic momentum: residual return from factor regression — pure stock-specific momentum; (4) 52-week high: ratio of current price to 52-week high — captures anchoring bias (prices struggle to break new highs); (5) Earnings announcement drift (PEAD): abnormal return after earnings surprise predicts subsequent drift in the same direction; (6) Systematic risk: high-beta stocks underperform on a risk-adjusted basis. Each signal should be tested for: IC (information coefficient = rank correlation with forward returns), Sharpe ratio of long-short portfolio, decay curve (how quickly the signal loses predictive power)."
+    },
+    {
+      "title": "Fundamental signal construction",
+      "body": "Fundamental signals use financial statement data: (1) Earnings yield (E/P): higher earnings yield = undervalued; (2) Free cash flow yield (FCF/P): cash-based earnings quality screen; (3) Sales growth: high organic growth predicts positive future returns (contrarian to value); (4) Gross profit / assets: Novy-Marx profitability — robust value signal; (5) Accruals: (NI - CFO) / assets — high accruals = earnings manipulation risk; predicts underperformance; (6) Return on equity (ROE): high ROE with low leverage = quality; (7) Analyst revision: EPS estimate revision direction predicts next-quarter stock return (earnings estimate revisions). Data vendors: Compustat (US), FactSet, Bloomberg. Key challenge: point-in-time data (use data only as it would have been available at each historical date — no look-ahead bias)."
+    },
+    {
+      "title": "Alternative data signals",
+      "body": "Alternative data: information not in standard price/financial data. Examples and signal construction: (1) Satellite imagery: count cars in retailer parking lots → proxy for store traffic → signal for same-store sales surprises; (2) Credit card data: anonymised transaction volumes by merchant → predict quarterly revenue before earnings; (3) Web traffic: Alexa/SimilarWeb site visits → proxy for user growth for tech companies; (4) Job postings: LinkedIn/Indeed job count by company → proxy for hiring (growth) or firing (decline); (5) Earnings call NLP: sentiment, tone, uncertainty measures from management transcripts → predict post-earnings drift; (6) Supply chain network: shipping data (Port of LA throughput) → macro commodity demand signal. Each requires careful statistical validation and point-in-time reconstruction to avoid data leakage."
+    }
+  ],
+  "deepDiveIntro": [
+    "Signal evaluation metrics: (1) Information Coefficient (IC) = rank correlation (Spearman) between signal and next-period return. IC > 0.05 is strong for equity signals; typical good signals have IC = 0.03-0.08. (2) IC IR (information ratio of IC) = mean(IC) / std(IC) — measures IC stability. (3) Hit rate = fraction of predictions correct directionally; above 50% indicates skill. (4) Turnover: average monthly turnover of the long-short portfolio. (5) Sharpe ratio net of transaction costs: the ultimate metric. Signal decay curve: IC measured at 1-day, 1-week, 1-month, 3-month, 6-month horizons — shows at what horizon the signal is most predictive. Momentum: peaks at 1-3 months, decays to zero at 12 months, reverses at 3-5 years."
+  ],
+  "deepDive": [
+    {
+      "heading": "Signal Combination and Composite Score Construction",
+      "body": "Individual signals have low predictive power (IC ≈ 0.03-0.08); combining uncorrelated signals raises the composite IC. Optimal combination: weighted average of z-scored signals. Weighting approaches: (1) Equal weighting: robust to estimation error; often performs as well as more complex methods out-of-sample; (2) IC-weighted: weight each signal proportionally to its recent IC; adapts to signal strength; (3) Risk model constrained optimisation: treat signals as factor exposures; optimise weights subject to tracking error constraints; (4) ML ensemble: train a model to predict returns using all signals as features; captures non-linearities and interactions. Key principle: z-score each signal before combining to put them on the same scale. Winsorisation: cap signal values at ±3σ to prevent outliers from dominating. Final composite score → portfolio construction (optimisation or ranking-based). [1]"
+    },
+    {
+      "heading": "Signal Neutralisation",
+      "body": "Raw signals often carry unintended exposures that contaminate the pure signal alpha. Neutralisation removes these: (1) Market neutralisation: demean the signal across the universe so the long-short portfolio is dollar-neutral; (2) Sector neutralisation: demean within each GICS sector — captures only intra-sector relative value; removes cross-sector bets; (3) Country neutralisation: demean within country for global portfolios; (4) Factor neutralisation: regress the signal on known factors (market, size, value, momentum) and use residuals — isolates the incremental information not already captured by standard factors. Industry-neutral construction is especially important for value signals (avoid industry-level value bets that reflect structural industry characteristics rather than genuine mispricing). Market-cap-weighted vs. equal-weighted neutralisation produces different exposures — large-cap signals can be dominated by a few mega-cap stocks in market-cap-weighted approaches. [2]"
+    },
+    {
+      "heading": "Multiple Testing and the False Discovery Problem",
+      "body": "With thousands of possible signals, multiple testing is a critical problem: by random chance, some signals will have high historical IC even if they have no true predictive power. Harvey, Liu & Zhu (2016) documented ~316 published factors — most are likely false discoveries. Statistical standards for signal validation: (1) The minimum required t-statistic should be 3.0 (not the standard 2.0) for a new factor to be considered significant, given the multiple testing problem; (2) Bonferroni correction: if testing 100 signals, require p < 0.0005 (not 0.05) for each; (3) Benjamini-Hochberg FDR procedure: controls false discovery rate across multiple tests; (4) Out-of-sample validation: test on data withheld from the research period — the most critical test; (5) International replication: does the signal work in non-US markets? (6) Subsample stability: does the signal work in both halves of the sample? A signal surviving all these tests has a high probability of being genuine. [2]"
+    }
+  ],
+  "takeaways": [
+    "IC (information coefficient) = rank correlation of signal with forward return; good signals IC = 0.03-0.08. [1]",
+    "Z-score and winsorise signals before combining; equal-weight combination is often as good as optimised. [1]",
+    "Neutralise signals (sector, country, factor) to isolate pure incremental alpha. [2]",
+    "Multiple testing: require t-stat > 3.0 for new signals; validate out-of-sample, internationally, across subsamples. [2]",
+    "Alternative data (satellite, card, NLP) increasingly standard; point-in-time reconstruction essential to avoid look-ahead bias. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle the fact that signal strength varies over time?",
+      "a": "Signal strength (IC) varies significantly over time — a signal working in growth environments may fail in recessions, and vice versa. Approaches: (1) Regime-conditional signals: estimate IC separately in bull/bear markets, high/low volatility regimes; down-weight signals that historically failed in current regime; (2) Dynamic weighting: exponentially decay the weighting scheme so recent IC gets more weight (adapts to changing alpha sources); (3) Signal dispersion filter: signals tend to work better when cross-sectional dispersion (variance of cross-section returns) is high; in low-dispersion environments, reduce exposure; (4) Bayesian updating: treat signal strength as uncertain, update the prior with recent observations. The risk of over-adapting: if you reduce signal weights based on recent poor performance, you may abandon a genuinely good signal during a temporary regime shift, missing the subsequent recovery."
+    },
+    {
+      "q": "What distinguishes a genuine alpha signal from a risk factor?",
+      "a": "The distinction is subtle and debated: a risk factor is compensation for bearing systematic risk that cannot be diversified away (e.g., market beta, value premium as compensation for distress risk). An alpha signal is an exploitable inefficiency that provides above-risk-adjusted returns without bearing new systematic risk. Practical test: regress the signal's long-short portfolio on all known risk factors (Fama-French five-factor + momentum + liquidity). If the intercept (alpha) is statistically significant, the signal captures incremental information. If the intercept is zero and the factor loadings explain all the return, it's a factor exposure, not alpha. Many 'alpha signals' are eventually shown to be disguised factor exposures (e.g., earnings momentum partially subsumes price momentum). True alpha should have near-zero correlation with known factors, positive intercept, and shrink in capacity as it's exploited."
+    }
+  ],
+  "sources": [
+    { "label": "Grinold, R.C. (1989) — The Fundamental Law of Active Management, JPM", "url": "https://doi.org/10.3905/jpm.1989.409211" },
+    { "label": "Harvey, C.R., Liu, Y. & Zhu, H. (2016) — … and the Cross-Section of Expected Returns, RFS", "url": "https://doi.org/10.1093/rfs/hhv059" }
+  ]
+}

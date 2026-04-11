@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Risk parity is a portfolio construction approach where you allocate capital so that each asset contributes equally to total portfolio risk — not equal capital, but equal risk. A traditional 60/40 portfolio (60% stocks, 40% bonds) sounds balanced, but stocks are ~3× more volatile than bonds, so equities contribute ~90% of total portfolio risk. Risk parity fixes this by leveraging the bonds to match the risk contribution of equities.",
+    "The intuition: a diversified portfolio should not have any single asset dominating its risk. If equities dominate, you're effectively in an equity-only portfolio with some noise from bonds. By equalising risk contributions, you get true diversification across asset classes — equity risk, interest rate risk, and commodity risk all contribute equally.",
+    "Risk parity portfolios (championed by Bridgewater's 'All Weather' and AQR's risk parity funds) typically require leverage on the bond portion to equalise risk contributions. They historically have high Sharpe ratios (because bonds and equities have low correlation and bonds have high Sharpe per unit of risk). The main risk: leverage amplifies losses; in a rising rate environment, both stocks and bonds can fall simultaneously."
+  ],
+  "whenWhy": [
+    {
+      "title": "Risk contribution decomposition",
+      "body": "Portfolio volatility: σ_p = √(w' Σ w). Risk contribution of asset i: RC_i = w_i × (Σw)_i / σ_p = w_i × ∂σ_p/∂w_i. This is the marginal contribution to risk times the weight. Properties: Σ_i RC_i = σ_p (risk contributions sum to total risk); RC_i / σ_p = fractional risk contribution of asset i. For equal risk parity: target RC_i = σ_p / N for all i. This is a non-linear system of equations — cannot be solved analytically but solved iteratively. Simple approximation (no correlation): w_i ∝ 1/σ_i. With correlations: use iterative gradient descent or sequential quadratic programming. Bridgewater All Weather: four asset classes (stocks, bonds, gold, commodities); each contributes 25% of risk; leverage applied to low-volatility assets."
+    },
+    {
+      "title": "Historical performance and Sharpe properties",
+      "body": "Risk parity performance: historically higher Sharpe than 60/40 due to: (1) Better diversification across risk sources; (2) Leverage on bonds (which have high Sharpe per unit of risk); (3) Systematic rebalancing (buys more of what has fallen in relative vol terms). Evidence: Asness, Frazzini & Pedersen (2012) show risk parity portfolios (leveraged to match 60/40 volatility) have Sharpe ratio ~0.5 vs. ~0.4 for 60/40. The leverage is achievable at low cost via futures. The 2022 regime: risk parity suffered dramatically as interest rates rose sharply — bonds and equities both fell simultaneously (positive correlation in 2022 vs. negative correlation in 2000-2020). The diversification assumption (negative bond-equity correlation) broke down. AQR's risk parity fund lost ~30% in 2022. This is the key tail risk: risk parity is a bet on the bond-equity negative correlation holding."
+    },
+    {
+      "title": "Implementation: leveraged bonds and volatility targeting",
+      "body": "Risk parity implementation: (1) Estimate each asset's volatility (rolling 60-day exponentially weighted); (2) Compute target weights: w_i ∝ 1/σ_i (simplified); (3) Scale to target portfolio volatility (e.g., 10%); (4) Lever up low-vol assets using futures (bond futures: notional exposure >> market value; 1% initial margin = 100× leverage on notional). Futures-based implementation: hold 10-year Treasury futures to get bond exposure; hold equity index futures; hold commodity futures; hold 2-year Treasury for money market return; net notional exposure >> portfolio NAV. Daily volatility targeting: if overall portfolio vol rises above target, reduce all positions proportionally. Weekly or monthly rebalancing: rebalance to equal risk contribution when weights drift significantly. The leverage cost: financing T-bills - overnight repo rate = typically small (< 0.5%/year in normal environments); but could be significantly higher in credit crises."
+    }
+  ],
+  "deepDiveIntro": [
+    "Risk contribution formula: RC_i = w_i × [Σw]_i / σ_p. Equal risk parity condition: RC_i = RC_j for all i,j ⟹ w_i × [Σw]_i = w_j × [Σw]_j. Numerical solution: gradient descent on objective: L(w) = Σ_{i<j} (RC_i - RC_j)². Alternative formulation: maximise diversification ratio = Σ_i w_i σ_i / σ_p (ratio of weighted average volatility to portfolio volatility); DR = 1 for fully correlated; DR = √N for uncorrelated equal-weight. Risk parity maximises diversification ratio. Closed-form solution with zero correlations: w_i = (1/σ_i) / Σ_j(1/σ_j). With non-zero correlations: iterative solution required; convergence in 10-100 iterations."
+  ],
+  "deepDive": [
+    {
+      "heading": "Risk Parity Within Equities: Factor Risk Parity",
+      "body": "Risk parity can be applied not just across asset classes but within equity portfolios across factors. Factor risk parity: (1) Define K factors (market, value, momentum, quality, low-vol); (2) Estimate factor covariance matrix; (3) Allocate to each factor such that each contributes equally to total factor portfolio risk; (4) Translate factor weights to stock weights via the factor-mimicking portfolios. Benefits: (1) Prevents any single factor from dominating (e.g., in a high-volatility environment, market factor would dominate an equal-factor-weight portfolio; risk parity reduces market weight); (2) Systematic response to factor correlation changes (when value-momentum correlation spikes, the optimiser reduces exposure to both to maintain equal contribution); (3) Robust to factor return estimation errors (risk parity doesn't need expected returns). Criticism (Asness 2016): risk parity within factors misses that some factors have higher expected Sharpe than others — equal risk is not equal Sharpe. The correct allocation maximises Sharpe by weighting factors by their expected IR, not by their inverse volatility. [1]"
+    },
+    {
+      "heading": "Leveraged Risk Parity and Interest Rate Risk",
+      "body": "Risk parity requires leverage on bonds — the bond portfolio notional is typically 3-5× the equity notional to equalise risk contributions. This creates: (1) Duration extension: more bond exposure → higher portfolio duration; rate sensitivity; (2) Carry cost: borrowing costs (financing rate) reduce bond returns; if financing rate = 5%, bond yield = 5%, net carry ≈ 0%; real return comes from roll yield and price appreciation; (3) Convexity benefit: levered bonds have positive convexity — they benefit from rate volatility (price of bond > par when rates are volatile); (4) Correlation regime risk: when stock-bond correlation turns positive (2022), the diversification benefit of bonds disappears; levered risk parity suffers from both lower returns AND no offsetting bond gains during equity drawdowns. Historical correlation: 1950-1990: positive stock-bond correlation (both hurt by inflation); 1990-2020: negative correlation (Fed responds to recessions with rate cuts = bond gains offset equity losses). Post-2020 inflationary regime: correlation has turned positive again. [2]"
+    },
+    {
+      "heading": "All Weather Portfolio and Bridgewater's Framework",
+      "body": "Bridgewater's All Weather portfolio (Ray Dalio) is designed to perform in all economic environments. Framework: four economic regimes defined by growth and inflation: (1) Higher growth: equities, commodities; (2) Lower growth: bonds, gold; (3) Higher inflation: commodities, gold, inflation-linked bonds; (4) Lower inflation: equities, bonds. In each regime, hold the assets that perform well. Over time, you cannot predict which regime you're in, so hold a balanced portfolio across all four. Asset allocation (approx.): 30% equities, 40% bonds, 15% gold, 7.5% commodities, 7.5% inflation-linked bonds — with leverage on bonds. Performance: 7.5% average annual return, 3.5% volatility (1991-2020); Sharpe ≈ 1.0 — excellent risk-adjusted. 2022: -21.2% (inflation regime hurt bonds severely). The framework remains valid conceptually; 2022 was the first time in 30 years that all four asset classes fell simultaneously — an unprecedented regime that violated the diversification assumption. [1]"
+    }
+  ],
+  "takeaways": [
+    "Risk parity: RC_i = w_i × [Σw]_i / σ_p; allocate so all RC_i are equal — requires leverage on low-vol assets. [1]",
+    "Simple approximation: w_i ∝ 1/σ_i (equal volatility weighting); full RP uses full covariance matrix. [1]",
+    "Higher Sharpe than 60/40 historically (+0.1-0.2) due to better diversification and leveraged bond Sharpe. [1]",
+    "2022 failure: positive stock-bond correlation broke diversification assumption; risk parity -21% as both fell. [2]",
+    "All Weather: balance across four economic regimes (growth×inflation); asset allocation based on economic environment. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How does risk parity handle assets with near-zero or negative expected returns?",
+      "a": "Risk parity ignores expected returns — it only uses volatilities and correlations. This is by design: it avoids the estimation error in expected returns. But it means risk parity will hold assets with negative expected returns if they have low volatility and low/negative correlation with other assets. Example: in 2020-2021, 10-year Treasury yields were near zero; expected real returns were negative. Risk parity still held levered bonds because their volatility (duration risk) was relevant for diversification. The portfolio held them anyway. Criticism: risk parity is agnostic about return — it sacrifices expected return for diversification. Practitioners add return filters: if the carry of an asset is deeply negative (e.g., bond yield < financing cost), cap the allocation. Or use Black-Litterman with a risk parity prior: add negative views on assets with negative carry, updating the allocation away from pure risk parity."
+    },
+    {
+      "q": "What is the optimal rebalancing frequency for risk parity?",
+      "a": "Risk parity portfolios drift as volatilities and correlations change. Rebalancing too frequently: high turnover costs; high sensitivity to noise in short-term volatility estimates; chasing every VIX spike. Rebalancing too infrequently: risk contributions drift significantly; in a stress environment, equity volatility may triple while bond volatility is flat — the portfolio becomes equity-dominated, losing its diversification. Optimal rebalancing: (1) Monitor risk contributions daily; rebalance when any asset's contribution deviates by more than 20% from its target (threshold-based, not calendar-based); (2) Smooth volatility estimates: use 60-day EWMA instead of 21-day to reduce noise; (3) Use band rebalancing (rebalance only when weight deviates by >5% from target); (4) Avoid rebalancing into selling pressure: don't aggressively rebalance immediately after a crash when transaction costs are highest; allow some tolerance in extreme environments. Most institutional risk parity funds rebalance monthly with tactical daily adjustments."
+    }
+  ],
+  "sources": [
+    { "label": "Asness, C., Frazzini, A. & Pedersen, L.H. (2012) — Leverage Aversion and Risk Parity, FAJ", "url": "https://doi.org/10.2469/faj.v68.n1.1" },
+    { "label": "Roncalli, T. (2013) — Introduction to Risk Parity and Budgeting", "url": "https://doi.org/10.2139/ssrn.2272973" }
+  ]
+}

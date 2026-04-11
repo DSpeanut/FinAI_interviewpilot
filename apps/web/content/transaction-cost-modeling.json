@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Transaction cost modelling is the science of estimating how much it costs to trade — not just commissions, but all the hidden costs: the bid-ask spread you cross, the price impact of your own trading (you move the market when you buy or sell large amounts), and the opportunity cost of not trading when you should.",
+    "These costs are often the difference between a profitable strategy and a losing one. A momentum strategy that earns 0.5% per month gross but costs 0.4% per month in transaction costs earns only 0.1% net — not worth the risk. Accurate cost modelling determines which strategies are viable and at what scale.",
+    "The two key components: (1) Pre-trade cost estimation: predict what a trade will cost BEFORE executing it, to decide whether to trade at all; (2) Post-trade analysis: measure what a trade actually cost versus a benchmark (typically the arrival price or VWAP) to assess execution quality and improve future execution."
+  ],
+  "whenWhy": [
+    {
+      "title": "Components of transaction costs",
+      "body": "Total transaction cost breakdown: (1) Explicit costs: commission (0.01-0.05%); exchange fees (0.005-0.02%); stamp duty/transaction tax (UK: 0.5%); FX conversion costs for international equities; (2) Bid-ask spread: half-spread = (ask - bid) / 2; represents immediacy cost; large-cap US: 0.01-0.05%; small-cap: 0.2-1%; in stressed markets: 5-10×; (3) Market impact: price moves against you as you trade; arises because your order conveys information; permanent impact (information) + temporary impact (supply/demand imbalance); (4) Timing/opportunity cost: not all desired trades can be executed immediately; price may move against you while waiting; (5) Slippage: difference between decision price (signal at close) and execution price (next day's open or VWAP); measures signal decay."
+    },
+    {
+      "title": "The square-root market impact model",
+      "body": "The Almgren-Chriss (2001) market impact model is the industry standard: temporary market impact ≈ η × σ × (v/ADV)^γ, where v = trade size (shares), ADV = average daily volume, σ = daily volatility, η = market impact coefficient, γ ≈ 0.5 (the 'square root' law). Example: trading 5% of ADV in a stock with σ = 2%/day: impact ≈ 0.1 × 2% × (0.05)^0.5 ≈ 0.1 × 2% × 0.22 ≈ 0.045% = 4.5 bps. Impact scales sub-linearly with trade size (square root, not linear) — empirically validated across markets. This means: doubling trade size increases impact by √2 × (not 2×). Practical implication: large positions are relatively cheaper per unit to build than expected; but capacity is still limited because √ADV × position_fraction grows as position grows. Total impact for a portfolio: Σ_i (trade_i × impact_i) ≥ 0.1-0.5% of AUM/year for typical quant equity strategies."
+    },
+    {
+      "title": "Implementation shortfall and VWAP benchmarks",
+      "body": "Implementation shortfall (IS): total trading cost measured as: IS = (P_execution - P_decision) × quantity / portfolio_value. P_decision = price at time of investment decision (e.g., yesterday's close); P_execution = volume-weighted average execution price across all trades. IS decomposes into: (1) Market impact (permanent + temporary); (2) Timing risk (holding inventory while executing); (3) Opportunity cost (shares not executed if order canceled). VWAP (Volume Weighted Average Price) benchmark: compare execution price to the market VWAP for the day. VWAP is achievable by passive participation throughout the day (trade proportional to volume profile). VWAP shortfall: execution price - VWAP; positive = worse than VWAP. Post-trade analysis: measure IS and VWAP shortfall for all trades; decompose by trade size, liquidity, time of day; feed back into the pre-trade cost model. TCA (Transaction Cost Analysis) providers: Virtu Analytics, ITG, Abel Noser."
+    }
+  ],
+  "deepDiveIntro": [
+    "Almgren-Chriss framework: optimal execution of a large order (X shares) over time horizon T. Trade schedule: x_t shares per period. Objective: minimise expected cost + risk (variance of costs from market impact and price risk). Optimal solution: for linear temporary impact and linear permanent impact, the optimal schedule is uniform (TWAP — Time Weighted Average Price) for risk-neutral investor; more front-loaded for risk-averse investor (execute faster to reduce timing risk). Mathematical formulation: min E[cost] + λ × Var[cost], where λ = risk aversion. Solution: x_t* = X/T × [cosh(κ(T-t)) / cosh(κT)], where κ = √(λη_temp × σ²). Small κ (low risk aversion): TWAP; large κ (high risk aversion): front-loaded."
+  ],
+  "deepDive": [
+    {
+      "heading": "Optimal Execution Strategies: TWAP, VWAP, IS",
+      "body": "TWAP (Time Weighted Average Price): execute equal shares each period across the day. Minimises market timing risk; ignores intraday volume patterns. Appropriate when: trade urgency is low, stock has volatile volume profile, information is not time-sensitive. VWAP: execute shares proportional to historical intraday volume profile (typically U-shaped: high volume at open and close). Better than TWAP for reducing market impact (trades concentrate when liquidity is highest). POV (Percentage of Volume): trade at a fixed percentage of observed market volume (e.g., 10% of ADV). More adaptive than VWAP; but risk of taking too long if volume is low. IS (Implementation Shortfall, 'arrival price'): trade aggressively at open to lock in arrival price; accept market impact in exchange for low timing risk. Appropriate when: signal decays rapidly (momentum strategies need fast execution); information edge is time-sensitive. RL-based execution: train a reinforcement learning agent to minimise IS; the agent learns intraday execution strategies from historical data, adapting to current market microstructure conditions. [1]"
+    },
+    {
+      "heading": "Pre-Trade Cost Estimation for Portfolio Optimisation",
+      "body": "In portfolio optimisation, transaction costs must be incorporated before the trade, not measured after. Pre-trade cost model: for each potential trade (Δw_i): cost_i = half_spread_i + market_impact_i = (s_i/2) × |Δw_i × portfolio_value| + η × σ_i × √(|Δw_i × portfolio_value| / ADV_i × price_i). Feed into optimiser: cost-aware objective: max E[r] - (λ/2) σ²_p - Σ_i cost_i(Δw_i). The cost function is convex (sum of convex functions) — the optimiser naturally trades off signal vs. cost. Adaptive alpha decay: high-turnover signals (momentum, short-term reversal) have higher urgency to trade (alpha decays fast); adjust the α parameter in the IS execution model accordingly. Portfolio-level cost estimation: sum trade costs across all positions; compare to expected gross alpha; if net alpha < 0, reduce trade size or widen thresholds. The 'five-factor model of costs': spread, impact, timing, opportunity, risk premium for urgency. [2]"
+    },
+    {
+      "heading": "High-Frequency Transaction Costs and Microstructure",
+      "body": "At high frequency (HFT), transaction costs are fundamentally different: at millisecond timescales, the bid-ask spread is the primary cost and market impact is negligible. Adverse selection: when trading against informed order flow, your execution is worse than average (informed traders know the true value; you're on the wrong side of their trade). Adverse selection cost is the primary hidden cost at HF. Queue position: limit orders at the inside bid/ask get filled based on queue position; earlier submissions get priority. Rebate vs. maker-taker models: exchanges pay rebates for adding liquidity (limit orders); charge fees for taking liquidity (market orders). A market-making strategy earns the spread (+ rebate) by posting limit orders on both sides. Latency: at microsecond timescales, being slower by 10 microseconds means being behind in the queue; firms spend millions on co-location and low-latency infrastructure. For most institutional investors (not HFT): these microstructure effects are noise (they average out over larger orders and longer holding periods); focus on spread and market impact. [1]"
+    }
+  ],
+  "takeaways": [
+    "Square-root impact model: impact ≈ η × σ × (trade/ADV)^0.5; sub-linear scaling makes large trades cheaper per unit than expected. [1]",
+    "IS (implementation shortfall) = execution price - decision price; benchmarks actual vs. theoretical cost. [1]",
+    "Almgren-Chriss optimal execution: TWAP for risk-neutral; front-loaded for risk-averse (faster = less timing risk). [1]",
+    "Pre-trade cost estimation feeds into portfolio optimiser: cost-aware objective naturally limits turnover. [2]",
+    "TCA (Transaction Cost Analysis): post-trade decomposition into spread, impact, timing; feed back to improve execution. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you estimate transaction costs for a strategy before it goes live?",
+      "a": "Pre-live cost estimation requires: (1) Historical bid-ask spread data (often not in standard price databases; requires TAQ data for US equities, MiFID data for Europe); (2) Historical volume data (ADV computation); (3) Market impact model calibration: use empirical estimates of η from academic literature (0.1-0.5 depending on market/time period) or from broker research. In absence of live trades, use simulation: (1) Paper trading: simulate the strategy with a realistic execution model for 3-6 months before going live; (2) Broker pre-trade analytics: Goldman Sachs, JPMorgan, Morgan Stanley provide pre-trade cost estimates for specific trades via their electronic trading desks; (3) Academic benchmarks: Hou, Xue & Zhang (2020) report that ~85% of published anomalies have positive gross returns but negative net-of-cost returns in small-caps; their transaction cost estimates calibrated to institutional trading (not retail) provide conservative benchmarks. Key check: strategy remains viable when ADV participation rate is capped at 5-10% (institutional limit)."
+    },
+    {
+      "q": "What is price impact and how does it differ from adverse selection?",
+      "a": "Market impact and adverse selection are related but distinct: (1) Market impact (mechanical): when you submit a buy order, you shift the demand curve; liquidity providers respond by raising their ask price. This is a supply-demand effect independent of information. It's temporary — prices eventually revert. (2) Adverse selection (informational): if you're buying because you have positive information, liquidity providers update their belief that the asset is underpriced and permanently raise prices. The permanent component of market impact is adverse selection. Measurement: Hasbrouck's vector autoregression model decomposes price impact into permanent (information) and temporary (inventory) components. For institutional investors with genuine alpha: the permanent component means your own trading moves the price toward fair value, reducing subsequent profit. This is the capacity constraint: as you trade more, you 'price in' your own signal faster. Truly uninformed institutional trading (index rebalancing, ESG transitions) has near-zero adverse selection — only temporary impact."
+    }
+  ],
+  "sources": [
+    { "label": "Almgren, R. & Chriss, N. (2001) — Optimal Execution of Portfolio Transactions, Journal of Risk", "url": "https://doi.org/10.21314/JOR.2001.022" },
+    { "label": "Grinold, R.C. & Kahn, R.N. — Active Portfolio Management (2nd ed.), McGraw-Hill", "url": "https://www.mhprofessional.com/active-portfolio-management-9780070248823-usa" }
+  ]
+}

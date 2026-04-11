@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Interest rate models describe how interest rates evolve randomly over time. Unlike stocks, interest rates are mean-reverting (they don't wander off to infinity; they pull back toward a long-run level) and have complex term structure dynamics (short rates and long rates don't move in lockstep). These properties require specialised models beyond simple GBM.",
+    "There are two main families: short-rate models (model the instantaneous short rate r_t; derive bond prices from it) and forward-rate models (model the entire yield curve directly). Short-rate models: Vasicek (mean-reverting Gaussian), CIR (mean-reverting, always positive), Hull-White (time-varying mean, fits today's yield curve exactly). Forward-rate models: Heath-Jarrow-Morton (HJM) framework models all forward rates simultaneously.",
+    "These models are essential for pricing interest rate derivatives: bond options, caps, floors, swaptions, callable bonds, MBS. They're used by fixed income desks at banks and asset managers to hedge interest rate risk, price structured products, and manage duration."
+  ],
+  "whenWhy": [
+    {
+      "title": "Vasicek model: mean-reverting short rate",
+      "body": "dr_t = κ(θ - r_t) dt + σ dW_t. Parameters: κ = mean reversion speed, θ = long-run mean rate, σ = volatility. Solution: r_t = r_0 e^{-κt} + θ(1 - e^{-κt}) + σ ∫₀ᵗ e^{-κ(t-s)} dW_s. Distribution: r_t ~ N(r_0 e^{-κt} + θ(1-e^{-κt}), σ²(1-e^{-2κt})/(2κ)). Bond price: P(t,T) = A(t,T) exp(-B(t,T) r_t), where B(t,T) = (1-e^{-κ(T-t)})/κ, and A(t,T) is a deterministic function. This is an affine model — bond prices are exponential-affine in r_t. Zero-coupon yield: y(t,T) = -ln(P(t,T))/(T-t) = -A(t,T)/(T-t) + B(t,T)/(T-t) × r_t. Vasicek limitation: r_t can go negative (Gaussian). Vasicek advantage: analytical tractability (bond prices, European bond options have closed forms)."
+    },
+    {
+      "title": "Hull-White model: calibrating to the current yield curve",
+      "body": "Hull-White (1990): dr_t = [θ(t) - κr_t] dt + σ dW_t. θ(t) is a time-varying function chosen to exactly reproduce today's observed yield curve P*(0,T) for all T. Calibration: θ(t) = ∂f*(0,t)/∂t + κf*(0,t) + σ²(1-e^{-2κt})/(2κ), where f*(0,t) is today's observed instantaneous forward rate. The Hull-White model is an extension of Vasicek that fits today's term structure by construction. This market-consistent calibration is essential for derivatives pricing — a model that doesn't match observable bond prices would produce arbitrage-free but practically useless option prices. Hull-White is the industry standard for pricing caps, floors, swaptions, and callable bonds. European swaption prices: closed-form; American/Bermudan swaptions: use trinomial tree or Monte Carlo."
+    },
+    {
+      "title": "CIR model: guaranteed positive rates",
+      "body": "Cox-Ingersoll-Ross (1985): dr_t = κ(θ - r_t) dt + σ√r_t dW_t. The σ√r_t diffusion ensures r_t stays positive when 2κθ > σ² (Feller condition). Distribution: non-central chi-squared (scaled). Bond prices: affine structure P(t,T) = A(t,T) exp(-B(t,T)r_t) with different A,B than Vasicek. CIR was preferred in the pre-2015 era when negative rates were impossible. Post-2015 (ECB, BOJ pushed rates below zero), Gaussian models (Vasicek, Hull-White) became more relevant. Extended CIR (calibrated to current yield curve like Hull-White) used for swaptions. Key limitation: the square-root diffusion makes the model harder to calibrate and less flexible than Gaussian models."
+    }
+  ],
+  "deepDiveIntro": [
+    "Heath-Jarrow-Morton (HJM) framework (1992): models the evolution of the entire forward rate curve f(t,T) (instantaneous forward rate at time t for maturity T) directly. Under risk-neutral measure Q: df(t,T) = α(t,T) dt + σ(t,T) dW_t. No-arbitrage (HJM drift condition): α(t,T) = σ(t,T) ∫_t^T σ(t,s) ds (the drift is fully determined by the volatility structure). The bond price: P(t,T) = exp(-∫_t^T f(t,s) ds). HJM is a general framework; Vasicek, CIR, and Hull-White are special cases with specific volatility functions σ(t,T). The Libor Market Model (LMM/BGM) is an HJM model for discretely compounded forward rates — the market standard for interest rate derivatives since the late 1990s."
+  ],
+  "deepDive": [
+    {
+      "heading": "LIBOR Market Model (Brace-Gatarek-Musiela)",
+      "body": "The LMM models a set of forward LIBOR rates L_k(t) (the rate at time t for the period [T_k, T_{k+1}]). Under the T_{k+1}-forward measure: dL_k(t) = σ_k(t) L_k(t) dW_k^{T_{k+1}}(t). This is a log-normal model for each forward rate — Black's formula applies, giving Black's caplet formula: caplet price = (T_{k+1} - T_k) × B(0, T_{k+1}) [L_k(0) N(d₁) - K N(d₂)], where d₁,d₂ are the standard Black formula terms with σ_k as volatility. Under a single measure, forward rates are not log-normal simultaneously — requires drift corrections. Monte Carlo simulation of the full rate curve is standard. Advantages: (1) Directly calibrates to observed cap/floor prices (market implied Black vols); (2) Natural for pricing caps, floors, swaptions; (3) Can be extended to stochastic volatility (SABR-LMM). Disadvantage: high-dimensional simulation needed for long-dated products. [1]"
+    },
+    {
+      "heading": "Negative Rates and the Shifted Lognormal Model",
+      "body": "Post-2015, ECB and BOJ drove short rates below zero (ECB deposit rate reached -0.5%). Standard log-normal models (CIR, LMM) cannot handle negative rates — log of a negative number is undefined. Solutions: (1) Shifted lognormal model: model L_k(t) + s as log-normal (shift s = 1-3%, so rates can go as low as -s); (2) Normal SABR: instead of log-normal dynamics, use normal (Gaussian) dynamics for the forward rate; rates can be negative; implied vol is 'normal vol' (in bps, not %); (3) Hull-White (Gaussian): already handles negative rates naturally. Practical calibration: for EUR and JPY markets post-2015, practitioners shifted to normal vol convention and shifted-lognormal/Hull-White models. USD, GBP markets retained log-normal convention. This created a period of model fragmentation across currencies. As rates normalised post-2022, log-normal models regained dominance. [2]"
+    },
+    {
+      "heading": "Yield Curve Factor Models: PCA Decomposition",
+      "body": "The yield curve moves in non-random ways: empirical analysis shows 3 principal components explain >95% of yield curve variance. PC1: parallel shift (level) — all maturities move together; explains ~80% of variance. PC2: slope (twist) — short rates and long rates move in opposite directions; explains ~12%. PC3: curvature (butterfly) — medium-term rates move vs. short and long rates; explains ~5%. Risk management application: hedge bond portfolio against these 3 PCs rather than against every maturity independently (duration ladder). Two-factor models: model short rate r and long rate l separately; captures level + slope. Three-factor models (Litterman-Scheinkman 1991): add curvature. Factor models for risk: PCA on daily yield changes → 3 factor shocks → repriced portfolio in each scenario → factor VaR. This is the standard approach for interest rate risk management in fixed income portfolios. [2]"
+    }
+  ],
+  "takeaways": [
+    "Vasicek: dr = κ(θ-r)dt + σdW; mean-reverting Gaussian; bond prices are affine; can go negative. [1]",
+    "Hull-White: adds time-varying θ(t) to calibrate exactly to today's yield curve — industry standard for IR derivatives. [1]",
+    "CIR: dr = κ(θ-r)dt + σ√r dW; stays positive (Feller condition: 2κθ > σ²). [1]",
+    "HJM drift condition: forward rate drift = σ × ∫σ ds — no-arbitrage restricts drift from vol. [1]",
+    "3 PCs explain >95% of yield curve moves: level (~80%), slope (~12%), curvature (~5%). [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you choose between Hull-White and LMM for a specific product?",
+      "a": "Hull-White: best for products with American/Bermudan exercise (callable bonds, Bermudan swaptions) where tree methods work well; also best when you need a fast, analytically tractable model calibrated to the current curve; simpler calibration (κ, σ). LMM: best for products with complex cash flow structures, correlation-dependent payoffs (spread options between different maturity rates), or when you need to calibrate to the full cap/floor volatility smile simultaneously. LMM requires Monte Carlo (no tree), is slower, but can calibrate to 50+ volatility quotes simultaneously. Hybrid products: some practitioners use Hull-White for swaptions and LMM for caps within the same risk system — this creates model inconsistency but is pragmatically manageable."
+    },
+    {
+      "q": "What is the SOFR transition's impact on interest rate models?",
+      "a": "LIBOR was replaced by risk-free rates (RFRs) globally by end-2021: SOFR (USD), SONIA (GBP), ESTR (EUR). Key modelling differences: (1) SOFR is an overnight rate compounded in arrears over a period; LIBOR was a term rate set in advance. This changes the timing of cash flow determination; (2) SOFR compounded in arrears is known only at end of the period — products referencing SOFR need different pricing framework than LIBOR products; (3) LMM directly models term LIBOR rates; for SOFR, models need to work with compounded overnight rates or, where available, term SOFR rates; (4) Correlation structure differs: SOFR is more volatile than LIBOR (which had built-in expectation smoothing); volatility surfaces need re-estimation. The transition required significant model updates at all major financial institutions."
+    }
+  ],
+  "sources": [
+    { "label": "Hull, J.C. & White, A. (1990) — Pricing Interest-Rate-Derivative Securities, RFS", "url": "https://doi.org/10.1093/rfs/3.4.573" },
+    { "label": "Litterman, R. & Scheinkman, J. (1991) — Common Factors Affecting Bond Returns, JPM", "url": "https://doi.org/10.3905/jfm.1991.409506" }
+  ]
+}

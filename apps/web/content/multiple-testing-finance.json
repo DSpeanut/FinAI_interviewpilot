@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "The multiple testing problem in finance: if you test 100 strategies on historical data, roughly 5 will appear to have statistically significant results by pure chance (at the 5% significance level), even if none of them actually work. With hundreds of researchers testing thousands of factor ideas, many 'discoveries' are just random noise dressed up as alpha.",
+    "This is also called p-hacking, data-snooping, or data-mining. The standard statistical test (p < 0.05) was designed for testing one hypothesis. When you test many hypotheses and report only the significant ones, you're implicitly running a selection process that finds fake patterns. Finance has a severe version of this problem because: (1) there's a lot of historical data to mine, (2) many researchers test similar ideas, and (3) journals publish primarily positive results.",
+    "The solution is to adjust for the number of tests conducted, validate out-of-sample, and require higher statistical bars for new discoveries. Harvey, Liu & Zhu (2016) showed most of the 316+ published equity factors likely have no genuine predictive power after correcting for multiple testing."
+  ],
+  "whenWhy": [
+    {
+      "title": "Understanding the false discovery problem",
+      "body": "Setup: test K independent strategies, each with true zero alpha. Each test has 5% false positive rate. Expected false positives = K × 0.05. For K = 100: expect 5 false 'discoveries.' For K = 1,000: expect 50 false discoveries. If researchers report only significant results and journals publish only those, all published results may be false positives. In practice, researchers don't just test K independent strategies — they test K × M parameter combinations (K strategies, M parameter sets). A researcher testing 10 strategies with 20 parameter sets each effectively runs 200 tests. The p-value from reporting the best combination is not 0.05 — it's much higher. Harvey, Liu & Zhu (2016): with 316 published factors, the 5% significance threshold corresponds to an actual false discovery rate of 44% — nearly half of published factors may be spurious. Required t-statistic for genuine discovery: at least 3.0 (not the conventional 2.0)."
+    },
+    {
+      "title": "Bonferroni, BH, and FDR corrections",
+      "body": "Correction methods for multiple testing: (1) Bonferroni correction: divide significance threshold by number of tests. For K = 100 tests at family-wise error rate 5%: require p < 0.05/100 = 0.0005 for each test. Very conservative — high false negative rate (rejecting genuine discoveries). (2) Benjamini-Hochberg (BH) procedure: controls False Discovery Rate (FDR) = expected fraction of rejections that are false positives. Less conservative than Bonferroni. Steps: sort p-values p_(1) ≤ p_(2) ≤ ... ≤ p_(K); find largest k such that p_(k) ≤ k × α / K; reject all null hypotheses for tests 1 through k. At α = 5%: at most 5% of reported discoveries are expected to be false; (3) Storey q-value: adaptive FDR that estimates the fraction of true nulls; less conservative than BH when many nulls are true. Finance application: in scanning N signals for IC significance, require all signals to pass BH-corrected threshold before reporting as discoveries."
+    },
+    {
+      "title": "The Probability of Backtest Overfitting (PBO)",
+      "body": "Bailey & Lopez de Prado (2014): the Probability of Backtest Overfitting (PBO) measures how likely it is that the strategy that performed best in-sample also performs best out-of-sample. Algorithm: apply CPCV — test all train/test combinations; for each combination, record which strategy (or parameter set) was best in-sample; check if that same strategy was best out-of-sample. PBO = fraction of combinations where the best in-sample strategy is NOT the best out-of-sample. PBO close to 0 = strategy is robust; PBO = 0.5 = random (best in-sample is 50/50 to be best out-of-sample); PBO close to 1 = severely overfit. Interpretation: a strategy with PBO = 0.3 has 30% probability that the selected parameter set was chosen by luck. For publication or deployment: require PBO < 0.05."
+    }
+  ],
+  "deepDiveIntro": [
+    "The expected maximum Sharpe ratio from N iid strategies with zero true alpha and T observations: E[max_i S_i | N, T] ≈ (2 ln N)^{0.5} - [(ln ln N + ln(4π)) / (2(2 ln N)^{0.5})]. For N = 100, T = 60 monthly observations: E[max S] ≈ 3.0. This means: observing a backtest Sharpe of 3.0 from 100 strategies tested provides ZERO evidence of skill — it's exactly what chance predicts. Required minimum backtesting period for significance at 5% level given N strategies tested: T* = (N_σ²_S / ε²) × [correction for N]. Harvey, Liu & Zhu (2016) minimum t-statistic: t* = 3.0 for a new factor to be considered genuinely significant given the literature's testing history."
+  ],
+  "deepDive": [
+    {
+      "heading": "The Factor Zoo and Publication Bias",
+      "body": "Harvey, Liu & Zhu (2016) catalogued 316 published equity factors. At the conventional t-statistic threshold of 2.0, roughly 50 of these (16%) are expected to be false positives. But publication bias — journals preferentially publishing positive results — makes this worse: the distribution of published t-statistics is truncated at 2.0 (below which results are rarely published). The actual distribution of tested-but-unpublished factors has a much lower mean t-statistic. This selection effect means the published literature systematically overstates factor significance. Estimate: with 316 published factors and assumed p-hacking, the required t-statistic for a new factor to be genuinely novel is 3.0. Other estimates (Hou, Xue & Zhang 2020): tested 452 anomalies; only 68 (15%) survive standard risk adjustments and transaction cost filtering. The 'factor zoo' is 85% noise. Implication for practitioners: only use factors with long out-of-sample track records, multiple independent replications, and strong economic rationale. [1]"
+    },
+    {
+      "heading": "Data Snooping in Strategy Development",
+      "body": "Data snooping is subtler than running 100 explicit tests. It happens unconsciously when a researcher: (1) Tries multiple signal formulations until finding one that works ('12-1 month momentum didn't work; let me try 12-2; 12-3;...'); (2) Adjusts the universe (including/excluding certain stocks) until performance improves; (3) Changes the rebalancing frequency until Sharpe increases; (4) Adds filters (e.g., 'only trade if volume > average') that seem reasonable but were selected because they improved the backtest. Each modification is an implicit hypothesis test. With 20 modifications, even if each seems individually justified, the effective number of tests is 20. White's Reality Check bootstrap: (1) Compute the test statistic (Sharpe) for the base strategy and all modifications; (2) Bootstrap the distribution of the maximum test statistic under the null that all strategies have zero alpha; (3) Compare observed maximum to this distribution. p-value = fraction of bootstrap simulations where the maximum exceeds the observed. Robust to unknown number of implicit tests. [2]"
+    },
+    {
+      "heading": "Cross-Sectional vs. Time-Series Multiple Testing",
+      "body": "Multiple testing in finance occurs in two dimensions: (1) Cross-sectional (factor selection): testing N signals on the same data to find predictors of cross-sectional returns. Corrections: Bonferroni, BH-FDR. Each signal is a hypothesis; find the set of signals with controlled FDR; (2) Time-series (parameter optimization): testing N parameter sets for the same signal on the same time series. Corrections: White's Reality Check, CPCV, Deflated Sharpe Ratio. Find whether the best parameter set is genuinely better than chance; (3) Joint (factor + parameter): most realistic scenario — researcher tests N signals × M parameter sets = N×M tests. Very few survive the joint correction. In practice: (1) Reduce the number of candidate factors by requiring a priori economic justification; (2) Fix parameter ranges based on economic intuition before looking at data; (3) Report all specifications tested, not just the best; (4) Require out-of-sample validation as a separate hurdle beyond statistical testing. [1]"
+    }
+  ],
+  "takeaways": [
+    "With K strategies tested, expect K×0.05 false positives at 5% level — standard p<0.05 is insufficient. [1]",
+    "Required t-statistic for new equity factors: ≥ 3.0 given the 316+ factors already in the literature. [1]",
+    "Benjamini-Hochberg FDR procedure: controls fraction of false discoveries; less conservative than Bonferroni. [1]",
+    "PBO (Probability of Backtest Overfitting): fraction of CPCV combinations where best in-sample ≠ best out-of-sample. [2]",
+    "White's Reality Check: bootstrap test for whether the best strategy among many is genuinely significant. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you apply multiple testing corrections when testing a strategy on multiple asset classes?",
+      "a": "Testing a single strategy (e.g., momentum) on N asset classes (US equities, international equities, bonds, currencies, commodities) is a form of multiple testing. However, if the tests are not independent (they share the same underlying factor), corrections can be overly conservative. Approach: (1) If the tests are theoretically independent (different data, different mechanism): apply full Bonferroni or BH correction; (2) If the tests are theoretically related (same underlying factor in different markets): treat as correlated tests; use Holm-Bonferroni procedure or adjusted FDR that accounts for the correlation between tests. The positive finding: momentum works in US equities (t=5), European equities (t=4), bonds (t=3), currencies (t=3) — this pattern is evidence against it being a spurious US-only finding, even without formal correction. The multiple independent replications argument: consistent results across independent markets is stronger evidence than high t-statistic in one market."
+    },
+    {
+      "q": "How does machine learning's hyperparameter search interact with multiple testing?",
+      "a": "ML hyperparameter search is extreme multiple testing: grid search of 100 parameter combinations × 3 model types × 5 feature sets = 1,500 implicit tests. Standard cross-validation finds the best parameter set — but this 'best' is selected from 1,500 candidates, massively inflating the expected Sharpe by selection. Nested cross-validation is the rigorous fix: outer loop = test period (fixed, never touched during optimisation), inner loop = hyperparameter search using only training data. The outer test period measures truly out-of-sample performance of the optimal model. Additional guards: (1) Limit the hyperparameter search space a priori (fewer parameters = fewer tests); (2) Use random search instead of grid search (50 random evaluations often as good as 1000 grid points, but fewer implicit tests); (3) Bayesian optimisation (TPE): sequentially tests most promising parameters — fewer wasted evaluations; but still creates selection bias; must report the number of evaluations attempted."
+    }
+  ],
+  "sources": [
+    { "label": "Harvey, C.R., Liu, Y. & Zhu, H. (2016) — ... and the Cross-Section of Expected Returns, RFS", "url": "https://doi.org/10.1093/rfs/hhv059" },
+    { "label": "White, H. (2000) — A Reality Check for Data Snooping, Econometrica", "url": "https://doi.org/10.1111/1468-0262.00152" }
+  ]
+}

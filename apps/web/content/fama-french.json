@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "CAPM says the only thing that determines a stock's expected return is its sensitivity to the overall market (beta). But Fama and French noticed that small stocks and 'value' stocks (cheap relative to book value) earn higher returns than CAPM predicts — even after accounting for market risk. They built a three-factor model adding size (SMB: small minus big) and value (HML: high minus low book-to-market) to market beta.",
+    "The three-factor model explains the cross-section of stock returns much better than CAPM. A stock's expected return = risk-free rate + β_market × market premium + β_SMB × size premium + β_HML × value premium. In 2015, Fama and French extended to five factors, adding profitability (RMW: robust minus weak) and investment (CMA: conservative minus aggressive).",
+    "The Fama-French model is the foundation of factor investing and almost every academic and practical asset pricing study uses it as the baseline. It challenges the efficient market hypothesis (why do these patterns persist if markets are efficient?) — the debate is whether the premiums are risk compensation or market anomalies."
+  ],
+  "whenWhy": [
+    {
+      "title": "Explaining portfolio returns beyond market beta",
+      "body": "A portfolio that outperforms the market may simply be overweight small-cap or value stocks — not generating true alpha. Running a Fama-French regression decomposes returns into: (1) market beta contribution, (2) size exposure contribution, (3) value exposure contribution, (4) residual alpha (true skill). Example: a small-cap value fund with 15% annual return vs. 10% market return — after Fama-French attribution, the 5% excess may be fully explained by SMB + HML exposure, leaving zero alpha. Without this decomposition, the manager looks skilled; with it, they look like a passive factor tilter."
+    },
+    {
+      "title": "Constructing factor-tilted portfolios",
+      "body": "Institutional investors use the Fama-French factors to deliberately tilt portfolios toward compensated risk premia. A pension fund might add a 20% tilt toward the value factor by overweighting high book-to-market stocks. ETF providers (Dimensional Fund Advisors, iShares, Vanguard) offer factor funds built directly on Fama-French definitions. The size premium (SMB) has been weak post-publication (a common concern about factor research — publication causes arbitrage), while value and profitability have remained more robust. The five-factor model largely subsumes the momentum factor anomaly in cross-sectional tests."
+    },
+    {
+      "title": "Academic performance benchmarking",
+      "body": "All empirical asset pricing papers since 1993 benchmark against the Fama-French model. A new factor must produce statistically significant alpha after controlling for market, size, and value. The replication crisis in finance partly stems from the large number of 'factors' discovered via data mining that don't survive Fama-French adjustment, out-of-sample testing, or transaction cost analysis. The five-factor model's intercept (alpha) from regressing a strategy's returns is the gold standard test of whether it captures truly independent information."
+    }
+  ],
+  "deepDiveIntro": [
+    "Three-factor model: E[R_i] - r_f = β_i × (E[R_m] - r_f) + s_i × E[SMB] + h_i × E[HML]. SMB (Small Minus Big) = return of small-cap stocks minus large-cap stocks. HML (High Minus Low) = return of high book-to-market stocks minus low book-to-market stocks. The factor portfolios are constructed monthly using NYSE size and B/M breakpoints. Historical (1963-2023) US annual premiums: market ~5%, SMB ~2%, HML ~3.5%, RMW ~3%, CMA ~2.5%. Five-factor model adds: RMW (Robust Minus Weak operating profitability) and CMA (Conservative Minus Aggressive investment).",
+    "Factor construction: Fama-French use 2×3 independent sorts. For 3-factor: sort stocks into 2 size groups (small/big using NYSE median) and 3 B/M groups (bottom 30%, middle 40%, top 30%). Form 6 portfolios; SMB = average of 3 small-cap portfolios minus average of 3 large-cap portfolios; HML = average of 2 high-B/M portfolios minus average of 2 low-B/M portfolios. Updated monthly/annually. Data available at Ken French's data library (mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html)."
+  ],
+  "deepDive": [
+    {
+      "heading": "Risk-Based vs. Mispricing Interpretations",
+      "body": "The central debate: are the size and value premiums compensation for systematic risk, or persistent mispricings? Risk-based view (Fama-French): small stocks and value stocks are riskier in bad economic times — they load on a distress factor. Investors rationally demand higher expected returns for this risk exposure. Evidence: value stocks underperform severely in recessions (1990, 2001, 2008); small caps are more sensitive to credit conditions. Mispricing view (Lakonishok, Shleifer, Vishny 1994): investors overextrapolate past growth, overpaying for glamour stocks and underpaying for value stocks. Behavioural biases sustain the premium. Evidence: the value premium persists in international markets with different institutional settings; it's hard to explain with rational risk models. Practical implication: if risk-based, the premium should persist (it's compensation for bearing real risk); if mispricing, increased institutional capital chasing the factor will arbitrage it away. [1]"
+    },
+    {
+      "heading": "Factor Decay and Publication Effect",
+      "body": "Harvey, Liu & Zhu (2016) documented 316 factors in the literature — the 'factor zoo.' McLean & Pontiff (2016) showed that factor returns decay by ~32% after publication (due to arbitrage capital flowing in) and ~58% in out-of-sample data. The size premium in particular has been weak since the early 1980s. Explanations: (1) limits to arbitrage (transaction costs, short-sale constraints) have diminished; (2) institutional capacity to trade small caps has increased; (3) data mining / multiple testing inflate reported t-statistics. The five-factor model's additional factors (RMW, CMA) were largely known before publication and have remained more robust. Practical implication: factor investors should use diversified multi-factor approaches rather than concentrated single-factor bets, and expect premiums lower than historical estimates. [2]"
+    },
+    {
+      "heading": "International Evidence and Factor Universality",
+      "body": "Fama-French (2017) tested the five-factor model across North America, Europe, Japan, and Asia-Pacific. Key findings: value (HML) and profitability (RMW) are robust internationally; size (SMB) is weaker outside the US; the investment factor (CMA) is weaker in Japan. Momentum (not in the 5-factor model) is present in all regions except Japan. This international evidence partially supports the risk-based interpretation — if factors are just US data mining, they shouldn't appear globally. AQR and DFA have documented factor premiums globally since the 1990s. China and emerging markets show different factor dynamics (value works but differently; momentum is weaker; quality is strong). [1]"
+    }
+  ],
+  "takeaways": [
+    "Three-factor: E[R] = r_f + β_mkt×MKT + β_SMB×SMB + β_HML×HML — adds size and value to CAPM. [1]",
+    "Five-factor adds RMW (profitability) and CMA (investment) — subsumes much of momentum in cross-section. [1]",
+    "Factor premiums: market ~5%, HML ~3.5%, RMW ~3%, SMB ~2%, CMA ~2.5% (US, 1963–2023). [1]",
+    "Publication effect: ~32% decay post-publication; size premium has weakened most since the 1980s. [2]",
+    "Risk vs. mispricing debate unresolved — practical implication is that diversified multi-factor exposure is more reliable than single-factor bets. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does the value factor (HML) sometimes fail for extended periods?",
+      "a": "Value experienced its worst-ever drawdown from 2017–2020: HML returned approximately -40% cumulatively. Explanations: (1) low interest rate environment inflated growth stock valuations (long-duration assets benefit most from rate cuts; growth stocks are long-duration); (2) intangible assets (R&D, brand, data) are not captured in book value, making traditional B/M a noisy value signal; (3) factor crowding — institutional capital in value ETFs created congestion and amplified the drawdown. The post-2021 value recovery (as rates rose) is consistent with the risk-based explanation. Practitioners have moved toward 'enhanced value' metrics: enterprise value/EBITDA, price/sales, price/free cash flow — more robust than B/M alone."
+    },
+    {
+      "q": "How do you handle factor neutralisation in a long-short factor portfolio?",
+      "a": "A pure factor portfolio should be market-neutral (zero beta) and ideally neutral to other factors. For a value portfolio: (1) Match each long (high B/M stock) with a short (low B/M stock) within the same industry — this removes industry exposure; (2) Hedge residual market beta using index futures; (3) Use optimisation to constrain sector weights, country weights, and other factor tilts. Without neutralisation, a value portfolio is also implicitly short momentum (value and momentum are negatively correlated) — this interaction explains some of value's weakness post-2015 when momentum was extremely strong. Fama-French factor portfolios are NOT industry-neutral by construction — they have known industry tilts (value is long financials/energy, short tech)."
+    }
+  ],
+  "sources": [
+    { "label": "Fama, E.F. & French, K.R. (1993) — Common risk factors in the returns on stocks and bonds, JFE", "url": "https://doi.org/10.1016/0304-405X(93)90023-5" },
+    { "label": "McLean, R.D. & Pontiff, J. (2016) — Does Academic Research Destroy Stock Return Predictability?, JF", "url": "https://doi.org/10.1111/jofi.12365" }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Look-ahead bias is using future information in a backtest that would not have been available at the time of a trading decision. It makes strategies appear far more profitable in backtests than they can ever be in reality. It's the most common and devastating error in quantitative finance research.",
+    "Example: you test a strategy that buys stocks before their quarterly earnings are announced. If you accidentally use the actual EPS number (available after the announcement) instead of the consensus estimate (available before), your strategy is 'predicting' earnings perfectly — an impossible advantage in real life. The backtest looks amazing; live trading is terrible.",
+    "Look-ahead bias is insidious because it's often invisible in code. A single off-by-one error in a date alignment — using today's signal to trade yesterday's prices — can create millions of dollars in apparent alpha that vanishes the moment you trade live."
+  ],
+  "whenWhy": [
+    {
+      "title": "Types of look-ahead bias",
+      "body": "Six common sources: (1) Point-in-time failure: using restated financial data rather than the data as originally reported. Companies revise historical earnings, balance sheet items, and revenue — use databases that track the original filing; (2) Date alignment error: using signal computed on date t to execute trades at close-of-day t instead of open-of-day t+1. The close price on date t was set after the signal information was available — but often after market close, so you cannot trade at it; (3) Index inclusion: backtesting on current S&P 500 members only — today's members include only survivors; many constituents were dropped due to poor performance; (4) Corporate event timing: using bankruptcy/delisting outcome to filter out companies before the event occurred; (5) Fundamental data lag: earnings announcements have a publication lag of days to weeks after period-end; using the announcement on period-end date is look-ahead; (6) M&A outcomes: removing acquisition targets before the deal is announced."
+    },
+    {
+      "title": "Detecting look-ahead bias in code",
+      "body": "Common code patterns that introduce look-ahead bias: (1) Pandas shift error: signal = df['earnings'] instead of signal = df['earnings'].shift(1) — the shift(1) delays the signal by one period; (2) DataFrame merge on date without lag: merging price and fundamental data on the same date when fundamentals were only available the next day; (3) Train-test data leakage: using the entire time series to compute z-scores or normalisation factors — future data should not inform normalisation; normalise using only past data (expanding window); (4) Cross-sectional rank leak: computing the cross-sectional rank of a signal using all firms simultaneously in a forward-looking way — firms not yet public shouldn't be ranked alongside current firms; (5) Feature engineering: computing 52-week high including future prices by using a centred rolling window instead of a trailing one."
+    },
+    {
+      "title": "Preventing look-ahead bias: engineering practices",
+      "body": "Engineering safeguards: (1) Use a point-in-time database (CRSP, Compustat PIT, FactSet) that stores the exact data available at each historical date; (2) Add mandatory delay to all data: build a framework where signal at date t can only use data with 'available_date' ≤ t; enforce at data access layer; (3) Walk-forward validation by design: never touch the test set during strategy development; the test set is a legal entity that can only be touched once — at final validation; (4) Code review checklist: explicitly check every shift/lag/date alignment; (5) Sanity checks: if backtest Sharpe > 3.0 or if the strategy seems to 'know' future events, investigate immediately; (6) Comparison check: compute strategy P&L on a random future date vs. what the strategy would have signalled — verify the signal would have been the same."
+    }
+  ],
+  "deepDiveIntro": [
+    "Quantifying look-ahead bias impact: empirical studies show that: (1) Fundamental strategies using non-PIT data have Sharpe ratios inflated by 0.5-1.0; (2) Momentum strategies are relatively less affected (pure price data has no revision problem); (3) Earnings surprise strategies (PEAD): using actual EPS instead of pre-announcement consensus estimate inflates backtest returns by 30-50%; (4) Index rebalancing strategies: not accounting for the lag between announced and effective rebalancing dates inflates returns; (5) Beta hedging: using beta estimated from the full sample (including future data) rather than a trailing window overstates hedging effectiveness. The 'too good to be true' test: any individual equity strategy with Sharpe > 2.5 in a 20-year backtest deserves look-ahead investigation before being trusted."
+  ],
+  "deepDive": [
+    {
+      "heading": "Look-Ahead in Machine Learning Feature Engineering",
+      "body": "ML models applied to financial data are especially prone to look-ahead bias because many standard ML preprocessing steps use the full dataset: (1) Normalisation (standardisation): scikit-learn's StandardScaler fit on the full dataset uses future mean and std. Fix: use Pipeline + TimeSeriesSplit or manually expand normalisation from past data only; (2) Target leakage: including features that are partial proxies for the target. Example: predicting next-quarter EPS using gross margin for the same quarter — gross margin is computed from revenue/COGS which are already known at announcement, not the previous quarter; (3) PCA/feature selection: running PCA on the full time series uses future covariance structure; run PCA on training data only; (4) Hyperparameter tuning on test set: selecting the model based on test-set performance is look-ahead. Use nested cross-validation: outer loop = test period, inner loop = hyperparameter search on training data. Lopez de Prado's CPCV framework enforces this rigorously. [1]"
+    },
+    {
+      "heading": "Survivorship Bias: the Hidden Look-Ahead",
+      "body": "Survivorship bias is a form of look-ahead bias: using a universe of assets that only includes those that 'survived' to the present excludes delisted, bankrupt, and acquired companies. Impact: (1) Stocks that went bankrupt are excluded — their returns (going to near zero) are not included in the backtest; strategies appear better; (2) Funds that were closed due to poor performance are excluded from mutual fund performance databases — average fund performance looks better than it was; (3) Companies added to indices after outperformance are included from historical dates — back-filling an index overstates historical index returns. Fix: use a complete universe that includes delisted securities. CRSP (Center for Research in Security Prices) explicitly tracks delisted returns — the final return when a stock is delisted is often severely negative (bankruptcy cases) and must be included. Without CRSP delisting returns, momentum backtests are inflated by ~0.5-1% per year. [2]"
+    },
+    {
+      "heading": "Earnings Announcement Timing: A Detailed Case Study",
+      "body": "Post-earnings announcement drift (PEAD) is one of the most documented equity anomalies: stocks drift in the direction of earnings surprises for 30-60 days post-announcement. Correct implementation: (1) Earnings surprise = actual EPS (from announcement) - analyst consensus EPS (from Bloomberg/IBES, available before announcement); (2) Signal date = earnings announcement date (day 0); (3) Trade entry = open of day 1 (not day 0 close — the announcement may have been after market close, so trading at day 0 close is often not feasible in reality). Look-ahead contamination: if you use the earnings announcement date incorrectly aligned by even 1 day (using announcement data at t but trading at t-1 close), you create significant look-ahead bias. Empirical test: check whether day 0 returns are included in your strategy's returns. Day 0 returns (from pre-announcement close to post-announcement open) should NOT be included — you couldn't have traded at the pre-announcement close knowing the announcement result. [1]"
+    }
+  ],
+  "takeaways": [
+    "Look-ahead bias uses future information at the time of the signal — most common source of inflated backtest Sharpe. [1]",
+    "Pandas shift(1) error, full-sample normalisation, non-PIT fundamental data are leading code-level sources. [1]",
+    "Survivorship bias: excluding delisted/bankrupt stocks inflates returns by ~0.5-1%/year in equity strategies. [2]",
+    "ML look-ahead: StandardScaler on full data, feature selection on test set, target leakage — all introduce bias. [1]",
+    "Sanity check: backtest Sharpe > 3.0 with no clear economic rationale = investigate for look-ahead immediately. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle earnings announcements that occur after market hours?",
+      "a": "Companies announce earnings before market open (BMO) or after market close (AMC). If you don't distinguish, you'll mix: (1) BMO announcements: stock opens at a new price reflecting the surprise; you cannot trade at the prior close. Entry should be at the open of the announcement day or the next day's open; (2) AMC announcements: stock closes before the announcement; trade at next day's open. If you use the prior day's close as your trade price after an AMC announcement, you have 0% look-ahead on prices but your signal is correctly post-announcement. The practical solution: always trade at the open of the day AFTER the announcement, regardless of BMO/AMC — this slightly reduces theoretical returns but is always executable in practice. Data providers (Bloomberg, IBES) provide announcement timing flags."
+    },
+    {
+      "q": "Is test set contamination possible even with a clean train-test split?",
+      "a": "Yes — in finance, several forms of contamination can occur even with a proper train-test split: (1) Distribution shift in cross-sectional rank: if you compute the cross-sectional z-score of a signal using the full dataset (train + test), you've used test data to normalise train data; (2) Hyperparameter leakage: iterating on the test set even informally (reporting 'I tried 10 models, here's the best one') contaminates the test set; (3) Regime overlap: if train period 2000-2015 and test period 2016-2023, but you know the regime in the test period when designing the strategy — anchoring to known outcomes is soft look-ahead; (4) PCA on full sample: a PCA or covariance matrix estimated on the full dataset leaks test information into feature construction. Solution: entire preprocessing pipeline must be re-fit on training data only, for every single walk-forward window."
+    }
+  ],
+  "sources": [
+    { "label": "Lopez de Prado, M. — Advances in Financial Machine Learning, Wiley", "url": "https://www.wiley.com/en-us/Advances+in+Financial+Machine+Learning-p-9781119482086" },
+    { "label": "Shumway, T. (1997) — The Delisting Bias in CRSP Data, JF", "url": "https://doi.org/10.1111/j.1540-6261.1997.tb04818.x" }
+  ]
+}

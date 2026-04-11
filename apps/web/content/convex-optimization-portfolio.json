@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Portfolio optimisation is a mathematical problem: choose weights for a set of assets to maximise expected return while controlling risk. Convex optimisation is the mathematical framework for solving these problems efficiently and reliably. A problem is 'convex' if the objective and constraints have a specific mathematical shape that guarantees we can find the globally best solution — no local optima to get trapped in.",
+    "Most portfolio problems are convex: minimise variance subject to a return target; maximise Sharpe ratio; minimise tracking error — all convex. This means solvers can find the exact optimal solution in milliseconds, even for portfolios with thousands of assets and hundreds of constraints. The quality of the solution depends entirely on the quality of the inputs (expected returns, covariance matrix).",
+    "Practitioners use convex optimisation libraries (CVXPY, Gurobi, quadprog) to solve portfolio problems with realistic constraints: position limits, sector weights, turnover limits, factor exposure targets, ESG scores, tax lots. The constraint set defines the feasible portfolio space; optimisation finds the best point within it."
+  ],
+  "whenWhy": [
+    {
+      "title": "Mean-variance optimisation: the core problem",
+      "body": "Standard MVO: min_w w'Σw - λ w'μ s.t. Σw_i = 1, w_i ≥ 0 (long-only). This is a quadratic program (QP): quadratic objective, linear constraints — convex. Efficient frontier: trace by varying λ from 0 (minimum variance) to ∞ (maximum expected return). For N = 500 assets: solved in milliseconds using interior-point methods (OSQP, Gurobi). Adding constraints: (1) Long-short: allow w_i < 0; (2) Position limits: -u_i ≤ w_i ≤ u_i (box constraints); (3) Sector constraints: Σ_{i∈sector} w_i ≤ s_max; (4) Turnover: |w_i - w_{i,prev}| ≤ τ_i; (5) Net leverage: Σ|w_i| ≤ L_max; (6) Beta target: w'β = β_target; (7) Factor exposure: Σ_i w_i × factor_exposure_ij = target_j. All these are linear constraints — the QP remains convex with them."
+    },
+    {
+      "title": "Transaction cost-aware optimisation",
+      "body": "Transaction cost penalty: add a cost term to the objective. For round-trip cost model: penalise |w_i - w_{i,prev}| × tc_i. But absolute value is not differentiable — use auxiliary variables: introduce t_i ≥ 0 such that t_i ≥ w_i - w_{i,prev} and t_i ≥ w_{i,prev} - w_i (t_i = |Δw_i|). Objective with transaction costs: min_w w'Σw - λ w'μ + κ Σ_i tc_i × t_i. This remains a QP (linear tc penalty). Market impact penalty: for large trades, impact scales as O(√(trade_size/ADV)). This is a non-linear cost — but it's convex (square root of portfolio weights). CVXPY handles such cone constraints. The optimal solution naturally avoids large positions in illiquid stocks because the impact cost outweighs the signal benefit."
+    },
+    {
+      "title": "L1 regularisation and sparse portfolios",
+      "body": "LASSO regularisation in portfolio optimisation: add λ_L1 Σ|w_i| to the objective (L1 penalty on weights). Effect: drives small positions to exactly zero — creates sparse portfolios. Equivalent to a prior that most weights should be zero; appropriate when the true optimal portfolio is concentrated. Contrast with L2 (Ridge) regularisation (λ_L2 Σw²_i): shrinks all weights toward zero proportionally — creates well-diversified, spread portfolios. Choice: L1 for concentrated signal (few strong views); L2 for diversified signal (many weak views). Elastic net: α L1 + (1-α) L2 combination — sparse but also controls correlation between selected assets. CVXPY example: cp.Problem(cp.Minimize(cp.quad_form(w, Sigma) - lambda_*mu.T @ w + l1_penalty * cp.norm1(w))). Note: with LASSO, the problem is an SOCP (second-order cone program) if the portfolio also has a quadratic risk term; still convex and solvable in milliseconds."
+    }
+  ],
+  "deepDiveIntro": [
+    "KKT (Karush-Kuhn-Tucker) conditions for MVO: at the optimal w*, there exist Lagrange multipliers λ (for return constraint) and μ (for budget constraint) such that: 2Σw* - λ_signal × μ + λ_budget × 1 = 0. These are first-order conditions for optimality. For constrained problems with inequality constraints: complementary slackness — if a constraint is not binding, its Lagrange multiplier is zero; if binding, the multiplier is non-negative. Active constraints at the optimum are important: the portfolio is 'against' these constraints — relaxing them would improve the objective. Portfolio attribution to constraints: the Lagrange multiplier on constraint k represents the expected return cost of tightening that constraint by one unit (shadow price)."
+  ],
+  "deepDive": [
+    {
+      "heading": "CVXPY and Modern Portfolio Optimisation Libraries",
+      "body": "CVXPY (Diamond & Boyd, 2016) is an open-source Python library for convex optimisation. Key features: (1) Disciplined Convex Programming (DCP): automatically verifies that the problem is convex from the structure of the code; (2) Solver agnostic: interfaces with OSQP, SCS, Gurobi, Mosek, ECOS; chooses the appropriate solver based on problem type; (3) Parameterised problems: define the problem structure once, update parameters (expected returns, covariance) and solve repeatedly — 10× faster for live portfolio rebalancing. Example: import cvxpy as cp; w = cp.Variable(n); objective = cp.Minimize(cp.quad_form(w, Sigma)); constraints = [cp.sum(w)==1, w >= 0, mu.T @ w >= target_return]; prob = cp.Problem(objective, constraints); prob.solve(). For large-scale problems (N = 5,000 stocks): use structured Σ = F Σ_f Fᵀ + D (factor model decomposition) — reduces quadratic form computation from O(N²) to O(K² + N), where K << N. [1]"
+    },
+    {
+      "heading": "Integer and Mixed-Integer Portfolio Problems",
+      "body": "Some portfolio constraints require discrete decisions: (1) Minimum position size: either hold ≥ 1% or hold nothing (no tiny positions); (2) Fixed number of holdings: hold exactly 50 stocks; (3) Lot-size constraints: trade in round lots of 100 shares; (4) Binary ESG screens: include/exclude specific securities. These create integer programming (IP) or mixed-integer QP (MIQP) problems — no longer purely convex (combinatorial feasible set). Solvers: Gurobi, CPLEX for MIQP; commercial and expensive for large problems. Heuristic approaches: (1) Relaxation + rounding: solve the continuous QP, round small positions to zero; (2) Branch and bound: enumerate integer solutions; exponential in worst case but fast in practice for sparse integer variables; (3) Genetic algorithms: for NP-hard variations. For practical asset management: minimum holding size constraints are the most common — often solved via threshold rounding of the continuous QP solution (set w_i = 0 if w_i < 0.5%) without significant performance loss. [2]"
+    },
+    {
+      "heading": "Constraint Attribution and Portfolio Decomposition",
+      "body": "After optimisation, understanding what's driving the portfolio is as important as the portfolio itself. Constraint attribution: (1) Identify binding constraints (Lagrange multipliers > 0); (2) Shadow price: Lagrange multiplier on constraint k = expected return cost of tightening constraint k by ε; (3) If the sector constraint (Σ_{tech} w_i ≤ 0.25) has shadow price λ = 0.5%, tightening it by 1% (reducing max tech weight from 25% to 24%) costs 0.5% of expected return; (4) This helps portfolio managers understand the 'tightness' of their constraints. Risk attribution: decompose portfolio variance into contributions from each active constraint. Return contribution by factor: w'b_k × f_k for each factor k (b_k is factor exposure vector, f_k is factor return). The combination of constraint attribution and return attribution provides a complete picture of why the portfolio looks as it does and what is limiting further optimisation. This attribution is essential for communication with non-quantitative stakeholders. [1]"
+    }
+  ],
+  "takeaways": [
+    "Standard MVO is a QP: min w'Σw - λw'μ; constraints are linear; solved in milliseconds by interior-point methods. [1]",
+    "Transaction costs: |Δw| penalty via auxiliary variable t_i; market impact is convex √(size/ADV) cone constraint. [1]",
+    "L1 → sparse portfolio (LASSO); L2 → diversified (Ridge); elastic net = combination. [1]",
+    "CVXPY: DCP framework verifies convexity automatically; parameterised problems enable fast live rebalancing. [1]",
+    "Shadow price on binding constraint = expected return cost of tightening that constraint by ε. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does MVO produce extreme concentrated portfolios, and how do you fix it?",
+      "a": "MVO amplifies estimation errors: if expected returns are estimated with noise (as they always are), the optimiser doubles down on assets with the highest estimated return. If stock A's true expected return is 5% but estimated at 8%, MVO allocates heavily to it — the estimation error is exploited by the optimiser. This is the 'error maximisation' property of MVO. Fixes: (1) Constrain maximum position size (hard constraint: w_i ≤ 5%); simplest and most common; (2) Shrink expected returns toward the mean (James-Stein shrinkage): pull high estimates down, low estimates up; reduces the range of μ inputs; (3) Black-Litterman: use equilibrium returns as prior; don't trust raw estimates; (4) Resampled efficiency: run 1,000 bootstrapped optimisations, average the weights — robust to individual estimation errors; (5) Robust optimisation: minimise worst-case outcome over uncertainty set of μ estimates. In practice: hard position limits + Ledoit-Wolf covariance + Black-Litterman expected returns is the standard combination used by institutional quantitative equity managers."
+    },
+    {
+      "q": "How do tax lot constraints interact with portfolio optimisation?",
+      "a": "Tax-lot-aware optimisation: each position consists of multiple lots purchased at different prices with different holding periods. Selling a lot triggers a capital gain (long-term: 20% rate; short-term: ordinary income rate ≈ 37%). The decision of which lots to sell is a combinatorial problem. MVO + tax: at each rebalancing, the after-tax expected return of selling position i depends on which lots are sold. For a $100 gain in a position with $50 embedded short-term gain: after-tax gain ≈ $50 (LTCG: $50×80%) + $50×(1-37%) (STCG) = $40 + $31.50 = $71.50. Tax-efficient optimisation: (1) Only sell positions with tax loss harvesting opportunities (sell losers to realise capital losses); (2) When selling for rebalancing, prefer selling lots with lowest embedded gain (tax-optimised lot selection); (3) Delay selling short-term lots until they convert to long-term (1-year holding period). CVXPY + Gurobi handles tax-lot optimisation as a MIQP."
+    }
+  ],
+  "sources": [
+    { "label": "Diamond, S. & Boyd, S. (2016) — CVXPY: A Python-Embedded Modeling Language for Convex Optimization, JMLR", "url": "https://jmlr.org/papers/v17/15-408.html" },
+    { "label": "Grinold, R.C. & Kahn, R.N. — Active Portfolio Management (2nd ed.), McGraw-Hill", "url": "https://www.mhprofessional.com/active-portfolio-management-9780070248823-usa" }
+  ]
+}

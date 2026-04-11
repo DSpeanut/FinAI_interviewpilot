@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Standard finance theory (CAPM) says higher risk = higher return. But the low-volatility anomaly shows the opposite in equities: stocks with low historical volatility (or low beta) earn higher risk-adjusted returns than high-volatility stocks. Buying boring, stable stocks and avoiding exciting, high-volatility ones beats the market on a risk-adjusted basis.",
+    "The anomaly is also called the 'low-beta anomaly' or 'defensive anomaly.' On an absolute return basis, high-beta stocks earn slightly higher returns — but not enough to compensate for the extra risk. On a risk-adjusted basis (Sharpe ratio), low-volatility stocks dominate. This violates CAPM's core prediction that beta should be linearly rewarded.",
+    "The premium is large, persistent, and global. The standard explanation involves institutional constraints: fund managers are benchmarked against indices and can't easily hold leveraged low-volatility portfolios, so they crowd into high-beta stocks, making low-beta stocks underpriced. Individual investors prefer lottery-like high-volatility stocks (behavioural bias). Both forces make low-volatility stocks systematically cheap."
+  ],
+  "whenWhy": [
+    {
+      "title": "Constructing a low-volatility portfolio",
+      "body": "Two main approaches: (1) Minimum variance portfolio: solve for portfolio weights that minimise total variance (σ²_p = w' Σ w) subject to constraints. Uses the full covariance matrix; naturally down-weights high-volatility, high-correlation stocks. Requires robust covariance estimation (shrinkage estimators like Ledoit-Wolf). (2) Low-volatility factor (long-short): rank stocks by trailing 12-month daily volatility (or beta); long bottom quintile (low vol), short top quintile (high vol). MSCI and S&P offer minimum variance index variants. Key constraints: sector-neutral construction prevents inadvertent sector bets (utilities are systematically low-vol); minimum turnover constraints reduce trading costs; liquidity constraints ensure tradability."
+    },
+    {
+      "title": "Low-volatility as a risk management tool",
+      "body": "In a downside risk framework, low-volatility stocks provide: (1) lower drawdown in bear markets; (2) faster recovery post-crash; (3) improved Sharpe ratio over full cycles. Evidence: S&P 500 Low Volatility Index during the 2008 financial crisis fell ~30% vs. S&P 500's ~50% decline. Defensive stocks (utilities, consumer staples, healthcare) are systematically low-beta and provide natural defensive exposure. For liability-driven investors (pension funds, insurance companies), low-volatility equities reduce overall portfolio drawdown risk while maintaining equity-like long-run returns. The low-volatility factor correlates positively with quality (~+0.4) because financially stable, profitable companies tend to have stable stock prices."
+    },
+    {
+      "title": "BAB (Betting Against Beta) strategy",
+      "body": "Frazzini & Pedersen (2014) formalised the low-beta premium as the Betting Against Beta (BAB) factor: long low-beta stocks (leveraged to beta = 1), short high-beta stocks (de-leveraged to beta = 1). BAB is beta-neutral by construction, isolating the pure low-beta premium. Historical BAB Sharpe ratio: ~0.7-0.8 (higher than most factors). The leverage in BAB amplifies the low-beta premium but also adds leverage risk. Practical implementation without leverage: simply overweight low-beta stocks and underweight high-beta stocks within an equity portfolio. Major ETF implementations: Invesco S&P 500 Low Volatility ETF (SPLV), iShares MSCI Min Vol ETFs."
+    }
+  ],
+  "deepDiveIntro": [
+    "Key measures: (1) Historical volatility: annualised standard deviation of daily returns over trailing 12 months; (2) Beta: covariance(stock, market) / variance(market) — measures systematic risk contribution; (3) Idiosyncratic volatility: residual from CAPM regression; some studies find idiosyncratic vol negatively predicts returns (IVOL anomaly). Minimum variance portfolio: min w'Σw s.t. Σw_i = 1, w_i ≥ 0 (long-only). With short-selling allowed, the solution is the GMV (global minimum variance) portfolio. Ledoit-Wolf shrinkage covariance estimator: Σ_shrunk = α × Σ_sample + (1-α) × Σ_target, where target is often a diagonal matrix or single-index model. This reduces estimation error for the covariance matrix (which has p(p+1)/2 parameters for p stocks)."
+  ],
+  "deepDive": [
+    {
+      "heading": "Why Does the Low-Volatility Anomaly Persist?",
+      "body": "Two complementary explanations: (1) Leverage constraints (Frazzini & Pedersen 2014): many institutional investors (pension funds, mutual funds) are constrained from using leverage. To achieve high expected returns, they overweight high-beta stocks rather than leveraging low-beta stocks. This excess demand inflates high-beta stock prices and depresses expected returns; simultaneously, low-beta stocks are neglected and underpriced. If leverage were cheap and freely available to all investors, the anomaly would be arbitraged away — but it persists because leverage is costly. (2) Benchmarking and the tournament problem (Baker, Bradley & Wurgler 2011): fund managers are evaluated against market-cap-weighted benchmarks. A manager holding low-beta stocks underperforms in bull markets (tracking error) and risks losing AUM; they rationally tilt toward high-beta stocks. This collective action problem sustains the mispricing. Behavioural: individual investors prefer skewed, lottery-like payoffs (high vol stocks with potential for large gains) — this overcrowding inflates high-volatility stock prices. [1]"
+    },
+    {
+      "heading": "Low Volatility vs. Minimum Variance",
+      "body": "Low-volatility factor (long-short) and minimum variance portfolio are related but distinct: Low-vol factor uses individual stock volatilities as the ranking criterion — it's a simple heuristic. Minimum variance uses the full covariance matrix — theoretically superior as it accounts for correlations. Empirically: minimum variance portfolios outperform low-vol factor portfolios on an absolute return basis (they hold concentrated positions in correlated low-vol stocks that diversify well) but require accurate covariance estimation. With estimation error, the advantage of minimum variance shrinks or disappears. Practical choice: for large, liquid universes (S&P 500), minimum variance is feasible; for smaller or illiquid universes, low-vol ranking is more robust. Both approaches: (1) are highly sector-concentrated (utilities, consumer staples) without sector constraints; (2) benefit from volatility targeting overlays; (3) work better with quality filters (avoid low-vol companies in financial distress). [2]"
+    },
+    {
+      "heading": "Low-Volatility and Interest Rate Sensitivity",
+      "body": "Low-volatility stocks (utilities, REITs, consumer staples) are often labelled 'bond proxies' — they pay stable dividends and behave like long-duration bonds. This creates a known risk: when interest rates rise, low-volatility stocks underperform (their valuations are compressed by higher discount rates). 2022 is the clearest recent example: rising rates caused both bonds and low-vol stocks to underperform. This interest rate exposure is a structural weakness of low-volatility strategies. Mitigation: (1) Sector-neutral construction removes the systematic rate sensitivity by constraining sector weights; (2) Remove REITs and utilities from the universe or apply a cap; (3) Add a duration hedge using rate futures. The rate sensitivity is not inherent to low-volatility as a concept — it's an artifact of the most common sector concentrations in simple implementations. [1]"
+    }
+  ],
+  "takeaways": [
+    "Low-beta/low-vol stocks outperform on risk-adjusted basis (higher Sharpe), violating CAPM's prediction. [1]",
+    "Leverage constraints and benchmarking pressure cause institutional over-demand for high-beta stocks, making low-beta underpriced. [1]",
+    "BAB (Betting Against Beta): long leveraged low-beta, short de-leveraged high-beta; Sharpe ~0.7-0.8. [1]",
+    "Minimum variance portfolio uses full covariance matrix; superior to low-vol ranking but requires accurate estimation. [2]",
+    "Low-vol stocks are 'bond proxies' — interest rate sensitive; sector-neutral construction mitigates this. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Does the low-volatility anomaly hold outside equities?",
+      "a": "The BAB factor has been documented in bonds, options, and currencies too, suggesting a universal leverage-constraint premium. In corporate bonds: low-rating bonds (high vol) underperform risk-adjusted expectations; BAB in bonds is implemented as long low-duration/high-credit-quality bonds (leveraged) vs. short high-duration/high-yield bonds. In options: implied volatility is systematically too high relative to realised volatility (the volatility risk premium) — selling expensive high-vol options and buying cheap low-vol options is BAB in options. In currencies: low-interest-rate (typically safe-haven) currencies have better risk-adjusted carry than high-interest-rate (high-vol) currencies. The universality supports the leverage constraint explanation over an equity-specific story."
+    },
+    {
+      "q": "How does factor crowding affect low-volatility strategies?",
+      "a": "As minimum variance and low-vol ETFs have grown to hundreds of billions in AUM, the same stocks appear in most implementations (utilities: NextEra, Duke; consumer staples: Procter & Gamble, Coca-Cola). This crowding creates: (1) Valuation compression: popular low-vol stocks trade at premium valuations, reducing future expected returns; (2) Simultaneous liquidation risk: if investors sell low-vol ETFs (e.g., during a rate spike), all these stocks are sold simultaneously; (3) Higher correlation during stress: low-vol stocks that used to be uncorrelated now move together due to common ownership. Mitigation: check valuation of the low-vol portfolio relative to history; diversify across geographic markets; use factor-neutral construction that limits position concentration."
+    }
+  ],
+  "sources": [
+    { "label": "Frazzini, A. & Pedersen, L.H. (2014) — Betting Against Beta, JFE", "url": "https://doi.org/10.1016/j.jfineco.2013.10.005" },
+    { "label": "Baker, M., Bradley, B. & Wurgler, J. (2011) — Benchmarks as Limits to Arbitrage, FAJ", "url": "https://doi.org/10.2469/faj.v67.n1.4" }
+  ]
+}

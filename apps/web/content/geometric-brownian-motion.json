@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Geometric Brownian Motion (GBM) is the standard mathematical model for stock prices. It says stock prices grow at a constant expected rate (drift) and experience random, normally distributed shocks (diffusion). The 'geometric' part ensures prices can never go negative — which makes physical sense for stocks.",
+    "The GBM equation: dS = μS dt + σS dW, where S is the stock price, μ is the expected return (drift), σ is the volatility, and dW is a Brownian motion increment (a tiny random shock). The key feature: percentage changes in price are normally distributed, which means log prices follow a random walk with drift — log-normal distribution for prices.",
+    "GBM is the foundation of the Black-Scholes option pricing model. It's a simplification of reality (real prices have fat tails, volatility clustering, and jumps), but it's analytically tractable and provides closed-form solutions that are foundational to derivatives pricing and risk management."
+  ],
+  "whenWhy": [
+    {
+      "title": "Deriving the log-normal distribution of stock prices",
+      "body": "From dS = μS dt + σS dW, apply Ito's lemma to f(S) = ln(S): d(ln S) = (μ - σ²/2) dt + σ dW. This shows log prices follow a Brownian motion with drift (μ - σ²/2) and diffusion σ. Integrating: ln(S_T) = ln(S_0) + (μ - σ²/2)T + σ√T × Z, where Z ~ N(0,1). Therefore: S_T = S_0 × exp[(μ - σ²/2)T + σ√T × Z]. S_T is log-normally distributed: ln(S_T/S_0) ~ N((μ - σ²/2)T, σ²T). Key: E[S_T] = S_0 × e^{μT} (grows at rate μ); median of S_T = S_0 × e^{(μ-σ²/2)T} (grows slower due to the Jensen inequality correction -σ²/2). The -σ²/2 term is the Ito correction — it appears because variance in geometric growth reduces the median outcome."
+    },
+    {
+      "title": "Monte Carlo simulation of stock price paths",
+      "body": "GBM Monte Carlo simulation: generate N paths of S_t using the discretised GBM: S_{t+Δt} = S_t × exp[(μ - σ²/2)Δt + σ√Δt × Z_t], where Z_t ~ N(0,1) iid. Steps: (1) Choose Δt (e.g., daily = 1/252 years); (2) Generate N×T matrix of N(0,1) random numbers; (3) Recursively compute S_t along each path; (4) Use the distribution of S_T across paths to price options or compute VaR. Applications: (1) European option pricing (matches Black-Scholes analytically); (2) Exotic option pricing with path-dependent payoffs; (3) Portfolio risk simulation; (4) Corporate scenario analysis. Key: use variance reduction techniques (antithetic variates, quasi-random sequences) to improve convergence efficiency."
+    },
+    {
+      "title": "Parameter estimation from historical data",
+      "body": "Estimate GBM parameters from historical returns: μ̂ = mean(daily return) × 252 (annualise); σ̂ = std(daily return) × √252 (annualise). From log returns: r_t = ln(S_t/S_{t-1}) ~ N((μ - σ²/2)/252, σ²/252). So mean(r_t) = (μ - σ²/2)/252 and var(r_t) = σ²/252. Estimation from daily returns (T = 252 observations): σ is estimated precisely (σ grows with √T; more observations help); μ is estimated very imprecisely (standard error ≈ σ/√T ≈ 20%/√252 ≈ 1.3% daily, implying ±26% annual confidence interval). This 'estimation problem' is fundamental: we can estimate volatility reliably from daily data but cannot estimate expected return reliably even from decades of data. Implication: portfolio optimisation is more reliable using risk (σ) than expected return (μ)."
+    }
+  ],
+  "deepDiveIntro": [
+    "GBM SDE: dS_t = μ S_t dt + σ S_t dW_t. Ito's lemma: for f(S,t), df = (∂f/∂t + μS ∂f/∂S + ½σ²S² ∂²f/∂S²)dt + σS ∂f/∂S dW. The extra ½σ²S² ∂²f/∂S² term (the Ito correction) arises because dW² = dt (not 0, as in ordinary calculus) — this is the fundamental difference between stochastic and ordinary calculus. Closed-form solution: S_T = S_0 exp[(μ - σ²/2)T + σW_T]. Multivariate GBM (correlated assets): dS_i = μ_i S_i dt + σ_i S_i dW_i, where dW_i dW_j = ρ_ij dt. Cholesky decomposition of the correlation matrix generates correlated Brownian motions from independent ones."
+  ],
+  "deepDive": [
+    {
+      "heading": "GBM Limitations: Fat Tails, Volatility Clustering, and Jumps",
+      "body": "GBM assumes: (1) constant volatility; (2) normally distributed returns; (3) no jumps; (4) continuous trading. All four are violated by real asset prices. Empirical violations: (1) Return distributions have fat tails (kurtosis > 3): extreme moves occur far more frequently than GBM predicts. S&P 500: historical kurtosis ≈ 20-30 (daily). A 5-sigma daily move in GBM probability ≈ 1 in 3.5 million days; in reality it occurs several times per decade; (2) Volatility clustering (ARCH/GARCH): high-volatility days cluster together; σ is not constant; (3) Jumps: discrete price discontinuities from earnings announcements, geopolitical events; (4) Leverage effect: volatility increases when prices fall (negative correlation between returns and future volatility). Extensions: Heston (1993) stochastic volatility; Merton (1976) jump-diffusion; GARCH (Bollerslev 1986). Each addresses specific GBM failures at the cost of analytical tractability. [1]"
+    },
+    {
+      "heading": "Multi-Asset GBM and Correlation Dynamics",
+      "body": "Portfolio of assets following correlated GBMs: dS_i = μ_i S_i dt + σ_i S_i dW_i with dW_i dW_j = ρ_ij dt. Portfolio value V = Σ w_i S_i. The portfolio's return distribution is not log-normal (weighted sum of log-normals). For risk calculations: use Monte Carlo. The correlation matrix ρ is critical: in normal times, historical correlations apply; in crises, correlations spike toward 1 (diversification fails when most needed). This is the key limitation for VaR and portfolio optimisation: using historical correlations understates crisis risk. Copulas (specifically t-copula with tail dependence) better capture crisis correlation dynamics. The 2008 crisis: correlations across global equity markets spiked above 0.9; portfolios assumed to have σ = 15% based on historical data actually experienced σ = 40%. [2]"
+    },
+    {
+      "heading": "Risk-Neutral GBM and Option Pricing",
+      "body": "For option pricing, use the risk-neutral measure where all assets grow at the risk-free rate r (not μ): dS = r S dt + σ S dW^Q (under Q, the risk-neutral measure). The risk-neutral drift ensures no arbitrage — in a risk-neutral world, all investors are indifferent to risk. Black-Scholes pricing: the option price is the expected discounted payoff under Q. For a European call: C = S₀N(d₁) - Ke^{-rT}N(d₂), where d₁ = [ln(S₀/K) + (r + σ²/2)T] / (σ√T), d₂ = d₁ - σ√T. The change from μ to r in simulation eliminates the need to estimate the unobservable μ for option pricing — option prices depend on σ (market-observable via implied vol) and r (risk-free rate), not on expected returns. This 'change of measure' (Girsanov's theorem) is the key insight of modern derivatives pricing. [1]"
+    }
+  ],
+  "takeaways": [
+    "GBM: dS = μS dt + σS dW; log returns are normally distributed; prices are log-normally distributed. [1]",
+    "Ito correction: d(ln S) = (μ - σ²/2)dt + σdW; the -σ²/2 term reduces geometric mean relative to arithmetic mean. [1]",
+    "Estimate σ precisely from historical data; μ is essentially unknowable from any finite sample. [1]",
+    "GBM fails on fat tails, volatility clustering, and jumps — real markets have kurtosis ~20-30. [1]",
+    "Risk-neutral GBM: replace μ with r for options pricing (Girsanov's theorem); eliminates need to estimate μ. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does GBM fail to capture the volatility smile in options markets?",
+      "a": "GBM with constant σ implies a single implied volatility for all options on the same underlying — a flat volatility surface. In reality, market-implied volatilities vary by strike and maturity, forming a 'volatility smile' (or skew). The skew (put implied vol > call implied vol at same distance from ATM) reflects: (1) fat left tail — markets price in higher probability of large declines than GBM predicts; (2) leverage effect — stocks fall faster on bad news; (3) crash risk premium — put options are expensive because they provide portfolio insurance. Extensions: local volatility models (Dupire 1994) make σ a deterministic function of S and t to match the smile exactly; stochastic volatility models (Heston) make σ itself random, generating volatility smiles naturally. Both are used in practice depending on the application."
+    },
+    {
+      "q": "How does GBM handle dividends?",
+      "a": "For dividend-paying stocks, modify GBM: dS = (μ - q)S dt + σS dW, where q is the continuous dividend yield. The stock price falls by q continuously (dividends are paid out, reducing intrinsic value). For discrete dividends: subtract the present value of expected dividends from S₀ before applying GBM. In Black-Scholes for dividend-paying stocks (Merton 1973): replace S₀ with S₀e^{-qT} in the formula. For equity index options: q is the index dividend yield (typically 1.5-2.5% for S&P 500). This adjustment matters especially for long-dated options where dividend yield has significant impact on pricing. Currencies: treat the foreign risk-free rate r_f as the 'dividend yield' — the Garman-Kohlhagen model extends Black-Scholes to FX options this way."
+    }
+  ],
+  "sources": [
+    { "label": "Black, F. & Scholes, M. (1973) — The Pricing of Options and Corporate Liabilities, JPE", "url": "https://doi.org/10.1086/260062" },
+    { "label": "Hull, J.C. — Options, Futures, and Other Derivatives (10th ed.), Pearson", "url": "https://www.pearson.com/en-us/subject-catalog/p/options-futures-and-other-derivatives/P200000005938" }
+  ]
+}

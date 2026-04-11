@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Robust optimisation is an approach to making decisions that perform well even when your assumptions are wrong. In portfolio management, you never know exactly what future returns will be or what the exact covariance matrix is. Robust optimisation finds portfolios that perform well across a range of possible scenarios — not just the most likely one.",
+    "Instead of 'what portfolio maximises expected return at a given risk?' (which can produce extreme portfolios when inputs are wrong), robust optimisation asks 'what portfolio maximises the worst-case expected return over all plausible inputs?' The result is a more cautious, diversified portfolio that sacrifices some expected performance for resilience.",
+    "Robust portfolios are naturally similar to regularised portfolios (Ridge regression) — both shrink extreme positions. But robust optimisation is conceptually more principled: you're explicitly designing against estimation uncertainty rather than just adding a penalty term."
+  ],
+  "whenWhy": [
+    {
+      "title": "Uncertainty sets and worst-case optimisation",
+      "body": "Robust MVO: max_w min_{μ ∈ U} [w'μ - (λ/2) w'Σw]. Uncertainty set U: the set of possible expected return vectors. Common choices: (1) Box uncertainty: |μ_i - μ̂_i| ≤ δ_i (each asset's return uncertain within bounds ±δ_i); (2) Ellipsoidal uncertainty: (μ - μ̂)'Σ_μ⁻¹(μ - μ̂) ≤ κ² (return uncertainty is bounded by an ellipsoid centered at the estimate μ̂); size κ controls conservatism. For ellipsoidal uncertainty: the robust solution is: max_w [w'μ̂ - κ√(w'Σ_μ w) - (λ/2)w'Σw]. The term κ√(w'Σ_μ w) is a penalty proportional to the uncertainty of the portfolio return — positions with high estimation uncertainty are penalised. This has a natural interpretation: maximise the worst-case certainty equivalent return. The parameter κ = Φ⁻¹(1-α): if κ = 1.96, the robust portfolio is optimal at the 95th percentile confidence interval."
+    },
+    {
+      "title": "Robust optimisation vs. shrinkage vs. BL",
+      "body": "Three approaches to handle estimation uncertainty: (1) Shrinkage (James-Stein): shrink μ̂ toward a common mean before optimisation; reduces variance of estimates at cost of bias; fast and simple. (2) Black-Litterman: set prior = equilibrium returns (δΣw_mkt); posterior = precision-weighted average of prior and views; Bayesian, interpretable, incorporates economic reasoning. (3) Robust optimisation: explicitly model the uncertainty set for μ; find portfolio optimal in worst case; no prior needed; min-max framework. When to use each: Shrinkage: when you have no structural view on what μ should be (pure statistical correction). BL: when you have genuine economic views and an equilibrium prior. Robust: when you want to be explicit about worst-case performance and have heterogeneous uncertainty across assets (some assets you're more confident about). In practice: many firms combine BL (for expected return estimation) with robust optimisation (for handling residual uncertainty); the combination is the most principled approach."
+    },
+    {
+      "title": "Robust covariance estimation",
+      "body": "Covariance uncertainty is as important as mean uncertainty. Robust covariance approaches: (1) Robust statistical estimators: minimum covariance determinant (MCD) estimator; downweights outlier observations; more accurate in the presence of fat tails or contaminated data; (2) Robust PCA: identifies principal components robust to outliers; useful when a few extreme market days dominate the estimated covariance; (3) Ledoit-Wolf shrinkage (analytic optimal shrinkage): reduces estimation error by blending toward structured target; (4) Oracle approximating shrinkage (OAS): similar to LW but uses oracle approximation for the shrinkage coefficient; better for small T/N ratios; (5) Bayesian covariance estimation: place an inverse-Wishart prior on Σ; posterior mean is a shrinkage estimator. Practical combination: Ledoit-Wolf for the overall covariance structure, plus robust MCD for identifying and downweighting extreme days (crisis observations) that dominate the standard estimator."
+    }
+  ],
+  "deepDiveIntro": [
+    "Ellipsoidal robust MVO derivation: with uncertainty set U = {μ : (μ-μ̂)ᵀΓ⁻¹(μ-μ̂) ≤ κ²}, the worst-case portfolio return is: min_{μ∈U} wᵀμ = wᵀμ̂ - κ√(wᵀΓw). This is a second-order cone (SOCP) penalty: κ times the ellipsoidal norm of w under Γ. The robust problem: max_w [wᵀμ̂ - κ√(wᵀΓw) - (λ/2)wᵀΣw] is an SOCP — convex and efficiently solvable. Setting Γ: (1) If Γ = Σ/T (standard uncertainty from estimation with T observations): the penalty κ√(wᵀΣw/T) = κ × portfolio_vol/√T — penalises volatile portfolios (positions with high uncertainty); (2) If Γ = I (equal uncertainty for all assets): the penalty = κ × ||w||_2 (L2 norm of weights) — reduces leverage; (3) If Γ = diag(σ²_i/T_i): different estimation precision per asset — positions with fewer observations or higher individual vol are penalised more."
+  ],
+  "deepDive": [
+    {
+      "heading": "Distributionally Robust Optimisation (DRO)",
+      "body": "Classical robust optimisation assumes returns are in an uncertainty set but doesn't specify a distribution. Distributionally Robust Optimisation (DRO) generalises: uncertainty is over the return distribution itself. Wasserstein DRO: the uncertainty set is all distributions within Wasserstein distance ε of the empirical distribution. The robust objective: max_w min_{P: W(P, P̂) ≤ ε} E_P[w'r - (λ/2) w'r rᵀ w]. This penalises portfolios that perform poorly under distributional shifts — adversarially chosen samples within ε of the observed historical distribution. Reformulation: tractable SOCP for some DRO formulations. Key property: as ε → 0, DRO reduces to standard ERM; as ε → ∞, DRO reduces to minimax (worst-case distribution). Motivation: fat tails in financial returns mean the true distribution has much heavier tails than any calibrated Gaussian — DRO with Wasserstein uncertainty captures this without specifying the tail distribution explicitly. Recent finance applications: Mohajerin Esfahani & Kuhn (2018) show DRO with Wasserstein ball is tractable and outperforms standard MVO out-of-sample. [1]"
+    },
+    {
+      "heading": "Stress Testing and Scenario-Based Robust Portfolios",
+      "body": "Instead of parameterising uncertainty with an ellipsoid, specify a discrete set of stress scenarios: S = {s_1, ..., s_K}, where each s_k = (μ_k, Σ_k) is a potential economic scenario. Robust portfolio: max_w min_{k} [w'μ_k - (λ/2) w'Σ_k w]. This is a minimax problem over discrete scenarios — can be reformulated as an LP + QP. Scenario design: (1) Historical scenarios: 2008 financial crisis returns, 2020 COVID crash, 1987 Black Monday; (2) Hypothetical scenarios: 'Rates rise 200bps + equities fall 30%'; 'China hard landing + EM contagion'; (3) Factor shock scenarios: simultaneously shock N standard deviations in each factor; (4) Reverse stress testing: find the scenario that maximises portfolio loss; understand the Achilles heel of the portfolio. Requirement: scenarios should be plausible (not just maximally catastrophic) AND cover diverse risk types. A scenario set that only includes equity crashes misses interest rate and credit risks. Bridgewater's scenario-based approach is particularly strong at identifying correlated macroeconomic scenarios across asset classes. [2]"
+    },
+    {
+      "heading": "Practical Implementation and Performance Comparison",
+      "body": "Empirical performance of robust vs. standard MVO (Fabozzi et al. 2007, DeMiguel et al. 2009): (1) Standard MVO with true expected returns: theoretically optimal; in practice, using estimated returns degrades performance dramatically; (2) Robust MVO with ellipsoidal uncertainty: typically outperforms standard MVO out-of-sample; the conservatism reduces estimation error amplification; (3) 1/N equal-weight portfolio: surprisingly hard to beat consistently — DeMiguel et al. show 1/N outperforms standard MVO in most out-of-sample tests; robust MVO outperforms 1/N more consistently but not always. The benchmark comparison depends critically on: the estimation period length, the asset universe, and the out-of-sample test period. General finding: any well-implemented regularisation (BL, shrinkage, robust, 1/N) outperforms raw MVO with estimated returns out-of-sample. The choice between regularisation methods matters less than applying any form of it. [1]"
+    }
+  ],
+  "takeaways": [
+    "Robust MVO: max_w min_{μ∈U} [w'μ - (λ/2)w'Σw]; ellipsoidal U yields SOCP penalty κ√(w'Γw). [1]",
+    "Setting Γ = Σ/T: penalise volatile portfolios proportionally to estimation uncertainty (std error ∝ σ/√T). [1]",
+    "DRO (Distributionally Robust): optimise over Wasserstein ball of distributions — captures tail risk without specifying distribution. [1]",
+    "Scenario-based robust: minimax over discrete stress scenarios; reverse stress testing identifies portfolio Achilles heel. [2]",
+    "Empirical finding: robust MVO often beats 1/N; raw MVO with estimated μ is often worst out-of-sample. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How does the uncertainty set size κ affect the portfolio?",
+      "a": "The parameter κ controls the trade-off between optimism and conservatism: κ = 0: no uncertainty; standard MVO; potentially extreme concentrated positions. κ = 1: uncertainty set contains the true μ with ~68% probability; moderate robustness; moderate diversification. κ = 2: uncertainty set contains true μ with ~95% probability; more robust; significantly more diversified. κ → ∞: maximally conservative; the portfolio converges to the minimum variance portfolio (independent of expected returns). Practical calibration: set κ based on estimation confidence. For T = 252 daily observations and N = 50 assets: the standard error of μ̂_i ≈ σ_i/√T. Set δ_i = 2 × σ_i/√252 for box uncertainty (covers true μ with ~95% confidence). Or: use cross-validation — compute optimal κ that maximises Sharpe ratio on a validation set. Typical range: κ = 0.5-2.0 for institutional portfolios."
+    },
+    {
+      "q": "When should you prefer robust optimisation over Black-Litterman?",
+      "a": "Prefer robust optimisation over Black-Litterman when: (1) You don't have a natural equilibrium prior (e.g., private equity portfolio where there's no market-cap weighting); (2) You have heterogeneous confidence across assets (some assets you've studied extensively, others you haven't) — robust handles this via per-asset uncertainty δ_i; (3) Your investment process is tail-risk focused (liability-driven investing, insurer) and you want explicit worst-case guarantees; (4) You're combining a large number of quantitative signals and want a principled way to aggregate them accounting for model uncertainty. Prefer Black-Litterman when: (1) Your fund's mandate starts from a benchmark (market cap weights); (2) You have explicit analyst views to incorporate; (3) You need to communicate the portfolio logic to non-quantitative stakeholders (BL decomposes easily into 'equilibrium + views'). In practice: BL for expected return estimation, then robust optimisation as the optimisation engine — this combination is widely used at large systematic asset managers."
+    }
+  ],
+  "sources": [
+    { "label": "Ben-Tal, A. & Nemirovski, A. (1998) — Robust Convex Optimization, Math of OR", "url": "https://doi.org/10.1287/moor.23.4.769" },
+    { "label": "Fabozzi, F.J. et al. (2007) — Robust Portfolio Optimization and Management, Wiley", "url": "https://www.wiley.com/en-us/Robust+Portfolio+Optimization+and+Management-p-9780471921226" }
+  ]
+}

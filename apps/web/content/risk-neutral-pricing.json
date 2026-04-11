@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Risk-neutral pricing is a clever mathematical trick for valuing derivatives. Instead of using the real probability of future outcomes (which requires knowing investors' risk preferences), we pretend we're in a world where all investors are indifferent to risk. In this 'risk-neutral world,' all assets earn the risk-free rate on average, and derivative prices are simply expected payoffs discounted at the risk-free rate.",
+    "The crucial insight: the option price in the risk-neutral world equals the option price in the real world. You don't need to know risk preferences or expected returns to price derivatives — just volatility and the risk-free rate. This is why Black-Scholes works without knowing μ (the expected stock return).",
+    "The mathematical foundation is the Fundamental Theorem of Asset Pricing: a market is arbitrage-free if and only if a risk-neutral probability measure Q exists. Under Q, all discounted asset prices are martingales (their expected future value equals their current value). Derivative pricing = computing expectations under Q."
+  ],
+  "whenWhy": [
+    {
+      "title": "The binomial model: intuition for risk-neutral pricing",
+      "body": "One-period binomial: stock at S₀ goes up to uS₀ (with real probability p) or down to dS₀ (with real probability 1-p). Call option: payoff max(uS₀-K,0) or max(dS₀-K,0). Delta hedge: hold Δ shares + B in bonds. Choose Δ and B so portfolio replicates the option payoff exactly. No-arbitrage: option price = cost of replicating portfolio = ΔS₀ + B. The risk-neutral probability: q = (e^{rΔt} - d)/(u - d). Note: q does NOT depend on the real probability p or expected return. Option price = e^{-rΔt} [q × max(uS₀-K,0) + (1-q) × max(dS₀-K,0)]. The q is the risk-neutral probability — an artificial probability making all assets earn the risk-free rate. In multi-period models: q propagates through the tree; Black-Scholes is the continuous-time limit."
+    },
+    {
+      "title": "Change of measure: Girsanov's theorem",
+      "body": "Under the physical measure P: dS = μS dt + σS dW^P. Under the risk-neutral measure Q: dS = rS dt + σS dW^Q. The change of measure: dW^Q = dW^P + (μ-r)/σ dt. The term (μ-r)/σ is the Sharpe ratio / market price of risk (λ). Girsanov's theorem: defines a new probability measure Q under which W^Q is a Brownian motion, and the Radon-Nikodym derivative dQ/dP = exp(-λW_T - ½λ²T). Under Q, discounted asset prices S_t/B_t (where B_t = e^{rt}) are martingales: E^Q[S_T/B_T | F_t] = S_t/B_t. Pricing formula: V₀ = E^Q[e^{-rT} V_T], where V_T is the payoff. This is equivalent to: V₀ = e^{-rT} E^Q[V_T]."
+    },
+    {
+      "title": "Risk-neutral pricing of interest rate derivatives",
+      "body": "For interest rate derivatives, the risk-free rate r_t is itself stochastic. The risk-neutral pricing formula: V₀ = E^Q[exp(-∫₀ᵀ r_t dt) × V_T]. The discount factor exp(-∫₀ᵀ r_t dt) is random — both the payoff and the discount factor are stochastic. Under the T-forward measure Q^T (using zero-coupon bond B(t,T) as numeraire): V₀ = B(0,T) × E^{Q^T}[V_T]. This simplifies pricing because under Q^T, forward rates are martingales. Used for: caps/floors, swaptions, bond options. The forward measure eliminates the stochastic discount factor for fixed-maturity instruments. Different numeraires give different convenient measures: spot measure (money market account), T-forward measure (T-maturity ZCB), swap measure (annuity)."
+    }
+  ],
+  "deepDiveIntro": [
+    "Fundamental Theorem of Asset Pricing (FTAP): (1) No-arbitrage ⟺ there exists a risk-neutral measure Q equivalent to P (Q assigns zero probability to the same events as P, just different probabilities); (2) Market completeness ⟺ Q is unique (every payoff can be replicated). Under Q: (1) E^Q[dS_t / S_t] = r dt (all assets earn risk-free rate); (2) Discounted prices S_t e^{-rt} are Q-martingales: E^Q[S_T e^{-rT} | F_t] = S_t e^{-rt}; (3) Any derivative price: V_t = e^{-r(T-t)} E^Q[V_T | F_t]. Pricing = expectation under Q of discounted payoff."
+  ],
+  "deepDive": [
+    {
+      "heading": "Risk-Neutral vs. Real-World Measure: Practical Implications",
+      "body": "Physical measure P: describes actual probability of outcomes; needed for risk management (VaR, CVaR), portfolio allocation, expected return estimation. Risk-neutral measure Q: used for pricing derivatives; option prices embed Q-probabilities. Key difference: Q overweights bad outcomes relative to P — because investors are risk-averse and demand a premium for bearing risk. The risk premium: the difference between Q and P probabilities. Equity risk premium: under P, stocks earn μ ≈ 7-10%/year; under Q, they earn r ≈ 2-5%/year (risk-free). The difference is the equity risk premium. VIX (implied volatility) reflects Q-measure uncertainty — it systematically overstates realised P-measure volatility by the variance risk premium (~3-5 vol points on average). Practical implication: option prices (Q-based) are not predictions of real-world probabilities; VIX overstates true fear; using option prices to predict market direction is misleading. [1]"
+    },
+    {
+      "heading": "Incomplete Markets and Multiple Risk-Neutral Measures",
+      "body": "In incomplete markets (cannot replicate all payoffs), multiple Q measures exist. Each corresponds to a different choice of which risks are priced. Examples: (1) Jump risk: if stock prices can jump, jump risk may or may not be priced; different choices give different option prices; market option prices pin down one specific Q (the market's preferred pricing measure); (2) Volatility risk: in stochastic volatility models (Heston), vol risk has its own price of risk; it must be estimated from market option prices; (3) Credit risk: default events are jumps; different risk-neutral default intensities are consistent with no-arbitrage. Calibration: fit model parameters to market option prices so the model exactly reproduces observed prices. The calibrated model (with its implied Q) can then be used to price exotic options consistently with the vanilla market. This is market-consistent pricing (vs. model-dependent pricing). [2]"
+    },
+    {
+      "heading": "Risk-Neutral Density and Market-Implied Probabilities",
+      "body": "The full risk-neutral density of S_T can be extracted from a continuum of European option prices. Breeden-Litzenberger (1978): the risk-neutral density p^Q(S_T) = e^{rT} ∂²C/∂K², where C(K) is the call price as a function of strike. From market option prices: fit a smooth implied volatility surface σ(K,T) → compute call prices C(K,T) → differentiate twice with respect to K → extract p^Q. Applications: (1) Identify market-implied probability of tail events (e.g., S&P 500 down 30% by year-end); (2) Detect multimodal distributions (market pricing in two distinct outcomes); (3) Measure market stress (fat left tails = high crash probability priced). Limitation: p^Q is not the real-world probability p^P; it includes the variance risk premium adjustment. Converting Q to P requires estimating the risk premium — difficult and model-dependent. [1]"
+    }
+  ],
+  "takeaways": [
+    "Risk-neutral pricing: V₀ = e^{-rT} E^Q[V_T]; under Q all assets earn risk-free rate, discounted prices are martingales. [1]",
+    "Change of measure (Girsanov): dW^Q = dW^P + λ dt, where λ = (μ-r)/σ is the market price of risk. [1]",
+    "Option pricing doesn't require μ — only σ and r (under Q). [1]",
+    "Q vs P: Q overweights bad states (risk aversion premium); VIX overstates realised vol by ~3-5 points. [1]",
+    "Breeden-Litzenberger: extract risk-neutral density from option prices: p^Q(S_T) = e^{rT} ∂²C/∂K². [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Can risk-neutral pricing fail or give wrong prices?",
+      "a": "Risk-neutral pricing fails or gives incorrect prices when: (1) No replicating portfolio exists (incomplete markets): the Q measure is not unique; any consistent price within a range is arbitrage-free. The practitioner must choose a model (i.e., choose a specific Q); different models give different prices for exotic options even if calibrated to the same vanilla options; (2) Model misspecification: if the assumed dynamics (e.g., GBM) don't describe reality (fat tails, jumps), the hedging strategy derived under Q will not work in practice; (3) Counterparty credit risk / funding costs: real-world pricing includes CVA (credit value adjustment) and FVA (funding value adjustment) — these break the clean risk-neutral pricing framework; (4) Transaction costs: risk-neutral pricing assumes frictionless trading; with transaction costs, only a range of prices is arbitrage-free."
+    },
+    {
+      "q": "What is the connection between risk-neutral pricing and expected utility theory?",
+      "a": "Risk-neutral pricing and expected utility theory give the same derivative price under specific conditions: if the representative agent has log utility (isoelastic utility with γ=1), the risk-neutral measure Q is exactly the probability measure under which the pricing kernel M_T = e^{-rT}/S_T (pricing kernel is inverse of stock market wealth). More generally: under a power utility investor, the pricing kernel M_T = e^{-rT}(S_T/S_0)^{-γ}, where γ is risk aversion. The risk-neutral measure Q: dQ/dP = M_T × e^{rT} = (S_T/S_0)^{-γ}. High γ (high risk aversion) gives more probability weight to bad states — higher option prices (especially puts). This connection ties derivatives pricing to equilibrium asset pricing; in practice, γ and the full shape of the pricing kernel are inferred from option prices."
+    }
+  ],
+  "sources": [
+    { "label": "Harrison, J.M. & Pliska, S.R. (1981) — Martingales and Stochastic Integrals in the Theory of Continuous Trading, SPA", "url": "https://doi.org/10.1016/0304-4149(81)90026-0" },
+    { "label": "Shreve, S.E. — Stochastic Calculus for Finance II, Springer", "url": "https://link.springer.com/book/10.1007/978-1-4757-4296-1" }
+  ]
+}

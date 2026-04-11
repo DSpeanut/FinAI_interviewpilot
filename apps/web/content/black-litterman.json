@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "The Black-Litterman model solves a key problem with Markowitz optimisation: if you just maximise expected returns subject to risk, the optimal portfolio is extremely sensitive to small changes in your expected return assumptions and produces crazy concentrated positions. Black and Litterman fixed this by starting from a sensible 'equilibrium' portfolio (the market-cap-weighted portfolio) and then blending in your own views — quantitatively and consistently.",
+    "The intuition: in equilibrium, the market portfolio represents the aggregate of all investors' views. If you have no views, the best default is the market weights. If you do have specific views (e.g., 'I think tech will outperform by 5%'), Black-Litterman tells you how to adjust away from the market portfolio by exactly the right amount, weighted by your confidence in that view.",
+    "The result: BL portfolios are far more stable and sensible than raw Markowitz portfolios — they don't have extreme long/short positions, they naturally incorporate uncertainty about expected returns, and they're intuitive to present to non-quantitative stakeholders."
+  ],
+  "whenWhy": [
+    {
+      "title": "The BL model step by step",
+      "body": "Step 1 — Implied equilibrium returns: Π = δ Σ w_mkt, where δ is the risk aversion coefficient (δ ≈ 2.5), Σ is the covariance matrix, w_mkt is the market-cap weights. Π is the vector of equilibrium expected excess returns — the returns the market must expect to be in equilibrium. Step 2 — Express views: each view: P μ = Q + ε, where P is the 'picking matrix' (which assets/portfolios the view is about), Q is the expected return from the view, ε ~ N(0,Ω) captures view uncertainty. Example view: 'Asset 1 will outperform Asset 2 by 3%' → P = [1, -1, 0, ...], Q = 3%, Ω_11 = σ² (confidence). Step 3 — BL posterior: μ_BL = [(τΣ)⁻¹ + Pᵀ Ω⁻¹ P]⁻¹ [(τΣ)⁻¹ Π + Pᵀ Ω⁻¹ Q]. τ ≈ 0.05 (weight on equilibrium vs. views). Step 4 — Optimise: standard MVO using μ_BL and Σ."
+    },
+    {
+      "title": "Setting views and view confidence",
+      "body": "View specification: views can be absolute (asset A earns 8%) or relative (asset A outperforms asset B by 3%). Relative views are more robust — they're less affected by the overall market level. View uncertainty (Ω): determines how much the posterior blends toward the view vs. equilibrium. Methods for setting Ω: (1) Proportional to variance: Ω_kk = τ × (P_k Σ P_k ᵀ) — uncertainty proportional to the variance of the portfolio described by the view; scale τ = 0.05-0.25; (2) Confidence scores: if you have 80% confidence in a view, Ω is small; 20% confidence → large Ω; (3) Model-based: use historical accuracy of your forecasting model to set Ω; a model with IC = 0.1 has more uncertainty than IC = 0.4. Practical approach: express each view as a 95% confidence interval for the return; set Ω so the interval matches your genuine uncertainty. The BL model forces discipline: you cannot just input an optimistic return assumption — you must specify how uncertain you are."
+    },
+    {
+      "title": "BL in practice: factor views and constraints",
+      "body": "Modern BL extends to factor-level views: instead of views on individual stocks, express views on factors (momentum, value). Factor view: 'The value factor will earn +4% over the next 12 months' → P matrix picks the factor-mimicking portfolio. This is more tractable for large universes (500 stocks) where stock-by-stock views are impractical. Combining BL with constraints: BL produces expected returns; standard constraints (position limits, sector weights, ESG screens, turnover) are added at the optimisation step. BL with transaction costs: penalise deviations from current portfolio proportional to transaction cost; produces portfolio that respects both views and rebalancing costs. Comparison to equal-weight and risk-parity: BL approaches equal-weight when views are absent (δ, τ → same as cap-weighting); it approaches a risk-parity portfolio when all expected returns are set equal to equilibrium. BL provides a principled interpolation between these extremes."
+    }
+  ],
+  "deepDiveIntro": [
+    "BL derivation: Bayesian inference. Prior: μ ~ N(Π, τΣ) — the prior is that equilibrium returns are true with uncertainty τΣ. Likelihood: P μ ~ N(Q, Ω) — views are observed with noise Ω. Posterior (by Bayes' rule for Gaussians): μ | views ~ N(μ_BL, M⁻¹), where M = (τΣ)⁻¹ + Pᵀ Ω⁻¹ P and μ_BL = M⁻¹ [(τΣ)⁻¹ Π + Pᵀ Ω⁻¹ Q]. Posterior covariance M⁻¹ is the 'uncertainty about expected returns' — it should be added to Σ in the final MVO optimisation to capture both factor uncertainty and estimation error. The posterior mean is a precision-weighted average of the prior (equilibrium) and the view (both weighted by their inverse covariance = precision)."
+  ],
+  "deepDive": [
+    {
+      "heading": "Implied Expected Returns and Reverse Optimisation",
+      "body": "Reverse optimisation: start from observable market weights and reverse-engineer the expected returns that would make those weights optimal. For MVO: w* = (1/δ) Σ⁻¹ μ → μ_implied = δ Σ w*. If w* = market-cap weights (w_mkt), then μ_implied = Π = equilibrium expected returns. This is elegant: instead of estimating expected returns directly (very noisy), derive them from observable prices and a covariance model (much more stable). The equilibrium expected returns Π have a clean interpretation: Π_i is the excess return asset i must earn to justify its market weight given its risk. In the US equity market: Π_S&P ≈ 4-6% (equity risk premium in equilibrium). This matches long-run observed equity returns — evidence that the equilibrium framework is calibrated correctly. Practical use: BL allows a clean decomposition of portfolio views — the difference between μ_BL and Π measures the active contribution of your views. [1]"
+    },
+    {
+      "heading": "BL vs. Robust Optimisation",
+      "body": "Robust optimisation: find portfolio that maximises the worst-case expected return over an uncertainty set for μ. Formulation: max_w min_{μ ∈ U} [wᵀ μ - (δ/2) wᵀ Σ w]. Uncertainty set U: ellipsoid {μ : (μ - μ̂)ᵀ Σ⁻¹ (μ - μ̂) ≤ κ²}. Solution: the robust optimal portfolio looks like a regularised (shrunk toward zero) version of the Markowitz portfolio. Comparison to BL: (1) BL explicitly incorporates a prior (equilibrium); robust optimisation doesn't use a prior — it just constrains how wrong your estimates can be; (2) BL is Bayesian; robust is min-max (pessimistic); (3) BL requires specifying the prior (equilibrium + uncertainty); robust requires specifying the uncertainty set size κ; (4) BL naturally incorporates asymmetric information (some assets have good views, others have no views); robust treats all uncertainty symmetrically. In practice: BL is more common in equity portfolios (factor views are natural); robust optimisation is more common in fixed income (where the worst-case interpretation is more natural). [2]"
+    },
+    {
+      "heading": "Extensions: Factor BL and Bayesian Portfolio Optimisation",
+      "body": "Factor BL (Qian & Gorman 2001): instead of stock-level views, all views are expressed through factors. Benefits: (1) Factor views are more tractable for large universes; (2) Factor model naturally provides the prior covariance structure; (3) Cross-sectional alpha signals can be directly mapped to factor views. Implementation: signal composite score → predicted factor return → BL view on factor → optimal factor tilt. Full Bayesian portfolio optimisation: treat both μ and Σ as random variables; place priors on both; compute posterior distribution and optimise under posterior uncertainty. This accounts for estimation error in both expected returns AND covariance. Implementation: MCMC (Markov Chain Monte Carlo) or variational inference to compute posterior; sample optimal portfolios; take posterior mean of portfolio weights. Practically expensive but theoretically complete. More tractable approximation: use moment matching (match posterior mean and covariance to a Gaussian) → standard BL with additional Σ correction for parameter uncertainty. [1]"
+    }
+  ],
+  "takeaways": [
+    "BL: blends equilibrium returns (implied from market weights) with investor views via Bayesian inference. [1]",
+    "Equilibrium: Π = δΣw_mkt — reverse-optimisation from cap weights; no expected return estimation needed. [1]",
+    "Posterior: μ_BL = M⁻¹[(τΣ)⁻¹Π + PᵀΩ⁻¹Q]; precision-weighted average of equilibrium and views. [1]",
+    "View uncertainty Ω: smaller = higher confidence → more deviation from market weights. [1]",
+    "BL vs. robust optimisation: BL is Bayesian (prior + views); robust is min-max (worst-case over uncertainty set). [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What if you have no views — what does BL produce?",
+      "a": "If you have no views (P is empty, or Ω is very large → views have zero weight), the BL posterior μ_BL → Π (equilibrium expected returns). The optimal portfolio from MVO with Π is the market-cap-weighted portfolio w_mkt. This is the 'passive' solution — in the absence of any genuine views, the best portfolio is the market. This is a key feature: BL gracefully handles the 'no view' case without producing an arbitrary or unstable portfolio. Contrast with raw MVO: if you input μ̂ = average historical returns with no views, MVO produces a highly concentrated, unstable portfolio because historical average returns are very noisy. BL's equilibrium prior acts as strong regularisation even before any views are expressed."
+    },
+    {
+      "q": "How do you calibrate the risk aversion parameter δ and τ?",
+      "a": "Calibrating δ: the most common approach is to use the Sharpe ratio of the market portfolio to infer δ. From MVO first-order conditions: δ = Sharpe_market / σ_market ≈ 0.4 / 0.16 = 2.5 for a market with Sharpe 0.4 and σ 16%. Alternatively, derive from investor preferences (δ = 1 for very aggressive, δ = 4-5 for very conservative). Calibrating τ: τ represents the weight given to the prior relative to the likelihood. Common choices: τ = 1/T (where T is the number of observations used to estimate Σ); τ = 0.05 (a common practitioner default). The exact value of τ matters less than the ratio τ/Ω — what matters is the relative precision of the prior vs. the views. Sensitivity analysis: test a range of (δ, τ) values; robust portfolios should be insensitive to small changes in these parameters. If the optimal portfolio changes dramatically with small τ changes, the views are dominating too heavily."
+    }
+  ],
+  "sources": [
+    { "label": "Black, F. & Litterman, R. (1992) — Global Portfolio Optimization, FAJ", "url": "https://doi.org/10.2469/faj.v48.n5.28" },
+    { "label": "Idzorek, T. (2005) — A Step-by-Step Guide to the Black-Litterman Model", "url": "https://faculty.fuqua.duke.edu/~charvey/Teaching/BA453_2006/Idzorek_onBL.pdf" }
+  ]
+}

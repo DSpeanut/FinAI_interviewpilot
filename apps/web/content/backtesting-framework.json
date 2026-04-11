@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Backtesting is testing a trading strategy on historical data to see how it would have performed in the past. If a strategy would have made money historically, it might be a valid strategy — or it might just have been lucky on that specific historical period. Backtesting is essential but dangerously easy to misuse.",
+    "A rigorous backtest simulates the real trading process: you only use data that would have been available at each point in time, you account for realistic transaction costs and market impact, and you measure out-of-sample (held-out) performance. Done properly, it's a powerful validation tool. Done carelessly, it's a data-mining exercise that will lose money in the real world.",
+    "The central challenge: with enough data and enough tries, any strategy will appear to have worked historically by pure chance. You need statistical discipline — proper hypothesis testing, out-of-sample validation, realistic cost assumptions — to distinguish genuine edge from overfitting."
+  ],
+  "whenWhy": [
+    {
+      "title": "The backtest pipeline: from signal to strategy",
+      "body": "Complete backtest pipeline: (1) Universe definition: which assets, which time period, which corporate events (handle survivorship bias); (2) Signal construction: compute the signal at each time t using only data available at t (point-in-time); (3) Portfolio construction: convert signal scores to portfolio weights (ranking, optimisation, or simple long-short); (4) Execution simulation: apply realistic transaction costs (bid-ask, market impact, commissions); (5) Performance calculation: compute returns, risk metrics (Sharpe, drawdown, IR), factor attribution; (6) Significance testing: is the backtest Sharpe ratio statistically significant? (7) Validation: out-of-sample test, international replication, sub-period analysis. Each step is a potential source of bias — a bias at any step inflates apparent backtest performance."
+    },
+    {
+      "title": "Point-in-time data: the foundation of a valid backtest",
+      "body": "Point-in-time (PIT) data uses only information that was actually available at each historical date — as if you were actually trading in real time. Why it matters: (1) Financial statements are restated — companies revise historical numbers; using restated data gives the strategy information it couldn't have had at the time; (2) Index membership changes retroactively — an S&P 500 backtest using today's constituents has survivorship bias (it includes only successful companies); (3) Earnings announcements: the release date matters — EPS data filed on date D is not available before D. Vendors: Compustat Point-in-Time database, S&P Capital IQ provide PIT data. Without PIT data, almost all fundamental backtests are contaminated by look-ahead bias. This single issue can inflate Sharpe ratios by 0.5-1.0 in fundamental factor strategies."
+    },
+    {
+      "title": "Measuring strategy performance: key metrics",
+      "body": "Essential backtest metrics: (1) Annualised return: geometric mean annual return over the period; (2) Annualised Sharpe ratio: (return - risk-free) / σ; annualise daily: × √252; (3) Max drawdown: maximum peak-to-trough decline; critical for investor psychology and redemption risk; (4) Calmar ratio: annualised return / max drawdown; (5) Hit rate: fraction of profitable trades; (6) Profit factor: gross profit / gross loss; (7) Turnover: average annual portfolio turnover; determines transaction cost sensitivity; (8) Factor attribution: alpha after Fama-French five-factor regression; (9) Correlation to standard strategies (market, value, momentum); (10) Return in different regimes (bull/bear, high/low volatility). Red flags: very high Sharpe in backtest (>2.0) but no compelling economic reason; extremely low turnover that seems too good; Sharpe that disappears in subsamples or out-of-sample."
+    }
+  ],
+  "deepDiveIntro": [
+    "Statistical significance of backtest Sharpe: t-stat = Sharpe × √T (where T = number of years). For Sharpe = 1.0 over 5 years: t-stat = 1.0 × √5 = 2.24 (marginally significant). For Sharpe = 0.5 over 5 years: t-stat = 1.12 (not significant). The multiple testing problem adjusts the required t-stat upward: if testing K strategies independently, the Bonferroni-corrected required t-stat ≈ √(2 ln K). For K = 100 strategies: required t-stat ≈ 3.0 (not 2.0). Minimum Backtest Length (MBL) for statistical significance given T strategies tested: T* = (E[max Sharpe | K strategies, no true signal])². Lopez de Prado & Bailey (2014): formula for minimum t-stat given K strategies: t* = √2 × erfinv(1 - 1/K)."
+  ],
+  "deepDive": [
+    {
+      "heading": "Walk-Forward Testing and Anchored vs. Rolling Windows",
+      "body": "Walk-forward testing: divide historical data into expanding (or rolling) training windows and fixed-length test windows. The strategy is re-calibrated on training data and tested on subsequent out-of-sample data. Anchored walk-forward: training window starts at fixed origin, grows over time; test window advances in steps. Rolling walk-forward: training window of fixed size, both start and end advance over time. Walk-forward simulates the actual live trading scenario: recalibrate periodically as new data arrives. Measures: out-of-sample Sharpe, drawdown, consistency of performance across walk-forward windows. Ideal: performance is consistent across all out-of-sample windows (not just the last one). Red flag: strategy performs well in only 1-2 walk-forward windows and poorly in others — overfit to specific period. Required: at least 10 out-of-sample periods for reliable statistics. [1]"
+    },
+    {
+      "heading": "Transaction Cost Modelling",
+      "body": "Failing to model transaction costs accurately is a leading cause of backtest-to-live performance gap. Cost components: (1) Bid-ask spread: half-spread varies by liquidity; large-cap US equities: 0.01-0.05%; small-caps: 0.1-0.5%; (2) Market impact: the price move caused by your own trading; proportional to order size / average daily volume. Square-root impact model: impact ≈ σ × √(size/ADV), where σ is daily vol and ADV is average daily volume; (3) Commission: exchange fees, broker commission; typically 0.01-0.1 cents/share or 0.01-0.05%; (4) Short borrowing cost: for short positions; large-cap: 0.2-0.5%/year; small-cap: 1-10%/year; crowded shorts: 20%+ / year. Realistic cost assumptions: for a strategy with 100% annual turnover and $100M AUM in liquid large-caps, total costs ≈ 0.3-0.5%/year. For small-caps or high-turnover strategies: costs can be 2-5%/year. Always test: what Sharpe survives if you double your cost assumption? [2]"
+    },
+    {
+      "heading": "Combinatorial Cross-Validation and Deflated Sharpe Ratio",
+      "body": "Bailey & Lopez de Prado (2014) introduced the Deflated Sharpe Ratio (DSR) to account for multiple testing. DSR = (observed Sharpe - expected max Sharpe from N trials of no-skill strategy) / std(Sharpe). DSR < 0 means the observed Sharpe is not surprising given the number of strategies tested. The expected max Sharpe from N iid strategies with Sharpe = 0: E[max S_i] ≈ √(2 ln N) × (1/(2 ln N) × (...)) — grows with log of number of trials. For N = 1,000 strategies, the expected lucky Sharpe ≈ 1.5. So an observed Sharpe of 1.5 from 1,000 trials provides almost no evidence of skill. Combinatorial purged cross-validation (CPCV): evaluate the strategy on all possible training/test splits, not just one; provides a distribution of Sharpe ratios rather than a point estimate. The Probability of Backtest Overfitting (PBO) measures the probability that the best-performing parameter set in-sample is the best performer out-of-sample — a low PBO confirms the strategy is robust. [2]"
+    }
+  ],
+  "takeaways": [
+    "Point-in-time data is essential: look-ahead bias from restated financials inflates Sharpe by 0.5-1.0 in factor strategies. [1]",
+    "Walk-forward testing: re-calibrate on expanding training windows, test on held-out windows — 10+ periods needed. [1]",
+    "Transaction costs: model bid-ask, market impact (√(size/ADV)), borrowing; double costs in sensitivity analysis. [2]",
+    "Significance: t-stat = Sharpe × √T; with K strategies tested, require t-stat ≥ √(2 ln K) ≈ 3.0 for K=100. [2]",
+    "Deflated Sharpe Ratio (DSR): adjusts for multiple testing; DSR < 0 = no evidence of skill. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle corporate actions and dividends in backtests?",
+      "a": "Corporate actions require careful adjustment to avoid artificial return spikes: (1) Stock splits: adjust all pre-split prices by the split ratio; use adjusted price series (CRSP, Bloomberg adjusted close); (2) Dividends: total return index includes reinvested dividends; price-only index doesn't. For a momentum backtest: use total returns (dividend-adjusted) — a stock with high dividend yield looks like it dropped in price without dividend adjustment, which distorts the momentum signal; (3) Mergers/acquisitions: when company A acquires company B, remove B from the universe at announcement (not deal close) to avoid holding a takeover target at the premium price; (4) Spin-offs: create new entities; handle the new entity as a new stock entry; (5) Delistings: handle carefully — companies that went bankrupt (price → 0) must be included to avoid survivorship bias. CRSP handles all these adjustments; Compustat requires more careful processing."
+    },
+    {
+      "q": "What is the minimum backtest length for a given strategy?",
+      "a": "The minimum backtest length depends on: (1) The strategy's Sharpe ratio (higher Sharpe = shorter history needed for statistical significance); (2) The number of strategies tested (more testing = longer history needed); (3) The signal frequency (daily signals need fewer years than monthly signals for the same number of independent observations). Rule of thumb for minimum meaningful backtest: Sharpe 0.5 strategy: need 10+ years for 2-sigma significance; Sharpe 1.0: need 5 years. With 100 strategies tested: these requirements increase by factor √(2 ln 100)/2 ≈ 1.5×. For high-frequency strategies: use the number of independent trades (need 100+) rather than calendar length. For factor strategies: 20+ years ideal; allows testing across multiple full economic cycles (at least 2 full recessions). Strategies with < 5 years of history or < 3 full economic cycles should be treated as unvalidated."
+    }
+  ],
+  "sources": [
+    { "label": "Lopez de Prado, M. — Advances in Financial Machine Learning, Wiley", "url": "https://www.wiley.com/en-us/Advances+in+Financial+Machine+Learning-p-9781119482086" },
+    { "label": "Bailey, D.H. & Lopez de Prado, M. (2014) — The Deflated Sharpe Ratio, JPM", "url": "https://doi.org/10.3905/jpm.2014.40.5.094" }
+  ]
+}

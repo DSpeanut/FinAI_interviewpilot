@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Survivorship bias is the error of only looking at things that 'survived' some selection process and ignoring everything that didn't make it. In finance, it means building strategies on datasets that only include successful companies (those still trading today) and ignoring companies that went bankrupt, got acquired, or were delisted — making strategies look much better than they really are.",
+    "Classic example: a mutual fund database that only includes funds currently operating looks great on average — the funds that failed and were shut down aren't there anymore. Abraham Wald showed the same logic during WWII: planes that returned had bullet holes in wings and fuselage, but not engines. He concluded: reinforce the engines (not the wings) — because planes hit in the engine never came back to be analyzed.",
+    "Survivorship bias inflates backtest returns, overstates factor performance, and creates false confidence in strategies. Eliminating it requires using complete datasets that include every asset that ever existed in the universe — not just the ones that survived."
+  ],
+  "whenWhy": [
+    {
+      "title": "Survivorship bias in equity backtests",
+      "body": "If a backtest uses today's S&P 500 members for the entire historical period, it is survivorship biased: the current 500 members were selected partly because they had strong performance — that's how they got into (and stayed in) the index. Many companies that were in the index 20 years ago subsequently failed (Enron, Lehman Brothers, Kodak) and are not in today's index. By only backtesting on survivors, the strategy appears to avoid these disasters. Fix: use the full historical index membership for each date. CRSP (Center for Research in Security Prices) provides this; so does Compustat with delisting data. CRSP delisting codes: 100-199 (active), 200-299 (merger/acquisition), 300-399 (exchange transfer), 400-499 (liquidation/bankruptcy). Including delisted stocks adds their final negative returns, which are critical for realistic performance estimates."
+    },
+    {
+      "title": "Survivorship bias in fund databases",
+      "body": "Fund of funds and manager selection models trained on commercial databases (Morningstar, Hedge Fund Research) suffer from survivorship bias because: (1) Funds that liquidated due to poor performance are dropped from live databases; (2) Backfill bias (instant history bias): when a new fund enters a database, it reports its entire history — but this history was only reported after the fund had a good track record (funds with bad early history never reported it, or dissolved). Combined effect: academic studies show hedge fund databases have survivorship/backfill bias of 2-4% per year. Mean-reverting signal in manager selection: if you identify top-quartile managers from database history, a large fraction of that outperformance is survivorship bias, not skill. Using properly maintained 'graveyard' databases (HFR includes dead funds) significantly reduces but doesn't eliminate the bias."
+    },
+    {
+      "title": "Survivorship bias in economic and corporate data",
+      "body": "Beyond stocks and funds: (1) Country/market survivorship: backtesting on today's developed markets ignores countries where financial markets ceased to exist (Russia 1917, Germany 1945, China 1949) — these are extreme negative return events; (2) Accounting ratios: ROE and ROA calculations at the industry level are biased if using surviving firms only; industries with high bankruptcy rates (airlines, retail) look more profitable than they were; (3) Credit rating agencies: rating transitions based only on rated issuers that didn't default understate the probability of rating deterioration; (4) Startup/VC: 90%+ of startups fail; any analysis of startup success based only on successful exits is massively biased — VC returns look better than they are when losses are underweighted."
+    }
+  ],
+  "deepDiveIntro": [
+    "Quantifying survivorship bias in US equities (academic evidence): Kothari, Shanken & Sloan (1995) estimated 1.5-2% annual upward bias in value premium from survivorship; Shumway & Warther (1999): CRSP delisting returns for Nasdaq stocks average -55% (for NYSE/Amex: -30%) — ignoring these inflates momentum and value backtests by 0.5-1%/year. Elton, Gruber & Blake (1996): mutual fund survivorship bias 0.9% per year in their 1977-1993 sample. Brown et al. (1992) for hedge funds: survivorship bias 3%+ per year in early HF databases. The impact varies by strategy: (1) Momentum (buys winners, shorts losers): both winners and losers have survivorship bias; net effect modest. (2) Value (buys cheap): value strategies often buy distressed companies — higher delisting rate; survivorship bias inflates value significantly."
+  ],
+  "deepDive": [
+    {
+      "heading": "CRSP Delisting Returns and How to Use Them",
+      "body": "CRSP (Center for Research in Security Prices) is the gold standard for US equity data, including delisting information. When a stock is delisted, CRSP reports the final return in the month of delisting. However, the final return is often missing (coded as -99) — the stock was delisted but no terminal price was available. Shumway (1997) showed these missing returns are systematically negative: for performance-related delistings (bankruptcy, exchange rules violations): fill with -30% (NYSE/Amex) or -55% (Nasdaq). For non-performance delistings (mergers at premium): fill with +0 (acquirer paid premium) or use the last available price. Practical implementation: after joining returns to your backtest universe, for delisted stocks where the final monthly return is missing and the delisting reason is performance-related, insert the imputed return before the stock exits the universe. Not doing this is survivorship bias by omission. [1]"
+    },
+    {
+      "heading": "Backfill Bias in Hedge Fund Databases",
+      "body": "When a fund enters a hedge fund database (HFR, Barclays), it reports its complete historical track record. This introduces backfill bias (also called 'instant history bias'): the fund voluntarily entered the database because its early performance was good — funds with poor early history either didn't report or dissolved. The self-selection creates an upward bias in reported performance for the pre-entry period. Measurement: compare performance in the 'backfilled' period (before database entry) to the 'live' period (after entry). Academic finding: backfilled monthly returns are on average 0.4% higher per month (4.8%/year) than live returns (Fung & Hsieh 2000). Combined with survivorship bias: total database bias ≈ 3-6%/year in early HF databases. Mitigation: use the 'live' period only (after database entry date) for performance analysis; some providers flag backfilled returns. [2]"
+    },
+    {
+      "heading": "Correcting for Survivorship in Factor Research",
+      "body": "Academic factor research corrections: (1) Use complete CRSP sample including delisted securities with CRSP delisting returns; (2) For international factor research: include all stock markets that existed in each country, even those that subsequently closed or experienced extreme drawdowns; (3) For macro/country-level factor research: include all countries, not just those with functioning financial markets today — using only MSCI World countries creates severe survivorship bias (implicitly selects for countries with stable rule of law and property rights over the full period). These corrections reduce stated factor returns. Harvey, Liu & Zhu (2016) argue many reported anomalies are further inflated by: (a) survivorship in the data, (b) multiple testing, and (c) journal publication bias (only positive results published). After correcting all three, many published factors are insignificant. A factor with t-stat < 3.0 surviving all corrections is genuinely robust. [1]"
+    }
+  ],
+  "takeaways": [
+    "Survivorship bias: using today's index members for historical backtest ignores Enron, Lehman, Kodak — inflates returns. [1]",
+    "CRSP delisting returns: missing performance delistings fill with -30% (NYSE) or -55% (Nasdaq). [1]",
+    "Backfill bias in HF databases: 4.8%/year overstatement in pre-entry period due to self-selection. [2]",
+    "Mutual fund survivorship: 0.9%/year bias; hedge fund: 3%+/year; combine with backfill for total ~4-6% bias. [2]",
+    "Factor research correction: use all-inclusive CRSP universe + full delisting returns + international complete sample. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How does survivorship bias affect risk-model estimation?",
+      "a": "Covariance matrices estimated from surviving stocks only have lower estimated volatility and lower correlations than the true universe: (1) Delisted stocks often had unusual return patterns before delisting (declining prices, increasing vol) — excluding them biases downward the estimated volatility of the portfolio; (2) During financial crises, many firms in the same industry are simultaneously at risk — their pre-crisis correlations were normal, but crisis correlations spike. If those firms delisted during the crisis, their spike in correlation is not captured in the post-crisis dataset; (3) For credit portfolios: estimating default correlation from surviving obligors ignores joint default events (correlated defaults are the key risk in CDOs). Fix: use the full historical universe for covariance estimation; use stressed covariance estimates from crisis periods; Monte Carlo scenarios that include joint default events."
+    },
+    {
+      "q": "Does survivorship bias affect ETF backtests?",
+      "a": "Yes — ETF backtests (performance of hypothetical rules-based indices) have subtle survivorship bias issues: (1) Index reconstitution: index providers quarterly rebalance; stocks that fall below size/liquidity thresholds exit. Backtesting the current index rules on historical data implicitly applies today's rules retroactively; (2) Index inception date bias: many factor ETFs launched after the factors were published — their 'backtest' before launch uses the factor's academic performance, which already passed all the publication filters; (3) Data availability: factor indices require certain data fields (e.g., accruals for quality) — companies without that data are excluded, but such companies may be concentrated in sectors with unusual characteristics; (4) ETF creation/redemption: actual ETF performance differs from index performance due to creation/redemption basket timing, cash drag, and tax lot management. The most conservative approach: measure ETF's live performance only (post-inception date), not backfill index performance."
+    }
+  ],
+  "sources": [
+    { "label": "Shumway, T. (1997) — The Delisting Bias in CRSP Data, JF", "url": "https://doi.org/10.1111/j.1540-6261.1997.tb04818.x" },
+    { "label": "Fung, W. & Hsieh, D.A. (2000) — Performance Characteristics of Hedge Funds, JFQA", "url": "https://doi.org/10.2307/2676262" }
+  ]
+}

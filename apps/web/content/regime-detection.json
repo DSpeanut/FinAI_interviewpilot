@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Financial markets don't behave the same way all the time. In bull markets, momentum works well and value lags; in bear markets or recessions, quality and defensive factors outperform while momentum crashes. Regime detection is the process of identifying which market 'state' you're currently in so you can allocate to strategies that work in that regime.",
+    "A regime is a period where markets share similar statistical properties: high vs. low volatility, risk-on vs. risk-off, recession vs. expansion. Different regimes respond differently to the same signals. A strategy that earns 1% per month in a bull market might lose 2% per month in a bear market. Knowing the regime allows you to dial down strategies that typically fail in the current environment.",
+    "Regime detection uses statistical models (Hidden Markov Models, clustering, change-point detection) and macro indicators (yield curve, credit spreads, VIX) to classify the current market state. The goal is not prediction — it's identification of current conditions to inform near-term allocation."
+  ],
+  "whenWhy": [
+    {
+      "title": "Hidden Markov Models for market regimes",
+      "body": "Hidden Markov Model (HMM): latent state S_t ∈ {1,2,...,K} (hidden regimes) generates observed returns r_t. Transition matrix P: P_ij = P(S_{t+1} = j | S_t = i) captures persistence of regimes. Emission distribution: r_t | S_t = k ~ N(μ_k, σ_k²). Estimation: Baum-Welch algorithm (EM for HMM) iterates: (E-step) compute posterior P(S_t = k | r_1,...,r_T) using forward-backward algorithm; (M-step) update μ_k, σ_k, and P. Filtered state probability at time T: P(S_T = k | r_1,...,r_T) — the probability of being in regime k given all available data. Two-state model: typically identifies a 'bull' regime (positive returns, low vol) and 'bear' regime (negative returns, high vol). Regime persistence: if P_{bull,bull} = 0.97, average duration of bull regime ≈ 1/(1-0.97) = 33 months."
+    },
+    {
+      "title": "Macro-based regime indicators",
+      "body": "Instead of purely statistical regime models, use economic variables that predict regime transitions: (1) Yield curve slope (10y - 2y spread): inverted yield curve predicts recession 6-18 months later with ~70% accuracy (Campbell & Shiller); (2) Credit spread (HY - IG or IG - Treasury): widening spreads signal financial stress; HY spread > 5% historically precedes equity drawdowns; (3) VIX level: VIX > 25 = risk-off/stress regime; VIX < 15 = risk-on/complacent regime; (4) ISM Manufacturing PMI: above 50 = expansion; below 50 = contraction; (5) Employment: non-farm payrolls, unemployment rate trends; (6) Fed funds rate: tightening cycle vs. easing cycle has different factor return patterns. Macro regime indicator: composite score of the above variables, normalised and combined. Conditional factor performance: estimate factor returns separately for each macro regime; allocate dynamically to factors with highest expected return in current regime."
+    },
+    {
+      "title": "Clustering-based regime detection",
+      "body": "Unsupervised approach: cluster historical market environments without pre-specifying regimes. Features: rolling 3-month equity return, 3-month bond return, 3-month VIX change, credit spread change. K-means clustering into K = 4-6 clusters. Label each cluster economically post-hoc: 'risk-on expansion,' 'risk-off contraction,' 'rate shock,' 'slow growth.' Map each historical month to its cluster; compute average factor returns within each cluster. Dynamic allocation: at each month, identify which cluster the current environment most resembles (using Euclidean distance to cluster centroids); tilt portfolio toward factors with historically high returns in that cluster. Validation: out-of-sample regime-conditional performance must be consistent with in-sample; if regime-tilting doesn't improve Sharpe out-of-sample, the clustering captures noise not genuine regime structure."
+    }
+  ],
+  "deepDiveIntro": [
+    "Change-point detection: identify when the statistical properties of a time series have shifted. Methods: (1) CUSUM test: cumulative sum of deviations from target mean; signals when cumulative deviation exceeds threshold; (2) Bayesian change-point (Adams & MacKay 2007): online algorithm that maintains posterior probability over the time since last change point; provides real-time detection; (3) PELT (Pruned Exact Linear Time): efficiently finds the optimal set of change points minimising a penalised likelihood; used offline on historical data; (4) Structural break tests (Chow test): at candidate break date t*, test whether regression parameters before and after t* are equal. In portfolio management: change-point detection identifies when factor return profiles have shifted, triggering a review of the factor model calibration."
+  ],
+  "deepDive": [
+    {
+      "heading": "Regime Detection in Practice: Challenges",
+      "body": "Regime detection faces fundamental challenges: (1) Regimes are only clear in hindsight: HMM identifies regimes beautifully in-sample; real-time filtered probabilities are much noisier; a model may correctly identify that a bear market occurred in 2008 in-sample, but the filtered probability in real-time in October 2008 was only 70% — you'd have a 30% probability weight on 'still bull market'; (2) Regime transitions are fast: the 2020 COVID crash lasted 33 days from peak to trough — most monthly-frequency regime models reacted after most of the damage was done; (3) Regime labelling is post-hoc: clusters identified unsupervisedly don't come with economic labels; two researchers may label the same cluster differently; (4) Overfitting: with K regimes and N periods, the HMM has K×(N factors + 2K) parameters — easy to overfit the regime sequence to training data. Mitigation: (1) Use macro indicators (which have economic interpretation) alongside statistical models; (2) Limit to 2-3 regimes; (3) Penalise frequent regime switches (high transition persistence). [1]"
+    },
+    {
+      "heading": "Factor Timing with Regime Models",
+      "body": "Even accurate regime detection doesn't guarantee successful factor timing. Research findings: (1) Asness et al. (2017): there is no reliable factor timing signal that outperforms equal-weight factor portfolios after transaction costs; the best timing signals improve Sharpe by only 0.1-0.2; (2) Momentum of factor returns: recent high-performing factors tend to continue over 1-3 month horizons; this is meta-momentum or 'factor momentum' — trade the factor portfolio like an individual stock; (3) Value spread timing: when the value spread (cheapness of value vs. growth) is wide, expected future value returns are higher; valid for 5-year horizons, not usefully predictive for 1-month; (4) Regime-conditional weights vs. binary on/off: instead of turning off momentum in bear markets (binary), reduce allocation smoothly as bear regime probability increases; this reduces turnover and whipsawing. Practical implementation: regime probability as a soft weight multiplier: weight_t = baseline × (1 - 2 × P(bear)) for momentum; weight_t = baseline × (1 + 2 × P(bear)) for quality/defensive. [2]"
+    },
+    {
+      "heading": "Volatility Regimes and GARCH-Based Detection",
+      "body": "Volatility clustering (GARCH) provides a natural statistical regime: high-volatility periods and low-volatility periods. GARCH(1,1): σ²_t = ω + α ε²_{t-1} + β σ²_{t-1}. Regime-switching GARCH (Hamilton-Susmel 1994): combines Markov switching with GARCH, allowing both the GARCH parameters and the regime probabilities to evolve jointly. Applications: (1) Volatility targeting: position_t = target_vol / σ_t; scales down in high-vol regimes automatically; (2) VaR calculation: use regime-conditional volatility for more accurate tail risk estimates; (3) Option pricing: regime-switching models generate volatility smiles and term structure dynamics more realistically than single-regime GARCH; (4) Factor allocation: high-volatility regimes → reduce momentum (crash risk is highest); increase quality/low-vol; (5) Liquidity-adjusted VaR: liquidity also has regimes — in stress periods, bid-ask spreads widen 10×; risk models should condition on the liquidity regime. [1]"
+    }
+  ],
+  "takeaways": [
+    "HMM regime detection: latent states generate observed returns; Baum-Welch estimates μ_k, σ_k, transition matrix P. [1]",
+    "Macro indicators: yield curve inversion, credit spreads, VIX > 25 — more interpretable than statistical-only models. [1]",
+    "Factor timing research: regime-based timing improves Sharpe by only 0.1-0.2 after costs (Asness et al. 2017). [2]",
+    "Use regime probability as soft weight multiplier — not binary on/off — to reduce turnover. [2]",
+    "Volatility targeting (position ∝ 1/σ_t) is the most widely validated regime-based risk management approach. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you avoid over-fitting regime models to in-sample data?",
+      "a": "Regime model overfitting is severe because the model can perfectly fit any return history by choosing enough regimes and flexible transition dynamics. Guards: (1) Restrict K (number of regimes): 2-3 is usually optimal; 4+ regimes rarely improve out-of-sample; (2) Information criteria: choose K that minimises BIC (Bayesian Information Criterion = -2 log L + K_params × log T); BIC penalises parameter count; (3) Out-of-sample test: split history 70/30; estimate model on 70%; evaluate regime-conditional factor returns on the 30%; (4) Parsimony principle: prefer economic regimes (recession vs. expansion using NBER dates) over statistical regimes — they have natural interpretation and can't be overfitted; (5) Block bootstrapping: bootstrap entire historical sequences (not random rows) to preserve regime persistence; test whether regime-conditional Sharpe improvements are robust to resampling."
+    },
+    {
+      "q": "What is the relationship between regime detection and crisis alpha?",
+      "a": "Crisis alpha (term coined by Kathryn Kaminski): returns earned during market crises that are uncorrelated to, or negatively correlated with, equity risk. Trend following strategies naturally generate crisis alpha — they go short declining markets without any explicit regime detection. In contrast, regime detection-based factor timing aims to reduce allocation to strategies that fail in crises BEFORE the crisis is identified — which requires real-time accuracy. The empirical finding: systematic regime-based factor timing adds modest value; but allocating a dedicated sleeve to strategies with natural crisis alpha (trend following, long volatility, tail risk hedges) is more reliable than attempting regime-conditional tilts. The distinction: crisis alpha strategies are structurally defensive; regime-based timing is opportunistic. Both have a role in a multi-strategy portfolio, but with different implementation complexity and reliability."
+    }
+  ],
+  "sources": [
+    { "label": "Hamilton, J.D. (1989) — A New Approach to the Economic Analysis of Nonstationary Time Series, Econometrica", "url": "https://doi.org/10.2307/1912559" },
+    { "label": "Asness, C. et al. (2017) — Factor Momentum Everywhere, JPM", "url": "https://doi.org/10.3905/jpm.2018.2.040" }
+  ]
+}

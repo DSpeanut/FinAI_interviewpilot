@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Mean reversion is the tendency for asset prices or spreads to return toward their long-run average after moving away from it. If something is abnormally high, it tends to come back down; if abnormally low, it tends to recover. This is the foundation of value investing (cheap stocks revert toward fair value) and many quantitative strategies.",
+    "Mean reversion operates at multiple timescales: seconds (market microstructure — bid-ask bounce); days to weeks (stat arb, pairs trading); months to years (value factor, contrarian investing); decades (CAPE/Shiller P/E mean reversion in equity markets). Different strategies exploit different timescales with different holding periods and turnover.",
+    "The key tension: mean reversion vs. momentum. Both exist in financial data — momentum at short-to-medium horizons (1-12 months), mean reversion at very short (< 1 week) and very long (3-5 years) horizons. A quant strategy must correctly identify which regime it's in before trading."
+  ],
+  "whenWhy": [
+    {
+      "title": "Testing for mean reversion: stationarity and half-life",
+      "body": "A time series X_t is mean-reverting if it's stationary (returns to its mean over time). Tests: (1) ADF test (Augmented Dickey-Fuller): tests H0: unit root (random walk, not mean-reverting) vs. H1: stationary. Reject H0 at p < 0.05 to confirm mean reversion. (2) Hurst exponent H: H < 0.5 = mean-reverting; H = 0.5 = random walk; H > 0.5 = trending. Estimated via variance ratio or rescaled range analysis. (3) Variance ratio test (Lo & MacKinlay): compare variance of k-period returns to k × variance of 1-period returns; ratio < 1 indicates negative autocorrelation (mean reversion). Half-life of mean reversion: fit AR(1): X_t = α + φ X_{t-1} + ε. Half-life = -log(2)/log(φ). For equity prices directly: unit root almost always; for spreads, residuals, or log price ratios: often stationary."
+    },
+    {
+      "title": "Mean reversion in volatility",
+      "body": "Volatility is strongly mean-reverting — this is a foundational assumption of GARCH and stochastic volatility models. After a volatility spike (e.g., a market crash), implied volatility (VIX) tends to revert toward its long-run mean. VIX mean level: ~20; spikes to 40-80 in crises (2008: 80, 2020: 66, 2011: 48). After spikes, VIX reverts to ~15-20 within 3-6 months historically. Strategies: (1) Short VIX futures after volatility spikes (volatility carry trade); (2) Sell short-dated options and buy longer-dated options (term structure plays). Risk: volatility mean reversion can be slow; a position short VIX after a spike can suffer further losses before reversion. Extreme events (2008) can break historical mean-reversion assumptions temporarily."
+    },
+    {
+      "title": "Cross-sectional mean reversion: contrarian equity strategies",
+      "body": "DeBondt & Thaler (1985): stocks with extreme losses over 3-5 years ('losers') subsequently outperform stocks with extreme gains ('winners'). This is long-horizon cross-sectional mean reversion — the value factor at its core. Short-horizon (1-week): strong short-term reversal — last week's losers tend to be this week's winners, especially in small-caps. This is a microstructure effect (price impact of order flow reverting). Contrarian strategy: buy last month's worst performers, short last month's best performers. Works best with: (1) small-cap, liquid universe; (2) daily rebalancing; (3) industry-neutral construction to avoid stale sector bets. Signal decays rapidly — requires careful transaction cost management."
+    }
+  ],
+  "deepDiveIntro": [
+    "Ornstein-Uhlenbeck (OU) process: dX_t = κ(μ - X_t)dt + σ dW_t. Parameters: κ = mean reversion speed (higher = faster reversion), μ = long-run mean, σ = volatility. Discrete equivalent: X_t = (1-e^{-κΔt})μ + e^{-κΔt} X_{t-1} + ε, where ε ~ N(0, σ²(1-e^{-2κΔt})/(2κ)). This is an AR(1) process: φ = e^{-κΔt}. For daily data: half-life = -log(2)/log(φ) days. Estimation: OLS regression of X_t on X_{t-1}; κ = -log(φ)/Δt. Optimal OU trading strategy: enter long when X_t < μ - a×σ_∞; close when X_t returns to μ; enter short when X_t > μ + a×σ_∞; σ_∞ = σ/√(2κ) is stationary variance."
+  ],
+  "deepDive": [
+    {
+      "heading": "Variance Ratio Tests and Non-Linear Mean Reversion",
+      "body": "The variance ratio test (Lo & MacKinlay 1988): VR(k) = Var(k-period return) / (k × Var(1-period return)). Under random walk: VR(k) = 1 for all k. VR(k) < 1 for all k: mean-reverting at horizon k. VR(k) > 1 for k = 1-12 months: momentum. Empirical findings for S&P 500: VR(1 week) < 1 (short-term reversal); VR(1-12 months) > 1 (momentum); VR(3-5 years) < 1 (long-run mean reversion). This U-shaped variance ratio profile is consistent with both momentum and value coexisting at different horizons. Non-linear mean reversion: the speed of mean reversion may increase with the magnitude of deviation (threshold autoregression, TAR). Practically: large deviations revert faster than small ones, suggesting larger positions at larger deviations. STAR (smooth transition AR) models capture this continuously. [1]"
+    },
+    {
+      "heading": "Mean Reversion in Interest Rates and the Vasicek Model",
+      "body": "Short-term interest rates exhibit strong mean reversion — a fundamental assumption of all term structure models. If rates spike, monetary policy typically forces them back toward equilibrium. The Vasicek model: dr_t = κ(θ - r_t)dt + σ dW_t, where θ is the long-run mean rate and κ is the speed of adjustment. This produces a stationary interest rate distribution and generates upward-sloping or humped yield curves. Key calibration: using historical Fed Funds data (1954-2023), κ ≈ 0.2-0.4 (half-life 1-3 years), θ ≈ current economic neutral rate. Practical application: (1) When short rates are far above the neutral rate (e.g., 2022-2023), expect them to decline — duration positioning; (2) When yield curve is inverted, mean reversion implies it will eventually steepen; (3) Fixed income relative value strategies exploit deviations from model-implied fair yields. [2]"
+    },
+    {
+      "heading": "Limits to Arbitrage: Why Mean Reversion Isn't Free Money",
+      "body": "If assets reliably mean-revert, why don't arbitrageurs drive profits to zero? Limits to arbitrage (Shleifer & Vishny 1997): (1) Noise trader risk: mispriced assets can become more mispriced before reverting; a mean-reversion strategy suffers mark-to-market losses that may trigger margin calls before the position profits; (2) Synchronisation risk: even if all arbitrageurs know an asset is mispriced, any individual arbitrageur doesn't know when others will trade — they may trade early and lose to subsequent divergence; (3) Horizon mismatch: mean reversion at 3-year horizon requires 3-year capital commitment; most institutional investors face redemption risk (clients can withdraw capital if short-term performance is poor). These limits explain why mean reversion persists — it's not free arbitrage; it requires capital, patience, and tolerance for interim losses. [2]"
+  ]
+  },
+  "takeaways": [
+    "Test for mean reversion: ADF test (unit root), Hurst exponent H < 0.5, or variance ratio test VR(k) < 1. [1]",
+    "OU process: dX = κ(μ-X)dt + σdW; half-life = log(2)/κ; larger κ = faster reversion. [1]",
+    "Mean reversion exists at multiple horizons: < 1 week (microstructure), 3-5 years (value/contrarian). [1]",
+    "Limits to arbitrage: noise trader risk, margin calls, and horizon mismatch prevent easy exploitation. [2]",
+    "Volatility is strongly mean-reverting: VIX spikes to 40-80 in crises, reverts to ~15-20 within months. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "When does mean reversion become dangerous in practice?",
+      "a": "Mean reversion strategies fail catastrophically when: (1) the underlying relationship breaks permanently (structural break): e.g., a pair trade between an oil major and a refiner breaks when the oil major vertically integrates; (2) the mean itself shifts: e.g., interest rate mean in Japan has been near zero for 30 years — models calibrated to US rate history will persistently predict reversion to wrong equilibrium; (3) the strategy is too crowded: simultaneous unwinding by correlated strategies amplifies losses before reversion. The LTCM crisis (1998) is the canonical example: convergence trades on sovereign bond spreads that had always previously converged failed when spreads widened further during the Russia default/LTCM unwind, forcing margin-call liquidations at maximum loss."
+    },
+    {
+      "q": "How do you estimate the equilibrium mean when it's non-stationary?",
+      "a": "Cointegration: if X_t and Y_t are individually non-stationary (unit root) but their linear combination X_t - β Y_t is stationary, use the cointegrating relationship as the mean. The 'mean' is time-varying but moves slowly. Kalman filter with a random walk state: model the equilibrium μ_t as a random walk; X_t = μ_t + ε_t, μ_t = μ_{t-1} + η_t. The Kalman filter updates the mean estimate as new data arrives. This handles both regime shifts and non-stationary means adaptively. For spread trading: the Kalman filter hedge ratio adapts as the fundamental relationship between the two assets changes slowly — more robust than fixed OLS estimates."
+    }
+  ],
+  "sources": [
+    { "label": "Lo, A.W. & MacKinlay, A.C. (1988) — Stock Market Prices Do Not Follow Random Walks, RFS", "url": "https://doi.org/10.1093/rfs/1.1.41" },
+    { "label": "Shleifer, A. & Vishny, R.W. (1997) — The Limits of Arbitrage, JF", "url": "https://doi.org/10.1111/j.1540-6261.1997.tb03807.x" }
+  ]
+}

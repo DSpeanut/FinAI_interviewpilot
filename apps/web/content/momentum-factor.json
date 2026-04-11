@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Momentum is the tendency for assets that have performed well recently to continue outperforming, and assets that have performed poorly to continue underperforming. Buy last year's winners, short last year's losers — this simple strategy has generated persistent returns across stocks, bonds, currencies, and commodities for over a century of data.",
+    "The standard definition: cross-sectional momentum uses the past 12-month return (skipping the most recent month to avoid short-term reversal) as the ranking signal. Time-series momentum (trend following) uses whether an asset's own past return is positive or negative. Both variants work. Jegadeesh & Titman (1993) first documented equity momentum formally; it remains one of the most robust and puzzling anomalies — it's hard to explain with standard risk models.",
+    "Momentum has the highest Sharpe ratio of any single equity factor historically (~0.5-0.7 annualised), but also the worst crash risk — it crashes suddenly and severely when markets reverse (2009 momentum crash: -73% in 3 months). This asymmetric risk profile makes it both valuable and dangerous."
+  ],
+  "whenWhy": [
+    {
+      "title": "Cross-sectional momentum in equity portfolios",
+      "body": "Construction: at each month-end, rank all stocks by their 12-1 return (12-month return excluding the most recent month). Long top decile (winners), short bottom decile (losers). Rebalance monthly. The skip-1-month removes microstructure effects (bid-ask bounce, short-term reversal). Key parameters: lookback window (12 months is standard; 6-month also works), skip period (1 month standard), holding period (1-3 months reduces turnover). Momentum turnover is high (~100-200%/year) making transaction costs important — momentum is more viable in liquid, large-cap stocks. Dollar-neutral and beta-neutral construction is important as winners and losers can have different sector compositions over time."
+    },
+    {
+      "title": "Time-series momentum and trend following",
+      "body": "Time-series momentum (Moskowitz, Ooi & Pedersen 2012): go long an asset if its trailing return over a lookback period is positive; go short if negative. Applied to futures (equity, bond, currency, commodity) it forms the basis of CTA/managed futures strategies. Time-series momentum provides: (1) crash protection — it goes short equity futures when markets trend down; (2) diversification — low correlation to equities; (3) persistent returns across economic cycles. AQR QMOM, Man AHL, and Winton Group are major practitioners. The signal is combined with volatility targeting: position size = target volatility / rolling volatility of the asset."
+    },
+    {
+      "title": "Momentum and the value-momentum interaction",
+      "body": "Momentum and value are negatively correlated (approximately -0.5): recent winners tend to be expensive (low B/M); recent losers tend to be cheap (high B/M). This negative correlation is actually useful — combining them diversifies effectively. A 50/50 value-momentum portfolio has higher Sharpe than either alone. The diversification arises because they profit from different mispricings: value from long-horizon mean-reversion (overreaction corrected over years); momentum from short-to-medium-horizon underreaction (information incorporated too slowly). Most systematic equity managers run value and momentum simultaneously and let them hedge each other."
+    }
+  ],
+  "deepDiveIntro": [
+    "Standard cross-sectional momentum signal: r_{t-12, t-1} (12-month return, skip most recent month). Risk-adjusted momentum: r_{t-12, t-1} / σ (divide by volatility to get a per-unit-risk signal). Volatility-scaled momentum has better risk-adjusted performance and lower crash risk. Factor construction: WML (Winners Minus Losers) = average return of top 30% B/M-ranked stocks minus bottom 30%, rebalanced monthly. Historical US WML premium: ~7-9%/year gross (significantly higher than value or size), but with high transaction costs and crash risk. Net momentum premium after costs in institutional portfolios: ~3-4%/year."
+  ],
+  "deepDive": [
+    {
+      "heading": "The Momentum Crash: When Momentum Fails Catastrophically",
+      "body": "Momentum is subject to severe crashes during sharp market reversals. The 2009 momentum crash: equity markets bottomed in March 2009 and reversed sharply; momentum was short the worst-performing stocks (financials, autos) which then became the biggest winners during the recovery rally. WML returned -73% in 3 months. Similar crashes in 1932 (Great Depression recovery), 2001 (post-dot-com reversal). Daniel & Moskowitz (2016) modelled momentum crashes: they occur when the market is in a 'panic state' (high volatility, recent bear market) — the skewness of momentum returns is highly negative in these states. Risk management: (1) Reduce momentum exposure when market volatility is high; (2) Use option-like hedges during recovery from crash; (3) Volatility-scale positions. The positive expected return comes with negatively skewed, fat-tailed risk — like selling insurance. [1]"
+    },
+    {
+      "heading": "Explanations: Why Does Momentum Persist?",
+      "body": "Momentum contradicts the semi-strong efficient market hypothesis — prices should immediately incorporate all public information, leaving no return predictability from past prices. Behavioural explanations: (1) Underreaction / gradual information diffusion (Hong & Stein 1999): information travels slowly through investor networks; early informed traders cause initial price move; later investors observe the trend and chase it, extending the trend; (2) Investor overconfidence: investors are overconfident in their own information and under-react to conflicting public signals; (3) Disposition effect: investors hold losers too long (avoiding realisation of losses) and sell winners too early, creating price momentum in both directions. Risk-based explanations: momentum loads positively on economic growth risk in expansions and negatively in contractions — it's procyclical, which a risk-based story would predict a positive premium. The evidence slightly favours behavioural explanations but both contribute. [2]"
+    },
+    {
+      "heading": "Momentum Decay and Optimal Holding Periods",
+      "body": "Momentum signals decay over holding periods: strong at 1-12 months, reverses at 3-5 years (consistent with value — long-run reversal means momentum and value are both correct, just at different horizons). Optimal holding period: 1-3 months maximises information ratio accounting for both signal decay and transaction costs. Jegadeesh & Titman (1993) showed 3-12 month formation, 3-12 month holding generates persistent profits. The 1-month reversal (negative autocorrelation at lag 1) is a microstructure effect; the 3-5 year reversal is long-run overreaction correction. Implication for portfolio construction: high-turnover momentum strategies need low transaction costs (large-cap liquid stocks, futures); low-turnover value strategies can work with higher transaction costs. [1]"
+    }
+  ],
+  "takeaways": [
+    "Momentum: 12-1 month past return (skip 1 month) predicts next 1-3 month return; highest single-factor Sharpe (~0.5-0.7). [1]",
+    "Momentum crashes are severe and correlated: worst when market rebounds sharply from a crash; manage with volatility scaling. [1]",
+    "Value and momentum are negatively correlated (~-0.5); combining them diversifies effectively and raises portfolio Sharpe. [2]",
+    "Time-series momentum (trend following) provides crash protection and diversification across asset classes. [2]",
+    "Behavioural explanations (underreaction, disposition effect) better fit the data than pure risk-based stories. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Does momentum work in all markets and asset classes?",
+      "a": "Cross-sectional momentum works in equities globally except Japan (where it has been historically weak — possibly due to the keiretsu corporate structure and different investor behaviour). Time-series momentum (trend following) works across all major futures markets including equities, bonds, currencies, and commodities. International equity momentum (ranking global country indices) works. Within asset classes: momentum works in individual stocks, sector indices, country indices, corporate bonds, and currencies. The universality across asset classes is strong evidence that it's not a data-mining artefact specific to US equities. Transaction costs are the key constraint — momentum generates high turnover and works best in liquid instruments (futures, large-cap equities)."
+    },
+    {
+      "q": "How do you combine momentum with other factors without double-counting?",
+      "a": "The correlation between factors matters for portfolio construction. Key pairwise correlations (approximate, long-short): momentum vs. value: -0.5 (diversifying); momentum vs. quality: +0.3 (overlapping — quality stocks often have positive momentum); momentum vs. low-volatility: -0.2 to 0 (slight diversification). A naive equal-weight combination of all factors double-counts correlated exposures. Better approaches: (1) Orthogonalise: residualise momentum against value before combining; (2) Optimise: use factor covariance matrix to find minimum-variance combination targeting equal factor risk contribution; (3) Signal combination at stock level: score each stock on all factors simultaneously (composite signal) and trade once — reduces turnover vs. trading each factor separately."
+    }
+  ],
+  "sources": [
+    { "label": "Jegadeesh, N. & Titman, S. (1993) — Returns to Buying Winners and Selling Losers, JF", "url": "https://doi.org/10.1111/j.1540-6261.1993.tb04702.x" },
+    { "label": "Moskowitz, T., Ooi, Y.H. & Pedersen, L.H. (2012) — Time Series Momentum, JFE", "url": "https://doi.org/10.1016/j.jfineco.2011.11.003" }
+  ]
+}

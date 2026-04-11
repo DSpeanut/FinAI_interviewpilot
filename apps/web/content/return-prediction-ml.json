@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Return prediction using ML means training machine learning models to forecast future asset returns based on historical features. Instead of a simple linear factor model (return = β₁×momentum + β₂×value + ...), ML models can capture non-linear relationships, interactions between factors, and time-varying dynamics that linear models miss.",
+    "The challenge: financial return prediction is extremely hard. Signal-to-noise ratio is tiny (genuine predictors explain maybe 1-3% of return variance), the data is non-stationary (patterns shift over time), and the economy adapts (patterns are arbitraged away once discovered). ML models that work well in other domains tend to overfit badly in finance without careful regularisation.",
+    "Key insight from recent research (Gu, Kelly & Xiu 2020): tree ensemble and neural network models trained on 94 characteristics do predict stock returns better than linear models out-of-sample — but the improvement is incremental (not transformative), and the models need strong regularisation, careful training/test separation, and realistic transaction cost accounting."
+  ],
+  "whenWhy": [
+    {
+      "title": "Feature engineering for return prediction",
+      "body": "Standard feature categories for equity return prediction: (1) Price-based: momentum at multiple horizons (1m, 3m, 6m, 12m), short-term reversal, 52-week high ratio, idiosyncratic volatility, beta, liquidity measures (Amihud ILLIQ); (2) Fundamental: earnings yield (E/P), book-to-market (B/M), gross profitability, accruals, earnings growth, sales growth, ROE, leverage; (3) Analyst: EPS revision, earnings surprise, analyst coverage, forecast dispersion; (4) Alternative: short interest ratio, institutional ownership changes, insider trading; (5) Macro: yield curve slope (term spread), credit spread, VIX, GDP growth. Feature processing: cross-sectional rank normalisation (replace value with percentile rank 0-1); handles outliers and non-normality automatically; z-scoring within industry/sector for sector-neutral signals. Total features: Gu, Kelly & Xiu (2020) use 94 characteristics."
+    },
+    {
+      "title": "Model selection: from linear to ML",
+      "body": "Model progression: (1) OLS (linear factor model): interpretable, baseline; low Sharpe but well-understood; prone to overfitting with many features; (2) Ridge/LASSO: linear with regularisation; handles multicollinearity; LASSO does feature selection; (3) PLS (partial least squares): supervised dimensionality reduction; finds linear combinations of features most predictive of returns; (4) Random forest: tree ensemble; captures non-linear interactions; strong regularisation via bagging; robust to outliers; (5) Gradient boosted trees (XGBoost/LightGBM): sequential ensemble; often best performance; requires careful hyperparameter tuning; (6) Neural networks (fully connected, LSTM, transformer): can capture complex temporal patterns; highest capacity and highest overfitting risk; need heavy regularisation (dropout, early stopping, batch normalisation). Benchmark finding (Gu et al. 2020): neural networks and gradient boosted trees outperform linear models by 30-50% in monthly R² out-of-sample, but this translates to modest improvements in live Sharpe ratio after costs."
+    },
+    {
+      "title": "Training, validation, and test protocol for financial ML",
+      "body": "Correct data split for financial ML (no random shuffling): (1) Train: earliest period (e.g., 1957-1986); (2) Validation: middle period (1987-1996); for hyperparameter tuning; (3) Test: latest period (1997-2016); touched ONCE for final evaluation. Why no random split: each observation's date matters; using future observations in training creates look-ahead bias. CRSP/Compustat merge: join on PERMNO (security identifier), use CRSP for price data and Compustat for fundamentals; apply 6-month lag to fundamental data (annual reports published ~3-4 months after fiscal year-end; add safety margin). Point-in-time fundamental data critical: use Compustat's XQ (quarterly snapshot) files or commercial PIT databases. Monthly rebalancing: retrain or recalibrate model annually; this reflects how the model would be deployed live."
+    }
+  ],
+  "deepDiveIntro": [
+    "Gu, Kelly & Xiu (2020) benchmark: 30,000 individual US stocks (1957-2016), 94 characteristics. Models evaluated by monthly OOS R² = 1 - Σ(r_t - r̂_t)² / Σ(r_t - r̄_t)². OLS: R² ≈ 0.3%. Neural nets: R² ≈ 0.4-0.5%. Improvement seems small but significant: a 0.1-0.2% improvement in monthly R² corresponds to a meaningful Sharpe ratio increase when applied at portfolio scale. Sharpe ratios (long-top-decile, short-bottom-decile): linear models Sharpe ≈ 1.0-1.3; neural networks Sharpe ≈ 1.5-2.0 (gross, before transaction costs). After costs in large-cap universe: modest but persistent improvement. Long-short portfolio from NN predictions: highest decile vs. lowest decile by predicted return."
+  ],
+  "deepDive": [
+    {
+      "heading": "Non-Linear Interactions and Feature Importance",
+      "body": "ML models capture non-linear interactions that linear models miss. Key interactions found in Gu et al. (2020): (1) Momentum × liquidity: momentum works stronger in liquid stocks; for illiquid stocks, momentum signal is dominated by transaction costs; (2) Value × quality: cheap stocks with high profitability outperform cheap stocks with low profitability — the interaction term is significant and linear models miss it; (3) Momentum × market conditions: momentum is stronger in low-volatility markets; in high-volatility (crash/recovery) regimes, momentum reverses. SHAP values (SHapley Additive exPlanations): decomposes the NN prediction into contributions from each feature. Most important features globally: momentum (short-term reversal is most important at 1-month horizon; 12-1 month momentum at 12-month horizon), size (negative), illiquidity (positive). SHAP interaction values: identify pairs of features with synergistic or antagonistic interaction effects. [1]"
+    },
+    {
+      "heading": "Regularisation Techniques for Financial Neural Networks",
+      "body": "Financial ML requires stronger regularisation than typical ML because: (1) Sample size is small relative to feature space (30,000 × 94 features, 720 months — not big data by ML standards); (2) Signal is extremely weak (Sharpe ≈ 0.03 per monthly observation); (3) Non-stationarity: patterns from 1960s may not hold in 2020s. Regularisation arsenal: (1) Dropout (0.05-0.20): randomly zero out neurons during training; forces redundant representations; (2) L1/L2 weight decay: penalise large weights; equivalent to Bayesian prior; (3) Ensemble averaging: train 10 models with different random seeds; average predictions; reduces estimation variance; (4) Early stopping: monitor validation loss; stop before overfitting; use the checkpoint with best validation performance; (5) Batch normalisation: normalise layer inputs; stabilises training; reduces sensitivity to learning rate; (6) Bagging (for trees): train on bootstrap samples; reduces variance; (7) Input feature shrinkage: winsorise features at ±3σ cross-sectionally before feeding to model. [2]"
+    },
+    {
+      "heading": "Transaction Costs and Capacity in ML-Based Portfolios",
+      "body": "ML models often predict short-term alpha signals that generate high portfolio turnover. High-turnover ML signals: monthly turnover 200-400%; total transaction costs (bid-ask + market impact + short borrowing) may exceed gross signal value. Cost analysis: if predicted alpha is 0.5%/month and total round-trip costs are 0.3%, net alpha is only 0.2% — just 40% of gross. For a $1B portfolio with 300% annual turnover: market impact of rebalancing is the dominant cost (not commissions). Capacity constraint: ML alpha strategies that work well at $100M AUM may degrade at $1B+ as market impact grows. Mitigation: (1) Use a weaker but lower-turnover signal (increase lookback, reduce rebalancing frequency); (2) Implement only partial portfolio updates each period ('smart rebalancing'); (3) Focus signal on the most liquid stocks; (4) Use a portfolio optimiser that explicitly accounts for transaction costs (turnover penalty in the objective function). [2]"
+    }
+  ],
+  "takeaways": [
+    "Neural nets and tree ensembles improve monthly OOS R² by 0.1-0.2% over linear models — small but portfolio-significant. [1]",
+    "Key interactions captured by ML: momentum×liquidity, value×quality, momentum×market regime. [1]",
+    "Heavy regularisation essential: dropout, ensemble averaging, early stopping, L2 weight decay. [2]",
+    "SHAP values: decompose NN predictions into per-feature contributions; most important features = momentum, size, illiquidity. [1]",
+    "Transaction costs often consume 50%+ of gross ML alpha; turnover and capacity must be modelled explicitly. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you prevent the model from learning spurious relationships in noisy financial data?",
+      "a": "Spurious relationships are the core risk in financial ML. Prevention: (1) Economic rationale first: only include features with a plausible economic mechanism; don't blindly include all possible features; (2) Feature importance stability: check that important features are consistent across train and test periods; a feature that is important only in the training period is likely spurious; (3) Placebo test: permute the training labels (shuffle returns randomly) and check that the model no longer has predictive power — this detects models that are detecting patterns in the feature distribution rather than return-predictive patterns; (4) Subsample consistency: does the model have comparable feature importance in the first half vs. second half of the training data? High inconsistency = spurious learning; (5) Cross-asset validation: does the model trained on US equities predict returns in other asset classes or countries with similar features? Genuine signals tend to be universal."
+    },
+    {
+      "q": "Can transformers (attention mechanisms) work for return prediction?",
+      "a": "Transformer models (originally designed for NLP) have been applied to financial time series with mixed results. The key challenge: financial time series are very short compared to text sequences; a stock with 30 years of monthly data has only 360 time steps. This makes attention mechanisms less powerful than in language (where sequences are 1000s of tokens). Recent research: (1) Temporal Fusion Transformer (TFT) for multi-horizon forecasting captures variable importance and temporal patterns but requires large datasets; (2) Cross-sectional transformers (treating each time step as having N stock 'tokens'): learn cross-sectional attention patterns — which stocks' features are most informative for predicting other stocks; (3) Hybrid approaches: use LSTM for temporal dependencies + cross-sectional attention for peer effects. Practical verdict: transformer models can marginally outperform simpler MLPs on financial data when well-regularised, but the improvement is not as dramatic as in NLP. The high computational cost may not justify marginal improvement."
+    }
+  ],
+  "sources": [
+    { "label": "Gu, S., Kelly, B. & Xiu, D. (2020) — Empirical Asset Pricing via Machine Learning, RFS", "url": "https://doi.org/10.1093/rfs/hhaa009" },
+    { "label": "Lopez de Prado, M. — Advances in Financial Machine Learning, Wiley", "url": "https://www.wiley.com/en-us/Advances+in+Financial+Machine+Learning-p-9781119482086" }
+  ]
+}
