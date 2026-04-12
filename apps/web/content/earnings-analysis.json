@@ -1,0 +1,68 @@
+{
+  "terms": [
+    { "term": "EPS", "def": "Earnings Per Share = Net Income / Diluted Shares Outstanding; the bottom line profit per share." },
+    { "term": "Consensus Estimate", "def": "Bloomberg/FactSet/Refinitiv average of sell-side analyst forecasts; the benchmark actual results are measured against." },
+    { "term": "Earnings Surprise", "def": "(Actual EPS − Consensus EPS) / |Consensus EPS|; positive surprise = beat, negative = miss." },
+    { "term": "Guidance", "def": "Management's own forward outlook for revenue, margins, or EPS; often more market-moving than the reported quarter." },
+    { "term": "Estimate Revision", "def": "Sell-side analysts updating their forward EPS forecasts; positive revisions are a leading indicator of price momentum." },
+    { "term": "EBIT / EBITDA", "def": "Earnings Before Interest & Tax / + D&A; operating profit metrics that strip out financing and non-cash charges." }
+  ],
+  "eli3": [
+    "Earnings season is when companies report their quarterly financial results. The market doesn't care about the absolute number — it cares about whether results beat or missed what analysts expected (the consensus). A company reporting $1.00 EPS when analysts expected $0.90 typically sees its stock rise. The same $1.00 EPS with expectations of $1.10 leads to a selloff, even though the company made good money.",
+    "The most important part of earnings is often not the reported quarter but management's guidance for the next quarter or year. A strong beat with disappointing guidance ('a beat and lower') is often punished more than a miss with raised guidance. Markets are forward-looking — they care about what's going to happen, not what just happened.",
+    "Quality of earnings matters as much as the level. Two companies with the same EPS can have very different earnings quality: one generates the earnings in cash (high FCF conversion), the other generates it through accounting accruals that may not be sustainable. Asset managers always read behind the EPS headline to understand whether the earnings are repeatable and cash-backed."
+  ],
+  "whenWhy": [
+    {
+      "title": "Positioning around earnings events",
+      "body": "For active equity managers, earnings are the primary catalyst for stock moves. The pre-earnings framework: (1) What is the consensus expecting — is the bar high or low? (2) What has the company signalled in recent quarters, management conferences, or channel checks? (3) What is the implied move from the options market (straddle price ÷ stock price = implied earnings move)? (4) What do you own vs the consensus — are you positioned for a beat or a miss? The 'whisper number' (street expectation of the actual vs the published consensus) is often more important than the published consensus, as large funds have already adjusted for known beats. Portfolio managers size positions to be long high-conviction beats and flat/short names where the bar is too high."
+    },
+    {
+      "title": "Estimate revision cycle as a return driver",
+      "body": "One of the most systematic return factors in equities is earnings estimate momentum: stocks with rising sell-side EPS revisions outperform, stocks with falling revisions underperform. This works because: analyst revisions are slow and anchored (analysts under-react to new information), earnings surprises are serially correlated (a company that beats this quarter tends to beat next quarter too), and positive revisions attract more buyers. Asset managers track the 'revision breadth' (fraction of analysts raising vs lowering estimates) and the '3-month earnings revision' (change in NTM consensus EPS over the past 3 months) as systematic inputs alongside fundamental analysis."
+    },
+    {
+      "title": "Reading the earnings call transcript for qualitative signals",
+      "body": "The earnings release (press release + model) is quantitative. The earnings call transcript is qualitative — and often more important. Key signals: management's tone on macro/demand ('we saw some softening' vs 'demand is robust'), specificity of guidance (vague guidance signals uncertainty), analyst questions on controversial topics (one analyst probing working capital is noise; five probing the same issue is a signal), and changes in language year-over-year. NLP systems systematically analyse transcripts for sentiment shifts. A significant language change between the Q2 2019 and Q3 2019 calls — more hedging, fewer specifics on growth — often foreshadows a guidance cut in Q4. Qualitative transcript analysis separates PMs who read filings from those who rely on sell-side summaries."
+    }
+  ],
+  "deepDiveIntro": [
+    "The earnings surprise literature (Ball-Brown 1968) documents post-earnings announcement drift (PEAD): stocks with large positive earnings surprises continue to outperform for 60–90 days after the announcement, and vice versa. This anomaly has persisted for 50+ years, suggesting markets under-react to earnings news initially. The Standardised Unexpected Earnings (SUE) factor — ranking stocks by earnings surprise standardised by their historical surprise volatility — is a consistent return predictor.",
+    "Earnings quality decomposition: EPS = Cash EPS + Accrual EPS. Cash EPS = Operating Cash Flow / Diluted Shares. Accrual EPS = EPS − Cash EPS. High accruals (large positive gap between reported EPS and Cash EPS) are associated with earnings management and predict subsequent earnings disappointments and stock underperformance (Sloan 1996 accruals anomaly)."
+  ],
+  "deepDive": [
+    {
+      "heading": "Revenue Quality, Margin Analysis, and Operating Leverage",
+      "body": "Revenue quality: organic growth (same-store, same-currency, excluding acquisitions) is the gold standard — acquisition and FX tailwinds inflate reported revenue but don't reflect true business momentum. Margin analysis: gross margin trend (is pricing power holding?), SG&A as % of revenue (is the company investing for growth or harvesting?), EBIT margin (operating leverage). Operating leverage: fixed-cost businesses have high operating leverage — revenue beats drop through to EBIT at a high incremental margin (e.g. 60–70%), while revenue misses hurt EBIT disproportionately. Variable-cost businesses have lower incremental margins but are more resilient to downturns. Understanding the operating leverage profile determines how much to trust a revenue beat. [1]"
+    },
+    {
+      "heading": "Working Capital and FCF Conversion",
+      "body": "FCF conversion = Free Cash Flow / Net Income (ideally >100% for high-quality businesses). Divergence between earnings and FCF signals: (1) Receivables build: revenue growing faster than cash collected — could be channel stuffing, aggressive revenue recognition, or customer financial stress; (2) Inventory build: more units produced than sold — either voluntary (building for demand) or involuntary (demand weakness); (3) Payables decline: paying suppliers faster — could reflect supply chain pressure or loss of pricing power with suppliers. A company reporting strong EPS but deteriorating FCF conversion is a yellow flag — either earnings quality is declining or the business is investing for future growth. Distinguishing these requires reading the 10-K/10-Q cash flow statement and management discussion in detail. [1]"
+    },
+    {
+      "heading": "EPS Bridge: Anatomy of an Earnings Beat or Miss",
+      "body": "An earnings bridge decomposes the change in EPS from the prior year into: revenue change × prior-year net margin (volume/price impact) + prior-year revenue × margin change (operating leverage/cost discipline) + below-the-line items (interest, tax rate changes, share count changes, non-recurring items). Breaking down a 'beat' this way reveals whether it was driven by: genuine operating outperformance (revenue or margins above consensus), financial engineering (lower tax rate, share buybacks reducing denominator, or one-time gains), or mix effects (high-margin segment grew faster). A beat driven by an unexpectedly low tax rate is much weaker than one driven by revenue outperformance and margin expansion — this distinction drives whether the consensus raises forward estimates in response to the beat or discounts it. [2]"
+    }
+  ],
+  "takeaways": [
+    "Market reaction = actual vs consensus, not actual vs zero; the bar matters more than the absolute number. [1]",
+    "Guidance is often more market-moving than the reported quarter — forward expectations drive prices. [1]",
+    "PEAD (post-earnings drift): large surprise stocks continue to outperform 60–90 days later — markets under-react initially. [1]",
+    "Accruals anomaly: high accruals (EPS >> Cash EPS) predict future earnings disappointments and underperformance (Sloan 1996). [1]",
+    "FCF conversion = FCF / Net Income; below 80% is a yellow flag — investigate working capital and capex. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why do stocks sometimes fall on a strong earnings beat?",
+      "a": "Several explanations: (1) 'Buy the rumour, sell the news' — the beat was widely anticipated (whisper number above consensus), so it's already priced in. The stock ran into earnings and the event removes uncertainty, triggering profit-taking; (2) Guidance disappointment: strong Q beat but weak Q+1 guidance ('beat and lower'). Forward-looking markets price in the future, so a guidance cut overwhelms the current beat; (3) Quality concerns: the beat was driven by one-time items (asset sales, tax rate), not recurring operations — analysts strip these out and lower their forward estimates; (4) Valuation: the stock was priced for perfection (high P/E). Even a good beat isn't good enough to justify the multiple going higher. Identifying which explanation applies requires understanding pre-earnings positioning, the quality of the beat, and the forward guidance, not just the headline EPS vs consensus comparison."
+    },
+    {
+      "q": "How do you normalise earnings for cyclicality?",
+      "a": "Cyclical companies (mining, energy, chemicals, autos) have earnings that swing dramatically with commodity prices, economic cycles, and utilisation rates. Valuing on current or trough P/E is misleading. Approaches: (1) Mid-cycle earnings: estimate earnings at a normalised price/volume environment (e.g. oil at $70/bbl for an energy company, or 80% utilisation for an industrial); value on mid-cycle P/E or EV/EBITDA; (2) EV/replacement cost or EV/NAV (net asset value): value the assets directly rather than the volatile earnings; (3) Price-to-book or EV/invested capital: for capital-intensive cyclicals, these are more stable than earnings-based multiples at cycle extremes; (4) Through-cycle average earnings (CAPE equivalent): use 5–7 year average earnings to smooth the cycle — buy when current earnings are well below normalised, sell when well above. The classic cyclical investment mistake: buying at low P/E at peak earnings, which is actually expensive on a normalised basis."
+    }
+  ],
+  "sources": [
+    { "label": "Ball, R. & Brown, P. (1968) — An Empirical Evaluation of Accounting Income Numbers, Journal of Accounting Research", "url": "https://doi.org/10.2307/2490232" },
+    { "label": "Sloan, R. (1996) — Do Stock Prices Fully Reflect Information in Accruals and Cash Flows About Future Earnings?, Accounting Review", "url": "https://doi.org/10.2307/248290" }
+  ]
+}

@@ -277,6 +277,7 @@ function Visualization({ type }: { type: string }) {
   if (type === "brinson-attribution") return <BrinsonAttributionViz />
   if (type === "gbm-paths") return <GBMPathsViz />
   if (type === "factor-returns") return <FactorReturnsViz />
+  if (type === "equity-multiples") return <EquityMultiplesViz />
   return null
 }
 
@@ -3975,6 +3976,41 @@ function FactorReturnsViz() {
       })}
 
       <text x={zeroX + 4} y={pad.t - 6} fontSize="7.5" fill="#6B7280">Fama-French factor premia (illustrative)</text>
+    </svg>
+  )
+}
+
+function EquityMultiplesViz() {
+  const W = 320, H = 200
+  const pad = { l: 80, r: 24, t: 20, b: 36 }
+  const pw = W - pad.l - pad.r
+  const ph = H - pad.t - pad.b
+
+  const multiples = [
+    { sector: "Software", pe: 32, col: "#6366F1" },
+    { sector: "Pharma", pe: 22, col: "#10B981" },
+    { sector: "Consumer", pe: 18, col: "#F59E0B" },
+    { sector: "Industrials", pe: 15, col: "#3B82F6" },
+    { sector: "Utilities", pe: 13, col: "#EC4899" },
+    { sector: "Banks", pe: 10, col: "#8B5CF6" },
+  ]
+  const maxPE = 40
+  const barH = 20, gap = 6
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-sm mx-auto">
+      {multiples.map((m, i) => {
+        const y = pad.t + i * (barH + gap)
+        const bw = (m.pe / maxPE) * pw
+        return (
+          <g key={m.sector}>
+            <text x={pad.l - 6} y={y + barH / 2 + 3} fontSize="8" textAnchor="end" fill="#374151">{m.sector}</text>
+            <rect x={pad.l} y={y} width={bw} height={barH} rx="3" fill={m.col} fillOpacity={0.8} />
+            <text x={pad.l + bw + 4} y={y + barH / 2 + 3} fontSize="8" fill="#374151">{m.pe}×</text>
+          </g>
+        )
+      })}
+      <text x={pad.l} y={H - 8} fontSize="7.5" fill="#6B7280">Forward P/E by sector (illustrative)</text>
     </svg>
   )
 }

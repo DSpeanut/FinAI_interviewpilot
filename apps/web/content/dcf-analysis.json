@@ -1,0 +1,67 @@
+{
+  "terms": [
+    { "term": "Free Cash Flow (FCF)", "def": "EBIT(1−t) + D&A − ΔWorking Capital − Capex; cash the business generates after maintaining/growing its asset base." },
+    { "term": "WACC", "def": "Weighted Average Cost of Capital = (E/V)×Re + (D/V)×Rd×(1−t); the blended required return used to discount FCF." },
+    { "term": "Terminal Value (TV)", "def": "Present value of all cash flows beyond the explicit forecast period; typically 60–80% of total DCF value." },
+    { "term": "NOPAT", "def": "Net Operating Profit After Tax = EBIT × (1 − tax rate); the after-tax operating profit that drives FCF." },
+    { "term": "ROIC", "def": "Return on Invested Capital = NOPAT / Invested Capital; must exceed WACC to create value; key value driver." },
+    { "term": "Terminal Growth Rate (g)", "def": "Long-run FCF growth assumed in perpetuity; must be ≤ long-run GDP growth (~2–3%) to be sustainable." }
+  ],
+  "eli3": [
+    "A DCF (Discounted Cash Flow) model values a business by forecasting all the cash it will generate in the future and discounting those cash flows back to today's value. The logic: $100 received in 10 years is worth less than $100 today, because today's $100 could be invested and grow. The discount rate (WACC) reflects the return investors require for the risk they're taking.",
+    "The model has two parts: an explicit forecast period (typically 5–10 years of detailed projections) and a terminal value (the value of all cash flows beyond the forecast period, estimated using a perpetuity formula). Terminal value typically accounts for 60–80% of the total value — which means the DCF is highly sensitive to your terminal assumptions, not just the near-term forecast.",
+    "DCF is the theoretical gold standard for valuation — it anchors value in fundamentals rather than market sentiment. But it's also highly sensitive to inputs: changing WACC by 1% or the terminal growth rate by 0.5% can swing the valuation by 20–30%. In practice, asset managers use DCF as a framework for understanding value drivers, cross-checked against trading multiples for sanity."
+  ],
+  "whenWhy": [
+    {
+      "title": "Valuing companies with no current earnings (growth stocks)",
+      "body": "Multiples are useless for unprofitable companies — there's no 'E' in P/E. DCF is the right tool: project the path to profitability, model cash burn during the investment phase, then terminal FCF. Key questions: when does the company reach FCF breakeven? What is the steady-state FCF margin? How large is the addressable market? The DCF also makes explicit what growth rate and margin profile are needed to justify the current stock price — working backwards from price to implied assumptions (reverse DCF) tells you whether the market's expectations are realistic or heroic."
+    },
+    {
+      "title": "Understanding intrinsic value vs market price",
+      "body": "DCF provides an intrinsic value estimate independent of market sentiment. If the DCF gives $80/share and the stock trades at $50, you have a potential 60% upside — but only if your assumptions are correct and the market re-rates toward intrinsic value. The key discipline: sensitivity analysis. Run the DCF across a range of WACC (±1%), terminal growth (±0.5%), and year-5 EBITDA margin (±2%) assumptions to get a valuation range rather than a point estimate. The investment thesis is robust if the stock looks cheap across most scenarios, not just the bull case."
+    },
+    {
+      "title": "Evaluating capital allocation and M&A transactions",
+      "body": "For M&A analysis, a DCF determines whether a proposed acquisition price creates or destroys value. The acquirer models standalone FCF of the target, adds synergies (cost saves, revenue uplift), and discounts at WACC to get maximum willingness-to-pay. If the acquisition price exceeds this, the deal destroys acquirer value — the premium paid is not covered by synergies. This is why most academic research shows acquirer shares fall on deal announcement: buyers typically overpay. DCF disciplines capital allocation internally too: any investment project (new plant, R&D programme, acquisition) should be assessed by whether its NPV (discounted FCF minus investment cost) is positive at the firm's WACC."
+    }
+  ],
+  "deepDiveIntro": [
+    "DCF value = Σ FCFt / (1+WACC)^t + TV / (1+WACC)^n, where TV = FCFn+1 / (WACC − g). The terminal value uses the Gordon Growth Model in perpetuity — it is highly sensitive to (WACC − g): a denominator of 7% gives TV = 14.3× FCFn+1, while 6% gives TV = 16.7× — a 17% difference from a 1% change. This is why sensitivity analysis on the (WACC − g) spread is more important than on any individual line in the forecast.",
+    "ROIC and growth are the two key value drivers. Value creation requires ROIC > WACC. A company growing at 20% with ROIC = WACC creates zero incremental value from that growth — all the value is in the existing asset base. A company with ROIC = 30% and WACC = 10% creates $2 of value for every $1 of reinvested capital. This is the logic behind paying high multiples for high-ROIC compounders: growth is more valuable when returns on that growth exceed the cost of capital."
+  ],
+  "deepDive": [
+    {
+      "heading": "WACC Estimation: Cost of Equity and Cost of Debt",
+      "body": "WACC = (E/V) × Re + (D/V) × Rd × (1 − t). Cost of equity (Re): use CAPM: Re = Rf + β × ERP, where Rf = risk-free rate (10-year government bond yield), β = equity beta (unlevered from comparables, re-levered for target's capital structure), ERP = equity risk premium (~5–6% for developed markets). Cost of debt (Rd): use the yield on the company's existing debt, or estimate from credit rating and spread. Tax shield: interest is tax-deductible, so after-tax cost of debt = Rd × (1 − tax rate). Weights: use market value weights (market cap for equity, market value of debt), not book values. Pitfall: avoid using artificially low WACCs to justify high valuations — if the company has meaningful credit risk, WACC should reflect it. [1]"
+    },
+    {
+      "heading": "Terminal Value: Exit Multiple vs Perpetuity Growth",
+      "body": "Two approaches: (1) Gordon Growth Model perpetuity: TV = FCFn+1 / (WACC − g). Simple but highly sensitive to g. g must be ≤ long-run nominal GDP growth (2–3% in developed markets) — assuming perpetual growth above GDP implies the company eventually owns the entire economy; (2) Exit multiple: TV = EBITDAn × exit multiple. More market-grounded — exit multiple is benchmarked against current trading multiples. Cross-checking both approaches improves robustness: if the perpetuity method gives TV equivalent to a 20× EV/EBITDA exit while the sector trades at 12×, your growth assumption is too high. Best practice: use perpetuity growth as the primary method, exit multiple as the sanity check; if they diverge significantly, revisit the terminal year FCF margin and growth assumptions. [1]"
+    },
+    {
+      "heading": "Reverse DCF: Implied Growth Rate from Market Price",
+      "body": "Rather than estimating value and comparing to price, reverse DCF asks: 'what assumptions does the current stock price imply?' Set the DCF output equal to the market cap and solve for the implied terminal growth rate or implied FCF margin. This reframes the investment question from 'is the stock cheap?' to 'do I believe the implied growth rate is achievable?' Reverse DCF is particularly powerful for high-multiple growth stocks: a stock at 40× earnings might imply 25% FCF growth for 10 years plus a 3% terminal growth rate. If you think that's achievable, the valuation is fair. If it seems heroic, the stock is expensive. Morgan Stanley's analysis of Amazon in 2000 showed the stock's price implied Amazon would become larger than the entire US retail sector within a decade — which made the thesis explicit rather than hidden in a bullish DCF. [2]"
+  ],
+  "takeaways": [
+    "DCF = Σ FCFt/(1+WACC)^t + TV/(1+WACC)^n; TV is typically 60–80% of total value — terminal assumptions dominate. [1]",
+    "Value creation requires ROIC > WACC; growth with ROIC = WACC creates zero incremental value. [1]",
+    "WACC: use CAPM for cost of equity, market-value weights, and after-tax cost of debt. [1]",
+    "Terminal growth rate g must be ≤ long-run GDP (~2–3%); higher g implies the company grows faster than the economy forever. [1]",
+    "Reverse DCF: solve for implied growth from current price — reframes the debate to 'is the implied growth realistic?' [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does a small change in WACC have such a large impact on DCF valuation?",
+      "a": "Terminal value = FCFn+1 / (WACC − g). If WACC = 9% and g = 3%, denominator = 6% → TV = 16.7× FCF. If WACC rises to 10%, denominator = 7% → TV = 14.3× FCF — a 14% drop in terminal value from a 1% change in WACC. Because TV is 70% of total value, a 1% rise in WACC reduces total equity value by ~10%. This explains why equity markets are inversely correlated with interest rates: when rates rise, WACC rises, compressing equity valuations mechanically. Growth stocks (with more value in distant terminal cash flows) are more rate-sensitive than value stocks (with more near-term FCF). The duration of equity — a measure of how far in the future the cash flows are — is higher for growth stocks, just like long-duration bonds are more rate-sensitive."
+    },
+    {
+      "q": "How do you handle negative free cash flow during a growth investment phase?",
+      "a": "Negative FCF in early years is common for companies investing heavily (Amazon, 2000s; most biotech). The DCF handles this naturally: negative FCF years are discounted like positive ones, just with a negative sign. Practical approaches: (1) Model explicitly through the investment phase until FCF turns positive; (2) Use a two-stage model — negative FCF for years 1–5 during the investment phase, then positive FCF in years 6–10 as the business scales, then terminal value. Key risk: the duration until positive FCF is long, so small changes in the ramp-up timeline have large valuation impacts. Rule of thumb: for every year you push out the FCF breakeven by 1 year, you reduce NPV by ~WACC% (if WACC is 10%, NPV falls ~10% per year of delay). This is why for pre-profit companies, the most important forecast isn't the terminal state — it's the path and timing to profitability."
+    }
+  ],
+  "sources": [
+    { "label": "Damodaran, A. (2012) — Investment Valuation, 3rd ed., Wiley", "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/valuation.html" },
+    { "label": "Mauboussin, M. & Rappaport, A. (2003) — Expectations Investing, Harvard Business Review Press", "url": "https://www.hbs.edu/faculty/Pages/item.aspx?num=32294" }
+  ]
+}

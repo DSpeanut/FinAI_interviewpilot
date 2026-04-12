@@ -139,6 +139,7 @@ export const categories = [
       { id: "10-6", name: "Market Microstructure & Trading", slug: "market-microstructure-trading", entryCount: 5 },
       { id: "10-7", name: "Alternative Investments", slug: "alternative-investments", entryCount: 4 },
       { id: "10-8", name: "Investment Strategy", slug: "investment-strategy", entryCount: 5 },
+      { id: "10-9", name: "Equities", slug: "equities", entryCount: 5 },
     ],
   },
   {
@@ -467,6 +468,12 @@ export const mockEntries: WikiEntry[] = [
   { id: "e210", title: "Tactical Asset Allocation", slug: "tactical-asset-allocation", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-8", tags: ["tactical-asset-allocation", "market-timing", "factor-tilts", "regime", "active-allocation"] },
   { id: "e211", title: "Active vs Passive Investing", slug: "active-vs-passive", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "10-8", tags: ["active", "passive", "index-fund", "etf", "cost-alpha"] },
   { id: "e212", title: "Portfolio Rebalancing", slug: "rebalancing", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "10-8", tags: ["rebalancing", "drift", "transaction-costs", "threshold", "calendar"] },
+  // Equities (10-9)
+  { id: "e213", title: "Equity Valuation Multiples", slug: "equity-valuation-multiples", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-9", tags: ["p-e-ratio", "ev-ebitda", "multiples", "peer-comps", "valuation"] },
+  { id: "e214", title: "DCF Analysis", slug: "dcf-analysis", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "10-9", tags: ["dcf", "wacc", "terminal-value", "fcf", "roic"] },
+  { id: "e215", title: "Dividend Discount Model", slug: "dividend-discount-model", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-9", tags: ["ddm", "gordon-growth", "dividend-yield", "cost-of-equity", "payout"] },
+  { id: "e216", title: "Earnings Analysis", slug: "earnings-analysis", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-9", tags: ["eps", "earnings-surprise", "guidance", "consensus", "pead"] },
+  { id: "e217", title: "Fundamental Analysis", slug: "fundamental-analysis", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-9", tags: ["moat", "roic", "porter", "competitive-advantage", "dupont"] },
 ]
 
 export const difficultyColors = {

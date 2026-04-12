@@ -1,0 +1,69 @@
+{
+  "terms": [
+    { "term": "P/E Ratio", "def": "Price / EPS — how much investors pay per $1 of earnings. High P/E = growth expectations or overvaluation." },
+    { "term": "EV/EBITDA", "def": "Enterprise Value / EBITDA — capital-structure-neutral multiple; the most common M&A and cross-company valuation tool." },
+    { "term": "P/B Ratio", "def": "Price / Book Value per share — compares market price to accounting net assets; low P/B = value stock." },
+    { "term": "EV/Sales", "def": "Enterprise Value / Revenue — used for unprofitable companies or early-stage growth stocks where earnings are negative." },
+    { "term": "Forward vs Trailing", "def": "Trailing multiples use last 12 months (LTM) actual earnings. Forward multiples use next 12 months (NTM) consensus estimates." },
+    { "term": "Peer Comps", "def": "Comparable company analysis — value a stock relative to similar listed peers on the same multiples." }
+  ],
+  "visualizationType": "equity-multiples",
+  "eli3": [
+    "Equity valuation multiples are shortcuts that let you compare how expensive or cheap a stock is relative to its earnings, cash flows, or assets. Instead of building a full discounted cash flow model for every stock, an analyst uses multiples: 'this stock trades at 15× earnings, while its peers trade at 20× — it looks cheap.' The multiple compresses the entire valuation argument into a single number.",
+    "The most common multiples: P/E (price-to-earnings) is the most widely quoted. EV/EBITDA strips out capital structure differences (debt levels) and is preferred for comparing companies across industries. P/B is used for financials (banks, insurers) where book value is meaningful. EV/Sales is used for growth companies that aren't profitable yet.",
+    "Multiples are relative, not absolute. A P/E of 20× is cheap for a high-growth software company and expensive for a slow-growth utility. The key questions are: cheap vs what? (peers, history, sector), and why is it cheap or expensive? (growth rate, profitability, risk). The PEG ratio (P/E divided by earnings growth rate) adjusts for growth — a stock with P/E 20× and 20% growth has PEG 1.0, which is a rough 'fair value' rule of thumb."
+  ],
+  "whenWhy": [
+    {
+      "title": "Screening and ranking stocks within a sector",
+      "body": "Multiples are the primary tool for cross-sectional stock ranking. An analyst covering 30 consumer staples companies will screen by NTM P/E, EV/EBITDA, and FCF yield to identify the cheapest stocks on each metric, then investigate whether cheapness is justified (value trap) or an opportunity (mispricing). Sector-specific multiples matter: banks use P/TBV (price-to-tangible-book) and P/E; energy uses EV/DACF (debt-adjusted cash flow); real estate uses P/FFO (funds from operations); technology uses EV/Sales and EV/ARR for SaaS. Applying the wrong multiple to a sector leads to systematically misleading comparisons."
+    },
+    {
+      "title": "Sanity-checking DCF valuations",
+      "body": "Every DCF model implies an exit multiple. If your DCF on a consumer stock implies a terminal P/E of 35× when the sector average is 15×, your growth or margin assumptions are too aggressive. Multiples discipline DCF analysis: the implied multiples from your model should be benchmarked against current trading levels and historical ranges. Conversely, if a stock trades at a deep discount to peers on all multiples and your DCF gives significant upside, you have a consistent investment thesis. When DCF and multiples point in the same direction, conviction is higher."
+    },
+    {
+      "title": "Assessing re-rating potential as a return driver",
+      "body": "Stock returns come from three sources: earnings growth (EPS), multiple expansion (P/E re-rating), and dividends. Multiple expansion is often the largest contributor in bull markets. An asset manager assesses not just whether earnings will grow, but whether the P/E will expand. A company growing earnings at 15% with a P/E re-rating from 12× to 16× delivers 15% earnings growth + 33% multiple expansion — a vastly different return profile. Re-rating catalysts include earnings estimate upgrades, strategy changes, sector rotation into out-of-favour industries, or removal of an overhang (regulatory risk resolving, management change, balance sheet repair)."
+    }
+  ],
+  "deepDiveIntro": [
+    "The relationship between multiples and fundamentals is explicit: P/E = Price/EPS = (Price/FCF) × (FCF/EPS). Under the Gordon Growth Model, P/E = payout ratio / (r − g), where r is the required return and g is the sustainable growth rate. This shows P/E is high when: (1) growth g is high, (2) the required return r is low (low interest rates, low risk), or (3) the payout ratio is high. EV/EBITDA is related to FCF yield: EV/EBITDA = 1 / (EBITDA/EV) ≈ 1 / (FCF yield + D&A/EV − capex/EV + tax/EV).",
+    "Multiple compression and expansion are driven by changes in r (discount rate) and g (growth expectations). Rising interest rates increase r, compressing all equity multiples — particularly long-duration growth stocks whose value is in distant earnings. This explains why high-P/E growth stocks are more rate-sensitive than low-P/E value stocks: the denominator (discount rate) matters more when cash flows are far in the future."
+  ],
+  "deepDive": [
+    {
+      "heading": "EV/EBITDA: Construction and Adjustments",
+      "body": "Enterprise Value = Market Cap + Net Debt + Minority Interest + Preferred Stock − Cash. EBITDA = EBIT + D&A = Operating income + D&A. Adjustments matter: (1) Leases: post-IFRS 16, lease liabilities must be added to EV and lease depreciation added back to EBITDA for consistency across reporters; (2) One-offs: normalise for restructuring charges, M&A costs, litigation settlements — use 'adjusted EBITDA' but scrutinise management's add-backs; (3) Seasonality: use LTM (last twelve months = last 4 quarters) not just the last annual report; (4) Pension deficits: treat pension shortfalls as debt-like in EV. A stock screening cheap at 8× EV/EBITDA may be 11× adjusted — always use consistent adjustments across the peer set. [1]"
+    },
+    {
+      "heading": "P/E vs FCF Yield: Why They Diverge",
+      "body": "P/E and FCF yield tell different stories. A company with high GAAP earnings but low FCF (high capex, heavy working capital consumption) looks cheap on P/E but expensive on FCF yield — a red flag. A company with low GAAP earnings but high FCF (high D&A, capital-light model) looks expensive on P/E but cheap on FCF yield — a potential opportunity. Asset-light businesses (software, consumer brands) are best valued on FCF yield (FCF/Market Cap), not P/E. Capital-intensive cyclicals (steel, mining) are often valued on EV/EBITDA to normalise across the capex cycle. Financials (banks) are valued on P/E and P/TBV because they don't have an EV equivalent — their 'debt' (deposits) is an operating liability, not financial debt. [1]"
+    },
+    {
+      "heading": "Historical Multiple Ranges and Mean Reversion",
+      "body": "A stock's own history is a key valuation benchmark. If a high-quality consumer staples company typically trades at 20–25× P/E and currently trades at 14×, that's either an opportunity (temporary earnings weakness, market overreaction) or a structural de-rating (business model disruption, permanent margin compression). Analysing the multiple's history alongside the business's fundamentals separates the two cases. S&P 500 long-run average P/E is ~16–17× on trailing earnings. Cyclically Adjusted P/E (CAPE / Shiller P/E) uses 10-year average real earnings to smooth cycles — the most predictive multiple for long-run equity market returns (Shiller 2000). High CAPE (>30×) has historically been associated with poor subsequent 10-year equity returns. Individual stock CAPE is less commonly used but relevant for slow-growth, stable companies. [2]"
+    }
+  ],
+  "takeaways": [
+    "P/E = payout ratio / (r − g): high when growth is high, discount rate is low, or payout is generous. [1]",
+    "EV/EBITDA is capital-structure-neutral; adjust for leases, one-offs, pensions, and LTM vs annual periods. [1]",
+    "FCF yield > P/E for asset-light businesses; P/E overstates cheapness when capex > D&A. [1]",
+    "Multiple expansion/compression is driven by changes in discount rate (r) and growth expectations (g). [1]",
+    "Shiller CAPE (10-year average real earnings) is the most predictive multiple for long-run equity market returns. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "When is a low P/E a value trap rather than an opportunity?",
+      "a": "A value trap is a stock that looks cheap on multiples but keeps declining because the cheapness is justified. Warning signs: (1) Structural revenue decline — the business is being disrupted (physical retail, print media, traditional telecoms) and earnings will continue falling; the P/E is low because the 'E' will shrink; (2) Earnings quality issues — high GAAP earnings but low FCF conversion (accruals, revenue recognition issues); (3) Balance sheet stress — high leverage means equity value is a thin slice of asset value; a small adverse move in assets wipes out equity; (4) Capital intensity trap — capex requirements consume FCF so earnings never translate into returns for shareholders; (5) Management destroys capital — history of acquisitions at high prices or poor capital allocation. The antidote: always check FCF yield, trend in earnings estimates, and return on invested capital (ROIC). A cheap ROIC < WACC business is a value trap almost by definition."
+    },
+    {
+      "q": "How do you compare multiples across companies with different capital structures?",
+      "a": "Use EV-based multiples (EV/EBITDA, EV/EBIT, EV/FCF) rather than equity multiples (P/E, P/FCF) when companies have materially different leverage. Example: two identical businesses, one unlevered, one with $1bn net debt. P/E makes the levered company look cheaper (debt amplifies equity returns in good times, but amplifies risk too). EV/EBITDA gives the same multiple for both — capturing the true business value. Practical nuance: leverage also affects credit risk, so a company trading at 6× EV/EBITDA with 5× net debt/EBITDA is fundamentally different from one at 6× with 0× leverage. Always quote leverage alongside EV multiples. For banks and insurers, EV multiples don't apply — use P/E, P/TBV, and return on equity (ROE vs cost of equity)."
+    }
+  ],
+  "sources": [
+    { "label": "Damodaran, A. (2012) — Investment Valuation: Tools and Techniques for Determining the Value of Any Asset, 3rd ed., Wiley", "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/valuation.html" },
+    { "label": "Shiller, R. (2000) — Irrational Exuberance, Princeton University Press", "url": "https://press.princeton.edu/books/paperback/9780691173122/irrational-exuberance" }
+  ]
+}

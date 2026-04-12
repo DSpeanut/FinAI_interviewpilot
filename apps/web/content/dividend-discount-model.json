@@ -1,0 +1,68 @@
+{
+  "terms": [
+    { "term": "DDM", "def": "Dividend Discount Model — values a stock as the PV of all future dividends: P = Σ Dt / (1+r)^t." },
+    { "term": "Gordon Growth Model", "def": "Single-stage DDM: P = D1 / (r − g), where D1 = next dividend, r = required return, g = constant growth rate." },
+    { "term": "Dividend Payout Ratio", "def": "Dividends / Net Income; portion of earnings returned to shareholders. Retention ratio = 1 − payout." },
+    { "term": "Dividend Yield", "def": "Annual dividend / stock price; income component of total return. High yield may signal value or distress." },
+    { "term": "Sustainable Growth Rate", "def": "g = ROE × retention ratio; maximum growth rate sustainable without changing capital structure." },
+    { "term": "Cost of Equity (r)", "def": "Required return for equity holders; estimated via CAPM: r = Rf + β × ERP. DDM's discount rate." }
+  ],
+  "eli3": [
+    "The Dividend Discount Model says a stock is worth the present value of all the dividends it will ever pay. If a company will pay $2 in dividends next year, and you expect those dividends to grow at 5% per year forever, and you require a 10% return, the stock is worth $2 / (10% − 5%) = $40. This is the Gordon Growth Model — the simplest form of the DDM.",
+    "The DDM is the theoretically cleanest equity valuation model — dividends are real cash in your pocket, not accounting constructs. But it has a major limitation: it only works well for mature companies that pay regular, predictable dividends (utilities, consumer staples, financial firms). For growth companies that reinvest all earnings and pay no dividend, it's useless — and for companies where the payout policy is unstable, the model is unreliable.",
+    "The key insight from the DDM is that stock value depends on three things: (1) the level of future dividends (driven by earnings and payout ratio), (2) the growth rate of those dividends (driven by ROE × retention), and (3) the required return (driven by risk). The denominator (r − g) is the key driver — small changes in either r or g have a large impact on value because of the perpetuity math."
+  ],
+  "whenWhy": [
+    {
+      "title": "Valuing dividend-paying mature companies (utilities, REITs, banks)",
+      "body": "The DDM is most appropriate for companies with stable, predictable dividends: regulated utilities (fixed allowed returns, stable payout), banks and insurers (dividends are the primary way capital is returned — buybacks are constrained by regulatory capital requirements), and REITs (legally required to distribute 90%+ of taxable income). For these companies, the DDM is not just theoretically appropriate but practically most reliable. A utility analyst models the allowed return on rate base, projects earnings, applies the regulated payout ratio, and discounts back at the cost of equity. The dividend yield is also meaningful for these businesses: a utility yielding 4.5% with 3% dividend growth and a 7% cost of equity is at fair value (4.5% + 3% growth ≈ 7.5% total return ≈ required return)."
+    },
+    {
+      "title": "Implied cost of equity and market sentiment analysis",
+      "body": "Re-arranging the Gordon Growth Model: r = D1/P + g. This decomposes expected total return into dividend yield (income) + growth (capital appreciation). For the overall equity market: the implied equity risk premium (ERP) = earnings yield + expected earnings growth − risk-free rate. When the implied ERP is high (stocks yielding a lot relative to bonds), equities look attractive. This framework — popularised by the Fed Model and Grinold-Kroner approach — is used by asset allocators to set long-term return expectations and evaluate equity vs bond relative attractiveness. The Grinold-Kroner model: E[R_equity] = dividend yield + buyback yield + earnings growth + inflation + change in valuation."
+    },
+    {
+      "title": "Two-stage DDM for transitioning companies",
+      "body": "The two-stage DDM applies to companies transitioning from high growth to steady state: model dividends explicitly for years 1–5 (high payout growth as the company matures), then apply the Gordon Growth Model from year 6 onward at a sustainable growth rate. This is appropriate for: consumer staples companies shifting to higher payout as capex declines, banks re-building dividends after a balance sheet clean-up, or family-controlled European industrials increasing shareholder returns. The key assumption is the inflection point: in year 5, what is the normalised payout ratio and sustainable growth rate? This requires a view on long-run ROE and the balance between retained earnings (for organic growth) and dividends."
+    }
+  ],
+  "deepDiveIntro": [
+    "Gordon Growth Model: P = D1 / (r − g) = D0(1+g) / (r − g). The model requires r > g for convergence — if growth exceeds the discount rate, the perpetuity sum diverges. This imposes the discipline that g < r, and practically g should be ≤ long-run nominal GDP (2–3% in developed markets). The sustainable growth rate from accounting identity: g = ROE × b, where b = retention ratio (1 − payout). This links the DDM directly to fundamentals: ROE and payout policy jointly determine g.",
+    "The H-model is a refinement for companies with linearly declining growth: P = D0[(1+gL) + H×(gS−gL)] / (r−gL), where H = half-life of high growth period, gS = initial high growth rate, gL = long-run growth rate. More tractable than the full two-stage model and avoids the discontinuity at the stage transition."
+  ],
+  "deepDive": [
+    {
+      "heading": "Linking DDM to ROE: The Profitability-Payout Trade-off",
+      "body": "g = ROE × retention ratio. If a company has ROE = 15% and retains 60% of earnings, sustainable growth = 9%. If it retains 80%, growth = 12%. Higher retention → higher growth, but lower current dividend → lower payout. The DDM captures this trade-off: a company earning ROE > r should retain more earnings (growth creates value). A company earning ROE < r should pay out more (reinvestment destroys value). This is why high-ROE compounders (luxury goods, software platforms) can sustain low or zero dividends and still be attractive — the retained earnings are compounding at rates above the cost of capital. Banks' value is highly sensitive to ROE vs cost of equity: a bank earning 8% ROE with 10% cost of equity should trade below book value; one earning 15% ROE should trade well above book. [1]"
+    },
+    {
+      "heading": "Dividend Yield as a Return Component: The Grinold-Kroner Decomposition",
+      "body": "Expected equity return = dividend yield + buyback yield + earnings per share growth + repricing (change in P/E) + inflation. The Grinold-Kroner (2002) model decomposes equity returns into observable components. For the S&P 500: dividend yield (~1.5%), buyback yield (~2%), real earnings growth (~2%), inflation (~2.5%), repricing (uncertain, mean zero long-run) ≈ 8% expected total return. This approach is used by pension funds and endowments to set long-run capital market assumptions. It shows that in a low-rate world with compressed yields and elevated P/Es, expected equity returns are structurally lower unless buybacks and earnings growth compensate. [2]"
+    },
+    {
+      "heading": "DDM Limitations and When to Use FCF Instead",
+      "body": "The DDM fails when: (1) Dividend policy is arbitrary — a company could pay more or less based on management discretion rather than fundamentals; (2) Zero or minimal dividends — growth companies and many tech stocks; (3) Payout > FCF — if the company is borrowing to fund the dividend (unsustainable payout), the DDM overvalues the stock; (4) Special dividends — large one-time payments distort the model. The free cash flow to equity (FCFE) model is the natural extension: value the stock using all cash available to equity holders (FCF − net debt repayments), whether it's paid as dividends, buybacks, or retained. FCFE > dividends when companies are under-distributing; valuing on FCFE gives a higher intrinsic value and implies that cash return to shareholders will eventually increase. The gap between FCFE yield and dividend yield is a measure of under-distribution — a potential catalyst if management changes payout policy. [1]"
+    }
+  ],
+  "takeaways": [
+    "Gordon Growth Model: P = D1 / (r − g); requires r > g; small changes in (r − g) have large price impacts. [1]",
+    "Sustainable growth rate: g = ROE × retention ratio — links payout policy directly to growth capacity. [1]",
+    "High ROE > r: retain and reinvest (growth creates value). ROE < r: pay out (reinvestment destroys value). [1]",
+    "Grinold-Kroner: equity return ≈ dividend yield + buyback yield + EPS growth + inflation + re-rating. [2]",
+    "Use FCFE over DDM when dividends don't reflect true cash generation (under-distributors or zero-dividend companies). [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What does a very high dividend yield signal — value or distress?",
+      "a": "A high dividend yield (e.g. 8–10% when the market is 2%) can mean: (1) Value opportunity: the market has overreacted to temporary bad news, the dividend is sustainable, and the high yield is genuinely attractive; (2) Dividend trap: the market is pricing in a dividend cut — the high yield reflects the denominator (price) having fallen, not the numerator (dividend) being sustainable. Key checks: FCF payout ratio (is the dividend covered by FCF, not just GAAP earnings?), leverage (can the company afford the dividend while servicing debt?), and earnings trajectory (is the 'E' in the payout ratio falling?). High-yield dividend traps are common in: cyclicals at the top of the cycle (earnings and dividends about to fall), highly leveraged companies, and businesses facing structural revenue decline. The yield looks attractive precisely because the market is pricing in the future cut."
+    },
+    {
+      "q": "How does the DDM apply to share buybacks?",
+      "a": "Buybacks are economically equivalent to dividends — they return cash to shareholders by reducing shares outstanding rather than paying cash per share. The DDM can be extended to Total Shareholder Yield = dividend yield + net buyback yield. A company with a 1% dividend yield but 3% buyback yield has a 4% total yield — more complete than the headline dividend figure. EPS growth from buybacks: if a company buys back 3% of shares annually with flat earnings, EPS grows at ~3% even with no revenue or margin growth. This is called 'financial engineering' or 'EPS accretion' — it can sustain P/E multiples without real business value creation. Importantly, buybacks are more flexible than dividends (can be cut without signalling desperation in the same way a dividend cut does), but this means they're also less reliable as a valuation anchor."
+    }
+  ],
+  "sources": [
+    { "label": "Damodaran, A. (2012) — Investment Valuation, 3rd ed., Wiley", "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/valuation.html" },
+    { "label": "Grinold, R. & Kroner, K. (2002) — The Equity Risk Premium, Investment Insights, Barclays Global Investors", "url": "https://efts.lib.uchicago.edu/EFTs/MasterPortfolio/Equity_Risk_Premium_Grinold_Kroner.pdf" }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "terms": [
+    { "term": "Competitive Moat", "def": "A durable structural advantage that protects a company's returns on capital from competition; coined by Warren Buffett." },
+    { "term": "ROIC", "def": "Return on Invested Capital = NOPAT / (Equity + Net Debt); the single most important measure of business quality." },
+    { "term": "WACC", "def": "Weighted Average Cost of Capital — the hurdle rate; a business creating value requires ROIC > WACC consistently." },
+    { "term": "Reinvestment Rate", "def": "Fraction of NOPAT reinvested back into the business; higher reinvestment × higher ROIC = faster value creation." },
+    { "term": "Porter's Five Forces", "def": "Framework: threat of entry, buyer power, supplier power, substitutes, rivalry — determines industry structural profitability." },
+    { "term": "Unit Economics", "def": "Profitability per customer or transaction (CAC, LTV, gross margin per unit); reveals whether growth creates or destroys value." }
+  ],
+  "eli3": [
+    "Fundamental analysis is the study of a company's underlying business to determine its intrinsic value. It asks: how strong is this business, how durable are its competitive advantages, how skilled is management, and what are the earnings worth? A fundamentally strong company — high returns on capital, pricing power, growing markets — deserves a premium valuation. A fundamentally weak company — thin margins, intense competition, capital destruction — deserves a discount.",
+    "The core of fundamental analysis is understanding why a company earns above-average returns. Most industries see excess returns competed away over time. The companies that sustain high ROIC for decades do so through a 'moat' — a structural competitive advantage that keeps competition out. Moats come from: network effects (the more users, the more valuable — Visa, Meta), switching costs (customers are locked in — enterprise software, Bloomberg terminals), cost advantages (scale, proprietary process — Costco, TSMC), and intangible assets (brands, patents, regulatory licences).",
+    "Fundamental analysis guides the investment process from industry selection to stock selection: which industries have attractive structure (oligopolistic, pricing power, high barriers)? Within those industries, which companies have the strongest competitive positions? Are those positions strengthening or eroding? And is the quality reflected in the valuation, or is there a gap between quality and price?"
+  ],
+  "whenWhy": [
+    {
+      "title": "Identifying quality compounders for long-term holding",
+      "body": "The highest-returning equity investments are quality compounders — businesses that consistently reinvest capital at high ROIC and grow for decades. Identifying them early requires fundamental analysis: does the moat appear durable? Is the addressable market still large relative to current size? Is management quality strong and incentivised correctly? Examples: a fund buying LVMH in the 1990s based on the durability of luxury brands and pricing power across cycles; Berkshire Hathaway identifying Coca-Cola's brand moat and global distribution. Quantitative screening (high ROIC, high gross margin, low asset intensity) identifies candidates; deep business analysis determines whether the high returns are structural or temporary. Quality compounders are rare — they justify high P/E multiples because the ROIC × reinvestment creates value at rates that compound over time."
+    },
+    {
+      "title": "Industry structure analysis before stock selection",
+      "body": "Return on equity at the industry level varies enormously and persistently. Software and pharmaceuticals historically earn 20–30% ROE; airlines and steel earn 5–10%. These differences reflect structural industry economics, not individual company skill. Porter's Five Forces analysis: industries with high barriers to entry (high capex, regulation, network effects), weak buyers (fragmented, price-insensitive), weak suppliers, few substitutes, and rational competitive dynamics generate high and sustainable returns. Investing in structurally poor industries hoping to find the one good company is difficult — even the best management team struggles in a commodity, price-competitive market. The first filter in many equity processes is industry attractiveness; stock selection happens within industries with favourable structure."
+    },
+    {
+      "title": "Assessing management quality and capital allocation",
+      "body": "Management is a key source of investment alpha. The most critical skill is capital allocation — what does management do with the free cash flow? Options: reinvest organically, acquire businesses, buy back shares, pay dividends, or hoard cash. The best capital allocators (Constellation Software, Berkshire Hathaway, Roper Technologies) consistently reinvest at high ROICs, fuelling compounding. Poor capital allocators make value-destructive acquisitions at high multiples, over-diversify, or buy back shares at peak prices. Assessment tools: M&A track record (acquisition multiples paid vs integration success), ROIC trend (is it improving or declining?), incentive structure (are executives paid on ROIC and FCF, or revenue growth and EPS?), and insider ownership (skin in the game aligns interests)."
+    }
+  ],
+  "deepDiveIntro": [
+    "The DuPont decomposition breaks ROIC into its drivers: ROIC = NOPAT margin × Asset turnover = (NOPAT/Revenue) × (Revenue/Invested Capital). High-ROIC businesses achieve it through either high margin (luxury brands, pharmaceuticals — pricing power with high intangibles) or high turnover (Costco, Walmart — thin margins on vast volume) or both (software platforms — low marginal cost with sticky customers). Identifying which driver sustains the ROIC helps assess durability: margin-based ROIC is vulnerable to pricing pressure, turnover-based ROIC is vulnerable to capital intensity inflation.",
+    "Normalised ROIC vs cost of capital spread determines whether a business creates or destroys value. Economic value added (EVA) = (ROIC − WACC) × Invested Capital. Positive EVA = value creation; a business with $1bn invested capital, ROIC 20%, WACC 10%, creates $100M/year in economic profit beyond accounting earnings. Discounting future EVA into perpetuity gives the excess market value above book value — the premium investors pay for quality. This links directly to P/B: P/B = 1 + PV(future EVA) / Book Value."
+  ],
+  "deepDive": [
+    {
+      "heading": "Competitive Moat Sources and Durability Assessment",
+      "body": "Morningstar's moat framework identifies five sources: (1) Network effects: value grows with users (Visa transaction network, LinkedIn, exchanges — each additional participant makes the network more valuable to all others); (2) Switching costs: customers face high cost to leave (Bloomberg terminal — retraining 10,000 traders costs more than the subscription; enterprise ERP software takes years to replace); (3) Cost advantages: scale, proprietary processes, unique resources (TSMC's leading-edge fab process; Costco's buying leverage); (4) Intangible assets: brands that command price premiums (LVMH, Hermès), patents (pharma, specialty chemicals), regulatory licences (exchanges, airports); (5) Efficient scale: natural monopoly or oligopoly in a limited market (regional utilities, airport operators). Durability assessment: is the moat widening (reinvestment strengthens it) or narrowing (technological disruption, regulatory change, entry by better-capitalised competitors)? [1]"
+    },
+    {
+      "heading": "Gross Margin as a Business Quality Signal",
+      "body": "Gross margin = (Revenue − COGS) / Revenue. It measures the value created per unit of revenue before overhead. High gross margin businesses (software: 70–80%, pharmaceuticals: 70–75%, luxury goods: 60–65%) have low variable costs — once R&D or brand investment is made, incremental revenue is nearly pure profit. Low gross margin businesses (distribution, retail, airlines: 20–35%) need high volume and ruthless cost control to generate acceptable returns. Gross margin trajectory is the primary early indicator of competitive position change: if gross margin is declining, it signals pricing pressure (new entrants, buyer bargaining power, input cost inflation that cannot be passed on). The combination of high gross margin + high asset turnover = pricing power + operating efficiency = the hallmark of exceptional franchises. [2]"
+    },
+    {
+      "heading": "Management Assessment: Track Record, Incentives, and Capital Allocation",
+      "body": "Questions to assess management quality: (1) ROIC trend — is it rising, stable, or declining over 5–10 years? Expanding ROIC with growing invested capital is the gold standard; (2) M&A track record — do acquisitions generate returns above WACC? Measure by tracking post-acquisition ROIC relative to the acquisition multiple paid; (3) Compensation structure — does pay link to ROIC and FCF, or to revenue and adjusted EPS (which can be manipulated)? Equity compensation with long lock-ups aligns interests; excessive options with short vesting destroy incentive alignment; (4) Capital allocation history — how has management deployed excess FCF? Buybacks at attractive prices, high-return organic reinvestment, and value-accretive acquisitions are positives; empire-building acquisitions at peak prices and cash hoarding are negatives; (5) Communication quality — do they set realistic guidance and deliver on it? Consistent under-promise-over-deliver is a positive signal; frequent guidance cuts and blame-shifting are red flags. [1]"
+    }
+  ],
+  "takeaways": [
+    "ROIC > WACC = value creation; ROIC < WACC = value destruction regardless of earnings growth. [1]",
+    "Five moat sources: network effects, switching costs, cost advantages, intangible assets, efficient scale. [1]",
+    "DuPont: ROIC = NOPAT margin × Asset turnover — high-quality businesses achieve via margin or turnover or both. [1]",
+    "Gross margin trajectory is the earliest signal of competitive position change: declining = pricing pressure. [2]",
+    "Quality compounder: high ROIC + large reinvestment opportunity + durable moat + excellent capital allocator. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you value a company with high ROIC but uncertain moat durability (e.g. a tech platform facing disruption)?",
+      "a": "Moat durability is the key uncertainty. Approach: (1) Map the specific disruption vector — what technology or competitive force threatens the moat, and on what timeline? (2) Build scenario cases: base (moat holds, current ROIC sustainable for 10+ years), bear (moat erodes in 5 years as a disruptor gains share), bull (moat actually strengthens as network effects or switching costs increase with scale); (3) Assign probabilities to each scenario and calculate probability-weighted intrinsic value; (4) Assess whether the current stock price implies the base or bear case — if the market is pricing in disruption that you think is overstated, there's an opportunity. Platforms with genuine network effects (Visa, Mastercard) are more durable than platforms with lower switching costs (social media). The key question: will users/customers or competitors bear the cost of switching, or will the incumbent be forced to?"
+    },
+    {
+      "q": "When is high ROIC a sign of poor capital allocation rather than competitive strength?",
+      "a": "High ROIC with tiny invested capital: a business with $10M invested capital and $3M NOPAT has 30% ROIC — but if it can't reinvest at high rates, it can't compound. These 'melting ice cube' businesses — high ROIC but shrinking or stagnant invested capital base — are valuable but have limited upside. Examples: legacy print newspapers in the early 2000s (high ROIC on original assets, but the business was dying and couldn't reinvest). Distinguishing great businesses: high ROIC + large reinvestment opportunity (can deploy $1bn+ at 20%+ returns) is far more valuable than high ROIC on a tiny base. Also, asset-light business models can show artificially high ROIC if intangible assets (brands, customer relationships) are not on the balance sheet — the ROIC looks high but the true return including brand maintenance spend is lower."
+    }
+  ],
+  "sources": [
+    { "label": "Dorsey, P. (2008) — The Little Book That Builds Wealth, Wiley", "url": "https://www.wiley.com/en-us/The+Little+Book+That+Builds+Wealth-p-9780470226513" },
+    { "label": "Novy-Marx, R. (2013) — The Other Side of Value: The Gross Profitability Premium, Journal of Financial Economics", "url": "https://doi.org/10.1016/j.jfineco.2013.01.003" }
+  ]
+}
