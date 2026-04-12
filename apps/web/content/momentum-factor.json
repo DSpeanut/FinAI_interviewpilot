@@ -1,4 +1,12 @@
 {
+  "terms": [
+    { "term": "Momentum Signal", "def": "Typically 12-1 month return (12-month lookback, skip last 1 month); the standard momentum factor construction." },
+    { "term": "MOM / UMD", "def": "Up Minus Down — long recent winners, short recent losers; the Carhart (1997) momentum factor." },
+    { "term": "Momentum Crash", "def": "Large, sudden reversal of momentum strategy; typically happens in sharp market recoveries after crashes." },
+    { "term": "Cross-Sectional Momentum", "def": "Rank stocks by past return; long top decile, short bottom decile — pure relative performance." },
+    { "term": "Time-Series Momentum", "def": "Trade each asset based on its own past return (long if positive, short if negative); Moskowitz et al. 2012." },
+    { "term": "Jegadeesh-Titman", "def": "1993 paper documenting 3–12 month stock return continuation; first systematic academic evidence for momentum." }
+  ],
   "eli3": [
     "Momentum is the tendency for assets that have performed well recently to continue outperforming, and assets that have performed poorly to continue underperforming. Buy last year's winners, short last year's losers — this simple strategy has generated persistent returns across stocks, bonds, currencies, and commodities for over a century of data.",
     "The standard definition: cross-sectional momentum uses the past 12-month return (skipping the most recent month to avoid short-term reversal) as the ranking signal. Time-series momentum (trend following) uses whether an asset's own past return is positive or negative. Both variants work. Jegadeesh & Titman (1993) first documented equity momentum formally; it remains one of the most robust and puzzling anomalies — it's hard to explain with standard risk models.",

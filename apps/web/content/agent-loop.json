@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "An AI agent is a program that can take actions in the world, not just answer questions. The agent loop is the repeating cycle it follows: look at the situation, decide what to do, do it, then look again. It keeps going until the task is done or it gives up.",
+    "Think of it like a chef following a recipe: read the next step (observe), figure out which tool to grab (think), grab the pan and turn the heat on (act), then read the next step again. The loop repeats until the dish is finished.",
+    "In software terms: the LLM reads the current state (conversation history + tool outputs), generates a thought and a tool call, the framework executes the tool, and the result is added back to the context. This cycle repeats until the LLM emits a final answer with no tool call."
+  ],
+  "whenWhy": [
+    {
+      "title": "Tasks that require multiple sequential steps",
+      "body": "Single LLM calls answer one question at a time. The agent loop enables tasks where step N depends on the output of step N-1: e.g., search for a paper → read its references → fetch and summarise each reference → compile a report. Each iteration of the loop brings the agent closer to the goal. Without the loop, multi-step tasks require manual orchestration by the caller."
+    },
+    {
+      "title": "Tasks that require tool use and external state",
+      "body": "Agents interact with external systems (web search, code execution, databases, APIs). The loop manages the cycle of: LLM decides which tool to call → framework executes the tool → result is injected back into the LLM's context. This is the core pattern behind coding agents, research agents, and customer-support agents. The loop continues until the LLM decides it has enough information to respond."
+    },
+    {
+      "title": "Tasks requiring error recovery and replanning",
+      "body": "In a multi-step agentic task, individual steps fail: API calls timeout, code throws exceptions, search returns irrelevant results. The loop enables recovery: the tool error is added to the context, the LLM observes the failure, and it can replan (retry with different parameters, try a different tool, or ask for clarification). A single-shot LLM call cannot recover from tool failures; the loop is what makes agents resilient."
+    }
+  ],
+  "deepDiveIntro": [
+    "The canonical agent loop formalisation comes from ReAct (Yao et al. 2022): at each step t, the agent produces a Thought (natural-language reasoning trace) and an Action (tool call or final answer). The environment executes the action and returns an Observation. The sequence (Thought, Action, Observation) is appended to the prompt and the LLM is called again. This repeats until the agent emits a Finish action with the final answer.",
+    "Modern agent frameworks (LangChain AgentExecutor, LlamaIndex AgentRunner, Anthropic's agent loop) implement this pattern with a maximum iteration limit and early-stopping when the LLM emits a terminal action. The loop is synchronous in simple agents and asynchronous/parallel in multi-agent systems where multiple sub-agents run concurrently."
+  ],
+  "deepDive": [
+    {
+      "heading": "Loop Structure: Observe-Think-Act",
+      "body": "At each iteration: (1) Observe — assemble the current context: system prompt, conversation history, all previous (Thought, Action, Observation) triples; (2) Think — call the LLM with the assembled context; the LLM outputs a reasoning trace and either a tool call or a final answer; (3) Act — if a tool call was emitted, execute it (web search, code interpreter, database query, etc.) and record the observation; append (Thought, Action, Observation) to history; goto (1). If a final answer was emitted, return it to the caller. The loop terminates on: final answer, max_iterations exceeded, or hard timeout. [1]"
+    },
+    {
+      "heading": "Context Window Management in Long Loops",
+      "body": "Each iteration appends ~500–2000 tokens to the context. Over many steps, the context window fills and older steps are truncated or summarised. Strategies: (1) Sliding window — keep the last N observations and drop older ones; (2) Summary memory — after K steps, summarise the history with another LLM call and replace it with the summary; (3) External memory — offload observations to a vector store and retrieve relevant ones at each step rather than keeping the full history in-context. Context overflow is one of the primary failure modes for long-horizon agents. [2]"
+    },
+    {
+      "heading": "Loop Termination and Safety",
+      "body": "Without termination guards, agents can loop indefinitely (hallucinated tool calls, circular reasoning, tool always returning errors). Production safeguards: max_iterations (hard cap, typically 10–25 for single agents), wall-clock timeout, budget limits (max LLM API cost per task), semantic stopping (detect repeated identical actions — a sign of a stuck loop), and human-in-the-loop checkpoints for high-stakes actions (file deletion, sending emails, financial transactions). [2]"
+    }
+  ],
+  "takeaways": [
+    "Agent loop: Observe (assemble context) → Think (LLM call) → Act (execute tool) → repeat until final answer or termination. [1]",
+    "ReAct formalises the loop as interleaved Thought/Action/Observation triples in the LLM prompt. [1]",
+    "Context window grows with each iteration; long tasks require sliding window, summarisation, or external memory. [2]",
+    "Termination guards (max_iterations, timeout, budget, cycle detection) are essential for production agents. [2]",
+    "The loop is the minimal substrate for multi-step, tool-using, error-recovering AI agents. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What happens when the agent gets stuck in an infinite tool-call loop?",
+      "a": "Stuck loops occur when: (1) the tool always returns an error and the LLM keeps retrying; (2) the LLM hallucinates a tool call that doesn't exist; (3) the LLM produces the same action repeatedly (semantic loop). Defences: (a) max_iterations hard cap — always set this; (b) action deduplication — if the last N actions are identical, force-terminate with an error; (c) error budget — if the same tool returns errors K times consecutively, abort and surface the error to the caller; (d) per-tool retry limits. Never rely solely on the LLM to self-terminate — always enforce hard limits in the framework layer."
+    },
+    {
+      "q": "How do you make the agent loop work with streaming LLM responses?",
+      "a": "With streaming, the LLM emits tokens incrementally. The framework must buffer the stream and detect: (1) whether the response contains a tool call (structured JSON) or a final answer (text). For tool calls, the framework waits for the complete JSON before executing the tool (partial tool-call JSON is invalid). For final answers, streaming can be forwarded directly to the user. OpenAI and Anthropic streaming APIs include delta events with finish_reason='tool_calls' to signal tool call completion. The loop then continues synchronously: execute the tool, append the result, start the next LLM call (which can also stream)."
+    }
+  ],
+  "sources": [
+    { "label": "Yao et al. (2022) — ReAct: Synergizing Reasoning and Acting in Language Models, ICLR 2023", "url": "https://arxiv.org/abs/2210.03629" },
+    { "label": "Wang et al. (2024) — A Survey on Large Language Model based Autonomous Agents", "url": "https://arxiv.org/abs/2308.11432" }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "Input/output filtering is the safety layer that screens what goes into an LLM (inputs) and what comes out (outputs). Input filters block dangerous, harmful, or off-topic requests before they reach the model. Output filters catch harmful content in the model's response before it reaches the user.",
+    "Think of it like airport security: input filtering is the check-in screening (stop dangerous things from getting on the plane), output filtering is the final check before boarding (one more look before you let it through). Both layers are needed because neither is perfect.",
+    "Filters can be rule-based (block specific keywords or patterns), classifier-based (use a smaller ML model to classify inputs/outputs as safe or unsafe), or LLM-based (use another LLM to evaluate safety). Each has different latency, cost, and accuracy trade-offs."
+  ],
+  "whenWhy": [
+    {
+      "title": "Preventing misuse of AI systems for harmful purposes",
+      "body": "Without input filtering, users can prompt AI systems to generate harmful content: instructions for creating weapons, explicit sexual content, identity-theft scripts, targeted harassment. Input filtering detects these intent signals before the LLM processes them, enabling safe deployment in public-facing products. The filter is a first line of defence — it cannot be perfect, but it raises the cost of misuse significantly and catches the vast majority of obvious attacks."
+    },
+    {
+      "title": "Ensuring LLM outputs comply with legal and business requirements",
+      "body": "Even without malicious input, LLMs can generate: medical advice that creates liability, financial advice that violates regulations, PII of third parties from training data, copyrighted text reproduction, or factually false statements that constitute defamation. Output filtering checks the generated content before delivery and can: block compliant-violating content, trigger human review, replace with a safe fallback response, or add disclaimers. In regulated industries, output filtering is a legal compliance requirement."
+    },
+    {
+      "title": "Maintaining brand safety and content policies",
+      "body": "Consumer AI applications must enforce content policies: no hate speech, no explicit content, staying on topic (a cooking assistant should not discuss violence). Output filtering enforces these policies at scale without requiring human moderation of every response. Category-specific filters (violence classifier, hate speech classifier, explicit content classifier) can be tuned with different sensitivity thresholds for different deployment contexts (children's app vs. adult platform)."
+    }
+  ],
+  "deepDiveIntro": [
+    "Input/output filtering architecture: three layers. Layer 1 (fast, cheap): rule-based filters — keyword lists, regex patterns, string length limits. Process in < 1ms; ~80% of obvious violations caught here. Layer 2 (moderate cost): lightweight ML classifiers — dedicated safety models (Llama Guard, OpenAI Moderation API) trained on harmful content datasets. Process in 10-50ms; catches nuanced violations that rule-based filters miss. Layer 3 (expensive): LLM-as-judge — use a capable LLM to evaluate whether content violates specific policies. Process in 200-500ms; highest accuracy but too slow for all requests. Use Layer 3 only for high-stakes content or when Layers 1-2 produce uncertain results.",
+    "Llama Guard (Meta, 2023) is an open-source safety classifier based on Llama-2, fine-tuned on the ML Commons safety taxonomy (6 harm categories: violence, hate, sexual content, criminal planning, weapons, self-harm). It classifies both inputs (for misuse detection) and outputs (for harmful content detection). Llama Guard 3 (2024) extended to 14 categories. Inference: 50-100ms on a GPU; deployable locally. Alternative: OpenAI Moderation API (free, cloud-based, 11 categories)."
+  ],
+  "deepDive": [
+    {
+      "heading": "Layer 1: Rule-Based Input Filtering",
+      "body": "Rule-based filters: (1) Keyword blocklists — lists of slurs, illegal content identifiers, attack patterns (e.g., 'ignore previous instructions'); fast (O(n) string scan), easy to update, high false positive risk if not carefully maintained; (2) Regex patterns — detect structured attack patterns: social engineering templates, SQL injection strings in prompts, URL patterns in unexpected contexts; (3) Input length limits — reject inputs > max_tokens before tokenisation (prevents resource exhaustion and some injection attacks); (4) Language detection — enforce language policy (only accept English inputs if the system only supports English); (5) Injection detection patterns — heuristics for common prompt injection payloads: 'ignore previous', 'disregard instructions', 'you are now', 'new system prompt'. Rule-based filters are not sufficient alone but are essential as the first fast layer. [1]"
+    },
+    {
+      "heading": "Layer 2: ML Safety Classifiers",
+      "body": "Dedicated safety classification models: Llama Guard (Meta), Llama Guard 3, WildGuard, OpenAI Moderation API. Architecture: BERT or Llama-based classifiers fine-tuned on harm taxonomy datasets. Output: probability per harm category (violence, hate, sexual content, etc.) + binary safe/unsafe classification. Deployment: (1) OpenAI Moderation API — free, cloud, 11 categories, 50-100ms; (2) Llama Guard — open-source, self-hostable, 50-100ms on GPU, 14 categories; (3) Perspective API (Google) — specialised for toxicity, hateful content, spam; 50-100ms. Policy: define a probability threshold per category for your application context (a children's app may set violence threshold to 0.3; a general platform may set it to 0.7). Log all near-threshold cases for human review and threshold calibration. [1]"
+    },
+    {
+      "heading": "Output Filtering and Graceful Fallbacks",
+      "body": "Output filtering runs on the LLM's generated response before delivery. Triggers: safety classifier score > threshold, PII detection, off-topic detection, fact-checking triggers (for high-stakes factual claims). Actions: (1) Hard block — discard the response, return a pre-written safe fallback message ('I'm not able to help with that.'); (2) Soft block — return the response with a warning/disclaimer prepended; (3) Human review queue — flag for manual review before delivery (acceptable for non-real-time use cases like content generation); (4) Regeneration with constraint — instruct the LLM to regenerate with an explicit constraint ('Your previous response contained [issue]. Please regenerate without that content.'). Latency: output filtering doubles effective response time if applied to the full output. Mitigation: run the safety classifier in parallel with the final LLM call using the streamed output; stop the stream if a violation is detected mid-generation. [2]"
+    }
+  ],
+  "takeaways": [
+    "Three-layer architecture: rule-based (< 1ms) → ML classifier (50-100ms) → LLM judge (200-500ms). [1]",
+    "Llama Guard: open-source 14-category safety classifier; OpenAI Moderation API: free cloud alternative. [1]",
+    "Output filtering: run in parallel with streaming generation; stop the stream on violation detection. [2]",
+    "Define per-category probability thresholds based on deployment context (children's app vs. adult platform). [1]",
+    "Log near-threshold cases for human review and ongoing threshold calibration. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you reduce false positives (blocking legitimate content) without increasing false negatives (missing harmful content)?",
+      "a": "False positive reduction: (1) Context-aware filtering — don't classify a keyword in isolation; pass surrounding context to the classifier. 'How do I kill this process?' is not a violence violation; context changes the interpretation; (2) Threshold calibration — start with conservative thresholds in development; measure false positive rates on a legitimate-content test set; raise thresholds until the false positive rate is acceptable; (3) Allow-list — create explicit allow-lists for topics that are safe in your domain but flag on general safety classifiers (a medical platform may allow-list clinical terminology that a general classifier flags as harmful); (4) Human-in-the-loop for borderline cases — route near-threshold decisions (0.4 < score < 0.6) to human review rather than auto-blocking; (5) A/B testing — measure user abandonment and complaint rates before/after threshold changes to quantify the business impact of false positives. Always track both false positive and false negative rates; optimising one degrades the other."
+    },
+    {
+      "q": "How do you handle adversarial inputs designed to bypass filters (filter evasion)?",
+      "a": "Filter evasion techniques: (1) Leetspeak / character substitution — h4t3 sp33ch instead of hate speech; homoglyph substitution (Cyrillic 'а' for Latin 'a'); (2) Semantic paraphrasing — rephrase the harmful request using different vocabulary; (3) Encoding — base64 or URL-encode the harmful payload; (4) Indirect elicitation — 'write a story where a character explains how to...'; (5) Multi-turn injection — establish context over multiple turns before the harmful request. Countermeasures: (1) Preprocessing — normalise text before classification (lowercase, unicode normalisation, common substitution reversal); (2) Adversarial training — include evasion examples in classifier training data; (3) Semantic classifiers over rule-based — ML classifiers are harder to evade than keyword lists; (4) Multi-turn context — include recent conversation history in the safety classification input (not just the single message); (5) Red-teaming — regularly run adversarial red-team exercises to discover new evasion patterns and add them to training data."
+    }
+  ],
+  "sources": [
+    { "label": "Inan et al. (2023) — Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations, Meta AI", "url": "https://arxiv.org/abs/2312.06674" },
+    { "label": "OpenAI Moderation Documentation — official API reference", "url": "https://platform.openai.com/docs/guides/moderation" }
+  ]
+}

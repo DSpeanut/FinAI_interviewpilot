@@ -1,4 +1,12 @@
 {
+  "terms": [
+    { "term": "Alternative Data", "def": "Non-traditional investment data: satellite imagery, credit card transactions, web traffic, social media, job postings." },
+    { "term": "Signal Decay", "def": "How quickly alt data alpha fades after publication or widespread adoption; faster than traditional factors." },
+    { "term": "MNPI", "def": "Material Non-Public Information — trading on MNPI is illegal; alt data legal compliance requires careful sourcing." },
+    { "term": "NLP Sentiment", "def": "Extracting positive/negative signals from news, earnings calls, or social media using NLP; predicts short-term returns." },
+    { "term": "Web Scraping", "def": "Automated data collection from websites; common alt data source but requires ToS compliance and data cleaning." },
+    { "term": "Data Exclusivity", "def": "Period when only one fund has access to a new dataset; source of temporary alpha before the edge is arbitraged away." }
+  ],
   "eli3": [
     "Alternative data in finance refers to any data used for investment decisions that is not traditional financial data (prices, earnings, balance sheets). Examples: satellite imagery of retailer parking lots to estimate store traffic before earnings, credit card transaction data to predict quarterly revenue, social media sentiment to gauge investor attention, job postings to measure company growth plans.",
     "The rationale: alternative data can provide an information edge before it is reflected in prices — before the official earnings announcement, an investor with credit card data already knows how well the company's sales are going. If the alternative data is predictive and not yet widely used, it creates a short-lived but genuine alpha source.",

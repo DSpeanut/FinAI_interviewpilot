@@ -1,0 +1,69 @@
+{
+  "terms": [
+    { "term": "Delta (Δ)", "def": "∂V/∂S — option price change per $1 move in the underlying; call delta ∈ [0,1], put delta ∈ [−1,0]." },
+    { "term": "Gamma (Γ)", "def": "∂²V/∂S² — rate of change of delta per $1 move; highest ATM and near expiry; drives hedging cost." },
+    { "term": "Theta (Θ)", "def": "∂V/∂t — daily time decay; options lose value as expiry approaches; long options pay theta, short options earn it." },
+    { "term": "Vega (ν)", "def": "∂V/∂σ — option price change per 1% change in implied volatility; long options have positive vega." },
+    { "term": "Rho (ρ)", "def": "∂V/∂r — sensitivity to interest rate changes; call prices rise with rates (higher forward price)." },
+    { "term": "Delta-Neutral", "def": "Position with combined delta = 0; insensitive to small underlying moves; profits from gamma / vega." }
+  ],
+  "visualizationType": "greeks-delta",
+  "eli3": [
+    "The Greeks are measures of how an option's price changes when different factors change. Delta tells you how much the option price moves when the stock price moves $1. Gamma tells you how fast delta itself changes. Theta tells you how much value the option loses each day just from time passing. Vega tells you how much the option price changes when volatility changes.",
+    "Delta is the most important Greek for hedging. If you want to remove your exposure to stock price movements, you hedge your option's delta — buy or sell the underlying stock in an amount equal to the delta. A delta-neutral position profits from volatility changes and time decay, not from directional moves.",
+    "Traders use the Greeks to manage their option positions precisely. A market maker who sells options will delta-hedge to neutralise directional risk, then manage their gamma and vega exposure. Understanding the Greeks is essential for running an options book — they tell you exactly where your risk is at any moment."
+  ],
+  "whenWhy": [
+    {
+      "title": "Delta hedging for market makers",
+      "body": "Delta (Δ): ∂C/∂S. For a call: 0 ≤ Δ ≤ 1; for a put: −1 ≤ Δ ≤ 0. ATM options have delta ≈ ±0.5; deep ITM options have delta ≈ ±1; deep OTM have delta ≈ 0. Delta-neutral hedging: a market maker who sells a call option (delta +0.6) buys 0.6 shares of stock to neutralise directional exposure. As the stock price changes, delta changes (gamma effect), so the hedge must be rebalanced (dynamic delta hedging). Dynamic hedging P&L: the market maker profits from the difference between realised volatility and the implied volatility paid for the options. If realised vol > implied vol, delta hedging generates a profit (long gamma is beneficial). This is the fundamental gamma-theta trade-off."
+    },
+    {
+      "title": "Theta decay and the passage of time",
+      "body": "Theta (Θ): ∂C/∂t — the rate of time decay (usually negative for long options). ATM options have the highest theta (most time value to decay). OTM options lose absolute time value faster as expiry approaches but the rate accelerates. Deep ITM options have low theta (mostly intrinsic value). Weekend effect: theta accrues over weekends and holidays. Options traders who are short options (short gamma) benefit from theta decay — they collect time premium as options expire worthless. The gamma-theta trade-off: long options benefit from large moves (positive gamma) but lose from time decay (negative theta). Short options earn theta (positive) but are hurt by large moves (negative gamma). In a low-volatility environment, short option strategies (selling covered calls, cash-secured puts) are popular for yield enhancement."
+    },
+    {
+      "title": "Vega exposure and volatility trading",
+      "body": "Vega (ν): ∂C/∂σ — sensitivity to implied volatility changes. Always positive for both calls and puts (higher volatility → higher option prices). ATM options have the highest vega; vega decreases for deep ITM/OTM options. Vega is highest for longer-dated options (more time for volatility to affect the outcome). Vega hedging: to neutralise vega exposure, use options with offsetting vega (buy/sell options at different strikes or maturities). Rho (ρ): ∂C/∂r — sensitivity to interest rates. Generally small for short-dated options; more significant for long-dated options. For calls: Rho > 0 (higher rates increase call value); for puts: Rho < 0. Vanna (∂Δ/∂σ = ∂ν/∂S): cross-derivative of delta and vega; important for managing the interaction between delta hedging and volatility moves."
+    }
+  ],
+  "deepDiveIntro": [
+    "The Black-Scholes Greeks for a European call on a non-dividend-paying stock: Δ = N(d1); Γ = N'(d1) / (S × σ × √T); Θ = −[S × N'(d1) × σ / (2√T)] − r × K × e^{−rT} × N(d2); ν = S × N'(d1) × √T; ρ = K × T × e^{−rT} × N(d2), where d1 = [ln(S/K) + (r + σ²/2)T] / (σ√T), d2 = d1 − σ√T, N(·) is the standard normal CDF, and N'(·) is its PDF. For a put: Δ = N(d1) − 1; ρ = −K × T × e^{−rT} × N(−d2).",
+    "Gamma (Γ): the rate of change of delta — ∂Δ/∂S = ∂²C/∂S². Always positive for long options (calls and puts). Gamma is highest for ATM options near expiry (delta changes most rapidly for at-the-money options close to expiry). Gamma risk is 'pin risk': if a stock is trading exactly at the strike near expiry, small moves cause large delta changes, requiring rapid rebalancing. The Black-Scholes PDE says: Θ + (1/2)σ²S²Γ + rSΔ − rC = 0 — a fundamental balance between time decay, gamma, and delta for any derivative."
+  ],
+  "deepDive": [
+    {
+      "heading": "Greeks Relationships and the Black-Scholes PDE",
+      "body": "The Black-Scholes PDE: ∂C/∂t + (1/2)σ²S²(∂²C/∂S²) + rS(∂C/∂S) − rC = 0, i.e., Θ + (1/2)σ²S²Γ + rSΔ − rC = 0. Interpretation: the time decay (Θ, usually negative) is balanced by the gamma benefit (positive Γ) and the delta carry. For a delta-neutral portfolio: Θ ≈ −(1/2)σ²S²Γ (approximately, for r small). This means: short gamma (Γ < 0) implies positive theta (earn time decay); long gamma (Γ > 0) implies negative theta (lose time decay). The gamma-theta trade-off is unavoidable: to be long gamma (profit from large moves), you must pay theta (time decay). Market makers are typically short gamma/long theta (sell options, collect decay, delta-hedge the directionality). [1]"
+    },
+    {
+      "heading": "Second-Order Greeks: Vanna and Volga",
+      "body": "Vanna (∂Δ/∂σ = ∂ν/∂S): measures how delta changes with volatility and how vega changes with spot. Important for: (1) Delta hedges becoming stale when volatility moves; (2) Skew hedging (risk reversals have large vanna); (3) Understanding delta-hedged P&L during volatility spikes. Volga (∂ν/∂σ = ∂²C/∂σ²): sensitivity of vega to volatility changes. Options with high volga benefit from volatility of volatility (vol-of-vol). OTM options have higher volga than ATM options — owning a strangle is long volga (benefits from increasing vol-of-vol). The vanna-volga method: a standard technique for FX option pricing that accounts for the market smile by adjusting Black-Scholes prices using vanna and volga costs. Practical application: vanna explains why put skew widens when equity markets fall sharply (delta hedging demand creates feedback loops). [2]"
+    },
+    {
+      "heading": "Delta Hedging P&L and Gamma Scalping",
+      "body": "Delta hedging P&L: a delta-hedged long option position profits from large moves (positive gamma). The P&L from a single delta hedge rebalancing: ΔP&L ≈ (1/2) × Γ × (ΔS)² − Θ × Δt. The total P&L over the option's life (continuously rebalanced): ∫[(1/2)Γ(σ_R² − σ_I²)S²dt], where σ_R is realised volatility and σ_I is implied vol at purchase. If realised vol > implied vol (σ_R > σ_I), the delta hedger profits. This is gamma scalping: buying options (long gamma) when IV is cheap and scalping profits by delta hedging through large moves. Practical constraints: (1) Transaction costs make continuous delta hedging costly — delta bands (hedge only when delta moves beyond ±threshold) reduce costs; (2) Gamma hedging requires trading the underlying, which may move prices (market impact); (3) Realised vol path dependence: a large move early vs. late affects the P&L timing but not the terminal value under continuous hedging. [1]"
+    }
+  ],
+  "takeaways": [
+    "Delta: ∂C/∂S = N(d1) for a call; delta-neutral hedging eliminates directional risk. [1]",
+    "Gamma: ∂²C/∂S²; always positive for long options; highest ATM near expiry; drives dynamic rebalancing cost. [1]",
+    "Theta: time decay; negative for long options; gamma-theta trade-off is fundamental (Θ ≈ −½σ²S²Γ). [1]",
+    "Vega: ∂C/∂σ; always positive for both calls and puts; highest for ATM long-dated options. [2]",
+    "Delta hedging P&L ∝ (realised vol² − implied vol²) × gamma — the core of volatility trading. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does gamma spike near expiry for ATM options and what risks does this create?",
+      "a": "Gamma measures how quickly delta changes with the stock price. For an ATM option near expiry, the option is very close to the boundary of being worthless (OTM) or having intrinsic value (ITM). A small move in either direction dramatically changes the probability of expiring in-the-money: (1) Mathematical reason: Γ = N'(d1)/(S×σ×√T); as T → 0 for an ATM option (d1 → 0), Γ → ∞. The gamma profile becomes infinitely peaked at the strike near expiry; (2) Practical risk — pin risk: if a stock settles exactly at the strike at expiry, options dealers who are short gamma face rapid, unpredictable delta changes. A small move above/below the strike flips delta from near 0 to near ±1 — requiring large, immediate stock purchases/sales; (3) Market impact: near expiry, delta hedging of large option positions can create feedback loops — stock pinning is the observed tendency for stocks to trade near major strike prices at expiry as dealers' hedging activity attracts the price; (4) Gamma hedging near expiry: dealers facing large short-gamma positions near expiry may buy options (long gamma) to reduce the risk, or accept the risk as a cost of market making."
+    },
+    {
+      "q": "How are the Greeks used in practice by an options market maker?",
+      "a": "A market maker's Greek management is a multi-dimensional balancing act: (1) Delta: hedge to near-zero constantly (rebalance when delta drifts beyond a threshold). The frequency of rebalancing depends on gamma and volatility of the underlying; (2) Gamma: typically run short gamma (sell options) to earn premium, accept rehedging costs. Monitor net gamma by strike and expiry; (3) Theta: positive (earn decay) when short gamma — this is the revenue of selling options. Net theta = daily time decay income; (4) Vega: net vega exposure reflects the overall volatility position. A short-vega book profits from declining implied volatility. Manage vega by expiry bucket (short front-month vega, long back-month may be a relative value trade); (5) Rho: small effect; more relevant for long-dated options or index options with large notional; (6) Cross-Greeks (vanna, volga): managed for large exotic option positions where vanilla hedges are imperfect. Practical example: SPX market maker is short gamma in near-term expiries (collecting theta) and may be long vega in longer maturities (owning some calendar spread). A sudden vol spike causes gamma P&L loss (short gamma) but long-dated vega gains."
+    }
+  ],
+  "sources": [
+    { "label": "Hull, J.C. — Options, Futures, and Other Derivatives, 11th Edition, Pearson (2022)", "url": "https://www.pearson.com/en-us/subject-catalog/p/options-futures-and-other-derivatives/P200000005938" },
+    { "label": "Gatheral, J. — The Volatility Surface: A Practitioner's Guide, Wiley (2006)", "url": "https://www.wiley.com/en-us/The+Volatility+Surface%3A+A+Practitioner%27s+Guide-p-9780471792512" }
+  ]
+}

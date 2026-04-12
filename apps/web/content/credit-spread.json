@@ -1,0 +1,68 @@
+{
+  "terms": [
+    { "term": "Credit Spread", "def": "Yield premium over same-maturity Treasuries; in bps (1bp = 0.01%). Compensation for default + liquidity risk." },
+    { "term": "OAS", "def": "Option-Adjusted Spread — strip out embedded option value to compare callable/putable bonds on equal footing." },
+    { "term": "Z-Spread", "def": "Constant spread added to the full spot rate curve that prices the bond; more accurate than simple YTM spread." },
+    { "term": "Investment Grade (IG)", "def": "Rated BBB-/Baa3 or higher; spreads typically 50–200bps. Lower default probability." },
+    { "term": "High Yield (HY)", "def": "Rated below BBB- ('junk'); spreads 300–600bps+. Higher default risk, higher expected return." },
+    { "term": "Basis (CDS-Bond)", "def": "Difference between CDS spread and bond spread; should be zero in theory, diverges in funding stress." }
+  ],
+  "eli3": [
+    "The credit spread is the extra yield a corporate bond pays above a risk-free government bond of the same maturity. If a 10-year Treasury yields 4% and a 10-year corporate bond yields 6%, the credit spread is 2% (200 basis points). This extra yield compensates the investor for the risk that the company might default.",
+    "Higher credit spreads mean investors are more worried about default risk (or demanding more compensation for taking that risk). During financial crises, credit spreads widen dramatically — companies must pay much more to borrow because investors fear defaults. During good times, spreads are tight (low).",
+    "Credit spreads are a barometer of financial market health and risk appetite. When spreads are tight, markets are calm and credit is flowing freely. When spreads blow out, credit conditions are tightening — companies find it harder and more expensive to borrow, which can slow economic activity."
+  ],
+  "whenWhy": [
+    {
+      "title": "Compensating for default risk and recovery uncertainty",
+      "body": "The credit spread compensates investors for: (1) Expected loss from default = probability of default × loss given default (1 - recovery rate); (2) Systematic risk premium — default risk is correlated with the business cycle (defaults spike in recessions), so it's a systematic risk that commands a premium beyond expected losses; (3) Liquidity premium — corporate bonds are less liquid than government bonds; wider spreads partially compensate for this illiquidity. For investment-grade bonds (BBB and above), expected loss is low; most of the spread is systematic risk premium and liquidity. For high-yield bonds, expected loss is more significant but still typically below the observed spread — the excess is the credit risk premium."
+    },
+    {
+      "title": "Relative value and credit selection in bond portfolios",
+      "body": "Credit portfolio managers select bonds based on whether their spreads offer adequate compensation for their credit risk. OAS (Option-Adjusted Spread): removes the value of embedded options (call, put) to get the pure credit and liquidity spread. CDS-bond basis: the difference between the CDS spread (protection cost) and the bond spread — when the basis is negative (bonds have higher spreads than CDS), bonds appear cheap relative to CDS. Cross-sector relative value: financial bonds vs. utilities vs. industrials — comparing spreads for similar credit quality across sectors reveals relative cheapness or richness. Credit curve (different maturities for the same issuer): steepness reflects the market's view on near-term vs. long-term default risk."
+    },
+    {
+      "title": "Macroeconomic and credit cycle indicators",
+      "body": "Credit spread indices (ICE BofA IG Corporate Index, ICE BofA HY Index) track aggregate investment-grade and high-yield spreads. The IG-HY spread ratio reflects risk appetite: when it widens, risk-off conditions prevail. Historical context: IG spreads peaked at ~600bp during the 2008 GFC; HY spreads peaked at ~2000bp. Normal IG spreads: ~90-150bp; normal HY spreads: ~300-450bp (as of 2024). Spread widening leading a recession: spreads typically start to widen 6-12 months before recessions as investors price in deteriorating credit fundamentals. This makes spread indices leading economic indicators, alongside the yield curve."
+    }
+  ],
+  "deepDiveIntro": [
+    "The credit spread can be decomposed: credit spread = expected loss + credit risk premium + liquidity premium. Merton (1974) showed that corporate debt is equivalent to risk-free debt minus a put option on firm value: when firm value falls below the debt face value, default occurs, and bondholders receive firm value (recovery). This structural model links credit spreads to equity market information: higher equity volatility → wider credit spreads; lower equity prices → wider spreads. The Merton model predicted spread: ΔP = N(-d2) × face_value - (V/K) × N(-d1), where V = firm value, K = debt face value, and d1, d2 are standard Black-Scholes formulas. In practice, structural models underpredict observed credit spreads — the difference is partly risk premia, partly model misspecification.",
+    "CDS (Credit Default Swaps): the standard instrument for isolating and trading credit risk. A CDS is a bilateral contract where the protection buyer pays a periodic premium (the CDS spread) to the protection seller; in exchange, the seller makes the buyer whole if a specified credit event (default, restructuring) occurs on the reference entity. CDS spreads are the 'pure' credit price, not contaminated by liquidity or interest rate risk. The CDS-bond basis = bond spread − CDS spread; a negative basis means bonds trade cheap to CDS (arbitrage opportunity in theory; in practice, constrained by funding costs and collateral)."
+  ],
+  "deepDive": [
+    {
+      "heading": "Spread Measures: Z-spread vs OAS",
+      "body": "Z-spread (zero-volatility spread): the constant spread added to every spot rate on the risk-free curve that makes the present value of bond cash flows equal to its price. Z = spread s such that: P = Σ C_t / (1+z_t+s)^t + F / (1+z_T+s)^T. Z-spread includes: credit risk + liquidity + option value (for callable bonds). OAS (Option-Adjusted Spread): removes the embedded option value. OAS = Z-spread − option value. For a callable bond: OAS < Z-spread (the call option benefits the issuer; investors get a wider Z-spread but narrower OAS to compensate). OAS is the appropriate spread measure for comparing bonds with different option characteristics. For option-free bonds: OAS = Z-spread = nominal spread (approximately). [1]"
+    },
+    {
+      "heading": "Investment-Grade vs High-Yield Spread Dynamics",
+      "body": "Investment grade (IG, BBB-/Baa3 and above): spreads driven by risk premium and liquidity. Default rates < 1% annually in normal conditions. IG spreads are relatively stable (50-200bp range for US IG in most years). Duration-driven: IG bond prices are primarily sensitive to interest rate changes (long duration) with credit spread changes as a secondary effect. High yield (HY, BB+/Ba1 and below): spreads driven by default risk. Default rates vary from < 2% in good times to > 12% in recessions (Moody's data). HY spreads are more volatile (200-500bp range in good times; up to 2000bp in GFC). Equity-like behavior: HY bonds have significant equity correlation (both are claims on the same firm's value; HY is subordinated to IG). HY spread widening during recessions mirrors equity market selloffs. [2]"
+    },
+    {
+      "heading": "Credit Default Swaps and Synthetic Credit",
+      "body": "CDS spread: the annual premium paid in basis points for credit protection. For a 5-year CDS on company X at 200bp: the protection buyer pays 50bp per quarter on $10M notional = $50,000/quarter. If X defaults, the seller pays par minus recovery value. CDS upfront: for very risky credits (HY, distressed), CDS quotes include an upfront payment plus a standardised running spread (100bp for HY, 500bp for distressed under ISDA conventions). CDS indices: CDX.NA.IG (125 US IG names), CDX.NA.HY (100 US HY names), iTraxx Europe (125 European IG names). These indices provide liquid credit market benchmarks and are used for macro credit hedging by portfolio managers. Synthetic CDO: CDS on a portfolio of credits, tranched by seniority; the innovation that amplified the 2008 crisis. [1]"
+    }
+  ],
+  "takeaways": [
+    "Credit spread = expected loss + credit risk premium + liquidity premium — compensates for default risk. [1]",
+    "OAS = Z-spread − option value — the pure credit/liquidity spread for comparing bonds with different features. [1]",
+    "Merton model: corporate debt = risk-free debt − put option on firm value; higher equity vol → wider spreads. [2]",
+    "CDS spread: annual premium for credit protection; CDS-bond basis = bond spread − CDS spread. [1]",
+    "IG spreads: 50-200bp in normal conditions; HY: 200-500bp; both spike sharply in recessions/crises. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why do credit spreads sometimes widen even when defaults remain low?",
+      "a": "Credit spreads can widen for reasons beyond actual default concerns: (1) Liquidity-driven widening: during market stress, even investment-grade corporate bonds become hard to sell (buyers disappear); investors demand a higher spread as compensation for holding illiquid assets; this liquidity premium can dominate actual default risk; (2) Supply shock: heavy corporate bond issuance (M&A financing, LBO debt) floods the market with new bonds; spreads must widen to absorb the supply; (3) Forced selling: institutional investors facing redemptions or margin calls must sell corporate bonds regardless of credit quality; the selling pressure widens spreads even for unaffected issuers; (4) Risk-off contagion: during broad risk-off episodes, all risky assets — including IG corporate bonds — experience spread widening through repricing of the general risk premium, not specific default concerns; (5) Rating migration risk: concerns about potential downgrades (especially from BBB to HY — 'fallen angel' risk) can cause pre-emptive spread widening as investors price in forced selling by IG-only funds."
+    },
+    {
+      "q": "How does the credit spread behave for different positions in the capital structure?",
+      "a": "A company's capital structure is a priority waterfall: in bankruptcy, senior secured creditors are paid first, then senior unsecured, then subordinated/junior bonds, then equity. Spreads reflect this priority: Senior secured bonds: lowest spread (highest recovery if default occurs; first claim on collateral). Senior unsecured bonds: higher spread than secured. Subordinated/junior bonds: significantly higher spread — lower recovery rate and higher effective probability of loss. Equity: no spread (not a bond) but embeds the residual risk after all debt is paid. Example: a BB-rated company's senior secured bond might trade at OAS 300bp, its senior unsecured at 450bp, and its subordinated debt at 700bp. The spread differential between seniority levels (subordinated vs. senior) widens in stress: when default probability rises, subordinated bonds face near-zero recovery, while senior secured may still recover significantly. This creates relative value opportunities: the 'notch' difference between seniority levels can become too wide or too narrow relative to the fundamental recovery analysis."
+    }
+  ],
+  "sources": [
+    { "label": "Merton, R.C. (1974) — On the Pricing of Corporate Debt: The Risk Structure of Interest Rates, Journal of Finance", "url": "https://doi.org/10.2307/2978814" },
+    { "label": "Fabozzi, F.J. — The Handbook of Fixed Income Securities, 8th Edition, McGraw-Hill (2012)", "url": "https://www.mhprofessional.com/the-handbook-of-fixed-income-securities-9780071768467-usa" }
+  ]
+}

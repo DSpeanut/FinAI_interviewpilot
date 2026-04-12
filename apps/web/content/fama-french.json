@@ -1,4 +1,13 @@
 {
+  "terms": [
+    { "term": "SMB", "def": "Small Minus Big — return of small-cap stocks minus large-cap stocks; captures the size premium." },
+    { "term": "HML", "def": "High Minus Low — return of high B/M (value) stocks minus low B/M (growth) stocks; captures the value premium." },
+    { "term": "B/M Ratio", "def": "Book-to-Market ratio = book value of equity / market cap; high B/M = value stock, low B/M = growth stock." },
+    { "term": "MKT-RF", "def": "Market excess return = Rm − Rf; the CAPM factor capturing systematic market risk." },
+    { "term": "Factor Loading", "def": "Regression coefficient on a factor; measures how much exposure a portfolio has to that risk premium." },
+    { "term": "Factor Premium", "def": "Average excess return of a long-short factor portfolio; compensation for bearing that systematic risk." }
+  ],
+  "visualizationType": "factor-returns",
   "eli3": [
     "CAPM says the only thing that determines a stock's expected return is its sensitivity to the overall market (beta). But Fama and French noticed that small stocks and 'value' stocks (cheap relative to book value) earn higher returns than CAPM predicts — even after accounting for market risk. They built a three-factor model adding size (SMB: small minus big) and value (HML: high minus low book-to-market) to market beta.",
     "The three-factor model explains the cross-section of stock returns much better than CAPM. A stock's expected return = risk-free rate + β_market × market premium + β_SMB × size premium + β_HML × value premium. In 2015, Fama and French extended to five factors, adding profitability (RMW: robust minus weak) and investment (CMA: conservative minus aggressive).",

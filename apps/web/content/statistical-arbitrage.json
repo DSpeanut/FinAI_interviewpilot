@@ -1,4 +1,12 @@
 {
+  "terms": [
+    { "term": "Pairs Trading", "def": "Long the cheap stock, short the expensive one in a historically correlated pair; profit when prices revert." },
+    { "term": "Cointegration", "def": "Two non-stationary series have a stationary linear combination; the statistical basis for pairs trading." },
+    { "term": "Z-Score", "def": "Number of standard deviations the spread is from its mean; z > 2 typically triggers a trade in stat arb." },
+    { "term": "Mean Reversion", "def": "The tendency of a spread or price to return to its historical average after deviating." },
+    { "term": "Spread", "def": "The difference (or ratio) between two related securities; stat arb profits when this spread mean-reverts." },
+    { "term": "Half-Life", "def": "Expected time for the spread to revert halfway to the mean; estimated from the OU process mean-reversion parameter." }
+  ],
   "eli3": [
     "Statistical arbitrage (stat arb) is a quantitative trading strategy that exploits small, temporary mispricings between related securities using statistical models. Unlike classical arbitrage (risk-free profit from identical assets at different prices), stat arb involves probabilistic, not certain, profits — you make money on average across many trades, not on every single trade.",
     "The core idea: identify pairs or groups of assets whose prices move together historically (cointegration). When their prices diverge temporarily, bet on reversion to the historical relationship. If stock A and stock B are in the same industry and usually trade at a 2:1 price ratio, and today the ratio is 2.5:1, a stat arb strategy shorts the expensive one and buys the cheap one, waiting for the ratio to revert.",

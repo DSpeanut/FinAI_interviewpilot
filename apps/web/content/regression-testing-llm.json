@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "Regression testing for LLMs checks that your AI application doesn't get worse when you change something — a new model, a new prompt, a new retrieval strategy. Just like unit tests prevent software bugs from sneaking in, regression tests prevent quality bugs from sneaking into your AI system.",
+    "The challenge is that LLM outputs are not deterministic, so you can't compare outputs with exact equality. Instead, you compare quality metrics: did the average faithfulness score drop? Did the task success rate fall? These statistical comparisons tell you whether a change caused a regression.",
+    "LLM regression tests are best run in CI/CD pipelines: every time you change a prompt or upgrade a model, the tests run automatically and flag any quality regressions before they reach production."
+  ],
+  "whenWhy": [
+    {
+      "title": "Preventing quality regressions on prompt changes",
+      "body": "Prompt engineering is iterative: you improve a prompt for one case and inadvertently break another. Without regression tests, this is invisible until users complain. With regression tests: maintain a golden dataset of (input, expected_output) pairs; run the evaluation suite on every prompt change; if any metric drops below baseline by more than a threshold, the CI check fails. This catches prompt regressions in minutes, not days."
+    },
+    {
+      "title": "Validating model upgrades before rollout",
+      "body": "LLM providers regularly release new model versions (GPT-4o → GPT-4o-mini, claude-3-5-sonnet-20241022 → claude-sonnet-4-6). New versions may improve some tasks while regressing others. Before switching to a new model in production: run your full regression suite on the new model; compare all metrics to the current model baseline; identify regressions on specific query types; decide whether the aggregate quality improvement justifies the regression in specific areas. This prevents 'model upgrade surprises' where a new model is better on benchmarks but worse on your specific use case."
+  ],
+    {
+      "title": "RAG pipeline component testing",
+      "body": "Changes to any RAG component (chunking strategy, embedding model, retrieval k, re-ranker) can affect end-to-end quality. Regression tests catch these: baseline metrics from before the change vs. metrics after. Component-level regression tests are more diagnostic: test the retrieval stage independently (hit@k before and after changing the embedding model) before testing end-to-end quality. This localises regressions to the component that changed."
+    }
+  ],
+  "deepDiveIntro": [
+    "LLM regression testing is probabilistic, not deterministic. Traditional software tests assert exact outputs (assertEqual(result, 'expected')). LLM tests assert statistical properties (assertGreater(mean_score, threshold), assertAlmostEqual(new_score, baseline_score, delta=0.05)). This requires: a fixed evaluation dataset, a defined scoring function (LLM-as-judge, task success function, embedding similarity), baseline scores recorded from the current production system, and a statistical significance test to distinguish real regressions from noise.",
+    "The evaluation dataset is the critical asset. A good regression test dataset covers: representative queries (reflects actual production traffic distribution), edge cases (queries the system has historically struggled with), adversarial inputs (designed to probe weak points), and key capability queries (tests for must-pass behaviors). The dataset should be versioned alongside the code; changes to the dataset require re-baselining."
+  ],
+  "deepDive": [
+    {
+      "heading": "Regression Test Architecture in CI/CD",
+      "body": "CI/CD integration pattern: (1) Trigger: on every PR that changes a prompt file, model config, or RAG component; (2) Evaluation run: spin up the application with the PR's changes; run the golden dataset through the evaluation pipeline (typically 50-200 examples for CI speed); score with automated metrics; (3) Comparison: compare current scores to baseline (stored in a JSON file committed to the repo, or fetched from an experiment tracking service like MLflow/Braintrust); (4) Pass/fail threshold: fail the CI check if any metric drops > X% from baseline (typical: 5% for key metrics, 10% for secondary metrics); (5) Report: post a summary comment on the PR with before/after metrics. Tools: DeepEval + pytest for inline quality assertions; Braintrust for full experiment tracking and comparison. [1]"
+    },
+    {
+      "heading": "Statistical Significance in Regression Detection",
+      "body": "LLM evaluation scores are noisy (the same input may score differently on different runs due to model non-determinism). A score drop of 0.02 may be noise; a drop of 0.10 may be a real regression. Statistical testing: (1) Run both baseline and candidate on the same N examples; (2) Compute a paired difference test (Wilcoxon signed-rank test for non-normal distributions) to assess whether the score difference is statistically significant (p < 0.05); (3) Calculate the minimum detectable effect size for your N — larger N detects smaller regressions. Rule of thumb: N=100 detects a 5-point mean score drop (effect size 0.5 SD) at 80% power. For high-stakes changes, use N=200-500. For routine PR checks, N=50-100 is sufficient with a generous detection threshold (10% drop). [2]"
+    },
+    {
+      "heading": "Failure Mode Taxonomy for Regression Analysis",
+      "body": "When a regression is detected, classify it: (1) Faithfulness regression — the model is generating more claims not supported by retrieved context; cause: new model is more 'creative', or new prompt is less constraining; (2) Retrieval regression — lower hit@k means a chunking or embedding change broke retrieval; (3) Format regression — outputs violate expected format constraints (missing required JSON fields, wrong output length); (4) Safety regression — content filter triggers more often, or harmful content appears in outputs not previously flagged; (5) Latency regression — p95 latency increased by > 20%; (6) Cost regression — average cost per query increased. Different regression types require different fixes. Always check which examples regressed, not just the mean — a small mean drop may hide a catastrophic failure on a specific query type. [1]"
+    }
+  ],
+  "takeaways": [
+    "LLM regression tests: compare quality metrics (not exact outputs) before/after changes on a fixed golden dataset. [1]",
+    "CI/CD integration: run on every PR affecting prompt/model/RAG config; fail if metric drops > 5-10% from baseline. [1]",
+    "Statistical significance: paired test on N=100+ examples to distinguish noise from real regression. [2]",
+    "Classify regressions by type (faithfulness, retrieval, format, safety, latency, cost) to localise the cause. [1]",
+    "Dataset: representative + edge cases + adversarial + must-pass — version alongside code, re-baseline on dataset changes. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you maintain the regression test dataset as the product evolves?",
+      "a": "Dataset drift: the product's query distribution changes over time, making the old dataset unrepresentative. Dataset maintenance practices: (1) Monthly review — sample 50-100 recent production queries; identify new query types not covered by the existing dataset; add 5-10 new examples per new query type; (2) Failure injection — when production incidents occur (user complaint, quality alert), add the failing example to the regression dataset so it's always tested going forward; (3) Dataset versioning — tag the dataset with a version; when the dataset changes significantly (> 20% new examples), re-run the baseline to update reference scores; track which dataset version a baseline was computed on; (4) Category balance — ensure the dataset covers all major feature areas (don't have 80% customer-service queries and 5% technical queries if production is 50/50). A stale dataset gives false confidence: tests pass on old patterns but miss regressions on new ones."
+    },
+    {
+      "q": "What should you do when a regression is detected but the overall metrics don't drop (a mixed-result change)?",
+      "a": "A 'mixed regression' occurs when a change improves some examples and regresses others — the mean score stays flat. This is common when changing to a new model: better at some tasks, worse at others. Analysis steps: (1) Segment analysis — compute metrics separately for each query category (retrieval questions, summarisation, Q&A, code); identify which categories regressed; (2) Example-level diff — show the specific examples where the score dropped by > 0.2 points; read them to understand the regression pattern; (3) Impact assessment — estimate what fraction of production traffic falls into the regressed category (a 10% drop on a category that accounts for 2% of traffic may be acceptable); (4) Decision: if the regression is on a high-traffic or high-stakes category, don't deploy the change; add targeted examples to the failing category to the dataset and retest after a targeted fix. Document the decision and trade-offs."
+    }
+  ],
+  "sources": [
+    { "label": "DeepEval Documentation — CI/CD integration and regression testing", "url": "https://docs.confident-ai.com/docs/getting-started" },
+    { "label": "Braintrust Documentation — experiment tracking and regression detection", "url": "https://www.braintrust.dev/docs" }
+  ]
+}

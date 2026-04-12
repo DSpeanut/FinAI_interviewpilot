@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "Vector search finds documents that are semantically similar to a query — not just documents that share exact keywords, but documents that mean the same thing. Every document is converted into a list of numbers (a vector/embedding) that captures its meaning. To find similar documents, you find vectors that are 'close' in this numerical space.",
+    "Comparing one query vector to millions of document vectors one by one would be too slow. Approximate Nearest Neighbor (ANN) algorithms (like HNSW) build special index structures that let you find the closest vectors in milliseconds, trading a tiny bit of accuracy for massive speed gains.",
+    "Vector search is the core retrieval mechanism of every RAG system. The quality of the embeddings and the accuracy of the ANN index determine how well the system retrieves relevant documents."
+  ],
+  "whenWhy": [
+    {
+      "title": "Semantic retrieval beyond keyword matching",
+      "body": "BM25 keyword search finds documents with the same words as the query. Vector search finds documents with the same meaning — even if they use different words. Example: query 'car accident' retrieves documents containing 'vehicle collision', 'traffic crash', or 'automobile incident' because their embeddings are similar. This semantic understanding is essential for natural language queries where users don't know the exact terminology used in the documents."
+    },
+    {
+      "title": "Similarity search in high-dimensional embedding spaces",
+      "body": "Modern embedding models produce 768d–3072d vectors. Nearest neighbour search in high dimensions is computationally expensive (the curse of dimensionality makes brute-force O(n×d) impractical for n > 100k). ANN algorithms (HNSW, IVF-PQ) reduce query time from O(n) to O(log n) with > 95% recall vs. exact search. This makes million-scale vector search feasible in < 100ms per query."
+    },
+    {
+      "title": "Foundation for recommendation, de-duplication, and anomaly detection",
+      "body": "Vector search generalises beyond RAG: recommendation systems (find items similar to what a user liked), deduplication (find near-duplicate documents by high cosine similarity), anomaly detection (data points far from their nearest neighbours in embedding space are outliers), and face recognition (match face embeddings). Any task formulated as 'find the most similar X to Y' is a vector search problem."
+    }
+  ],
+  "deepDiveIntro": [
+    "Vector search requires: (1) an embedding model to convert text to vectors; (2) an ANN index to efficiently search vectors; (3) a vector database to store vectors with metadata and support CRUD operations. The similarity metric: cosine similarity (angle between vectors — most common for text embeddings), dot product (equivalent to cosine similarity for unit-norm vectors — faster for normalised embeddings), Euclidean distance (L2 — used for image embeddings). All major embedding models produce unit-norm vectors, so cosine ≡ dot product after normalisation.",
+    "HNSW (Hierarchical Navigable Small World, Malkov & Yashunin 2018) is the dominant ANN algorithm: builds a multi-layer graph where layer 0 contains all vectors and higher layers contain exponentially fewer vectors as skip-list shortcuts. Query: start at the top layer, greedy-walk toward the query vector, descend to lower layers, refine the search. Recall vs. latency is controlled by ef_search (search beam width). HNSW achieves > 99% recall at < 10ms for 1M vectors on a single machine."
+  ],
+  "deepDive": [
+    {
+      "heading": "ANN Algorithms: HNSW vs IVF-PQ",
+      "body": "HNSW (graph-based): builds a multi-layer navigable small world graph. Construction: each new vector connects to M nearest neighbours; higher layers have fewer connections (log-scale). Query: start at entry point in top layer, greedy descent to layer 0. Parameters: M (graph connectivity, default 16), ef_construction (build quality, default 200), ef_search (query recall vs. speed). Strengths: high recall, fast queries, good for real-time inserts. Weaknesses: high memory usage (graph pointers + vectors). IVF-PQ (inverted file + product quantisation): clusters vectors into K Voronoi cells; query probes nprobe nearest cells; vectors are compressed using PQ (quantisation). Strengths: low memory, scales to billions of vectors. Weaknesses: lower recall, slower builds. For RAG (< 50M vectors): HNSW. For billion-scale (ads, recommendation): IVF-PQ or FAISS. [1]"
+    },
+    {
+      "heading": "Vector Database Landscape",
+      "body": "Purpose-built: Pinecone (fully managed, serverless, no ops), Weaviate (open-source, rich schema, hybrid search built-in), Milvus (open-source, high-scale, Kubernetes-native), Qdrant (open-source, Rust-based, fast). PostgreSQL extension: pgvector (HNSW and IVF-PQ indexes inside Postgres; reuse existing infrastructure; up to ~10M vectors before dedicated solutions are faster). In-process: ChromaDB (embedded, no server, great for prototyping), FAISS (Facebook's library, no server, maximum control). Selection criteria: managed vs. self-hosted, existing infra (pgvector if already on Postgres), scale (pgvector < 10M; Pinecone/Weaviate/Milvus 10M+), hybrid search support (Weaviate, Qdrant built-in), latency requirements. [2]"
+    },
+    {
+      "heading": "Filtered Vector Search and Metadata",
+      "body": "Production RAG requires filtered search: retrieve the 10 most similar chunks from the 2024 product documentation (not all documents). Approach: (1) pre-filtering (SQL-style WHERE clause applied before ANN search — reduces the search space but requires a separate metadata index); (2) post-filtering (ANN search over all vectors, then filter by metadata — fast but requires over-fetching to account for filtered-out results — set k = 50 and filter to get 10); (3) partition-based filtering (Pinecone namespaces, Weaviate tenancy — isolate subsets at the index level). Most production systems use metadata filtering to implement: per-user document isolation, date-range filtering, document-type filtering. Always attach rich metadata to every chunk at indexing time. [1]"
+    }
+  ],
+  "takeaways": [
+    "Vector search: embed query → ANN search over document embeddings → cosine similarity ranking. [1]",
+    "HNSW: graph-based ANN, > 99% recall, < 10ms for 1M vectors — default choice for RAG. [1]",
+    "pgvector: HNSW in Postgres — use if already on PostgreSQL and scale < 10M vectors. [2]",
+    "Filtered search: use metadata (doc_type, date, user_id) to scope retrieval; pre-filter or post-filter with over-fetch. [1]",
+    "Cosine similarity ≡ dot product for unit-normalised embeddings — normalise before storing for faster queries. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you migrate from one vector database to another without downtime?",
+      "a": "Zero-downtime migration strategy: (1) Dual-write phase — write new data to both old and new databases simultaneously; (2) Backfill — export all existing vectors from the old DB (paginate through IDs), batch-insert into the new DB; (3) Cutover — once backfill is complete and verified (spot-check recall parity between old and new), switch the read path to the new DB; (4) Drain — stop dual-writes, verify no writes are going to the old DB; (5) Decommission — delete old DB. Risk: embedding model mismatch. If migrating to a different embedding model (not just a new vector DB), you must re-embed all documents — same strategy but with re-embedding in the backfill step. Monitor recall metrics during and after migration to detect degradation."
+    },
+    {
+      "q": "When does vector search fail to retrieve the right document, and how do you fix it?",
+      "a": "Vector search failures fall into three categories: (1) Vocabulary mismatch — the query uses different words than the relevant document; vector search mitigates this vs. BM25 but doesn't eliminate it (especially for domain-specific jargon not well-represented in the embedding model's training). Fix: hybrid search (BM25 + vector), domain-adapted embedding models; (2) Query too short / too abstract — a 3-word query produces a poor embedding that doesn't match specific document chunks. Fix: query expansion (HyDE, query rewriting, multi-query retrieval); (3) Wrong chunk granularity — the relevant information is spread across multiple chunks. Fix: parent-child chunking, increase chunk size, multi-hop retrieval. Measure which failure mode dominates in your system using a retrieval evaluation set before investing in fixes."
+    }
+  ],
+  "sources": [
+    { "label": "Malkov & Yashunin (2018) — Efficient and Robust Approximate Nearest Neighbor Search Using HNSW Graphs", "url": "https://arxiv.org/abs/1603.09320" },
+    { "label": "pgvector GitHub — open-source vector similarity search for Postgres", "url": "https://github.com/pgvector/pgvector" }
+  ]
+}

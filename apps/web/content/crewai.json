@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "CrewAI is a Python framework for building multi-agent systems where different AI agents have different roles, goals, and tools — like a crew of specialists working together. You define agents (a Researcher, a Writer, a Reviewer) and tasks, and CrewAI coordinates them.",
+    "Each agent in the crew has a role description, a goal, a backstory (which shapes its behavior), and a set of tools. Tasks are assigned to agents. The crew executes tasks in sequence or in parallel, passing outputs from one agent to the next.",
+    "CrewAI is built on top of LangChain and adds the multi-agent orchestration layer: defining crews, assigning roles, and managing the handoff between agents. It's designed to make the pattern 'several specialised agents working together' as easy as possible."
+  ],
+  "whenWhy": [
+    {
+      "title": "Workflows requiring specialised agent roles",
+      "body": "Some tasks naturally decompose into specialist roles: research + writing + editing for content generation; planning + coding + testing for software development; data gathering + analysis + presentation for business intelligence. CrewAI makes this decomposition explicit: define one agent per role, give each agent role-appropriate tools, and wire the outputs together. Each agent focuses on its specialty; the crew coordinates the handoffs. This mirrors how human teams operate."
+    },
+    {
+      "title": "Parallelising independent sub-tasks",
+      "body": "CrewAI supports Process.parallel: tasks assigned to different agents can run concurrently. For research tasks with multiple independent sub-topics (e.g., 'Research competitors A, B, and C'), run three researcher agents in parallel, then pass all outputs to a synthesiser agent. This reduces wall-clock time from sum(task times) to max(task time). Sequential execution is the default (Process.sequential); parallel is opt-in."
+    },
+    {
+      "title": "Rapid prototyping with role-based prompt engineering",
+      "body": "CrewAI's agent role/goal/backstory fields are essentially structured prompts that condition agent behavior. The backstory field ('You are an expert financial analyst with 20 years of experience...') shapes the agent's writing style, level of detail, and domain focus. This makes it easy to experiment with different agent personas without writing custom system prompts. For teams building multi-agent systems, CrewAI's declarative agent definition reduces prompt engineering to filling in role description fields."
+    }
+  ],
+  "deepDiveIntro": [
+    "CrewAI was released by João Moura in January 2024 and reached 20k GitHub stars within weeks. It is built on LangChain's agent infrastructure (LangChain tools, LLMs) with a higher-level abstraction for multi-agent coordination. The core primitives: Agent (role + goal + backstory + tools + LLM), Task (description + expected_output + agent), Crew (list of agents + list of tasks + process type). The Crew.kickoff() method starts execution.",
+    "CrewAI's Process types: Sequential (default) — tasks execute in order, each task receives the output of the previous task as context; Hierarchical — a manager agent (automatically created or specified) assigns tasks to worker agents and synthesises their outputs; this mimics a management structure. Each agent runs its assigned tasks using its own agent loop (default: ReAct-style reasoning over its tools)."
+  ],
+  "deepDive": [
+    {
+      "heading": "Agent Configuration",
+      "body": "Agent fields: role (title: 'Senior Financial Analyst'), goal (what the agent optimises for: 'produce accurate, evidence-based financial summaries'), backstory (shaped personality/expertise: 'You have 20 years of experience in sell-side equity research...'), tools (list of Tool objects), llm (the LLM to use — defaults to GPT-4), verbose (log the agent's reasoning), allow_delegation (can this agent delegate to other agents?), max_iter (max agent loop iterations, default 15), memory (enable in-session memory for this agent). The role, goal, and backstory are injected into the agent's system prompt. Well-crafted backstories significantly improve output quality. [1]"
+    },
+    {
+      "heading": "Task and Crew Configuration",
+      "body": "Task fields: description (what to do), expected_output (what a successful output looks like — this is injected into the agent's prompt as a quality target), agent (which agent handles this task), context (list of other tasks whose outputs are provided as context — enables dependency chains), output_pydantic or output_json (structured output schema). Crew fields: agents, tasks, process (sequential/hierarchical), verbose, memory (enable shared crew memory), max_rpm (rate limit LLM calls). kickoff(inputs={}) accepts dynamic inputs that are interpolated into task descriptions via {input_variable} templating. [1]"
+    },
+    {
+      "heading": "CrewAI vs LangGraph for Multi-Agent Systems",
+      "body": "CrewAI advantages: higher-level abstractions, easier to get started, role-based prompting built-in, YAML-based configuration for no-code crew definition. LangGraph advantages: more control over the execution graph (CrewAI's sequential/hierarchical processes are fixed; LangGraph lets you define arbitrary graphs with cycles and branches), better checkpointing and state persistence, human-in-the-loop at any node, better observability via LangSmith. CrewAI is better for: quick prototyping, role-based workflows with clear sequential/parallel structure. LangGraph is better for: production systems requiring fine-grained control, complex branching, or long-running stateful workflows. Many teams prototype in CrewAI and refactor to LangGraph for production. [1]"
+    }
+  ],
+  "takeaways": [
+    "CrewAI: declarative multi-agent framework — define agents (role/goal/backstory/tools) and tasks, CrewAI coordinates execution. [1]",
+    "Process.sequential: each task passes output to the next; Process.hierarchical: manager agent assigns and synthesises. [1]",
+    "Backstory field = system prompt engineering — well-crafted backstories significantly improve output quality. [1]",
+    "Task.expected_output = quality target injected into agent's prompt — use it to specify output format and standard. [1]",
+    "Use CrewAI for prototyping; migrate to LangGraph for production systems requiring fine-grained control. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you pass data between agents in a CrewAI sequential process?",
+      "a": "Three mechanisms: (1) Automatic context passing — in Process.sequential, each task automatically receives the outputs of all previous tasks as context. The agent can reference them in its reasoning; (2) Explicit task.context — specify context=[task_1, task_3] to pass only specific task outputs as context (not all previous tasks). Useful for long sequential chains where only some prior outputs are relevant; (3) Shared crew memory — enable Crew(memory=True) to give all agents access to a shared short-term memory (ConversationBufferMemory) and long-term memory (by default, stored in a local ChromaDB). Agents can explicitly recall from crew memory. For structured data passing (e.g., passing a JSON object from one agent to another), use task.output_json with a Pydantic schema to ensure the output is parseable by the next agent."
+    },
+    {
+      "q": "What happens when one agent in the crew produces a bad output that corrupts downstream agents?",
+      "a": "Error propagation is a key weakness of sequential multi-agent systems. Mitigation strategies: (1) Validation tasks — add a 'reviewer' agent after critical tasks: its job is to check the previous agent's output against expected_output criteria and flag failures; (2) Structured output validation — use task.output_pydantic to validate outputs against a schema; CrewAI will retry the task if validation fails (up to max_retries); (3) Early termination — if a critical task fails, don't pass bad output downstream; use CrewAI's task output callbacks to detect failures and stop the crew; (4) Fallback outputs — define a fallback_output for critical tasks that provides a safe default if the agent fails, allowing downstream tasks to continue. The hierarchical process is more robust to individual agent failures since the manager agent can reassign failed tasks."
+    }
+  ],
+  "sources": [
+    { "label": "CrewAI Documentation — official docs", "url": "https://docs.crewai.com/" },
+    { "label": "CrewAI GitHub Repository — source and examples", "url": "https://github.com/crewAIInc/crewAI" }
+  ]
+}

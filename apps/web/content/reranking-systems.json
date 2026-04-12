@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Reranking is a second filtering step after initial retrieval. First, you quickly retrieve the top 20 candidates (fast but imprecise). Then a re-ranker carefully scores each of those 20 to find the best 5 (slower but much more accurate). It's a two-stage funnel: cast a wide net, then pick the best fish.",
+    "The first retrieval stage uses bi-encoders: each document is embedded once and stored. Fast, but the query and document are embedded separately so they can't 'see' each other. The re-ranking stage uses cross-encoders: the query and each candidate document are processed together, so the model can compare them directly. Much more accurate but too slow to run on the full corpus.",
+    "Reranking dramatically improves RAG quality in practice, especially for queries where the initial retrieval order is poor. It's one of the highest-impact improvements you can add to a production RAG pipeline."
+  ],
+  "whenWhy": [
+    {
+      "title": "Improving precision after recall-oriented retrieval",
+      "body": "ANN vector search optimises for recall (don't miss relevant documents) by fetching a large k (20-50 candidates). But the ranking within those k candidates is noisy — the most semantically similar embedding doesn't always correspond to the most relevant passage for the query. A cross-encoder re-ranker scores query-document pairs jointly, producing a much more accurate relevance ranking. Typical improvement: top-5 precision improves by 15-30% over raw vector similarity ranking."
+    },
+    {
+      "title": "Queries where semantic similarity is insufficient",
+      "body": "Vector similarity captures semantic closeness but misses relevance signals that require joint reasoning: 'What year was company X founded?' retrieves chunks about company X (correct topic) but may rank the founding year chunk lower than a chunk about company X's 2024 revenue (same topic, wrong content). A cross-encoder reads the query + each candidate together and correctly identifies that only the founding year chunk answers the question. Cross-encoders are especially valuable for specific factual queries."
+    },
+    {
+      "title": "Heterogeneous retrieval source fusion",
+      "body": "Hybrid RAG (vector search + BM25 keyword search) returns candidates from multiple sources with incomparable scores (cosine similarity vs. BM25 TF-IDF scores). A re-ranker normalises these: instead of merging scores directly, pass all candidates to the re-ranker and let it produce a unified relevance score. Alternatively, use Reciprocal Rank Fusion (RRF) to merge rankings without score normalisation: RRF_score = sum(1 / (k + rank_i)) across retrieval sources."
+  ],
+  "deepDiveIntro": [
+    "Cross-encoder re-rankers are BERT-based models fine-tuned on passage relevance datasets (MS MARCO — 500k query-passage relevance judgments). They take [CLS] + query + [SEP] + passage as input and output a scalar relevance score. Because query and passage are jointly encoded, the model uses full cross-attention between all query and passage tokens — much richer than the dot-product comparison used by bi-encoders. The cost: O(k) forward passes through a BERT-scale model per query, vs. O(1) for bi-encoder retrieval. At k=20, this is typically 200-400ms additional latency.",
+    "Popular cross-encoder models: ms-marco-MiniLM-L-6-v2 (tiny, fast, < 100ms for k=20), ms-marco-MiniLM-L-12-v2 (larger, more accurate), BAAI/bge-reranker-large (state-of-the-art open source), Cohere Rerank API (cloud-hosted, highest accuracy, no infrastructure). For production: use a local small cross-encoder (MiniLM-L-6) for latency-sensitive paths; Cohere Rerank for quality-sensitive paths where latency is acceptable."
+  ],
+  "deepDive": [
+    {
+      "heading": "Cross-Encoder Architecture",
+      "body": "Cross-encoder input format: [CLS] <query tokens> [SEP] <passage tokens> [SEP]. The model processes all tokens jointly with full self-attention — every query token can attend to every passage token. The [CLS] token's final hidden state is passed through a linear head to produce a scalar score. This joint encoding captures: term overlap (matching keywords in query and passage), semantic alignment (same concept, different words), structural relevance (question answered in the passage), and query-specific relevance (which passage is most useful for THIS specific query, not which is most topically similar). The cross-encoder is orders of magnitude more accurate than bi-encoder similarity for relevance scoring. [1]"
+    },
+    {
+      "heading": "Reciprocal Rank Fusion (RRF)",
+      "body": "RRF (Cormack et al. 2009): a simple, parameter-free method to merge ranked lists from multiple retrieval sources (vector search + BM25 + keyword search). For each document d in the merged set, compute: RRF_score(d) = Σᵢ 1 / (k + rankᵢ(d)), where rankᵢ(d) is d's rank in retrieval source i, and k=60 (a constant that reduces the impact of rank differences at the top). Documents appearing in multiple lists get additive score contributions. RRF is more robust than linear score combination because it doesn't require score normalisation across retrieval systems with different score distributions. In practice, RRF outperforms individual retrieval methods by 5-10% on BEIR benchmarks. [2]"
+    },
+    {
+      "heading": "Latency vs Quality Trade-offs",
+      "body": "Re-ranking adds latency: a local MiniLM-L-6 cross-encoder scoring k=20 documents: ~50-100ms on CPU, ~5-10ms on GPU. Cohere Rerank API: ~150-300ms (network round-trip included). Mitigation strategies: (1) Reduce k — retrieve k=10 instead of k=20; re-ranking 10 is twice as fast as 20; (2) Use a lighter model — MiniLM-L-6 (22M parameters) is 10x faster than BGE-reranker-large (335M) with ~80% of the quality; (3) Cache re-ranker outputs — if the same query appears frequently, cache the re-ranked results; (4) Async re-ranking — start generating a response with the top-k bi-encoder results while the re-ranker runs; swap to re-ranked results if the re-ranker finishes before generation completes. [1]"
+    }
+  ],
+  "takeaways": [
+    "Re-ranking: two-stage pipeline — fast bi-encoder retrieval (recall) → slow cross-encoder scoring (precision). [1]",
+    "Cross-encoder: joint query-passage encoding with full attention — much more accurate than bi-encoder similarity. [1]",
+    "RRF: merge rankings from multiple retrieval sources without score normalisation — robust and parameter-free. [2]",
+    "Typical improvement: top-5 precision +15-30% over raw vector similarity ranking after cross-encoder re-ranking. [1]",
+    "Latency: MiniLM-L-6 re-ranking k=20 ≈ 50-100ms on CPU — acceptable for most RAG latency budgets. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "When should you skip re-ranking to reduce latency?",
+      "a": "Skip re-ranking when: (1) Initial retrieval precision is already high (measured by hit@1 > 80% on your eval set) — re-ranking adds latency with little benefit; (2) Latency budget is tight (< 200ms total) and you can't absorb the re-ranking cost; (3) The query is a keyword lookup ('find the contract with ID 12345') — keyword queries are already precise; cross-encoder adds nothing; (4) You have a very small corpus (< 1000 documents) where brute-force exact search is already fast and precise. When you DO need re-ranking but want to reduce cost: (a) cache re-ranking results by query hash (frequent queries get cached results instantly); (b) use a tiered approach — re-rank only when confidence in top-1 bi-encoder result is low (score < threshold)."
+    },
+    {
+      "q": "How do you fine-tune a cross-encoder re-ranker on domain-specific data?",
+      "a": "Fine-tuning a cross-encoder requires: (1) Training data: (query, positive_passage, negative_passage) triplets. Positive: a passage that correctly answers the query. Negatives: (a) in-batch negatives (other queries' positives — easy, free); (b) hard negatives — passages retrieved by BM25/vector search that look relevant but don't answer the query. Hard negatives are critical: easy negatives lead to overfit models that fail on actual retrieval candidates; (2) Training objective: binary cross-entropy on (query, positive) → 1, (query, negative) → 0; or margin loss. Use sentence-transformers library for standard fine-tuning; (3) Data sourcing: if you have user feedback (which search results users clicked), convert click-through data to relevance labels; alternatively, use LLM-generated labels (LLM judges whether a passage answers a query) for domain adaptation. 500-1000 domain-specific training pairs typically provide significant quality improvement over a general-domain model."
+    }
+  ],
+  "sources": [
+    { "label": "Nogueira & Cho (2019) — Passage Re-ranking with BERT, arXiv", "url": "https://arxiv.org/abs/1901.04085" },
+    { "label": "Cormack et al. (2009) — Reciprocal Rank Fusion Outperforms Condorcet and Individual Rank Learning Methods, SIGIR 2009", "url": "https://dl.acm.org/doi/10.1145/1571941.1572114" }
+  ]
+}

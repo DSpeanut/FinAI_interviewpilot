@@ -1,0 +1,69 @@
+{
+  "terms": [
+    { "term": "Efficient Frontier", "def": "The set of portfolios that maximise expected return for each level of risk — no other portfolio dominates them." },
+    { "term": "GMV Portfolio", "def": "Global Minimum Variance portfolio — the leftmost point of the frontier with the lowest achievable portfolio variance." },
+    { "term": "CML", "def": "Capital Market Line — the straight line from the risk-free rate tangent to the risky efficient frontier; highest Sharpe slope." },
+    { "term": "Tangency Portfolio", "def": "The risky portfolio with the highest Sharpe ratio; the tangent point between the CML and the efficient frontier." },
+    { "term": "Covariance (Σ)", "def": "A matrix measuring how asset returns move together; the key input to MVO that drives diversification benefits." },
+    { "term": "Two-Fund Separation", "def": "Theorem: all investors hold the same tangency portfolio combined with different amounts of the risk-free asset." }
+  ],
+  "visualizationType": "efficient-frontier",
+  "eli3": [
+    "The efficient frontier is a curve showing all the best possible portfolios — for any given level of risk (volatility), it shows the maximum return you can achieve by mixing assets optimally. Portfolios on the frontier are 'efficient'; portfolios below it are 'inefficient' (you could get more return for the same risk).",
+    "Imagine a scatter plot where each dot is a possible portfolio. The efficient frontier is the upper-left edge of that cloud — the portfolios that dominate all others. Any rational investor should hold a portfolio on the efficient frontier, not inside the cloud.",
+    "Where on the frontier you should be depends on your risk appetite. A more risk-tolerant investor holds a portfolio higher on the frontier (more return, more risk). A more risk-averse investor holds a portfolio lower on the frontier (less return, less risk). Adding a risk-free asset transforms the frontier into a straight line called the Capital Market Line."
+  ],
+  "whenWhy": [
+    {
+      "title": "Identifying the set of optimal portfolios for different risk tolerances",
+      "body": "The efficient frontier is the output of MVO — it answers the question 'what is the best I can do?' for every level of risk. Institutional investors use it to: communicate the risk-return trade-off to stakeholders ('our target portfolio is at X% volatility on the frontier'), set strategic asset allocation targets ('we're aiming for the 10% volatility point on the frontier'), and evaluate whether a proposed portfolio change is efficient ('does adding private equity push the frontier outward?'). The frontier provides a quantitative basis for investment committee decisions about risk tolerance."
+    },
+    {
+      "title": "Identifying the Capital Market Line and optimal risky portfolio",
+      "body": "Adding a risk-free asset to the MVO problem transforms the curved efficient frontier into the Capital Market Line (CML): a straight line from the risk-free rate tangent to the risky efficient frontier. The tangent point is the 'tangency portfolio' — the risky portfolio with the highest Sharpe ratio. Under the CAPM assumptions, the tangency portfolio is the market portfolio (all assets held in proportion to market cap). All investors — regardless of risk aversion — hold the same tangency portfolio of risky assets, combined with different amounts of the risk-free asset. This is the two-fund separation theorem: one fund for everyone (the market portfolio) + the risk-free asset."
+    },
+    {
+      "title": "Measuring portfolio efficiency and identifying improvement opportunities",
+      "body": "Any existing portfolio can be compared to the efficient frontier. A portfolio 'inside' the frontier is inefficient — it could be improved by either increasing expected return at the same risk, or reducing risk at the same expected return. The distance from a portfolio to the frontier quantifies its inefficiency. Common applications: benchmarking an active manager's portfolio against the frontier to measure how much active risk they're taking without expected return compensation; evaluating whether adding a new asset class shifts the frontier outward (increases efficiency); attribution analysis to identify which constraints (long-only, maximum weights) are causing the portfolio to deviate from the unconstrained frontier."
+    }
+  ],
+  "deepDiveIntro": [
+    "The efficient frontier is traced by solving the QP problem: min_w w'Σw subject to w'μ = μ_target, w'1 = 1, for each μ_target from μ_min to μ_max. The global minimum variance (GMV) portfolio is the leftmost point of the frontier (minimum variance). The maximum return portfolio is the rightmost point (invest entirely in the highest-returning asset). The full efficient frontier is the upper half of the minimum-variance frontier (the lower half is dominated — same variance, lower return).",
+    "Mathematical characterisation: under no short-selling constraints, the minimum-variance frontier has a closed-form solution. Let A = μ'Σ⁻¹μ, B = μ'Σ⁻¹1, C = 1'Σ⁻¹1, D = AC - B². The minimum variance for target return μ_p: σ²_min(μ_p) = (A - 2Bμ_p + Cμ²_p) / D. This is a parabola in (σ², μ) space, or equivalently, a hyperbola in (σ, μ) space. The GMV portfolio has return μ_GMV = B/C and variance σ²_GMV = 1/C."
+  ],
+  "deepDive": [
+    {
+      "heading": "Efficient Frontier with Risk-Free Asset: The Capital Market Line",
+      "body": "Adding a risk-free asset (return r_f, zero variance, zero covariance with all risky assets) changes the efficient frontier. Any portfolio combining the risk-free asset (weight w_f) and a risky portfolio (weight 1 - w_f) has: E[R] = w_f · r_f + (1 - w_f) · E[R_risky] and σ = (1 - w_f) · σ_risky. These portfolios lie on a straight line in (σ, E[R]) space. The highest Sharpe ratio line through r_f is the Capital Market Line (CML): E[R_p] = r_f + [(E[R_T] - r_f) / σ_T] × σ_p, where T is the tangency portfolio. The slope of the CML is the maximum Sharpe ratio achievable. All investors choose a point on the CML; their position depends on risk aversion. [1]"
+    },
+    {
+      "heading": "The Tangency Portfolio and Market Weights",
+      "body": "The tangency portfolio T maximises the Sharpe ratio: max_w (w'μ - r_f) / √(w'Σw). The unconstrained solution: w_T ∝ Σ⁻¹(μ - r_f·1). This portfolio has the highest return per unit of risk. Under CAPM assumptions (all investors are mean-variance optimisers with the same expectations and risk-free borrowing/lending), the tangency portfolio must equal the market portfolio (sum of all investors' holdings = all assets in market cap proportions). This links MVO to CAPM: the market portfolio is the mean-variance efficient portfolio of all risky assets when investors have homogeneous expectations. In practice, the estimated tangency portfolio differs from market cap weights due to heterogeneous expectations and estimation error. [1]"
+    },
+    {
+      "heading": "Efficient Frontier in Practice: Constraints and Resampling",
+      "body": "Unconstrained efficient frontier: allows short selling, extreme weights. Constrained frontier: add w_i ≥ 0 (long-only), w_i ≤ max_weight (concentration limit), sector/geography limits, factor exposure limits. Each constraint pushes the constrained frontier inside the unconstrained frontier — less efficient but more practical. Resampled efficient frontier (Michaud 1998): generate B bootstrap samples of returns; solve for the efficient frontier on each sample; average the weights at each risk level across all B bootstraps. The result is a stable, diversified frontier that doesn't over-fit to estimated parameters. This addresses MVO's extreme sensitivity to estimation error at the cost of losing the strict mathematical optimality. Most quantitative portfolio managers use constrained, regularised, or resampled MVO rather than the textbook unconstrained version. [2]"
+    }
+  ],
+  "takeaways": [
+    "Efficient frontier: parabola in (σ², μ) space — all minimum variance portfolios for each target return. [1]",
+    "GMV portfolio: leftmost point, return B/C, variance 1/C — minimum achievable portfolio variance. [1]",
+    "CML: with risk-free asset, efficient frontier becomes a straight line from r_f to the maximum Sharpe portfolio. [1]",
+    "Tangency portfolio: maximum Sharpe ratio risky portfolio; equals market portfolio under CAPM assumptions. [1]",
+    "Resampled frontier: average MVO weights across bootstrap samples — stable and diversified vs. point-estimate MVO. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What happens to the efficient frontier when a new asset is added?",
+      "a": "Adding any asset to the investment universe can only shift the efficient frontier outward or leave it unchanged — it cannot make the frontier worse (by definition, you can always set the new asset's weight to zero, replicating the old frontier). The frontier shifts outward when the new asset has a non-zero correlation with the existing portfolio and offers a Sharpe ratio above the current CML's slope. In practice, the most significant frontier shifts come from adding truly uncorrelated assets: Treasury bonds to an equity portfolio, commodities to a stock-bond portfolio, or trend-following strategies (low correlation with equities in crises). Testing whether a new asset improves the frontier: (1) Compute the Sharpe ratio of the new asset; (2) If Sharpe > current frontier's slope at the same risk level, it shifts the frontier outward; (3) Spanning test (Huberman & Kandel 1987): statistically test whether the new asset is spanned by the existing ones — a significant positive intercept in regressing the new asset's returns on the existing frontier portfolios indicates a genuine improvement."
+    },
+    {
+      "q": "How does the efficient frontier behave under non-normal return distributions?",
+      "a": "MVO assumes returns are normally distributed (or equivalently, investors have quadratic utility). Under non-normal distributions: (1) Skewness: if returns are negatively skewed (large downside tail), the variance understates tail risk. A portfolio on the efficient frontier may have an attractively low variance but a high probability of extreme losses. Mean-CVaR efficient frontier is more appropriate — CVaR captures the expected loss in the tail; (2) Fat tails: variance underestimates the probability of extreme events; tail-risk-adjusted efficient frontiers use modified VaR or stress-test-based constraints; (3) Correlation instability: during crises, correlations spike, collapsing the diversification benefit assumed in the static MVO covariance matrix; (4) Regime shifts: if returns come from a mixture of regimes (calm and crisis), the single covariance matrix mixes them, producing an average that's inaccurate in both regimes. Regime-conditional efficient frontiers (using regime-specific parameters) are more realistic but require regime identification models."
+    }
+  ],
+  "sources": [
+    { "label": "Markowitz, H. (1952) — Portfolio Selection, Journal of Finance", "url": "https://doi.org/10.2307/2975974" },
+    { "label": "Michaud, R. (1998) — Efficient Asset Management: A Practical Guide to Stock Portfolio Optimization and Asset Allocation, Harvard Business School Press", "url": "https://www.hbs.edu/faculty/Pages/item.aspx?num=10419" }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "terms": [
+    { "term": "Strike Price (K)", "def": "The pre-agreed price at which the option can be exercised to buy (call) or sell (put) the underlying." },
+    { "term": "Premium", "def": "The upfront price paid to buy an option; the buyer's maximum loss; the seller's maximum gain." },
+    { "term": "Intrinsic Value", "def": "For calls: max(S−K, 0). For puts: max(K−S, 0). The immediate exercise value." },
+    { "term": "Implied Volatility (IV)", "def": "The volatility implied by the market option price via the Black-Scholes formula; the market's forecast of future vol." },
+    { "term": "ITM / ATM / OTM", "def": "In-the-money (profitable to exercise), at-the-money (S≈K), out-of-the-money (not profitable to exercise)." },
+    { "term": "Put-Call Parity", "def": "C − P = S − K·e^(−rT); links call and put prices to prevent arbitrage for European options." }
+  ],
+  "visualizationType": "options-payoff",
+  "eli3": [
+    "An option is a contract that gives you the right, but not the obligation, to buy or sell an asset at a specific price (the strike) before or on a specific date (the expiry). A call option gives you the right to buy; a put option gives you the right to sell. You pay a premium upfront for this right.",
+    "Options are powerful because they provide asymmetric payoffs: the most you can lose buying an option is the premium you paid, but the potential gain can be much larger. This makes options useful for hedging (protecting against losses) and for speculation (making bets with limited downside).",
+    "The value of an option depends on five factors: the current price of the underlying asset, the strike price, the time to expiry, the volatility of the underlying, and the risk-free interest rate. Volatility is the most important driver — higher volatility means higher option prices because there's a greater chance the option will be worth a lot at expiry."
+  ],
+  "whenWhy": [
+    {
+      "title": "Portfolio hedging with put options",
+      "body": "Equity put options are the primary tool for downside portfolio protection. A portfolio manager holding $100M in equities can buy put options on the S&P 500 (or individual stocks) to limit losses if markets fall. The put becomes valuable when markets decline, offsetting portfolio losses. The cost: the option premium (typically 1-3% of notional for 3-month 5% out-of-the-money puts in normal markets). Protective put = long stock + long put = synthetic long call. The trade-off: spending premium on insurance reduces long-term returns, so portfolio managers must decide the cost-benefit. Dynamic hedging: delta-hedge to replicate the put option rather than buying it (cheaper but operationally complex). Collar strategy: sell an out-of-the-money call to finance the put — caps upside but reduces cost of downside protection."
+    },
+    {
+      "title": "Option payoff profiles and common strategies",
+      "body": "Key option strategies and their payoffs: (1) Long call: bullish, limited loss (premium), unlimited upside. Break-even = strike + premium; (2) Long put: bearish, limited loss (premium), gain as price falls. Break-even = strike − premium; (3) Covered call: long stock + short call; generates income (premium) but caps upside. Common in yield-enhancement strategies; (4) Straddle (long call + long put, same strike): profits from large moves in either direction; benefits from volatility increasing; (5) Bull spread (long call at K1, short call at K2, K1 < K2): reduces cost but caps upside; (6) Iron condor: sell out-of-money call and put, buy further out-of-money call and put; profits from low volatility (range-bound markets)."
+    },
+    {
+      "title": "Implied volatility and the volatility surface",
+      "body": "Implied volatility (IV): the volatility implied by an observed option price using Black-Scholes. If the model price equals the market price, IV is the market's expectation of future realised volatility. The VIX index is the S&P 500 30-day implied volatility derived from options prices — the 'fear index'. Volatility surface: in practice, IV varies by strike and maturity — not the flat surface assumed by Black-Scholes. Volatility skew: out-of-the-money puts on equities have higher IV than out-of-the-money calls (demand for downside protection). Term structure: shorter-dated options have more volatile IV than longer-dated options (mean-reversion). Volatility trading: buy options when IV is low (cheap relative to expected realised vol); sell options when IV is high (expensive). Variance swaps and volatility swaps allow direct trading of volatility without delta-hedging."
+    }
+  ],
+  "deepDiveIntro": [
+    "Option payoffs at expiry: call payoff = max(S_T − K, 0); put payoff = max(K − S_T, 0), where S_T is the asset price at expiry and K is the strike. Put-call parity (no-arbitrage): C − P = S − K×e^{−rT}, where C = call price, P = put price, S = spot price, r = risk-free rate, T = time to expiry. Put-call parity holds for European options on non-dividend-paying stocks; for American options, it becomes an inequality. Moneyness: in-the-money (ITM), at-the-money (ATM), out-of-the-money (OTM). ITM options have intrinsic value; OTM options have only time value.",
+    "Option value = intrinsic value + time value. Intrinsic value = max(S − K, 0) for a call; time value = total option price minus intrinsic value. Time value reflects the probability that the option will expire further in-the-money. Time value decays to zero at expiry (theta decay). American vs. European options: American can be exercised at any time; European only at expiry. American calls on non-dividend-paying stocks are never optimally exercised early (no benefit to exercising before expiry — you sacrifice time value). American puts may be exercised early if sufficiently in-the-money."
+  ],
+  "deepDive": [
+    {
+      "heading": "Put-Call Parity and Synthetic Positions",
+      "body": "Put-call parity: C − P = S − K×e^{−rT} (for European options, no dividends). Rearranging: S + P − C = K×e^{−rT} (risk-free bond). Synthetic positions: (1) Synthetic call = long put + long stock − K×e^{−rT} (borrow PV of strike); (2) Synthetic put = long call − long stock + K×e^{−rT}; (3) Synthetic forward = long call − long put (at same strike); (4) Synthetic stock = long call + bond − put. Arbitrage enforcement: if C − P ≠ S − Ke^{−rT}, there is a riskless profit opportunity. With dividends: C − P = S − PV(dividends) − K×e^{−rT}. Put-call parity is a fundamental no-arbitrage constraint used in derivatives pricing and risk management. [1]"
+    },
+    {
+      "heading": "Option Price Bounds and Early Exercise",
+      "body": "European call lower bound: C ≥ max(S − K×e^{−rT}, 0). European put lower bound: P ≥ max(K×e^{−rT} − S, 0). American call on non-dividend stock: never optimal to exercise early — the call has time value > 0 (the right to wait is worth something). Proof: early exercise sacrifices time value and forfeits the 'interest on the strike' (you pay K today instead of K×e^{−rT} at expiry). American put: may be optimal to exercise early if deeply ITM — the intrinsic value (K − S) may exceed the time value remaining. The critical stock price below which early exercise is optimal can be found numerically. For dividend-paying stocks: American calls may be exercised just before ex-dividend date if the dividend exceeds the time value surrendered. Early exercise premium = American option price − European option price ≥ 0. [2]"
+    },
+    {
+      "heading": "Volatility Skew and Risk Reversals",
+      "body": "Black-Scholes assumes constant volatility — but the volatility surface is not flat. Equity skew: out-of-the-money puts trade at higher implied vol than OTM calls. Reasons: (1) Demand for downside protection inflates put prices; (2) Crash risk premium — investors fear tail events more than proportional to probability; (3) Leverage effect — when stock prices fall, equity volatility tends to rise (negatively correlated). Risk reversal: long OTM call, short OTM put (same maturity, equidistant from ATM). A negative risk reversal (put IV > call IV) indicates skew and reflects the market's fear of downside. Skew strategies: (1) Overwrite: sell upside calls against long equity to collect rich call premium; (2) Put spread: buy ATM put, sell OTM put — pays for hedging by giving up some downside protection; (3) Volatility swap: pays realised vol minus fixed strike, without delta-hedging complications. [1]"
+    }
+  ],
+  "takeaways": [
+    "Call payoff = max(S_T − K, 0); put payoff = max(K − S_T, 0). Option value = intrinsic + time value. [1]",
+    "Put-call parity: C − P = S − K×e^{−rT} — fundamental no-arbitrage constraint for European options. [1]",
+    "American call on non-dividend stock: never early exercise (time value > 0). American puts may be exercised early. [2]",
+    "Implied volatility: the vol backed out of market prices via Black-Scholes; VIX is S&P 500 30-day IV. [1]",
+    "Volatility skew: OTM equity puts trade at higher IV than OTM calls — reflects demand for downside protection. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why do options prices sometimes violate put-call parity in practice?",
+      "a": "Put-call parity is a strict no-arbitrage condition, but apparent violations occur due to: (1) Bid-ask spreads: option markets have wide spreads; small apparent violations are within transaction costs; (2) Short-selling constraints: put-call parity requires shorting the underlying stock. If the stock is hard to borrow or shorting is restricted, the arbitrage cannot be executed; (3) Dividend treatment: the standard formula ignores dividends. With dividends, C − P = S − PV(dividends) − K×e^{−rT}; ignoring dividends will create apparent violations; (4) Early exercise premium: put-call parity holds exactly for European options. For American options, only an inequality holds (C_am − P_am ≤ S − K×e^{−rT} ≤ C_am − P_am + K(1−e^{−rT})). If you compare an American put to a European call (different exercise schedules), the parity won't hold; (5) Counterparty risk: OTC options carry counterparty risk; exchange-traded options have central clearing. Differences in credit risk can create small apparent deviations."
+    },
+    {
+      "q": "How does implied volatility differ from historical volatility and why does it matter for options trading?",
+      "a": "Historical volatility (HV, or realised volatility): the standard deviation of actual price returns over a past period (e.g., 30-day HV = annualised std dev of daily returns over the past 30 days). Measures what volatility actually was. Implied volatility (IV): the volatility that, when plugged into the Black-Scholes formula, gives the current market option price. Measures what the market expects volatility to be over the option's life. Key differences: (1) HV is backward-looking (realised); IV is forward-looking (expected); (2) IV is specific to a strike and expiry; HV is a single number for a given window; (3) IV includes a risk premium: historically, IV has exceeded subsequent realised HV by 1-3 volatility points (the variance risk premium — sellers of options are paid a premium for taking on variance risk); (4) IV reacts to market events: large uncertainty (earnings, macro events) pushes IV up before the event, then IV 'decays' ('implied vol crush') after. Trading implication: buy options when IV < expected HV (cheap); sell options when IV > expected HV (rich). The vol risk premium makes systematically selling options profitable on average but with tail risk (selling options in low-vol environments can blow up in market crashes)."
+    }
+  ],
+  "sources": [
+    { "label": "Hull, J.C. — Options, Futures, and Other Derivatives, 11th Edition, Pearson (2022)", "url": "https://www.pearson.com/en-us/subject-catalog/p/options-futures-and-other-derivatives/P200000005938" },
+    { "label": "Black, F. & Scholes, M. (1973) — The Pricing of Options and Corporate Liabilities, Journal of Political Economy", "url": "https://doi.org/10.1086/260062" }
+  ]
+}

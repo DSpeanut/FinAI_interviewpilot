@@ -1,0 +1,69 @@
+{
+  "terms": [
+    { "term": "Sharpe Ratio", "def": "(Return − r_f) / σ — risk-adjusted return per unit of total volatility; higher = better." },
+    { "term": "Risk-Free Rate (r_f)", "def": "The baseline return requiring no risk; subtracted so only compensated risk-taking is measured." },
+    { "term": "Standard Deviation (σ)", "def": "Measures total return volatility; denominator of Sharpe; captures both upside and downside fluctuations." },
+    { "term": "Sortino Ratio", "def": "Like Sharpe but divides by downside deviation only — penalises only harmful volatility, not upside." },
+    { "term": "Calmar Ratio", "def": "CAGR / Max Drawdown — an alternative risk-adjusted metric popular in alternative investments." },
+    { "term": "Information Ratio (IR)", "def": "Active return / tracking error — the Sharpe ratio of active management relative to a benchmark." }
+  ],
+  "visualizationType": "sharpe-cml",
+  "eli3": [
+    "The Sharpe ratio measures how much return you get for each unit of risk you take. It's calculated as: (return − risk-free rate) / standard deviation. A higher Sharpe ratio means you're getting more return per unit of risk — better risk-adjusted performance.",
+    "If two investments have the same return, the one with lower volatility has a higher Sharpe ratio — it's a better deal. If two investments have the same volatility, the one with higher return has a higher Sharpe ratio. The risk-free rate (usually a short-term Treasury yield) is subtracted because risk-free return requires no skill — you're only measuring the return you earned above what you could have gotten without taking any risk.",
+    "The Sharpe ratio was developed by William Sharpe in 1966 (originally called the 'reward-to-variability ratio') and is the most widely used risk-adjusted performance metric in finance. A Sharpe ratio above 1.0 is generally considered good; above 2.0 is excellent; above 3.0 is exceptional and rare."
+  ],
+  "whenWhy": [
+    {
+      "title": "Comparing investment strategies with different risk levels",
+      "body": "Without risk adjustment, comparing returns across strategies is misleading: a leveraged strategy earning 20% is not necessarily better than an unleveraged one earning 10% if the leveraged one is twice as volatile. The Sharpe ratio normalises for risk, enabling fair comparison. Example: Hedge Fund A earned 15% with 20% volatility (Sharpe 0.5); Hedge Fund B earned 8% with 5% volatility (Sharpe 1.0, assuming 3% risk-free rate). Fund B is better on a risk-adjusted basis despite lower absolute return. The Sharpe ratio is the slope of the Capital Market Line — it measures how efficiently risk is converted to return."
+    },
+    {
+      "title": "Evaluating manager skill vs. simple leverage",
+      "body": "A manager who earns 15% by borrowing at 3% and investing 200% of capital in a 9% asset (earning 15% = 2×9% - 3%) has Sharpe = (15% - 3%) / (2 × σ_asset) = Sharpe_asset. The leverage doesn't improve the Sharpe ratio — it scales both return and risk proportionally. This is the key insight: Sharpe ratio is invariant to leverage. A manager who claims high returns through leverage without a correspondingly high Sharpe ratio is not demonstrating skill — just risk-taking. The Sharpe ratio separates alpha (skill) from beta (market exposure through leverage)."
+    },
+    {
+      "title": "Portfolio optimisation and fund selection",
+      "body": "The maximum Sharpe ratio portfolio is the tangency portfolio on the efficient frontier — the optimal risky portfolio that all risk-averse investors should hold (mixed with the risk-free asset according to their risk tolerance). In fund-of-funds selection, the Sharpe ratio is the primary ranking criterion. In factor investing, factors are screened partly by their long-run Sharpe ratios. The information ratio (excess return vs. benchmark / tracking error) is the Sharpe ratio analog for active management — measuring skill in generating alpha relative to active risk taken."
+    }
+  ],
+  "deepDiveIntro": [
+    "Sharpe ratio: S = (E[R_p] - r_f) / σ_p, where E[R_p] is the expected (or ex-post average) portfolio return, r_f is the risk-free rate, and σ_p is the standard deviation of excess returns. The ex-ante (expected) Sharpe ratio is used in portfolio optimisation; the ex-post (historical) Sharpe ratio is used for performance evaluation. For the ex-post Sharpe ratio, annualise by multiplying by √T if computed from monthly data: Sharpe_annual = Sharpe_monthly × √12. If computed from daily returns: Sharpe_annual = Sharpe_daily × √252.",
+    "The Sharpe ratio's implicit assumption is that returns are normally distributed (using standard deviation as the complete risk measure). For non-normal distributions (fat tails, skewness), the Sharpe ratio can be misleading: a strategy that earns steady small gains with occasional catastrophic losses (selling out-of-the-money options) may have an artificially high Sharpe ratio if the tail losses haven't occurred in the measurement period. Alternative measures address this: Sortino ratio (only penalises downside volatility), Calmar ratio (return / max drawdown), Omega ratio (probability of gains vs. losses)."
+  ],
+  "deepDive": [
+    {
+      "heading": "Sharpe Ratio vs Information Ratio",
+      "body": "Sharpe ratio: measures absolute risk-adjusted return vs. the risk-free rate. Information ratio (IR): IR = (R_p - R_b) / TE, where R_p - R_b is the active return (portfolio minus benchmark) and TE is the tracking error (standard deviation of active return). IR measures the skill in generating active return per unit of active risk. The Fundamental Law of Active Management (Grinold 1989): IR ≈ IC × √BR, where IC = information coefficient (correlation between forecasts and outcomes, measure of signal quality) and BR = breadth (number of independent bets per year). A manager with IC = 0.05 and BR = 100 (100 independent bets per year) has IR ≈ 0.5 — respectable active management. These formulas highlight that diversified active management (many bets) is more efficient than concentrated management. [1]"
+    },
+    {
+      "heading": "Statistical Significance of Sharpe Ratios",
+      "body": "A high Sharpe ratio estimated from limited data may not be statistically significant. The standard error of the Sharpe ratio (for iid returns): SE(Ŝ) ≈ √[(1 + Ŝ²/2) / T], where T is the number of observations. For Ŝ = 1.0 from T = 60 monthly observations (5 years): SE ≈ √(1.5/60) ≈ 0.16. The 95% confidence interval: 1.0 ± 0.32 = [0.68, 1.32]. The t-statistic = Ŝ / SE ≈ 6.3 — statistically significant. But for Ŝ = 0.5 from T = 36 months: SE ≈ 0.17, t = 2.9 — marginal. Lo (2002): the t-statistic for annualised Sharpe is approximately IR (information ratio). A rule of thumb: a track record is statistically meaningful only when T × Ŝ² >> 1. Five years is the minimum; 10+ years provides meaningful evidence for Sharpe ratios around 0.5-1.0. [2]"
+    },
+    {
+      "heading": "Limitations and Alternative Risk-Adjusted Measures",
+      "body": "Sharpe ratio limitations: (1) Penalises upside volatility equally to downside — a strategy with many small gains and occasional large gains is penalised; (2) Assumes normal distribution — tail-risk strategies (short vol) have artificially high Sharpe ratios; (3) Sensitive to risk-free rate choice — different r_f assumptions produce different rankings; (4) Not comparable across investment universes without the same benchmark. Alternatives: Sortino ratio: S_sortino = (E[R_p] - r_f) / σ_downside, where σ_downside only counts returns below the risk-free rate (or target return). Calmar ratio: annualised return / maximum drawdown — relevant for managed futures and trend-following. Omega ratio: E[max(R-threshold, 0)] / E[max(threshold-R, 0)] — ratio of expected gains to expected losses; captures full return distribution, not just mean and variance. [1]"
+    }
+  ],
+  "takeaways": [
+    "Sharpe ratio: (E[R_p] - r_f) / σ_p — excess return per unit of total risk. [1]",
+    "Annualise: Sharpe_annual = Sharpe_daily × √252 = Sharpe_monthly × √12. [1]",
+    "Sharpe is leverage-invariant: scaling all positions doesn't change the Sharpe ratio. [1]",
+    "Statistical significance: need T × Ŝ² >> 1; 5+ year track records for meaningful evidence. [2]",
+    "Limitations: penalises upside volatility; misleading for fat-tailed return distributions. Use Sortino/Calmar for asymmetric strategies. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Can the Sharpe ratio be manipulated, and how?",
+      "a": "Yes — the Sharpe ratio can be inflated without genuine risk-adjusted performance improvement. Known manipulation techniques: (1) Return smoothing: fund NAV is marked at model prices (not market prices) for illiquid assets; stale valuations artificially reduce measured volatility; private equity and hedge funds using Level 3 assets may have inflated Sharpe ratios; (2) Picking the measurement period: report the Sharpe ratio over a period that excludes the worst drawdowns; (3) Selling options/volatility: systematically selling out-of-the-money options earns steady option premia with low measured volatility — until the tail risk realises. Sharpe ratio can be very high for a short history; (4) High-frequency sampling artifact: computing Sharpe from high-frequency data and annualising can inflate the ratio if returns have positive autocorrelation (momentum in short horizons); (5) Multiple testing / luck: with enough strategies, some will have high historical Sharpe ratios by chance alone — the minimum backtest length required grows with the number of strategies tested (Bailey & Lopez de Prado 2014: Probability of Backtest Overfitting). These issues make due diligence beyond the headline Sharpe ratio essential."
+    },
+    {
+      "q": "What is the optimal Sharpe ratio strategy for different investor risk tolerances?",
+      "a": "The key insight from MVO: the highest Sharpe ratio portfolio is optimal for all investors, regardless of risk tolerance. Risk tolerance only determines the allocation between this portfolio and the risk-free asset. A conservative investor holds: 20% max Sharpe portfolio + 80% cash. An aggressive investor holds: 150% max Sharpe portfolio (borrowed) - 50% cash (leveraged). They hold the same risky portfolio in different amounts. This is the two-fund separation theorem. The practical implication: finding the maximum Sharpe portfolio (or using a diversified proxy like a multi-asset risk-parity fund) and adjusting leverage/cash allocation for risk tolerance is theoretically more efficient than constructing different portfolios for different risk tolerances. The main barriers: (1) leverage is costly for retail investors; (2) downside risk (drawdown) matters beyond standard deviation, especially for investors near retirement."
+    }
+  ],
+  "sources": [
+    { "label": "Sharpe, W.F. (1966) — Mutual Fund Performance, Journal of Business", "url": "https://doi.org/10.1086/294846" },
+    { "label": "Lo, A.W. (2002) — The Statistics of Sharpe Ratios, Financial Analysts Journal", "url": "https://doi.org/10.2469/faj.v58.n4.2453" }
+  ]
+}

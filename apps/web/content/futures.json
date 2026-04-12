@@ -1,0 +1,67 @@
+{
+  "terms": [
+    { "term": "Futures Price", "def": "Agreed price for future delivery; set by no-arbitrage: F = S × e^(r−q)T where q is dividend/convenience yield." },
+    { "term": "Basis", "def": "Spot price − futures price; converges to zero at expiry. Basis risk = uncertainty in this convergence." },
+    { "term": "Contango", "def": "Futures price > spot price; typical for financial futures (storage costs + financing). Forward curve slopes up." },
+    { "term": "Backwardation", "def": "Futures price < spot price; common in commodities with high convenience yield or supply shortages." },
+    { "term": "Roll Yield", "def": "P&L from rolling a futures position (selling expiring contract, buying next); positive in backwardation." },
+    { "term": "Initial Margin", "def": "Collateral deposited to open a futures position; marked to market daily (variation margin) through the exchange." }
+  ],
+  "eli3": [
+    "A futures contract is an agreement to buy or sell an asset at a predetermined price on a future date. Unlike options, both parties are obligated to follow through. Futures are standardised, exchange-traded contracts — the exchange guarantees the trade, so counterparty risk is minimal.",
+    "Futures exist for equity indices (S&P 500), bonds (10-year Treasury), currencies (EUR/USD), commodities (crude oil, gold, corn), and interest rates. They are heavily used for hedging (protecting against price moves) and speculation (taking leveraged directional bets). A futures contract typically requires only a small initial margin (2-10% of notional) — giving enormous leverage.",
+    "Key feature: futures prices incorporate the 'cost of carry' — the interest cost of financing the position minus any dividends or yield earned. The fair value of a futures contract is: F = S × e^{(r-q)T}, where S is spot price, r is risk-free rate, q is dividend yield, and T is time to expiry."
+  ],
+  "whenWhy": [
+    {
+      "title": "Hedging with index futures",
+      "body": "A portfolio manager holding a $100M equity portfolio wants to reduce market exposure by 50% ahead of an uncertain economic release, without selling the actual stocks (tax implications, transaction costs). Solution: short S&P 500 futures to reduce beta. Number of contracts = (target β - current β) × Portfolio_value / (Futures_price × Contract_multiplier). For S&P 500 E-mini futures (multiplier = $50): if portfolio β = 1.0, S&P 500 at 5,000, portfolio = $100M: contracts to short = (0.5 - 1.0) × $100M / (5,000 × $50) = -200 contracts. After hedging: portfolio is 50% hedged. Restoring exposure is equally fast — cover the short futures. Cost: only bid-ask spread + commission (~$1-2/contract). Advantage over selling stocks: no market impact, no realised gains, instantly reversible."
+    },
+    {
+      "title": "Roll return and futures curve structure",
+      "body": "Futures contracts expire; to maintain continuous exposure, you must 'roll' — close the expiring contract and open the next one. Roll return = price difference between the near contract and the next contract. Contango: futures price > spot price (far contract more expensive); negative roll return — you sell cheap and buy dear. Backwardation: futures price < spot price (far contract cheaper); positive roll return — you sell dear and buy cheap. Equity futures: typically slight contango (interest cost > dividend yield in low-yield stocks). Commodity futures: can be in either state depending on storage costs and supply/demand. Example: crude oil in contango → long crude futures earns negative roll return → long-term commodity exposure is costly. This explains why commodity ETFs tracking futures underperform spot commodity prices in persistent contango."
+    },
+    {
+      "title": "Basis risk and limitations of futures hedges",
+      "body": "Basis = spot price - futures price. Basis risk: the hedge is imperfect because the asset you're hedging may not move exactly with the futures index. Example: hedging a small-cap portfolio with S&P 500 futures — if small-caps underperform large-caps, the hedge removes market risk but leaves residual small-cap vs. large-cap risk unhedged. Sources of basis risk: (1) Index mismatch (your portfolio ≠ futures index); (2) Currency mismatch (US futures, foreign portfolio); (3) Term mismatch (futures expire at a different date than your hedge horizon). Managing basis risk: use the most correlated available futures; run a hedge ratio regression to find optimal hedge ratio; accept residual basis risk as the cost of an imperfect but cheap hedge."
+    }
+  ],
+  "deepDiveIntro": [
+    "Cost-of-carry model: F(t,T) = S(t) × e^{(r - q)(T-t)}, where r = risk-free rate, q = continuous dividend yield (or convenience yield for commodities). For bond futures: F = (S - I) × e^{r(T-t)}, where I is PV of coupons paid before expiry. For currency futures (covered interest parity): F = S × e^{(r_d - r_f)(T-t)}, where r_d and r_f are domestic and foreign risk-free rates. Mark-to-market: futures positions are settled daily; gains/losses credited/debited to margin account daily. Initial margin (IM) ≈ 2-10% of notional; variation margin covers daily P&L. Margin call triggered when account falls below maintenance margin."
+  ],
+  "deepDive": [
+    {
+      "heading": "Futures Pricing and Cash-and-Carry Arbitrage",
+      "body": "If F > S × e^{(r-q)T}: cash-and-carry arbitrage — buy spot, sell futures, earn riskless profit. Steps: (1) Borrow S at rate r; (2) Buy underlying at spot S; (3) Short futures at F; (4) At expiry: deliver underlying, receive F; repay loan S × e^{rT}; earn dividends S × e^{qT}. Net profit: F - S × e^{(r-q)T} > 0. This arbitrage is self-correcting: buying spot raises S; shorting futures lowers F until equality holds. Practical limits: transaction costs, short-selling constraints, margin requirements mean a small band around fair value is arbitrage-free. For equity index futures, arbitrage is done by index arbitrageurs (usually sell-side desks) maintaining tight fair value. [1]"
+    },
+    {
+      "heading": "Futures vs. Forwards: Key Differences",
+      "body": "Futures and forwards are both agreements to transact at a future date, but differ structurally: (1) Exchange-traded vs. OTC: futures are standardised, exchange-cleared, centralised counterparty; forwards are bilateral OTC contracts with counterparty credit risk; (2) Mark-to-market vs. settlement at expiry: futures settle daily (variation margin), creating cash flows throughout the life; forwards settle once at maturity; (3) Standardisation: futures have fixed expiry dates, standard contract sizes, and delivery specifications; forwards are fully customisable; (4) Liquidity: futures markets are extremely liquid (S&P 500 E-mini: $200B+ daily volume); forward markets are less liquid; (5) Convexity adjustment: for interest rate futures (Eurodollar), the daily settlement creates a convexity bias vs. forwards; futures rate ≠ forward rate (usually lower by a convexity adjustment). In practice: futures are used for hedging liquid index exposure; forwards are used for FX hedging of specific cash flows. [1]"
+    },
+    {
+      "heading": "Commodity Futures and the Theory of Storage",
+      "body": "Commodity futures pricing is governed by the theory of storage: F = S × e^{(r + u - c)T}, where u = storage cost (% of spot per year), c = convenience yield (benefit of holding physical commodity). Convenience yield: the implicit benefit from physical ownership — ability to meet unexpected demand, avoid supply disruption. High convenience yield → backwardation. Low convenience yield (abundant supply) → contango. Energy markets: crude oil is usually in contango when storage is ample; in backwardation when supply is tight (immediate demand > storage capacity). Gold: minimal convenience yield (gold is not consumed in production); typically in contango (storage cost positive). Agricultural commodities: highly seasonal; convenience yield peaks pre-harvest (tight supply); falls post-harvest. For investors: backwardated commodity futures earn positive roll yield — this has historically contributed 2-4% annual return to commodity index returns (though periods of persistent contango, like 2005-2010 for oil, can reverse this). [2]"
+    }
+  ],
+  "takeaways": [
+    "Futures fair value: F = S × e^{(r-q)T}; cash-and-carry arbitrage keeps this equality tight. [1]",
+    "Equity hedge: contracts = (target β - current β) × AUM / (futures price × multiplier). [1]",
+    "Contango: negative roll return (buy dear, sell cheap); backwardation: positive roll return. [2]",
+    "Daily mark-to-market: variation margin creates cash flows; differs from forwards (single settlement at expiry). [1]",
+    "Basis risk: imperfect correlation between hedged asset and futures index leaves residual risk. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What happens if you can't deliver the underlying at expiry?",
+      "a": "Most futures contracts are cash-settled: instead of physical delivery, the holder receives (F_expiry - F_entry) in cash. Examples: S&P 500 E-mini, Eurodollar, VIX futures. Physically delivered contracts (crude oil, agricultural, some Treasury futures) require actual delivery of the underlying — most speculators close positions before expiry to avoid delivery obligations. Delivery specification matters: crude oil futures specify West Texas Intermediate (WTI) at Cushing, Oklahoma — not any crude anywhere. A trader who forgets to close a long crude futures position faces obligation to take delivery of 1,000 barrels at a specific location. In April 2020, WTI futures went briefly negative (-$37/barrel) because storage at Cushing was full and holders faced the impossible cost of taking delivery with no storage available."
+    },
+    {
+      "q": "How do interest rate futures (SOFR futures) work?",
+      "a": "SOFR (Secured Overnight Financing Rate) futures replaced Eurodollar futures as the primary USD interest rate futures. 3-month SOFR futures: price = 100 - annualised 3-month SOFR rate. If futures price = 95.00, implied rate = 5.00%. Tick: 0.005 = $12.50 per contract (contract size $1M notional). Used for: (1) Hedging floating rate loan exposure; (2) Expressing views on Fed rate path; (3) Constructing term SOFR rates from futures curve. The futures strip (series of quarterly expirations) implies the market's expectation of the Fed funds rate path over 1-3 years. Convexity adjustment: SOFR futures rate ≠ OIS forward rate exactly; a small convexity adjustment arises from daily mark-to-market vs. single settlement at maturity."
+    }
+  ],
+  "sources": [
+    { "label": "Hull, J.C. — Options, Futures, and Other Derivatives (10th ed.), Pearson", "url": "https://www.pearson.com/en-us/subject-catalog/p/options-futures-and-other-derivatives/P200000005938" },
+    { "label": "Gorton, G. & Rouwenhorst, K.G. (2006) — Facts and Fantasies about Commodity Futures, FAJ", "url": "https://doi.org/10.2469/faj.v62.n2.4083" }
+  ]
+}

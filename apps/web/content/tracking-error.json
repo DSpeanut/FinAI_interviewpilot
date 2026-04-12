@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Tracking error (TE) measures how much a portfolio's returns deviate from its benchmark. TE = std(R_portfolio - R_benchmark). A TE of 2% means the portfolio's return in any given year is likely to be within ±2% of the benchmark return (roughly 68% of the time). A passive index fund might have TE of 0.05%; an active equity fund might have TE of 4-8%.",
+    "Low tracking error means the portfolio looks a lot like its benchmark — 'closet indexers' charge active fees but have TE of 1-2%, barely deviating. High tracking error means the manager takes large active bets and can meaningfully outperform or underperform. Information Ratio = active return / tracking error — it measures whether the active risk is being rewarded.",
+    "Tracking error matters because it determines how much a manager's performance can diverge from the benchmark. Pension funds and institutional investors set maximum tracking error budgets in mandates — a mandate might allow TE up to 5%, beyond which the manager takes on too much benchmark-relative risk."
+  ],
+  "whenWhy": [
+    {
+      "title": "Realised vs. predicted tracking error",
+      "body": "Realised (ex-post) tracking error: TE_realised = std(R_p,t - R_b,t) over a historical window (typically 1-3 years of daily or monthly data). Annualise: if computed from monthly data, TE_monthly × √12. Predicted (ex-ante) tracking error: TE_predicted = √(w_active' Σ w_active), where w_active = portfolio weights - benchmark weights and Σ is the forecast covariance matrix (e.g., from Barra). Predicted TE is forward-looking and immediately reflects portfolio changes; realised TE is backward-looking. Typical relationship: TE_predicted ≈ TE_realised during calm markets; during crisis periods, TE_realised > TE_predicted (correlations and volatilities spike). Gap analysis: if realised TE consistently exceeds predicted TE, the covariance model is underestimating tail risks or missing important risk factors. Key uses: (1) Setting active risk budget; (2) Monitoring mandate compliance; (3) Attribution (how much active risk is allocated to each factor?)."
+    },
+    {
+      "title": "TE decomposition by factor and sector",
+      "body": "Tracking error can be decomposed into sources using a factor model: TE² = TE_factor² + TE_specific². Factor contribution: TE_factor² = w_active' B Σ_F B' w_active, where B = factor loadings, Σ_F = factor covariance. Specific (idiosyncratic) contribution: TE_specific² = w_active' D w_active, where D = diagonal idiosyncratic variance matrix. Factor-level decomposition: contribution of factor k to TE² = (w_active' b_k)² × σ_k² (approximately, for uncorrelated factors). This tells the risk manager exactly where the active risk is coming from: 40% from sector tilts, 30% from style factor exposures (value, growth), 20% from country bets, 10% from stock-specific risk. Active share vs. tracking error: Active Share = (1/2) Σ |w_i^p - w_i^b| — measures the degree of divergence from benchmark regardless of correlations. High Active Share + low TE = concentrated active bets in high-correlation assets. Low Active Share + high TE = small deviations in volatile/low-correlation assets."
+    },
+    {
+      "title": "TE in mandate management",
+      "body": "Institutional mandates specify tracking error limits: typical equity mandate: TE < 4-6% (active); TE < 1% (enhanced index); TE < 0.1% (passive). Typical fixed income mandate: TE < 1-2% (active); TE < 0.25% (enhanced index). Why TE matters for managers: (1) Mandate breach: if TE exceeds limit, manager must reduce active bets even if they believe in the trade — forced deleveraging at wrong time; (2) Performance evaluation: investors compare managers by IR = active return / TE; a manager with high TE must deliver proportionally higher active returns to maintain the same IR; (3) Fee justification: high active fee requires demonstrated active management (high TE + positive active return). Closet indexing problem: funds charging active fees (1-1.5%) but with TE of 1-2% are essentially passive funds in disguise. Active Share (Cremers-Petajisto 2009) and low TE together identify closet indexers — high Active Share with low TE can occur if the manager holds concentrated positions in high-correlation stocks."
+    }
+  ],
+  "deepDiveIntro": [
+    "TE budget allocation: if a portfolio allocates active risk across N managers, the aggregate portfolio TE depends on the correlation between managers' active returns: TE_portfolio² = Σ_i Σ_j c_i c_j ρ_{ij} TE_i TE_j, where c_i is the fraction of capital allocated to manager i. For uncorrelated managers (ρ_{ij} = 0): TE_portfolio = √(Σ c_i² TE_i²). With equal allocations (c_i = 1/N, equal TE_i = TE): TE_portfolio = TE/√N. Adding independent managers reduces aggregate TE. Optimal TE allocation: allocate active risk proportionally to each manager's IR. Higher-IR managers receive a larger TE budget: TE_i* ∝ IR_i / Σ_j IR_j."
+  ],
+  "deepDive": [
+    {
+      "heading": "Statistical Significance of Tracking Error",
+      "body": "Tracking error measurements have sampling error because they are estimated from finite data. Standard error of TE estimate: SE(TE) ≈ TE / √(2T), where T = number of observations. For T = 36 monthly observations (3 years): SE(TE) = TE / √72 ≈ 0.12 × TE. A TE of 4% has a 95% CI of approximately 4% ± 2 × 0.48% = [3.04%, 4.96%]. This means: (1) A fund slightly breaching a 4% TE limit may be within sampling error; (2) Short track records give imprecise TE estimates; (3) Comparing TE across managers requires confidence intervals, not point estimates. Also: TE can be inflated by outlier periods. Robust TE: compute TE after trimming extreme observations, or use median absolute deviation (MAD) instead of std. In practice, regulators and mandate monitors typically use 12-month rolling TE to detect changes, while long-run TE (3-5 years) sets the baseline expectation. [1]"
+    },
+    {
+      "heading": "Tracking Error and Portfolio Concentration",
+      "body": "Relationship between portfolio concentration and TE: for a long-only equity portfolio with N holdings vs. M benchmark holdings: TE ≈ σ_specific / √N_active (approximate, for equal weights). Higher concentration = fewer independent bets = higher TE from idiosyncratic risk. Holding 10 active positions with 5% specific vol each: TE_specific ≈ 5% / √10 ≈ 1.6%. Holding 100 active positions with 5% specific vol each: TE_specific ≈ 5% / √100 ≈ 0.5%. Factor TE doesn't diversify this way — a concentrated sector bet contributes TE even with many individual holdings. Active Share vs. TE relationship: funds with high Active Share (>70%) tend to have higher TE (>4%) on average, but the relationship is noisy. A highly concentrated fund (5 stocks) has massive TE; a factor-tilted fund with 200 stocks has moderate TE; a closet index fund has low TE and low Active Share. Evidence: Cremers & Petajisto (2009) show high Active Share funds outperform by ~1.3%/year net of fees; low Active Share funds underperform. [2]"
+    },
+    {
+      "heading": "TE in Multi-Asset and Absolute Return Portfolios",
+      "body": "In multi-asset portfolios, tracking error can be computed against a blended benchmark (e.g., 60% MSCI World + 40% Bloomberg Global Aggregate). The TE decomposition: TE_total² = TE_equity² + TE_fixed_income² + 2 × cov(active_equity, active_FI). For absolute return mandates (target: cash + 5%): benchmark is cash/LIBOR; TE is volatility of active return = portfolio vol minus cash return. TE against cash ≈ total portfolio volatility (since cash has near-zero vol). So for absolute return funds, tracking error ≈ portfolio volatility — the active/passive distinction collapses. Risk-adjusted TE: some mandates normalise TE by the benchmark's own volatility — TE / σ_benchmark. A TE of 4% for a 15% vol equity benchmark = 0.27 normalised TE; for a 5% vol bond benchmark = 0.8 normalised TE — the bond manager is taking much more relative risk. [1]"
+    }
+  ],
+  "takeaways": [
+    "TE = std(R_p - R_b); realised (ex-post) vs. predicted (ex-ante): predicted = √(w_active' Σ w_active). [1]",
+    "TE decomposition: factor TE² + specific TE²; factor model identifies which bets drive active risk. [1]",
+    "Active Share: Σ|w^p - w^b| / 2; high Active Share + low TE = correlated active bets. [2]",
+    "Closet indexer: high active fee but TE < 2%; identified by combining low Active Share with low TE. [2]",
+    "Optimal TE budget allocation across managers: proportional to each manager's IR. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How can a portfolio have high Active Share but low tracking error?",
+      "a": "High Active Share (portfolio holdings differ substantially from benchmark) + low TE (returns closely track benchmark) occurs when: (1) The active positions are highly correlated with each other and with the benchmark. Example: holding different tech stocks than the benchmark but all tech stocks move together — high Active Share, low TE. (2) The active positions are large individually but offset each other: overweight Microsoft, underweight Apple — both have similar beta and correlation, so the net active exposure is low. (3) Sector rotation within sector: holdings differ from benchmark within each sector but sector weights are maintained — lots of specific risk, low systematic active exposure. The key insight: Active Share measures the degree of portfolio divergence, not the exposure to return-generating risk. Low TE + high Active Share = the active bets are diversified and/or correlated. This distinction matters for manager evaluation: a genuinely skilled stock picker should have high Active Share AND active return, even if TE is moderate. Cremers-Petajisto use both metrics together to classify managers: (a) High Active Share + High TE = concentrated stock pickers; (b) High Active Share + Low TE = diversified stock pickers; (c) Low Active Share + High TE = factor bets; (d) Low Active Share + Low TE = closet indexers."
+    },
+    {
+      "q": "Why does tracking error increase during market crises even if the portfolio is unchanged?",
+      "a": "Even with a static portfolio (no trades), TE changes over time because: (1) Volatility regime change: in crises, the volatility of individual stocks and benchmark increases. If σ_individual rises from 20% to 40%, and the active exposure is constant, the TE doubles. Predicted TE (using current covariance matrix) captures this immediately. (2) Correlation changes: in normal markets, active positions may diversify each other (low pairwise correlation). In crises, correlations spike toward 1 — the portfolio's active bets, which looked diversified, are now all moving together. Active variance = w_active' Σ w_active increases as off-diagonal terms of Σ grow. (3) Benchmark composition changes: in crises, some benchmark constituents may be removed, added, or heavily reweighted (e.g., financial stocks in 2008). A portfolio that matched benchmark weights before the crisis may now differ substantially. (4) Factor exposures amplify: style factors (value, growth) have higher cross-sectional dispersion in crises — the same value tilt creates more active return variance. Risk management implication: set TE limits with a volatility buffer — a manager targeting 4% TE should aim for 3% in normal markets to stay below the limit when crisis vol spikes."
+    }
+  ],
+  "sources": [
+    { "label": "Roll, R. (1992) — A Mean/Variance Analysis of Tracking Error, JPM", "url": "https://doi.org/10.3905/jpm.1992.409411" },
+    { "label": "Cremers, M. & Petajisto, A. (2009) — How Active Is Your Fund Manager?, RFS", "url": "https://doi.org/10.1093/rfs/hhp057" }
+  ]
+}

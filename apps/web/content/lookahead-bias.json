@@ -1,4 +1,12 @@
 {
+  "terms": [
+    { "term": "Look-Ahead Bias", "def": "Using future data in a backtest decision — information that would not have been available at the time of the trade." },
+    { "term": "Point-in-Time Data", "def": "Data as it was actually available on each historical date; prevents look-ahead from restated financials or index changes." },
+    { "term": "Backtesting", "def": "Simulating a trading strategy on historical data; results are only meaningful if look-ahead bias is eliminated." },
+    { "term": "Data Snooping", "def": "Optimising strategy parameters on the same data used to evaluate it; a form of indirect look-ahead bias." },
+    { "term": "Reporting Lag", "def": "Delay between financial period end and when data is published; e.g. Q1 earnings may not be available until May." },
+    { "term": "Index Reconstitution", "def": "Stocks added/removed from indices; using the current index composition for a historical backtest creates look-ahead bias." }
+  ],
   "eli3": [
     "Look-ahead bias is using future information in a backtest that would not have been available at the time of a trading decision. It makes strategies appear far more profitable in backtests than they can ever be in reality. It's the most common and devastating error in quantitative finance research.",
     "Example: you test a strategy that buys stocks before their quarterly earnings are announced. If you accidentally use the actual EPS number (available after the announcement) instead of the consensus estimate (available before), your strategy is 'predicting' earnings perfectly — an impossible advantage in real life. The backtest looks amazing; live trading is terrible.",

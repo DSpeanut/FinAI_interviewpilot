@@ -1,4 +1,12 @@
 {
+  "terms": [
+    { "term": "In-Sample / Out-of-Sample", "def": "In-sample: data used to build the model. Out-of-sample (OOS): held-out data to test it. OOS performance is what matters." },
+    { "term": "Walk-Forward Test", "def": "Rolling train/test splits that advance through time; mimics live trading without look-ahead bias." },
+    { "term": "Look-Ahead Bias", "def": "Using future data to make a past decision; the most common backtesting error — inflates backtest performance." },
+    { "term": "Survivorship Bias", "def": "Only including stocks/funds that survived; inflates apparent returns because losers (delisted stocks) are excluded." },
+    { "term": "Sharpe Ratio", "def": "Return / risk metric used to evaluate strategy quality; deflated Sharpe accounts for multiple testing." },
+    { "term": "Transaction Costs", "def": "Bid-ask spread + market impact + commissions; realistic backtesting must include these or strategy looks better than it is." }
+  ],
   "eli3": [
     "Backtesting is testing a trading strategy on historical data to see how it would have performed in the past. If a strategy would have made money historically, it might be a valid strategy — or it might just have been lucky on that specific historical period. Backtesting is essential but dangerously easy to misuse.",
     "A rigorous backtest simulates the real trading process: you only use data that would have been available at each point in time, you account for realistic transaction costs and market impact, and you measure out-of-sample (held-out) performance. Done properly, it's a powerful validation tool. Done carelessly, it's a data-mining exercise that will lose money in the real world.",

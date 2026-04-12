@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Value at Risk (VaR) answers the question: 'What is the most I can lose in a given time period, with a given level of confidence?' For example, a 1-day 99% VaR of $1M means: 'On 99% of days, I will lose no more than $1M.' Equivalently, there's a 1% chance of losing more than $1M on any given day.",
+    "VaR is the standard risk measure used by banks and asset managers for regulatory capital (Basel III), internal risk limits, and portfolio risk reporting. It's intuitive, widely understood, and easy to aggregate across a portfolio. But it has serious limitations: it says nothing about what losses look like beyond the threshold (the 'tail'), and it can be gamed by strategies that have rare but catastrophic losses.",
+    "Three main methods to compute VaR: (1) Historical simulation: use actual historical returns; (2) Parametric (variance-covariance): assume normal distribution; (3) Monte Carlo: simulate thousands of scenarios. Each has trade-offs in accuracy, speed, and assumptions."
+  ],
+  "whenWhy": [
+    {
+      "title": "VaR computation methods compared",
+      "body": "Historical simulation: rank the last T daily P&L observations from worst to best; 1-day 99% VaR = -1st percentile of the distribution = the 10th worst day (for T=1000). Pros: no distributional assumption; captures actual fat tails; easy to implement. Cons: limited by historical sample; can't model unprecedented scenarios; non-stationary (old crises may be stale). Parametric VaR: assume portfolio P&L ~ N(μ, σ²); VaR = -μ + z_α × σ where z_α = 2.33 for 99%. Pros: fast; requires only mean and covariance. Cons: normality understates tail risk; ignores fat tails and skewness. Monte Carlo: simulate N scenarios from a fitted distribution (or copula); compute VaR from the empirical distribution. Pros: handles non-linearity (options), captures fat tails if model is correct. Cons: computationally expensive; model-dependent."
+    },
+    {
+      "title": "Portfolio VaR and diversification benefit",
+      "body": "For a portfolio of N assets: σ²_p = w'Σw. VaR_p = z_α × σ_p × portfolio_value. The diversification benefit: VaR_p < Σ_i VaR_i (portfolio VaR less than sum of individual VaRs). The diversification benefit = Σ_i VaR_i - VaR_p; measures how much risk is reduced by holding assets together. Example: two assets each with VaR = $1M; correlation ρ. Portfolio VaR = z_α × √2 × σ × √(1+ρ). At ρ = -1: portfolio VaR = 0 (perfect hedge). At ρ = 0: VaR = $1.41M (not $2M). At ρ = 1: VaR = $2M. Risk aggregation by business line: banks compute VaR for each desk; sum with diversification benefits to get firm-level VaR. Regulatory reporting: banks must report 1-day 99% VaR to regulators daily under Basel III market risk rules."
+    },
+    {
+      "title": "VaR backtesting: verifying the model",
+      "body": "VaR backtesting: check whether the model's VaR predictions are consistent with actual losses. Under a correct 99% VaR model: the probability of an 'exception' (actual loss > VaR) on any day = 1%. Over T = 250 trading days: expected exceptions = 2.5. Basel III traffic light system: (1) Green zone: 0-4 exceptions in 250 days — model acceptable; (2) Yellow zone: 5-9 exceptions — investigate; (3) Red zone: 10+ exceptions — model rejected, capital multiplier increased (penalty of 3-4×). Statistical test (Kupiec test): H0: exception rate = 1%; test statistic LR = -2 ln[(1-p)^{T-N} × p^N] + 2 ln[(1-N/T)^{T-N} × (N/T)^N], where N = actual exceptions, T = total days. If VaR consistently under-reports risk, capital requirements are too low — the 2008 crisis revealed that bank VaR models dramatically underestimated tail risk."
+    }
+  ],
+  "deepDiveIntro": [
+    "VaR as a risk measure: VaR_α(X) = -inf{x : P(X ≤ x) > α}. For a continuous distribution: VaR_99% = -F⁻¹(0.01) where F is the CDF of portfolio P&L. Scaling: 1-day VaR to T-day VaR under i.i.d. returns: VaR_T = VaR_1 × √T (the 'square root of time' rule). This underestimates multi-day VaR for non-normal returns (fat tails accumulate faster than √T implies). Basel III: banks use 10-day 99% VaR = 1-day VaR × √10 for market risk capital (IMA approach). Components: general market risk VaR + stressed VaR (using worst 12-month period in history) + incremental risk charge (for credit risk in the trading book)."
+  ],
+  "deepDive": [
+    {
+      "heading": "Limitations of VaR and the Basel Shift to ES",
+      "body": "VaR has four critical limitations: (1) Not sub-additive: VaR(A+B) can exceed VaR(A) + VaR(B) for fat-tailed distributions — it can penalise diversification; (2) Ignores tail shape: two portfolios can have identical VaR but very different losses beyond VaR — one might have maximum loss of $2M, another $200M; (3) Gameable: strategies with rare but catastrophic losses (selling far out-of-the-money options) can report very low VaR while having enormous tail exposure; (4) Non-coherent risk measure: does not satisfy the mathematical properties of coherent risk measures (Artzner et al. 1999). Regulatory response: Basel III's Fundamental Review of the Trading Book (FRTB, 2016) replaced VaR with Expected Shortfall (ES) as the primary risk measure. ES = CVaR addresses all four limitations. Banks must now compute ES at 97.5% confidence (equivalent to 99% VaR in normal markets but captures tail shape). [1]"
+    },
+    {
+      "heading": "Filtered Historical Simulation",
+      "body": "Standard historical simulation uses raw historical returns — treating each past day as equally likely. This understates current risk in volatile periods and overstates it in calm periods. Filtered Historical Simulation (FHS): (1) Estimate a GARCH model for each risk factor; (2) Compute standardised residuals: ε_t = r_t / σ_t (GARCH-filtered returns); (3) Bootstrap standardised residuals (they are approximately i.i.d.); (4) Scale by current GARCH volatility: r_simulated = σ_current × ε_bootstrap; (5) Compute portfolio P&L for each scenario. Advantages: (1) Inherits fat tails from historical data (no normality assumption); (2) Adapts to current volatility regime (relevant when current vol differs from historical average); (3) Can extrapolate beyond historical extreme events. FHS is the industry standard for sophisticated risk systems. In calm markets (VIX = 12), FHS gives lower VaR than historical simulation of 2008 data; in stressed markets (VIX = 40), FHS gives higher VaR — appropriate. [2]"
+    },
+    {
+      "heading": "VaR in Asset Management: Tracking Error vs. Absolute VaR",
+      "body": "Asset managers use VaR differently from banks: (1) Absolute VaR: maximum loss in dollar terms; relevant for absolute return funds, hedge funds, multi-asset funds with fixed drawdown limits; (2) Relative VaR (tracking error): standard deviation of active return (portfolio minus benchmark); relevant for long-only equity funds benchmarked to an index; (3) UCITS regulation (European): absolute VaR funds must keep 20-day 99% VaR below 20% of NAV; relative VaR funds must keep VaR ratio (portfolio VaR / benchmark VaR) below 2x. Risk limits: typical equity long-only fund: tracking error 2-4% (active risk); risk budget allocated by sector/factor. Risk reporting: daily risk report includes: absolute VaR, tracking error, factor attribution (how much risk comes from market beta, sector bets, factor tilts, idiosyncratic). Portfolio risk decomposition: TE² = Σ_k (active factor exposure_k)² × σ²_factor_k + idiosyncratic risk. [1]"
+    }
+  ],
+  "takeaways": [
+    "1-day 99% VaR: maximum expected daily loss on 99% of days; 1% chance of exceeding it. [1]",
+    "Historical simulation: no distributional assumption; parametric: fast but assumes normality; MC: flexible but model-dependent. [1]",
+    "VaR backtesting: 10+ exceptions in 250 days = red zone; model rejected, capital penalty applied. [1]",
+    "VaR limitations: not sub-additive, ignores tail shape, gameable — Basel FRTB replaced VaR with ES (CVaR) at 97.5%. [1]",
+    "FHS: GARCH-filter returns to i.i.d., bootstrap residuals, scale by current vol — adapts to current regime. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Can VaR increase when you add a hedge to your portfolio?",
+      "a": "Counterintuitively, yes — VaR is not sub-additive for non-elliptical distributions. Example: a portfolio with a very stable positive return but rare large loss can have low VaR; adding a hedge (which has a small negative correlation with the main risk) could shift the loss distribution so the 1st percentile changes in a surprising direction. More practically: VaR on correlated assets is generally sub-additive; but for portfolios with non-linear payoffs (options) or fat-tailed distributions, adding a new position can increase VaR even if it reduces overall portfolio risk. This sub-additivity failure is why regulators shifted to Expected Shortfall, which is always sub-additive and thus always rewards diversification/hedging."
+    },
+    {
+      "q": "How do you compute VaR for a portfolio containing options?",
+      "a": "Options are non-linear — delta approximation understates their risk. Full valuation Monte Carlo: (1) Simulate N scenarios for all risk factors (equity price, vol, rates, FX); (2) For each scenario, fully reprice each option using the Black-Scholes (or Heston, etc.) formula; (3) Compute full portfolio P&L for each scenario; (4) VaR = 1st percentile of P&L distribution. Delta-gamma approximation (faster): ΔP ≈ Δ × ΔS + ½ Γ × ΔS² + Θ × Δt + Vega × Δσ; compute VaR analytically from this quadratic approximation. Accuracy: delta-gamma is good for small moves (day-horizon VaR); fails for large moves where higher-order terms matter. Jump risk: for portfolios with barrier or path-dependent options, even delta-gamma-vega fails; Monte Carlo with full revaluation is required."
+    }
+  ],
+  "sources": [
+    { "label": "Jorion, P. — Value at Risk: The New Benchmark for Managing Financial Risk (3rd ed.), McGraw-Hill", "url": "https://www.mhprofessional.com/9780071464956-usa-value-at-risk-3rd-ed" },
+    { "label": "Barone-Adesi, G., Giannopoulos, K. & Vosper, L. (1999) — VaR Without Correlations for Portfolios of Derivative Securities, JFQA", "url": "https://doi.org/10.2307/2676208" }
+  ]
+}

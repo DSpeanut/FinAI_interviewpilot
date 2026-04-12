@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "Red teaming for AI is the practice of actively trying to break your AI system — find ways to make it say harmful things, reveal private information, or behave unsafely. A 'red team' is a group of people (or automated systems) whose job is to attack, not defend.",
+    "The term comes from military strategy: the 'red team' simulates the enemy to find vulnerabilities before real adversaries do. For AI, the red team tries every attack they can think of: jailbreaks, prompt injections, edge cases, social engineering, and adversarial inputs.",
+    "Red teaming is how you find safety failures before users do. Every major AI lab (Anthropic, OpenAI, Google DeepMind) red-teams their models extensively before release. The findings directly feed back into safety training (RLHF, Constitutional AI) and content policy."
+  ],
+  "whenWhy": [
+    {
+      "title": "Pre-release safety evaluation of LLMs",
+      "body": "Before releasing a new model or major update, red teaming systematically probes for harmful behaviors: can the model be prompted to generate CSAM, detailed weapons instructions, targeted harassment? Can it be jailbroken to bypass its safety training? The red team's job is to find failures; the safety team's job is to fix them (via additional fine-tuning or output filtering) before release. No model should be released without structured red teaming across the major harm categories."
+    },
+    {
+      "title": "Evaluating application-level safety before deployment",
+      "body": "A safely-trained base model can still be unsafe in a specific deployment context. A customer service bot red-teamed for: can it be induced to reveal internal business data? Can it be made to make unauthorized promises to customers? Can injection attacks via user-submitted data compromise it? Application-level red teaming is distinct from model-level red teaming and must be performed for every significant AI application deployment."
+    },
+    {
+      "title": "Ongoing adversarial testing as attack patterns evolve",
+      "body": "Jailbreaks and attack patterns evolve continuously: new techniques are discovered by the research community, shared publicly, and exploited by malicious users. Models that were safe against known attacks in January may be vulnerable to novel attacks in March. Ongoing red teaming (quarterly exercises, continuous automated red teaming, bug bounty programs) ensures safety posture is maintained as the threat landscape evolves."
+    }
+  ],
+  "deepDiveIntro": [
+    "Red teaming for AI (Ganguli et al. 2022, Anthropic; Perez et al. 2022, DeepMind) uses human red teamers and automated methods to adversarially probe LLMs. Human red teaming: trained annotators try to elicit harmful outputs using a combination of predefined attack categories and creative adversarial prompting. Results are scored on harm severity. Automated red teaming: an 'attacker LLM' generates adversarial prompts; a 'target LLM' generates responses; a 'judge LLM' evaluates whether the response is harmful. This scale approach enables orders-of-magnitude more adversarial tests than human-only red teaming.",
+    "The Anthropic red teaming paper (Ganguli et al. 2022) found that: more capable models are harder to jailbreak (better instruction following and safety training), but when they do produce harmful outputs, the outputs are more harmful. Constitutional AI methods (CAI) significantly reduced successful attack rates compared to RLHF-only training. The ML Safety community maintains RLHF benchmarks (HarmBench, JailbreakBench) for standardised red team evaluation."
+  ],
+  "deepDive": [
+    {
+      "heading": "Human Red Teaming: Process and Categories",
+      "body": "Human red teaming process: (1) Scope definition — define the harm categories to test: CSAM, weapons (bio, chem, nuclear, radiological), targeted violence, self-harm induction, privacy violations, deception, jailbreaks; (2) Red teamer recruitment — diverse team: security researchers, domain experts (biosecurity, cybersecurity), ethicists, people with lived experience of AI harms; (3) Structured testing — each tester targets their assigned harm categories; document successful attacks (prompt, response, harm severity score); (4) Scoring — classify each successful attack by harm category and severity (1-5 scale); compute attack success rate per category; (5) Iteration — safety team addresses findings; re-test to verify fixes don't introduce new regressions. Anthropic ran 3-hour sessions with 324 red teamers for Claude's pre-release evaluation. [1]"
+    },
+    {
+      "heading": "Automated Red Teaming",
+      "body": "Automated red teaming scales to millions of adversarial prompts. Perez et al. (2022) trained a red-teaming LM using RL: the RL agent is rewarded for generating prompts that cause the target LLM to produce harmful outputs. GCG (Zou et al. 2023): gradient-based attack that searches for adversarial suffixes (e.g., 'describe bioweapon synthesis steps ! ! !sur (!als (!sur (!als') that cause the model to comply with harmful requests regardless of content. AutoDAN (Liu et al. 2023): an automated jailbreak generator that produces readable, semantically coherent jailbreaks (vs. GCG's nonsensical token sequences). HarmBench (Mazeika et al. 2024): standardised benchmark for evaluating LLM robustness against automated red teaming attacks — 400 harmful behaviors across 7 categories, 18 attack methods. [2]"
+    },
+    {
+      "heading": "Red Team Output: Findings → Safety Fixes",
+      "body": "Red team findings feed into the safety training pipeline: (1) New jailbreaks discovered → add as adversarial examples to the safety fine-tuning dataset; the model is fine-tuned to refuse these specific attacks; (2) New harm categories identified → update the harm taxonomy in the safety classifier training data; (3) Policy gaps identified → update the model's system prompt, usage policy, or safety training guidelines; (4) False positives (model over-refuses legitimate requests) → add as positive examples to the fine-tuning data to reduce over-refusal. The red team finding is the dataset signal; the fix is the model or system change. Track fix coverage: after each safety training run, re-run the red team test set and verify that the fix rate is > 95% for the reported attacks with no regression on legitimate requests. [1]"
+    }
+  ],
+  "takeaways": [
+    "Red teaming: adversarial probing of AI systems to find harmful behaviors before users or adversaries do. [1]",
+    "Human red teaming: structured sessions with diverse experts testing predefined harm categories. [1]",
+    "Automated red teaming: attacker LLM generates adversarial prompts at scale; judge LLM scores responses. [2]",
+    "HarmBench: standardised red teaming benchmark — 400 behaviors, 18 attack methods, 7 categories. [2]",
+    "Findings → safety training: new jailbreaks added as adversarial examples; new categories update safety classifiers. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you prevent red team findings from being used to attack the system instead of fix it?",
+      "a": "Red team security practices: (1) Need-to-know access — red team findings (specific attack prompts and successful jailbreaks) are not public and not shared beyond the safety team; they're treated as security-sensitive information; (2) Compartmentalisation — red teamers work in isolated environments; findings are documented in a secure system (not email or Slack); (3) Staged disclosure — findings are fixed before being described in any public reports (published papers describe categories and statistics, not specific attack prompts); (4) Bug bounty protocol — external researchers reporting vulnerabilities follow a responsible disclosure process; fixes are deployed before public disclosure; (5) Findings expiry — after a finding is fixed and verified, the specific attack prompt is archived in a secure dataset; it's no longer sensitive as the vulnerability is patched, but it's preserved for regression testing."
+    },
+    {
+      "q": "How do you measure whether safety improvements from red team findings actually make the system safer?",
+      "a": "Safety improvement measurement: (1) Before/after attack success rate — run the original attack set on both the old and new model; measure the drop in attack success rate per harm category. A successful red team cycle reduces the success rate by > 80% on the reported attacks; (2) Generalisation — generate 50 novel variations of each fixed attack (paraphrases, semantic equivalents); measure whether the fix generalises or only blocks the exact attack prompt (overfitting to specific examples is a common failure); (3) Over-refusal measurement — measure the false positive rate on a legitimate request benchmark (HarmBench includes this); safety fixes that increase harmful refusal by > 5% are unacceptable; (4) Holdout test set — maintain a held-out set of attacks never used in training; this measures generalised robustness vs. overfitting; (5) External validation — submit to standardised safety benchmarks (HarmBench, SORRY-Bench) for comparison with the broader research community."
+    }
+  ],
+  "sources": [
+    { "label": "Ganguli et al. (2022) — Red Teaming Language Models to Reduce Harms: Methods, Scaling Behaviors, and Lessons Learned, Anthropic", "url": "https://arxiv.org/abs/2209.07858" },
+    { "label": "Mazeika et al. (2024) — HarmBench: A Standardized Evaluation Framework for Automated Red Teaming and Robust Refusal", "url": "https://arxiv.org/abs/2402.04249" }
+  ]
+}

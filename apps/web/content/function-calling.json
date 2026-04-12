@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "Function calling is a feature in LLM APIs that lets the model say 'I want to call this specific function with these specific arguments' in a structured, machine-readable format. Instead of the model saying 'you should search for X', it outputs a JSON object that your code can actually execute.",
+    "Before function calling, developers had to parse the model's text output to figure out what action it wanted to take — fragile and error-prone. Function calling gives you a guaranteed-structured output: {name: 'search', arguments: {query: 'Paris weather'}} — your code can act on this directly.",
+    "Think of it as the LLM filling out a form instead of writing a letter. The form has fixed fields (function name, argument names) so your code always knows exactly where to find the information it needs."
+  ],
+  "whenWhy": [
+    {
+      "title": "Reliable tool invocation without prompt engineering",
+      "body": "Before native function calling, developers used prompt templates ('If you want to search, output SEARCH: <query>') and regex parsing. This breaks when the model outputs the format slightly differently. Native function calling (OpenAI 2023, Anthropic tool use) gives a guaranteed structured output: the model produces valid JSON that matches the schema, or it doesn't call the function. This eliminates an entire class of parsing failures and makes tool-using agents reliable in production."
+    },
+    {
+      "title": "Structured data extraction from unstructured text",
+      "body": "Function calling is also used for extraction, not just tool invocation. Define a function with the schema of the data you want (e.g., {name: string, date: string, amount: number}) and instruct the model to call it with the extracted values. The model acts as a structured extractor, outputting clean JSON from messy input text. This pattern replaces complex regex/NLP extraction pipelines with a single LLM call."
+    },
+    {
+      "title": "Parallel, type-safe, validated API integration",
+      "body": "Function calling integrates with existing codebases: define your API methods as tool schemas, wire up the execution to the actual implementation, and the LLM becomes an intelligent orchestrator of your API. JSON Schema validation catches type mismatches before the function runs. Parallel function calls (multiple calls in one response) allow concurrent execution of independent operations. The result is an LLM that correctly invokes your code, not one that describes what you should do."
+    }
+  ],
+  "deepDiveIntro": [
+    "OpenAI introduced function calling in June 2023 (GPT-3.5-turbo and GPT-4). The API accepts a 'tools' array of function definitions (JSON Schema objects). The model can output a 'tool_calls' array in its response, each containing a function name and arguments JSON string. The caller parses and executes each call, then sends results back as 'tool' role messages. Anthropic's implementation (called 'tool use') is structurally identical but uses different field names ('tool_use' content block, 'tool_result' role).",
+    "The model is fine-tuned to produce valid, schema-conformant function calls — it does not simply format its output as JSON through prompting alone. This fine-tuning makes function calling more reliable than prompt-based approaches. Models with function calling training also learn tool selection: given multiple tools, they choose the most appropriate one (or none, if no tool is needed)."
+  ],
+  "deepDive": [
+    {
+      "heading": "Function Schema Design",
+      "body": "Each function schema has three fields: (1) name — snake_case, verb-noun format (get_weather, create_event, send_email) — the LLM uses this for selection; (2) description — the most impactful field: explain what the function does, when to use it, when NOT to use it, and what it returns. Models with poor tool selection often have vague descriptions. Include examples in the description for complex tools; (3) parameters — JSON Schema object: list all parameters with their types, descriptions, constraints (enum, minimum, maximum), and mark required fields. Omit optional fields with sensible defaults from the schema to reduce LLM confusion. [1]"
+    },
+    {
+      "heading": "tool_choice Parameter: Controlling Invocation",
+      "body": "OpenAI and Anthropic both support a tool_choice (or similar) parameter: (1) auto (default) — the model decides whether to call a function or respond in text; (2) required — the model must call a function (useful when you always need structured output); (3) none — the model cannot call functions (useful for follow-up conversational turns); (4) specific function — force the model to call a particular function (useful for extraction tasks). Setting tool_choice='required' with a single extraction function reliably produces structured output without the model deciding to respond in text instead. [1]"
+    },
+    {
+      "heading": "Parallel Function Calls and Execution",
+      "body": "When the model emits multiple tool_calls in one response, execute them concurrently (asyncio.gather in Python, Promise.all in Node.js) to minimise latency. Each call has a unique tool_call_id. When sending results back, include the tool_call_id in each tool result message so the model can match responses to requests. Handle partial failures: if 3 of 5 parallel calls succeed, send all 5 results (including the 3 errors) back to the model. The model can then decide to retry the failed calls or proceed with partial information. [1]"
+    }
+  ],
+  "takeaways": [
+    "Function calling produces guaranteed-structured JSON outputs for tool invocation, replacing fragile regex parsing. [1]",
+    "The description field in the function schema is the primary signal the model uses for tool selection — make it precise. [1]",
+    "tool_choice='required' forces structured output; use it for extraction tasks where the model must always call the function. [1]",
+    "Parallel function calls reduce latency; execute concurrently and match results to requests via tool_call_id. [1]",
+    "Models are fine-tuned to produce schema-valid calls — more reliable than prompt-engineering JSON output. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle function arguments that are too long (e.g., passing a large document as an argument)?",
+      "a": "Never pass large documents as function arguments — the arguments are in the model's context window (counted against the limit) and large arguments consume tokens that could be used for reasoning. Instead: (1) store the document externally (S3, database) and pass only a document_id to the function; the function implementation retrieves the document; (2) pre-process the document into a summary or structured form before the LLM call; (3) for RAG, pass a retrieval query as the argument, not the document content. The function arguments should contain only the minimal parameters needed for the function to execute — not the data itself."
+    },
+    {
+      "q": "What if the model calls a function with invalid argument values (e.g., wrong date format, out-of-range number)?",
+      "a": "Validate arguments server-side before execution — never trust that the LLM's JSON conforms to your constraints just because it matches the JSON Schema type. JSON Schema validation catches type errors (string vs number) but not semantic errors (date format, business-rule constraints). Implement: (1) Pydantic model validation (Python) or Zod (TypeScript) for structured validation before the function runs; (2) return a descriptive error as the function result (not an exception) — include the invalid value and what was expected; (3) the LLM typically self-corrects on the next call when given a clear error message. Retry budget: allow 2-3 self-correction attempts before surfacing the error to the user."
+    }
+  ],
+  "sources": [
+    { "label": "OpenAI Function Calling Documentation — official API reference", "url": "https://platform.openai.com/docs/guides/function-calling" },
+    { "label": "Anthropic Tool Use Documentation — official API reference", "url": "https://docs.anthropic.com/en/docs/tool-use" }
+  ]
+}

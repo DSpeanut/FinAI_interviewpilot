@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "ReAct stands for Reasoning + Acting. It's a pattern where an AI agent doesn't just act — it thinks out loud first. Before doing anything, it writes down what it's thinking ('I need to find the population of France, let me search for it'), then takes an action (search), then reads the result, then thinks again.",
+    "This thinking-before-acting makes agents much more reliable. Without the reasoning step, agents often call the wrong tool or use the wrong arguments. The written thought helps the model stay on track, catch its own mistakes, and plan ahead.",
+    "ReAct was introduced in a 2022 research paper and showed that models interleaving thoughts and actions outperformed models that acted without thinking, and also outperformed models that only thought (chain-of-thought) without taking actions."
+  ],
+  "whenWhy": [
+    {
+      "title": "Multi-step tasks requiring external information",
+      "body": "ReAct shines when an agent must gather information from multiple sources before answering. Example: 'Which company has higher revenue: Apple or Microsoft?' — the agent needs to look up both, compare, then answer. The reasoning traces guide each retrieval step ('I found Apple's 2023 revenue is $383B. Now I need Microsoft's.'), preventing the agent from jumping to conclusions or missing steps. Without explicit reasoning, models skip steps or use stale training data."
+    },
+    {
+      "title": "Debugging agent failures",
+      "body": "ReAct reasoning traces are interpretable audit logs. When an agent fails, you can read the exact chain of thoughts to diagnose why: wrong tool selected? Misinterpreted search result? Incorrect reasoning step? This observability is invaluable for development and debugging. Pure action-only agents are black boxes; ReAct agents explain their decisions. Production systems often log reasoning traces for monitoring and post-hoc analysis."
+    },
+    {
+      "title": "Reducing hallucination through grounding",
+      "body": "The Act step forces the agent to retrieve real information instead of relying on its training data. The observation (tool result) grounds the next reasoning step in retrieved facts, not model memory. If the model's initial thought contains an incorrect assumption, the observation often corrects it. This grounding loop — think → act → observe → think — is more resistant to hallucination than chain-of-thought reasoning alone, which can build on incorrect premises without any external correction."
+    }
+  ],
+  "deepDiveIntro": [
+    "ReAct (Yao et al. 2022, ICLR 2023) was evaluated on HotpotQA (multi-hop QA), FEVER (fact verification), ALFWorld (embodied agent tasks), and WebShop (interactive web browsing). On HotpotQA, ReAct outperformed chain-of-thought (no actions) by 6.4% and act-only (no reasoning) by 8.2%, demonstrating that the combination of reasoning + acting is strictly better than either alone. The key finding: reasoning traces allow the model to update its plan based on observations, while acting provides grounding that prevents reasoning errors from compounding.",
+    "In practice, ReAct is implemented by structuring the LLM prompt as a sequence of Thought: / Action: / Observation: blocks. Modern function-calling APIs make this more elegant: the LLM's text output serves as the reasoning trace, and the function call serves as the action. The framework appends the function result as an observation message. This is the default pattern in LangChain's AgentExecutor and Anthropic's agent examples."
+  ],
+  "deepDive": [
+    {
+      "heading": "Prompt Structure",
+      "body": "Classic ReAct prompt format:\n```\nThought: [reasoning about what to do next]\nAction: tool_name[input]\nObservation: [tool result]\nThought: [reasoning based on observation]\nAction: tool_name[input]\n...\nThought: I now have enough information to answer.\nAction: Finish[final answer]\n```\nFew-shot examples in the prompt demonstrate the expected format. Modern implementations replace the text-based Action format with structured function calls, keeping the Thought as free-form text. The Thought field is the most important: it should explain WHY the agent is taking the action, not just WHAT action it's taking. [1]"
+    },
+    {
+      "heading": "ReAct vs Chain-of-Thought vs Act-Only",
+      "body": "Chain-of-Thought (CoT, Wei et al. 2022): reasons step by step but takes no external actions — all knowledge comes from the model's training data. Strong on math/logic; weak on knowledge-intensive tasks. Act-Only: takes actions based on the current observation without explicit reasoning — faster but misses steps and makes more tool-selection errors. ReAct combines both: reasoning prevents premature actions; acting grounds reasoning in retrieved facts. On the HotpotQA benchmark, ReAct achieved 35.1% EM vs. CoT 29.4% and Act 25.7%. [1]"
+    },
+    {
+      "heading": "Self-Correction via Observation",
+      "body": "A key ReAct capability: observing a surprising or incorrect result triggers replanning. Example: Thought: 'I'll search for the CEO of OpenAI' → Action: search('OpenAI CEO') → Observation: 'Sam Altman resigned in November 2023 but was reinstated days later.' → Thought: 'The search result mentions a CEO change. I should verify the current status.' The observation updated the agent's belief state. This feedback loop is impossible in CoT (no observations) and unreliable in Act-Only (no reasoning to interpret observations). The reasoning trace documents the belief update, making the agent's chain of conclusions auditable. [1]"
+    }
+  ],
+  "takeaways": [
+    "ReAct = interleaved Thought (reasoning) + Action (tool call) + Observation (result) — better than either alone. [1]",
+    "Outperforms chain-of-thought (no tools) and act-only (no reasoning) on multi-step knowledge-intensive tasks. [1]",
+    "Reasoning traces serve as interpretable audit logs — essential for debugging and monitoring production agents. [1]",
+    "Observations ground reasoning in retrieved facts, breaking hallucination compounding from pure CoT. [1]",
+    "Modern implementations: reasoning = LLM text output; action = function call; observation = tool result message. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "When does ReAct fail or underperform simpler approaches?",
+      "a": "ReAct underperforms when: (1) The task is simple and can be answered directly — adding reasoning + tool calls adds latency and cost with no benefit. Use direct LLM calls for simple Q&A; (2) The model produces 'hallucinated reasoning' — confident-sounding but incorrect thought traces that lead to wrong tool calls. ReAct reasoning is not always correct reasoning; (3) Long ReAct traces consume the context window, leaving less room for the actual retrieved content; (4) When tool calls fail frequently, the reasoning traces become dominated by error-handling instead of task progress. Mitigation: use ReAct only for tasks that genuinely require multi-step external information gathering; use simpler patterns for straightforward tasks."
+    },
+    {
+      "q": "How does ReAct relate to other agent patterns like Plan-and-Execute?",
+      "a": "ReAct is reactive and online: it plans and acts one step at a time, updating its plan based on each observation. This is flexible but can be inefficient for long tasks (many back-and-forth LLM calls, context grows linearly). Plan-and-Execute (Wang et al. 2023) separates planning from execution: a planner LLM creates a complete task plan upfront, then an executor LLM executes each step. More efficient for long tasks but less adaptive to unexpected observations. ReAct is better when: intermediate results are unpredictable; plans may need revision mid-task. Plan-and-Execute is better when: the task structure is known upfront; you want to show the user the plan before executing."
+    }
+  ],
+  "sources": [
+    { "label": "Yao et al. (2022) — ReAct: Synergizing Reasoning and Acting in Language Models, ICLR 2023", "url": "https://arxiv.org/abs/2210.03629" },
+    { "label": "Wei et al. (2022) — Chain-of-Thought Prompting Elicits Reasoning in Large Language Models, NeurIPS 2022", "url": "https://arxiv.org/abs/2201.11903" }
+  ]
+}

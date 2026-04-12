@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "AutoGen is a Microsoft framework for building multi-agent systems where agents talk to each other in a conversation. You set up agents with different roles and capabilities, and they collaborate by sending messages back and forth until a task is complete.",
+    "The key idea: rather than one LLM doing everything, you have a group chat where different AI agents (and optionally a human) message each other. One agent writes code, another reviews it, a third runs it, and a fourth synthesises the results — all through conversation.",
+    "AutoGen was released by Microsoft Research in 2023 and popularised 'conversational multi-agent' patterns. It has since evolved into AutoGen 0.4 (a major rewrite with an event-driven, actor-model architecture) and Microsoft has also released AutoGen Studio for no-code agent building."
+  ],
+  "whenWhy": [
+    {
+      "title": "Automated code generation and debugging loops",
+      "body": "AutoGen's flagship use case: an AssistantAgent writes code, a UserProxyAgent executes it in a sandbox and returns the output (or error). If the code fails, the assistant reads the error and rewrites. This code-write → execute → debug loop runs automatically until the code succeeds or max_turns is reached. Without AutoGen, this loop requires custom orchestration. The UserProxyAgent acts as an automated code execution environment, not a human — the 'user' is automated."
+    },
+    {
+      "title": "Research and analysis tasks requiring group deliberation",
+      "body": "Complex analysis tasks benefit from multiple expert perspectives: a researcher finds information, a critic challenges assumptions, a synthesiser integrates findings. AutoGen's GroupChat simulates this deliberation: agents take turns in a round-robin or LLM-selected order, each contributing from their role's perspective. The GroupChatManager selects the next speaker based on the conversation state. This produces more thorough analysis than a single agent by simulating the review process."
+    },
+    {
+      "title": "Human-in-the-loop workflows with controlled intervention",
+      "body": "AutoGen's ConversableAgent supports human_input_mode: NEVER (fully automated), TERMINATE (ask human only when stopping condition is met), or ALWAYS (ask human before every response). This makes it easy to build workflows where a human approves critical steps: the automation runs freely until a decision point where human judgment is required, then pauses and waits. This is simpler to implement in AutoGen than in most other frameworks because human input is a native concept, not an afterthought."
+    }
+  ],
+  "deepDiveIntro": [
+    "AutoGen (Wu et al. 2023, Microsoft Research) introduced conversational agent programming: agents communicate through a message-passing API rather than through a central orchestrator. The core abstraction is ConversableAgent, which has a name, system_message, llm_config, and code_execution_config. Agents send messages to each other using agent.send(message, recipient). A conversation is a sequence of messages between two or more agents.",
+    "AutoGen 0.4 (2024) is a major rewrite introducing the actor model: agents are stateful actors that communicate asynchronously via message queues. This enables distributed execution (agents on different machines), event-driven workflows, and better cancellation/timeout handling. The old API (ConversableAgent.initiate_chat) is maintained for compatibility. AutoGen Studio provides a visual interface for building and testing multi-agent workflows without code."
+  ],
+  "deepDive": [
+    {
+      "heading": "Core Agents: AssistantAgent and UserProxyAgent",
+      "body": "AssistantAgent: configured with an LLM (llm_config specifies the model and API key). Responds to messages with reasoning and (optionally) code blocks. Default system prompt instructs it to solve tasks by writing Python code and explaining the solution. UserProxyAgent: configured with a code execution environment (code_execution_config={'executor': LocalCommandLineCodeExecutor()}). When it receives a message with a code block, it executes the code and sends the output back. human_input_mode='NEVER' makes it fully automated. The two-agent loop (AssistantAgent + UserProxyAgent) is AutoGen's minimal useful configuration and handles code generation/debugging automatically. [1]"
+    },
+    {
+      "heading": "GroupChat: Multi-Agent Round Tables",
+      "body": "GroupChat: a conversation among N agents with a GroupChatManager that selects the next speaker. Speaker selection strategies: (1) round_robin — agents take turns in a fixed order; (2) auto (default) — the GroupChatManager LLM reads the conversation and selects the most appropriate next speaker; (3) manual — the human selects the next speaker; (4) random — random selection. GroupChat.messages is the shared conversation history visible to all agents. Max_round limits the total number of turns. The admin_name field designates a human agent whose inputs are always accepted. For complex analysis: use role-differentiated agents (researcher, critic, synthesiser) with auto speaker selection. [1]"
+    },
+    {
+      "heading": "AutoGen 0.4: Actor Model and Async Architecture",
+      "body": "AutoGen 0.4 rewrite (late 2024): each agent is an actor (isolated state, processes messages from a queue, sends messages to other actors' queues). Key changes: (1) Asynchronous by default — agents run in async event loops; (2) Distributed — actors can run on different machines (via a runtime abstraction); (3) Event-driven — agents can subscribe to event types (MessageSentEvent, ModelClientStreamingChunkEvent); (4) Cancellation — agent tasks can be cancelled cleanly; (5) New API — AgentRuntime, RoutedAgent, message_handler decorator. The new architecture is more production-grade but requires learning the new API. Old ConversableAgent API continues to work via the auto-gen-agentchat package. [1]"
+    }
+  ],
+  "takeaways": [
+    "AutoGen: conversational multi-agent framework — agents communicate via message-passing, collaborate to complete tasks. [1]",
+    "UserProxyAgent automates the code-execution side of the code-write/execute/debug loop with AssistantAgent. [1]",
+    "GroupChat: N agents + GroupChatManager for multi-agent deliberation; auto speaker selection by LLM. [1]",
+    "human_input_mode: NEVER (full automation) / TERMINATE (at end) / ALWAYS (every turn) — native human-in-the-loop. [1]",
+    "AutoGen 0.4: actor model, async, distributed — production-grade rewrite of the original synchronous design. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you prevent AutoGen agent conversations from going off-topic or looping?",
+      "a": "Termination controls: (1) max_turns — hard limit on conversation length (UserProxyAgent(max_turns=10)); (2) is_termination_msg — a function that returns True when the conversation should end (e.g., lambda msg: 'TERMINATE' in msg['content']). Best practice: instruct the AssistantAgent to say 'TERMINATE' when it believes the task is complete, and set is_termination_msg to detect it; (3) max_consecutive_auto_reply — limits how many times the UserProxyAgent can reply without human input (prevents runaway auto-execution); (4) GroupChat.max_round — hard limit on GroupChat turns. For off-topic detection: include a 'gatekeeper' agent that checks if responses are relevant to the original task and can call for a reset. Always set hard limits — never rely on agents to self-terminate."
+    },
+    {
+      "q": "How do you run AutoGen code execution securely in production?",
+      "a": "Never use LocalCommandLineCodeExecutor in production — it executes arbitrary code on the host machine. Secure alternatives: (1) DockerCommandLineCodeExecutor — runs code in a Docker container; the container is sandboxed (no host filesystem access, network isolation configurable, resource limits set via docker run flags); specify a Docker image with only the packages the agent needs; (2) JupyterCodeExecutor — runs code in a Jupyter kernel; more stateful than Docker (variables persist across cells) but less isolated; (3) E2B sandbox — cloud-hosted isolated execution environment, API-based; (4) Custom executor — subclass CodeExecutor to implement a secure remote execution environment (AWS Lambda, modal.com, Cloud Run). For financial or production agents, always sandbox code execution and restrict the network access of the sandbox."
+    }
+  ],
+  "sources": [
+    { "label": "Wu et al. (2023) — AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation, COLM 2024", "url": "https://arxiv.org/abs/2308.08155" },
+    { "label": "AutoGen Documentation — official docs", "url": "https://microsoft.github.io/autogen/" }
+  ]
+}

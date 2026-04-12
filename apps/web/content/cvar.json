@@ -1,0 +1,67 @@
+{
+  "terms": [
+    { "term": "CVaR / ES", "def": "Conditional VaR = Expected Shortfall: the average loss in the worst α% of scenarios; always ≥ VaR." },
+    { "term": "VaR", "def": "Value at Risk: the loss not exceeded with probability (1−α); e.g. 99% VaR says 1% of days are worse than this." },
+    { "term": "Tail Risk", "def": "Risk from extreme, low-probability events in the left tail of the P&L distribution." },
+    { "term": "Coherent Risk Measure", "def": "A risk measure satisfying sub-additivity, monotonicity, positive homogeneity, and translation invariance. CVaR is coherent; VaR is not." },
+    { "term": "Sub-additivity", "def": "Risk(A+B) ≤ Risk(A) + Risk(B); diversification never increases risk — a property VaR can violate." },
+    { "term": "Loss Distribution", "def": "The probability distribution of portfolio losses over a horizon; CVaR and VaR are quantiles/tails of this distribution." }
+  ],
+  "eli3": [
+    "Conditional Value at Risk (CVaR) — also called Expected Shortfall (ES) or Expected Tail Loss — answers a question VaR ignores: 'When things go badly, how bad do they actually get?' CVaR is the average loss in the worst α% of scenarios. If 1-day 99% VaR is $1M, CVaR tells you the average loss on those worst 1% of days — which might be $3M or $20M depending on how fat the tail is.",
+    "CVaR is a better risk measure than VaR for three reasons: it captures the entire tail (not just a threshold); it's sub-additive (diversification always reduces CVaR); and it can't be gamed by strategies that have small VaR but catastrophic tail losses. Regulators (Basel FRTB) switched from VaR to ES in 2016 for these reasons.",
+    "Intuition: VaR is like a pass/fail test ('did you exceed the threshold?'); CVaR is like a grade ('how bad was it when you failed?'). Both are important, but CVaR gives more information about tail risk — particularly important for strategies with asymmetric return profiles."
+  ],
+  "whenWhy": [
+    {
+      "title": "Computing CVaR",
+      "body": "CVaR_α = E[X | X ≤ VaR_α] = (1/α) ∫₀^α VaR_u du (for continuous distributions). For a 99% CVaR: take all scenarios where loss exceeds the 99% VaR; compute their average. Discrete implementation: sort N scenarios from worst to best; CVaR_99% = average of worst 1% scenarios = average of worst N/100 scenarios. Example with N = 1000 scenarios: sort P&L; VaR_99% = -10th worst observation. CVaR_99% = average of 10 worst observations = -(sum of 10 worst / 10). Relationship: CVaR ≥ VaR always; gap reflects tail severity. For normal distribution: CVaR_99% ≈ 2.67σ; VaR_99% = 2.33σ; CVaR/VaR ≈ 1.15. For fat-tailed distributions: the ratio is much higher (CVaR can be 2-5× VaR)."
+    },
+    {
+      "title": "CVaR optimisation",
+      "body": "CVaR is a coherent risk measure and — crucially — a convex function of portfolio weights. This means you can directly minimise CVaR in a portfolio optimisation problem. Rockafellar & Uryasev (2000): CVaR_α(w) = min_ξ [ξ + (1/α) × E[max(-w'r - ξ, 0)]]. This reformulation is linear in (w, ξ) for a fixed set of scenarios: add auxiliary variables u_i ≥ 0 for each scenario i; minimise ξ + (1/Nα) Σ u_i, subject to u_i ≥ -w'r_i - ξ, u_i ≥ 0. This is a Linear Program (LP) — solvable efficiently. Application: construct a portfolio minimising CVaR subject to return target and other constraints; naturally avoids tail-risk strategies. Compare to MVO: MVO minimises variance (treats upside and downside symmetrically); CVaR minimisation only penalises downside tail risk — preserves upside."
+    },
+    {
+      "title": "CVaR in tail risk hedging",
+      "body": "CVaR provides a principled framework for sizing tail risk hedges. Portfolio with a long equity position: CVaR_99% = average loss in worst 1% scenarios. Add put options as hedge: they reduce CVaR by capping losses in tail scenarios. Optimal hedge size: minimise CVaR contribution per dollar of hedge cost. CVaR decomposition: CVaR_p = Σ_i w_i × CVaR_contribution_i. CVaR contribution of asset i: E[r_i × w_i | portfolio loss > VaR] — conditional average loss of position i given the portfolio is in the tail. Shorting the highest CVaR contributors most efficiently reduces tail risk. This is analogous to factor risk attribution but for tail risk — each position's contribution to expected tail loss guides hedging decisions. Used by hedge funds and risk parity funds to identify which positions dominate in stress scenarios."
+    }
+  ],
+  "deepDiveIntro": [
+    "Coherent risk measures (Artzner et al. 1999): a risk measure ρ is coherent if it satisfies: (1) Monotonicity: X ≤ Y ⟹ ρ(X) ≥ ρ(Y); (2) Sub-additivity: ρ(X+Y) ≤ ρ(X) + ρ(Y); (3) Positive homogeneity: ρ(λX) = λρ(X); (4) Translation invariance: ρ(X+m) = ρ(X) - m. VaR fails sub-additivity for non-elliptical distributions; CVaR satisfies all four properties. The dual representation of CVaR: CVaR_α(X) = max_{Q: dQ/dP ≤ 1/α} E_Q[-X] — CVaR is the worst-case expected loss over all probability measures Q that put at most 1/α weight on any state. This dual representation is useful for robust optimisation extensions."
+  ],
+  "deepDive": [
+    {
+      "heading": "CVaR vs VaR: Tail Risk Strategy Comparison",
+      "body": "Consider two strategies: Strategy A: earns +0.5% daily 99% of days; loses -3% on 1% of days. Strategy B: earns +0.3% daily 99% of days; loses -50% on 0.9% of days; -1% on 0.1% of days. Strategy A: VaR_99% = 3%, CVaR_99% = 3%. Strategy B: VaR_99% = 1% (only 1% of days lose more than 1%), CVaR_99% = (0.9/1.0) × 50% + (0.1/1.0) × 1% = 45.1%. VaR massively favors Strategy B — it appears much safer. CVaR correctly identifies Strategy B as catastrophic in the tail. This is the canonical argument for CVaR: selling out-of-the-money options (Strategy B) looks safe on a VaR basis until the tail event occurs. CVaR-based risk limits would correctly penalise such strategies. Post-2008: regulators and sophisticated risk managers require CVaR alongside VaR. [1]"
+    },
+    {
+      "heading": "CVaR Estimation in Practice: Sample Size and Accuracy",
+      "body": "CVaR estimation requires a large sample because it is an average of rare events (the tail). For CVaR_99%: only 1% of observations contribute. With N = 250 historical observations: the 99% CVaR uses only 2-3 observations — extremely noisy. For reliable CVaR: N ≥ 10,000 observations needed (≈40 years daily data — impractical). Solutions: (1) Parametric CVaR: fit a distribution (t-distribution, EVT/GPD) to the tail; compute CVaR analytically from the fitted tail. GPD tail fit: for extremes X > threshold u, P(X-u > x | X > u) ≈ (1 + ξx/σ)^{-1/ξ}; CVaR from GPD has a closed form. (2) Monte Carlo: generate N >> 1000 scenarios from a calibrated model; CVaR is much more stable with N = 100,000; (3) Importance sampling: oversample the tail region; reweight to get unbiased CVaR estimate with far fewer simulations than naive MC. Regulatory shortcut (Basel FRTB): ES at 97.5% ≈ VaR at 99% for normal distributions; requires less extrapolation than CVaR at 99%. [2]"
+    },
+    {
+      "heading": "Spectral Risk Measures and CVaR as a Special Case",
+      "body": "CVaR is a special case of spectral risk measures. A spectral risk measure assigns a weight function φ(u) to each quantile u: ρ_φ(X) = -∫₀¹ φ(u) F⁻¹_X(u) du, where F⁻¹ is the quantile function. For CVaR_α: φ(u) = (1/α) × 1_{u ≤ α} (uniform weight on worst α outcomes, zero on rest). For general spectral measures: φ is non-increasing (giving more weight to worse outcomes). This flexibility allows custom risk preferences: a risk manager who cares more about catastrophic losses than moderate losses can use φ that decreases steeply (exponential, power decay). Wang transform: used in insurance; φ(u) = φ(Φ⁻¹(u) + λ) for shift parameter λ. These provide a framework for risk pricing in insurance and derivatives that generalises risk-neutral pricing. For asset management: standard CVaR (equal weight on tail) is sufficient for most applications; more sophisticated weight functions are used in insurance. [1]"
+    }
+  ],
+  "takeaways": [
+    "CVaR_α = average loss in worst α% of scenarios; always ≥ VaR; captures tail severity, not just threshold. [1]",
+    "CVaR is coherent (sub-additive): diversification always reduces CVaR; VaR can violate this. [1]",
+    "CVaR optimisation: Rockafellar-Uryasev reformulation as LP — minimise CVaR directly in portfolio construction. [1]",
+    "CVaR estimation requires large samples; use parametric tail fit (GPD) or MC with importance sampling. [2]",
+    "Basel FRTB 2016: replaced VaR with ES at 97.5% for bank market risk capital — CVaR captures tail better. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How does CVaR behave under stress scenario analysis?",
+      "a": "CVaR is naturally suited to stress testing because it already focuses on the tail. When you add specific stress scenarios to the historical simulation, they directly contribute to CVaR (if they're worse than the VaR threshold). Conditional CVaR by scenario type: 'What is our CVaR conditional on a 2008-style credit crisis?' — select only the stress scenarios that match 2008-style conditions; compute CVaR from this subset. CVaR decomposition by risk factor: 'What fraction of our CVaR comes from equity market risk vs. credit risk vs. rates?' — compute CVaR contribution of each factor position. This allows risk managers to identify which risks dominate the tail, regardless of whether they dominate in normal times (which is the VaR decomposition). Example: a portfolio might have interest rate risk as 60% of daily VaR but only 20% of CVaR (because equity crashes dominate the tail scenarios)."
+    },
+    {
+      "q": "What is the difference between CVaR and stressed CVaR?",
+      "a": "CVaR uses the historical distribution over the standard risk window (typically 1-3 years for most risk systems). Stressed CVaR uses the historical distribution from the worst 12-month window in history (identified as the period where the bank's current portfolio would have had the highest losses). In Basel III (before FRTB): capital = VaR + Stressed VaR (using worst historical 12-month period). The stressed VaR was introduced because banks' VaR models used 2003-2006 data (calm period) and drastically underestimated the 2008 crisis — the VaR didn't reflect the kind of market stress that was actually possible. Under FRTB: stressed ES (SES) plays the same role — computed over the single worst 12-month period identified for the current portfolio. The selection of the stressed period is done by identifying the 12-month window that maximises the portfolio's ES, not just any historical crisis."
+    }
+  ],
+  "sources": [
+    { "label": "Artzner, P. et al. (1999) — Coherent Measures of Risk, Mathematical Finance", "url": "https://doi.org/10.1111/1467-9965.00068" },
+    { "label": "Rockafellar, R.T. & Uryasev, S. (2000) — Optimization of Conditional Value-at-Risk, Journal of Risk", "url": "https://doi.org/10.21314/JOR.2000.038" }
+  ]
+}

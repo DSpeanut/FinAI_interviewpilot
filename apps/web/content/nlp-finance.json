@@ -1,4 +1,12 @@
 {
+  "terms": [
+    { "term": "Sentiment Score", "def": "A numerical signal (positive/negative) extracted from text; used to predict short-term returns or risk." },
+    { "term": "FinBERT", "def": "BERT pre-trained on financial text (earnings calls, news); better than generic NLP for domain-specific financial sentiment." },
+    { "term": "Loughran-McDonald", "def": "Finance-specific sentiment dictionary; words like 'loss' are negative in finance but not in general English." },
+    { "term": "Earnings Call", "def": "Quarterly conference call where executives discuss results; NLP on tone/language predicts post-call returns." },
+    { "term": "10-K / 10-Q", "def": "SEC annual/quarterly filings; change in language year-over-year is an NLP signal (e.g. increased uncertainty)." },
+    { "term": "Named Entity Recognition", "def": "NLP task identifying companies, people, locations; enables linking news to the right securities." }
+  ],
   "eli3": [
     "NLP (Natural Language Processing) in finance applies text analysis techniques to financial documents — earnings call transcripts, SEC filings, news articles, analyst reports, social media — to extract signals for trading or risk management. The core idea: the language used by executives, analysts, and media contains information about future company performance that is not fully captured in numerical data.",
     "Key applications: predicting stock price movements from earnings call tone, detecting accounting fraud from unusual language in 10-K filings, measuring market sentiment from news headlines, and extracting information from unstructured documents (credit agreements, patents) that would take humans hours to read.",

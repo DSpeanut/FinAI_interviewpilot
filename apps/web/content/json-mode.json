@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "JSON mode is a simpler version of structured outputs: you tell the LLM 'respond only in valid JSON' and it guarantees the response is parseable JSON — but it doesn't guarantee the JSON has specific fields or structure. Think of it as 'valid JSON, whatever shape you like', vs. structured outputs which enforce a specific schema.",
+    "JSON mode was introduced before structured outputs (schema-constrained decoding) existed. It works by instructing the model to output only JSON, combined with a sampling approach that avoids producing non-JSON tokens. It's less strict than structured outputs but simpler to use.",
+    "JSON mode is sufficient when you just need machine-readable output (any valid JSON will do) and you're extracting the structure yourself. Structured outputs (with a schema) are better when you need specific fields and types guaranteed."
+  ],
+  "whenWhy": [
+    {
+      "title": "When you need machine-readable output without a strict schema",
+      "body": "JSON mode is appropriate when: the output structure may vary (different documents have different fields), you're doing exploratory extraction (you don't know the schema upfront), or you're prototyping (you'll add a schema later). JSON mode guarantees parseability — you won't get a Python json.loads() error. The trade-off: you still need to handle missing fields, type mismatches, and unexpected structure in your code."
+    },
+    {
+      "title": "Compatibility with models that don't support strict structured outputs",
+      "body": "Strict structured outputs (constrained decoding) are only available for certain models and configurations. JSON mode is more broadly available: it works on older models, fine-tuned models, open-source models (via system prompt), and models without native constrained decoding support. If you're using a model without schema enforcement, JSON mode + careful prompt engineering + Pydantic validation (parse and validate after receiving) is the fallback."
+    },
+    {
+      "title": "When the output schema is dynamic or user-defined",
+      "body": "Structured outputs require a fixed schema known at API call time. JSON mode handles dynamic schemas: if the user defines a custom output format at runtime, or if the schema varies based on input content type (an invoice has different fields than a contract), you can't hardcode the schema. JSON mode + a schema description in the prompt handles this: 'Return a JSON object with the following fields: {user_provided_fields}'. The model outputs JSON with those fields; you validate with a dynamically constructed Pydantic model."
+    }
+  ],
+  "deepDiveIntro": [
+    "JSON mode in the OpenAI API: set response_format={type: 'json_object'}. The model is instructed to output only valid JSON. Important: the model must also be told to output JSON in the user message or system prompt — JSON mode alone doesn't specify what JSON to produce. Without a prompt instruction, the model may produce minimal valid JSON like {}. JSON mode does NOT guarantee the JSON has specific fields or types — only that it's valid JSON. OpenAI deprecated response_format: 'json_object' in favor of response_format with a full JSON Schema (structured outputs) for models that support it.",
+    "For open-source models or models accessed via custom inference servers, JSON mode is typically implemented via: (1) system prompt ('You must respond only with valid JSON, no explanations'); (2) grammar-constrained sampling (Outlines library, llama.cpp grammar sampling); (3) post-processing retry (if the response isn't valid JSON, re-prompt). Outlines provides the most reliable guarantee for open-source models."
+  ],
+  "deepDive": [
+    {
+      "heading": "JSON Mode vs Structured Outputs: When to Use Which",
+      "body": "JSON mode: use when (1) prototyping and schema isn't finalised; (2) model doesn't support constrained decoding; (3) output schema varies per call; (4) you only need 'any valid JSON'. Structured outputs: use when (1) specific fields are required; (2) types must be enforced (int, not 'twelve'); (3) enum fields must be constrained; (4) additionalProperties must be disallowed; (5) production system where schema violation would cause downstream failures. Migration path: start with JSON mode in development → define a Pydantic schema from observed output shapes → migrate to structured outputs for production. The schemas are compatible: a JSON Schema used by structured outputs is a superset of what you'd describe in a JSON mode prompt. [1]"
+    },
+    {
+      "heading": "Prompt Engineering for Reliable JSON Mode",
+      "body": "JSON mode alone doesn't specify what JSON to produce. Best practices for the prompt: (1) Specify the exact fields: 'Return a JSON object with fields: company_name (string), founding_year (integer), revenue_usd (number or null)'; (2) Give an example: 'Example output: {\"company_name\": \"Acme Corp\", \"founding_year\": 1990, \"revenue_usd\": 1500000}'; (3) Handle missing data: 'Set fields to null if the information is not present'; (4) Specify the root type: 'Return a JSON object' or 'Return a JSON array of objects' — the model may return either without guidance; (5) Explicit instruction: 'Respond ONLY with a JSON object. Do not include any explanation, markdown code fences, or text before/after the JSON.' The last instruction is critical: many models wrap JSON in ```json ... ``` code fences. [1]"
+    },
+    {
+      "heading": "Post-Processing and Validation",
+      "body": "Even with JSON mode, validate the output: (1) json.loads() — catches invalid JSON (shouldn't happen with JSON mode but is a safety net); (2) Pydantic parsing — validate field presence and types: MyModel.model_validate(data). If validation fails, retry the LLM call with an error message: 'Your previous response was missing the required field: revenue_usd. Please regenerate.'; (3) Type coercion — JSON mode may return '2024' (string) where you need 2024 (integer); Pydantic's model_config = ConfigDict(coerce_numbers_to_str=False) helps; or use field validators for explicit coercion; (4) Handling code fences — if the model wraps JSON in ```json ... ```, strip with regex: re.search(r'```json\\s*(.*?)\\s*```', response, re.DOTALL). [1]"
+    }
+  ],
+  "takeaways": [
+    "JSON mode: guarantees valid parseable JSON, but NOT specific fields or types — that requires structured outputs. [1]",
+    "Must include JSON instruction in the prompt alongside setting response_format — JSON mode doesn't specify what JSON. [1]",
+    "Common failure: model wraps JSON in code fences; post-process to strip them. [1]",
+    "Migration path: JSON mode (development) → Pydantic schema from observations → structured outputs (production). [1]",
+    "For open-source models: use Outlines grammar sampling for guaranteed JSON without an API-level JSON mode. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does JSON mode sometimes produce an empty object {} even when data is present?",
+      "a": "JSON mode guarantees valid JSON but not useful JSON. If the system prompt says 'You are a helpful assistant' and the user says 'extract the company details' with JSON mode enabled but no JSON structure specified in the prompt, the model may output {} (a valid JSON object with no fields) because it doesn't know what fields to include. Fix: always explicitly specify the desired JSON structure in the prompt: 'You must respond with a JSON object containing: name (string), year_founded (integer), ...' or provide a JSON example. JSON mode is a necessary but not sufficient condition for useful structured output. Treat JSON mode as 'the model won't add prose or code fences' not 'the model will produce the right JSON'."
+    },
+    {
+      "q": "How do you handle JSON mode for models that hallucinate or corrupt JSON structure?",
+      "a": "Even with JSON mode, some models (especially smaller ones) produce structurally invalid JSON or valid-but-wrong JSON (wrong field names, wrong nesting). Defence-in-depth: (1) Grammar-constrained sampling (Outlines) — at the token level, prevents any structurally invalid JSON from being generated; the strongest guarantee; (2) Schema validation + retry — catch Pydantic validation errors, include the error in the retry prompt: 'Your response failed validation: Field revenue_usd must be a number, got \"N/A\". Please fix and respond again.'; (3) Lenient JSON parsing — use json5 or demjson (tolerant parsers) to handle minor issues like trailing commas or unquoted keys before Pydantic validation; (4) Error rate monitoring — track JSON parse failure rates per model; if > 5%, investigate prompt or switch models. Two retries are typically sufficient for transient formatting failures."
+    }
+  ],
+  "sources": [
+    { "label": "OpenAI JSON Mode Documentation — response_format reference", "url": "https://platform.openai.com/docs/guides/structured-outputs#json-mode" },
+    { "label": "Willard & Louf (2023) — Efficient Guided Generation for Large Language Models (Outlines)", "url": "https://arxiv.org/abs/2307.09702" }
+  ]
+}

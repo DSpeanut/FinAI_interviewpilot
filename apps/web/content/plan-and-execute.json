@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "Plan-and-Execute is an agent pattern that separates thinking from doing. First, a 'planner' model reads the task and creates a step-by-step plan: Step 1: search for X, Step 2: calculate Y from the results, Step 3: summarise. Then an 'executor' carries out each step, one at a time.",
+    "This is different from the ReAct pattern, where the agent thinks and acts one step at a time as it goes. Plan-and-Execute creates the whole plan first, then executes it. The advantage: you can show the user the plan before running it, and each executor step is a simpler, focused task.",
+    "The downside is that plans can become stale — if Step 2 returns something unexpected, the remaining plan may need to be revised. Modern systems add a 'replanner' that updates the plan when observations diverge significantly from expectations."
+  ],
+  "whenWhy": [
+    {
+      "title": "Long-horizon tasks with predictable structure",
+      "body": "For tasks with many steps and known structure (e.g., 'research this company: find financials, recent news, key executives, and competitors, then write a report'), Plan-and-Execute is more efficient than reactive ReAct. The planner creates a comprehensive plan upfront; each executor call is a focused, single-step task with a small, targeted context. This avoids the context bloat of long ReAct chains where every previous observation accumulates in the prompt."
+    },
+    {
+      "title": "Human-in-the-loop approval workflows",
+      "body": "Plan-and-Execute enables a natural checkpoint: show the user the plan before execution. 'Here's what I plan to do: (1) read your calendar, (2) draft 3 meeting invite options, (3) send to participants. Proceed?' The user can approve, modify, or reject the plan before any irreversible actions are taken. Purely reactive agents (ReAct) are harder to interrupt — you'd have to stop mid-execution. This makes Plan-and-Execute the preferred pattern for agentic workflows that involve high-stakes or irreversible actions."
+    },
+    {
+      "title": "Efficient use of multiple specialized sub-agents",
+      "body": "In multi-agent systems, the planner delegates each step to a specialist sub-agent (research agent, code-writing agent, summarisation agent). Each sub-agent receives a clear, scoped task from the plan rather than the full task context. This is more efficient than a single general-purpose agent that must handle everything. The planner acts as an orchestrator; the executors are specialists. This pattern is used in frameworks like LangGraph, CrewAI, and Autogen for complex, multi-agent workflows."
+    }
+  ],
+  "deepDiveIntro": [
+    "Plan-and-Execute (Wang et al. 2023) was introduced as an improvement over ReAct for long-horizon tasks. On benchmarks requiring many steps, Plan-and-Execute reduced the number of LLM calls while maintaining or improving task success rates. The planner uses chain-of-thought or structured output to generate a plan; the executor uses a smaller, faster model for each step. The paper demonstrated that using GPT-3.5 as the executor with GPT-4 as the planner achieved near-GPT-4 quality at significantly lower cost.",
+    "LangChain's PlanAndExecute agent (later refactored into LangGraph) implements this pattern. The planner outputs a list of steps (each with a description and expected output); the executor processes them sequentially, updating the step list with results. A replanning module checks after each step whether the plan needs updating based on the observation."
+  ],
+  "deepDive": [
+    {
+      "heading": "Planner–Executor–Replanner Architecture",
+      "body": "Three components: (1) Planner LLM — given the user's task, outputs a structured plan: [{step: 1, task: 'search for OpenAI Q3 2024 revenue', expected_output: 'revenue figure'}, ...]. Uses a capable, high-reasoning model (GPT-4, Claude 3.5 Sonnet) since plan quality determines task success; (2) Executor LLM — given a single step from the plan + previous observations, executes the step (tool call + result). Can use a faster, cheaper model (GPT-3.5-turbo, Claude Haiku) since each step is narrowly scoped; (3) Replanner — after each execution, checks if the remaining plan is still valid given the latest observation. Replans if the observation was unexpected. [1]"
+    },
+    {
+      "heading": "Plan Representation and Structured Output",
+      "body": "Plans can be represented as: (1) ordered list of natural language steps (simplest, least structured); (2) JSON array of step objects with fields for task, tools allowed, expected output, dependencies — enables the executor to know exactly what tools to use and what output format to return; (3) directed acyclic graph (DAG) — steps with explicit dependencies allow parallel execution of independent steps. LangGraph uses a graph-based plan representation where nodes are steps and edges are dependencies. Parallel execution of independent steps can reduce wall-clock time by 2-5x for plans with many independent sub-tasks. [1]"
+    },
+    {
+      "heading": "Plan-and-Execute vs ReAct: When to Use Which",
+      "body": "Use Plan-and-Execute when: task has many steps (>5), task structure is predictable, you need human approval before execution, different steps benefit from different models/agents, context window management is a concern. Use ReAct when: task is exploratory (you don't know the steps upfront), intermediate results frequently change the plan, task has few steps (< 5), low latency is required (no round-trip to a planner). Hybrid: start with Plan-and-Execute, switch to ReAct within each executor step if that step requires iterative exploration. [1]"
+    }
+  ],
+  "takeaways": [
+    "Plan-and-Execute separates planning (planner LLM) from execution (executor LLM) for long-horizon multi-step tasks. [1]",
+    "The planner runs once; executor calls are narrowly scoped — more efficient context management than ReAct. [1]",
+    "Enables human-in-the-loop approval: show the plan before executing irreversible actions. [1]",
+    "Use a strong model for planning, a fast/cheap model for execution steps — cost-efficient quality. [1]",
+    "A replanner module handles plan invalidation when observations diverge from expectations. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What happens when the plan becomes invalid mid-execution?",
+      "a": "Plan invalidation occurs when an observation reveals that a prior assumption in the plan was wrong (e.g., the planned data source doesn't exist, a computed value is out of expected range, an API returns an error). Strategies: (1) Hard replanning — send the original task, the executed steps, and all observations to the planner LLM and ask for a revised plan for the remaining steps; (2) Soft replanning — the executor LLM decides at each step whether to proceed, skip, or modify the current step; (3) Plan-and-Execute with fallback to ReAct — if replanning fails or the plan is too uncertain, switch to reactive ReAct mode for the remainder of the task. The key insight: plans are hypotheses; observations are evidence; replanning is Bayesian updating of the hypothesis."
+    },
+    {
+      "q": "How do you prevent the planner from creating plans that are too specific or too vague?",
+      "a": "Too specific: the planner generates steps with hard-coded values that may not exist (specific file paths, API endpoints, people's names). Too vague: steps like 'do research' don't give the executor enough guidance to take action. Fix: (1) Include few-shot examples of good plans in the planner's prompt — examples calibrate plan granularity; (2) Require the planner to output expected_output for each step — forces it to think about what a successful step looks like; (3) Post-process the plan with a validator that checks for actionability (each step should map to one or more available tools); (4) Iterative planning: planner generates a draft plan, validator critiques it, planner revises — 2-3 rounds usually suffices."
+    }
+  ],
+  "sources": [
+    { "label": "Wang et al. (2023) — Plan-and-Solve Prompting: Improving Zero-Shot Chain-of-Thought Reasoning by Large Language Models", "url": "https://arxiv.org/abs/2305.04091" },
+    { "label": "LangChain Plan-and-Execute Agent Documentation — official docs", "url": "https://python.langchain.com/docs/how_to/migrate_agent_executor/" }
+  ]
+}

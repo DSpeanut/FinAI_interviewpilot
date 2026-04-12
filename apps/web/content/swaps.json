@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "A swap is an agreement between two parties to exchange cash flows over a period of time. The most common type — an interest rate swap — exchanges a fixed interest payment for a floating interest payment on the same notional amount. No principal is exchanged; only the net difference in interest payments changes hands.",
+    "Why do swaps exist? A company with a floating-rate loan (pays SOFR + 2%) might prefer certainty — paying a fixed rate. A bond investor earning a fixed coupon might want floating exposure to benefit from rising rates. A swap lets them exchange without renegotiating the underlying loan or bond. Banks intermediate between the two parties.",
+    "Swaps are the largest derivatives market in the world: the notional outstanding exceeds $400 trillion. They're used by corporations to manage interest rate risk, by asset managers to gain or reduce duration exposure, by banks to hedge loan books, and by governments to manage debt costs."
+  ],
+  "whenWhy": [
+    {
+      "title": "Interest rate swap mechanics",
+      "body": "Plain vanilla interest rate swap: Party A (fixed payer) pays fixed rate K% per year on notional N; Party B (floating payer) pays SOFR (or relevant benchmark) per year on the same N. Net payment each period: if SOFR > K, Party A receives the difference (net); if SOFR < K, Party A pays the difference. Valuation at inception: the fixed rate K is set so the swap has zero value (both legs have equal PV). At any future date: swap value = PV(floating leg) - PV(fixed leg). From fixed payer's perspective: +1 unit of floating - 1 unit of fixed = effectively long a floating rate bond, short a fixed rate bond. Duration: the fixed leg has duration ≈ swap maturity; the floating leg has duration ≈ next reset date (near zero). Net duration of fixed-payer swap ≈ -swap_maturity. Asset managers use pay-fixed swaps to reduce portfolio duration; receive-fixed swaps to extend duration."
+    },
+    {
+      "title": "Cross-currency swaps and FX hedging",
+      "body": "Cross-currency swap: exchanges principal AND interest in two different currencies. A Japanese company issues USD bonds (cheap USD borrowing) but wants JPY exposure for its domestic operations. It uses a cross-currency swap: at inception, exchange USD principal for JPY at spot rate; during the swap, exchange USD fixed coupons for JPY fixed coupons; at maturity, re-exchange principal at original rate. The company effectively converts its USD bond into a JPY bond, matching its actual business. Cross-currency basis swap: exchanges floating rates in two currencies (e.g., SOFR vs. TONAR/JPY floating). The basis spread reflects the relative demand for USD vs. JPY funding — the USD premium over pure covered interest parity. Since 2008, persistent cross-currency basis reflects structural demand for USD funding globally."
+    },
+    {
+      "title": "Total return swaps and synthetic exposure",
+      "body": "Total return swap (TRS): one party pays the total return of an asset (price appreciation + dividends) on a notional N; the other pays a financing rate (SOFR + spread) on the same N. Used for: (1) Synthetic long exposure: hedge funds gain equity exposure without owning shares (no balance sheet usage, potentially confidential); (2) Synthetic short: pay total return = economic equivalent of short selling without borrowing the stock; (3) Balance sheet optimisation: banks use TRS to move assets off-balance-sheet while retaining economic exposure; (4) Credit exposure: total return swap on a bond portfolio transfers both credit and interest rate risk. Equity TRS: Prime broker pays SOFR + spread and receives total return of S&P 500. Archegos Capital collapse (2021): Archegos built massive TRS positions with multiple prime brokers; none knew the full exposure; when positions unwound simultaneously, banks lost ~$10B."
+    }
+  ],
+  "deepDiveIntro": [
+    "IRS valuation: swap = portfolio of forward rate agreements (FRAs). Value at time t: V_swap = PV(floating leg) - PV(fixed leg). Fixed leg: Σ_i K × N × Δt_i × B(t, T_i), where B(t,T) = zero-coupon bond price. Floating leg: N × (B(t,t_0) - B(t,T_n)) (assuming SOFR, the floating leg resets perfectly). Par swap rate K* = [B(t,t_0) - B(t,T_n)] / Σ_i Δt_i B(t,T_i) (annuity weighted). At inception, K = K*, so V = 0. DV01 (Dollar Value of a Basis Point): change in swap value for 1bp parallel shift in the yield curve. DV01 ≈ N × T × 0.0001 × Annuity_factor. For a 10-year $100M IRS: DV01 ≈ $90,000."
+  ],
+  "deepDive": [
+    {
+      "heading": "Credit Default Swaps (CDS) and Credit Risk Transfer",
+      "body": "A credit default swap (CDS) is an insurance contract against credit events (default, restructuring, bankruptcy) on a reference entity. Protection buyer pays a periodic premium (the CDS spread, quoted in bps/year); protection seller pays face value minus recovery if a credit event occurs. CDS spread ≈ default probability × (1 - recovery rate). Single-name CDS: on one company. CDS index (CDX, iTraxx): basket of single-name CDS. Uses: (1) Hedging credit exposure: a bank with corporate loan exposure buys CDS on the same company — credit risk transferred; (2) Expressing credit views: buy protection = short credit; sell protection = long credit; (3) Capital structure arbitrage: trade CDS vs. bonds vs. equity to exploit relative mispricings. CDS during 2008: Lehman CDS settled at 8.625 cents on the dollar (91.375 cents loss per $100 face) — $270B of protection paid out. AIG's credit default swap portfolio on structured products was the core of its near-collapse. [1]"
+    },
+    {
+      "heading": "Swap Curve and Benchmark Rate Construction",
+      "body": "The swap curve (par swap rates at each maturity) is the primary benchmark for pricing fixed income securities and derivatives. Construction: (1) Money market segment (0-1 year): from SOFR OIS rates, Fed Funds futures, T-bill yields; (2) Futures segment (1-3 years): from SOFR futures strip; (3) Swap segment (3-30 years): from quoted par swap rates. Bootstrapping: extract zero-coupon rates (spot curve) from par swap rates sequentially — this is the term structure of risk-free rates. IBOR → RFR transition: the global switch from LIBOR to SOFR/SONIA/ESTR changed the benchmark for floating legs of all swaps. Pre-2022: floating leg = LIBOR. Post-2022: floating leg = SOFR compounded in arrears. This required systemic changes to all swap documentation, pricing models, and risk systems. The swap spread (swap rate minus same-maturity Treasury yield) reflects: credit premium of bank funding (pre-2009 positive), supply/demand imbalances, and regulatory capital changes (post-2009 can be negative in US). [2]"
+    },
+    {
+      "heading": "Variance Swaps and Volatility Trading",
+      "body": "A variance swap exchanges realised variance against a fixed variance strike: payoff = N × (σ²_realised - K²_var). Unlike options, variance swaps provide pure exposure to realised variance without delta hedging. Valuation: K_var (fair variance strike) is the VIX² value approximately — the risk-neutral expectation of future variance. The variance risk premium: K_var consistently exceeds subsequent realised variance — variance sellers systematically earn a premium (~3-5 variance points per year historically). Why? Investors pay for variance protection because variance spikes correlate with portfolio losses. Uses: (1) Hedge a book of options: buy variance swap to offset gamma exposure; (2) Express volatility views: buy variance swap to profit from future volatility spike; (3) Volatility carry trade: sell variance swap, earn risk premium; (4) Realised vs. implied spread: variance swap payoff = difference between realised and implied variance. Related instruments: VIX futures (less pure volatility exposure than variance swaps due to VIX being implied vol, not variance). [1]"
+    }
+  ],
+  "takeaways": [
+    "IRS: fixed payer receives (SOFR - K) net; fixed receiver receives (K - SOFR) net; zero value at inception. [1]",
+    "Duration: fixed-payer swap has duration ≈ -maturity; receive-fixed extends portfolio duration. [1]",
+    "Par swap rate K* = [B(t,t₀) - B(t,Tₙ)] / Σ Δtᵢ B(t,Tᵢ) — ensures zero initial value. [1]",
+    "CDS: spread ≈ default probability × (1 - recovery rate); buy protection = short credit. [1]",
+    "Variance swap: payoff = N × (σ²_realised - K²_var); pure vol exposure without delta hedging. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you value an interest rate swap mid-life?",
+      "a": "At any time t after inception, the swap has value because interest rates have moved from the original par rate K*. For a receive-fixed swap with rate K: V_receive_fixed(t) = PV(fixed leg remaining) - PV(floating leg remaining). Fixed leg: Σ_{i>t} K × N × Δt_i × B(t,T_i). Floating leg: N × (B(t,T_next_reset) - B(t,T_n)) for a SOFR-based swap. Using current zero curve: (1) Bootstrap current zero curve from market instruments; (2) Discount remaining cash flows at current zeros; (3) Floating leg = N × [1 - B(t,T_n)] (approximately). For a 10-year swap entered 2 years ago: now an 8-year swap; if rates fell 100bps, the fixed leg (paying above-market fixed) has risen in PV → positive value for fixed receiver. This is why pension funds with receive-fixed swaps gained significantly during the 2014-2020 rate decline."
+    },
+    {
+      "q": "What is the difference between a swap and a bond from a risk perspective?",
+      "a": "A receive-fixed interest rate swap is economically equivalent to: long a fixed-rate bond + short a floating-rate note (FRN), both of the same maturity and notional. Key practical differences: (1) Capital efficiency: swaps require only margin (2-5% of notional), not full capital outlay; leverage built in; (2) Credit risk: swap only has mark-to-market credit exposure (replacement cost if counterparty defaults), not principal exposure; bond has full principal at risk to issuer default; (3) Funding: bond requires funding at full price; swap requires only margin; (4) Accounting: swaps and bonds are treated differently under IFRS/GAAP (hedge accounting applies to swaps used for hedging); (5) Regulatory capital: cleared swaps (LCH, CME) have lower capital requirements than uncleared bilateral swaps post-Dodd-Frank/EMIR. For duration management: large asset managers prefer swaps for large duration changes (lower cost, no funding requirement); bonds for generating income."
+    }
+  ],
+  "sources": [
+    { "label": "Hull, J.C. — Options, Futures, and Other Derivatives (10th ed.), Pearson", "url": "https://www.pearson.com/en-us/subject-catalog/p/options-futures-and-other-derivatives/P200000005938" },
+    { "label": "ISDA — Interest Rate Derivatives Pricing (IBOR Transition)", "url": "https://www.isda.org/category/market-practice-and-regulatory-policy/ibor-transition/" }
+  ]
+}

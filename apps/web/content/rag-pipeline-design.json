@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "A RAG pipeline is the full system that connects your documents to an LLM so it can answer questions about them. The pipeline has three main stages: indexing (process and store your documents), retrieval (find relevant pieces given a question), and generation (use those pieces to write an answer).",
+    "Building each stage correctly is a significant engineering task. Indexing involves choosing how to split documents, which embedding model to use, and which vector database to store them in. Retrieval involves tuning how many results to fetch and how to rank them. Generation involves designing the prompt that combines the question with the retrieved text.",
+    "Each stage has multiple configuration choices that significantly impact quality. A well-designed RAG pipeline can answer questions accurately with citations; a poorly designed one will retrieve irrelevant chunks and produce hallucinated answers."
+  ],
+  "whenWhy": [
+    {
+      "title": "Enterprise document Q&A over private knowledge bases",
+      "body": "The primary use case for production RAG: employees asking questions about internal documents (policies, contracts, technical docs, past projects) that the LLM was not trained on. The RAG pipeline enables: accurate answers grounded in the actual documents, source citations for verification, access to documents updated after the LLM's training cutoff. Without RAG, the LLM either admits ignorance or hallucinates plausible-sounding but incorrect answers about private knowledge."
+    },
+    {
+      "title": "Reducing hallucination on factual queries",
+      "body": "LLMs hallucinate specific facts (numbers, names, dates, technical specifications). RAG reduces hallucination on the retrieved facts by grounding the answer in retrieved text. The LLM is prompted to answer 'based only on the provided context'. If the relevant document is retrieved, the LLM can cite it accurately; if it isn't retrieved (retrieval failure), the system should return 'I don't have information on this' rather than generating from model memory. This fail-safe is a critical design choice that must be implemented explicitly."
+    },
+    {
+      "title": "Scaling to large, dynamic document collections",
+      "body": "Fine-tuning an LLM on a large document corpus: expensive (GPU time), requires retraining when documents change, may not inject specific facts reliably. RAG scales to millions of documents with constant inference-time cost (retrieval + one LLM call). Updating the knowledge base: add/update/delete documents in the vector store without any model training. The knowledge base is decoupled from the model, enabling independent updates to both."
+    }
+  ],
+  "deepDiveIntro": [
+    "RAG pipeline design involves three subsystems: (1) Ingestion pipeline — document loading → preprocessing → chunking → embedding → indexing; runs offline or on a schedule; (2) Query pipeline — query pre-processing → retrieval → re-ranking → prompt construction → LLM generation → post-processing; runs at query time; (3) Feedback loop — evaluation → error analysis → iterative improvement. Most production failures are caused by inadequate chunking (wrong chunk size, no overlap) or retrieval errors (embedding model mismatch, wrong similarity metric), not by the LLM generation step.",
+    "Advanced RAG patterns (Gao et al. 2023) classified into three generations: Naive RAG (chunk → embed → store → retrieve → generate), Advanced RAG (better chunking, re-ranking, query rewriting, multi-hop retrieval), and Modular RAG (composable pipeline components that can be swapped). The field has moved primarily to Advanced and Modular RAG for production systems."
+  ],
+  "deepDive": [
+    {
+      "heading": "Ingestion Pipeline: Critical Design Decisions",
+      "body": "Document loading: use source-specific loaders (pdfplumber for PDFs, BeautifulSoup for HTML) — generic loaders lose formatting. Preprocessing: clean headers/footers, extract tables separately (tables need structured representation, not raw text chunks). Chunking: RecursiveCharacterTextSplitter (split on paragraph → sentence → word boundaries, in that priority) with chunk_size=512 tokens and chunk_overlap=50 tokens is the recommended default. Embedding: text-embedding-3-small (OpenAI, 1536d) or BGE-base-en-v1.5 (open-source, MTEB top-performer, 768d). Metadata: attach source URL, document title, section, page number, and creation date to every chunk — enables filtered retrieval. Vector store: pgvector (Postgres extension, no new infrastructure) for small-medium scale; Pinecone or Weaviate for large scale. [1]"
+    },
+    {
+      "heading": "Query Pipeline: Retrieval and Augmentation",
+      "body": "Query pre-processing: (1) Query expansion — generate 3-5 paraphrases of the query and retrieve for each; merge results with RRF; (2) HyDE (Hypothetical Document Embeddings, Gao et al. 2022) — generate a hypothetical answer to the query, embed it, and use it for retrieval (more semantically aligned with relevant chunks than the raw question). Retrieval: k=20 initial candidates. Re-ranking: cross-encoder (ms-marco-MiniLM-L-6-v2 or Cohere Rerank API) re-scores the 20 candidates, return top-5. This two-stage retrieval (fast bi-encoder for recall, slow cross-encoder for precision) is the standard production pattern. Prompt construction: 'Answer based only on the following context. If the answer is not in the context, say so. Context: {chunks}. Question: {query}'. [2]"
+    },
+    {
+      "heading": "Failure Modes and Mitigations",
+      "body": "Most RAG failures are retrieval failures, not generation failures. Common failure modes: (1) Semantic mismatch — the query uses different vocabulary than the documents; fix: add BM25 sparse retrieval alongside dense retrieval (hybrid search) to handle exact keyword matches; (2) Chunk boundary problem — the answer spans a chunk boundary; fix: increase chunk overlap (100 tokens) or use parent-child chunking; (3) Multi-hop queries — the answer requires chaining across multiple documents; fix: multi-hop retrieval (use the first result to generate a follow-up query); (4) Context window overflow — too many retrieved chunks exceed the LLM's context budget; fix: re-rank and take only top-3 after re-ranking; (5) LLM ignores context — the LLM uses its training knowledge instead of the retrieved context; fix: prompt engineering ('Answer ONLY based on the provided context. Do NOT use prior knowledge.'). [1]"
+    }
+  ],
+  "takeaways": [
+    "RAG pipeline: ingestion (chunk → embed → store) + query (retrieve → re-rank → generate). [1]",
+    "Chunking defaults: RecursiveCharacterTextSplitter, chunk_size=512 tokens, chunk_overlap=50 tokens. [2]",
+    "Two-stage retrieval: k=20 bi-encoder (recall) → cross-encoder re-rank → top-5 (precision). [2]",
+    "Hybrid search (dense + BM25) handles vocabulary mismatch; RRF merges rankings. [1]",
+    "Most production failures are retrieval failures — invest in chunking quality and hybrid search first. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle multi-modal documents (PDFs with tables and images)?",
+      "a": "Tables: extract tables separately from text using libraries like pdfplumber (Python) or Camelot. Convert tables to Markdown format before embedding — Markdown tables preserve structure in text. Store table chunks with metadata {type: 'table', source: doc, page: N}. Alternatively, convert tables to natural language summaries ('Table 3: Q3 revenue by region — North America: $2.3B, Europe: $1.1B'). Images: for text-bearing images (screenshots, diagrams with labels), use OCR (Tesseract, AWS Textract) to extract text. For semantic images (charts, photos): embed a caption generated by a multimodal LLM (GPT-4V, Claude 3.5 Sonnet) and store alongside the image. At retrieval time, the caption is matched semantically; at generation time, the image is included in the multimodal prompt. PDF-specific: always use pdfplumber over PyPDF2 — it preserves column layout and table structure."
+    },
+    {
+      "q": "How do you decide on chunk size and overlap for a specific document type?",
+      "a": "Chunk size is a trade-off: small chunks (128 tokens) → precise retrieval (the relevant sentence is isolated), but the LLM gets less context for synthesis. Large chunks (1024 tokens) → more context, but retrieval is less precise (the relevant sentence is buried in 900 irrelevant tokens). Guidance by document type: (1) Technical documentation: 256-512 tokens — structured, dense information; small chunks isolate specific facts; (2) Legal/financial documents: 512-1024 tokens — context is critical for interpretation; sections shouldn't be separated; (3) Conversational text (chat logs, interviews): sentence-level chunking with a window of 5 sentences — conversations need adjacency; (4) Code: function-level chunking — never split a function across chunks. Overlap: 10-20% of chunk size. Always evaluate chunking choices empirically with a retrieval evaluation set before committing."
+    }
+  ],
+  "sources": [
+    { "label": "Gao et al. (2023) — Retrieval-Augmented Generation for Large Language Models: A Survey", "url": "https://arxiv.org/abs/2312.10997" },
+    { "label": "Gao et al. (2022) — Precise Zero-Shot Dense Retrieval without Relevance Labels (HyDE)", "url": "https://arxiv.org/abs/2212.10496" }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "RAG evaluation measures how well your retrieval-augmented generation system actually works. You can't just eyeball a few answers — you need systematic metrics that tell you: did it retrieve the right documents? Is the answer faithful to what was retrieved? Is the answer actually useful to the user?",
+    "The challenge: RAG has two components (retrieval + generation) and failures can occur in either. You need separate metrics for each: retrieval metrics (did we find the right passages?) and generation metrics (did we produce an accurate, relevant answer from what we found?).",
+    "RAGAS is the most widely used open-source framework for automated RAG evaluation. It uses LLMs to judge answers — which works surprisingly well but also means the quality of evaluation depends on the quality of your judge LLM."
+  ],
+  "whenWhy": [
+    {
+      "title": "Catching retrieval failures before they reach users",
+      "body": "Most RAG failures are retrieval failures: the relevant document wasn't retrieved, so the LLM has no choice but to hallucinate or admit ignorance. Without systematic retrieval evaluation, teams often spend weeks optimizing the generation step while the real problem is in the retrieval stage. Retrieval metrics (hit@k, MRR, NDCG) on a golden dataset catch these failures early — before deployment. A system with 60% retrieval hit rate cannot produce accurate answers regardless of how good the LLM is."
+    },
+    {
+      "title": "Detecting hallucinations that contradict retrieved context",
+      "body": "Even when retrieval is correct, the LLM may generate claims not supported by the retrieved context — hallucinations that look grounded but aren't. Faithfulness evaluation (checking whether each claim in the answer can be attributed to a retrieved passage) catches this class of error. This is not visible in user satisfaction metrics until a factual error causes a significant problem. Automated faithfulness scoring (RAGAS, TruLens) enables systematic monitoring of hallucination rates."
+    },
+    {
+      "title": "Iterative pipeline optimisation with measurable progress",
+      "body": "RAG pipeline design involves many choices (chunk size, embedding model, retrieval k, re-ranker, prompt template). Without evaluation metrics, optimising is guesswork. With a fixed evaluation dataset and metrics, each change can be measured: 'switching from chunk_size=256 to chunk_size=512 improved context recall from 0.72 to 0.81 but reduced context precision from 0.85 to 0.78.' This data-driven optimisation cycle is only possible with systematic evaluation."
+    }
+  ],
+  "deepDiveIntro": [
+    "RAGAS (Retrieval-Augmented Generation Assessment, Es et al. 2023) defines four core metrics: Faithfulness (are the LLM's claims grounded in retrieved context?), Answer Relevancy (is the answer relevant to the question?), Context Precision (what proportion of retrieved passages are relevant?), and Context Recall (what proportion of necessary information was retrieved?). All four metrics are computed using an LLM judge — RAGAS submits structured prompts to an LLM (default: GPT-4) to score each metric, enabling automated evaluation without human annotation.",
+    "TruLens (Truera) is an alternative evaluation framework with similar metrics and an additional feedback function API that allows custom evaluation criteria. For production monitoring, both RAGAS and TruLens can be integrated into the query pipeline to score every response, flagging low-quality responses for human review."
+  ],
+  "deepDive": [
+    {
+      "heading": "RAGAS Metrics in Detail",
+      "body": "Faithfulness: for each sentence in the generated answer, an LLM judge checks whether it can be inferred from the retrieved context. Score = (# sentences that are grounded) / (total sentences in answer). A faithfulness score of 0.9 means 90% of answer sentences are supported by context. Answer Relevancy: the LLM generates N synthetic questions from the answer; the score is the mean cosine similarity between the original question and the generated questions. High relevancy = the answer directly addresses the question. Context Precision: for each retrieved chunk, an LLM judge checks if it's useful for answering the question. Score = proportion of useful chunks in retrieved set. Context Recall: given a ground-truth answer, check if the retrieved context contains all necessary information. Score = proportion of ground-truth claims covered by retrieved context. [1]"
+    },
+    {
+      "heading": "Retrieval-Level Metrics",
+      "body": "For retrieval evaluation, you need a golden dataset: (query, relevant_doc_ids) pairs. Metrics: Hit Rate@k = fraction of queries where at least one relevant doc appears in top-k results. MRR (Mean Reciprocal Rank) = mean of (1 / rank_of_first_relevant_doc) across queries — rewards higher ranks more. NDCG@k (Normalised Discounted Cumulative Gain): accounts for multiple relevant documents at different ranks. Practical thresholds: Hit@5 > 0.80 is the minimum for a viable RAG system; Hit@5 > 0.90 is production-quality. Building the golden dataset: manually annotate 100-200 (query, relevant_chunk_id) pairs from your document collection. This investment pays for itself quickly by enabling rapid pipeline iteration. [2]"
+    },
+    {
+      "heading": "End-to-End Evaluation and LLM-as-Judge",
+      "body": "End-to-end evaluation: given (query, answer, ground_truth_answer), judge correctness. Three approaches: (1) Exact match — answer exactly equals ground truth (only works for factual, short answers: dates, numbers); (2) Semantic similarity — embed answer and ground truth, compute cosine similarity (captures paraphrases but not factual correctness); (3) LLM-as-judge — prompt an LLM to judge whether the answer is correct, faithful, and helpful given the question and context. LLM-as-judge (Zheng et al. 2023) correlates well with human judgment (0.8+ Pearson correlation on MT-Bench) but introduces evaluator bias. Best practice: use a different LLM as the judge than the one generating answers; use structured evaluation rubrics; validate judge agreement with human annotators on a sample. [1]"
+    }
+  ],
+  "takeaways": [
+    "RAGAS: four LLM-judged metrics — Faithfulness, Answer Relevancy, Context Precision, Context Recall. [1]",
+    "Retrieval metrics: Hit@k, MRR, NDCG — require a golden dataset of (query, relevant_chunk_id) pairs. [2]",
+    "Faithfulness: fraction of answer sentences grounded in retrieved context — key hallucination signal. [1]",
+    "Hit@5 > 0.80 is minimum viable; > 0.90 is production-quality retrieval. [2]",
+    "LLM-as-judge correlates well with human judgment (Pearson ~0.8+) — use a different model than the generator. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you build a golden evaluation dataset without spending weeks on annotation?",
+      "a": "Efficient dataset construction: (1) LLM-generated questions — use an LLM (GPT-4) to generate K question-answer pairs per document chunk: 'Given this passage, generate 3 questions that can only be answered from this passage and their correct answers.' Cost: ~$0.01 per chunk; a 1000-chunk corpus yields 3000 QA pairs for ~$10; (2) User query sampling — if the system is in production, sample real user queries, identify the correct answer manually for 100 of them (targeted effort on the highest-frequency query types); (3) Synthetic adversarial queries — generate questions whose answer is NOT in the corpus to test the system's 'I don't know' response. RAGAS provides a TestsetGenerator that automates (1) and (2). Validate: manually review 10-20% of generated QA pairs to confirm correctness; filter out low-quality pairs."
+    },
+    {
+      "q": "What should you monitor in production to detect RAG quality degradation?",
+      "a": "Production monitoring stack: (1) Real-time faithfulness scoring — run RAGAS faithfulness on every response (or a 5% sample for high-volume); alert if faithfulness drops below 0.75; (2) Retrieval fallback rate — track the % of queries where the system responded 'I don't have information on this'; a rising rate indicates retrieval coverage gaps (new user queries not covered by the indexed documents); (3) User feedback proxy — thumbs down, regeneration requests, follow-up clarifying questions are implicit quality signals; (4) Query latency percentiles — p95, p99 latency; sudden increases indicate vector DB performance degradation or context window overflow; (5) Index staleness — track time since last document added/updated; a stale index is a quality risk for time-sensitive knowledge bases. Set alert thresholds and review degraded traces weekly."
+    }
+  ],
+  "sources": [
+    { "label": "Es et al. (2023) — RAGAS: Automated Evaluation of Retrieval Augmented Generation", "url": "https://arxiv.org/abs/2309.15217" },
+    { "label": "Zheng et al. (2023) — Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena", "url": "https://arxiv.org/abs/2306.05685" }
+  ]
+}

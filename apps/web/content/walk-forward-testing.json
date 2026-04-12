@@ -1,4 +1,12 @@
 {
+  "terms": [
+    { "term": "Walk-Forward Test", "def": "Rolling train/test splits advancing through time; train on earlier data, test on next period, repeat." },
+    { "term": "Purging", "def": "Removing training samples whose label period overlaps with the test period; prevents information leakage." },
+    { "term": "Embargo", "def": "Gap between training and test sets to avoid spillover from regime-correlated observations." },
+    { "term": "CPCV", "def": "Combinatorial Purged Cross-Validation (de Prado) — samples many train/test splits for more reliable evaluation." },
+    { "term": "Overfitting", "def": "Model memorises training noise; walk-forward testing is designed to detect this before live deployment." },
+    { "term": "PBO", "def": "Probability of Backtest Overfitting — probability the in-sample best strategy is not the out-of-sample best." }
+  ],
   "eli3": [
     "Walk-forward testing is a rigorous method for evaluating trading strategies that mimics how they would actually be deployed live. Instead of testing on the entire historical dataset at once (which can lead to overfitting), you divide history into sequential windows: train on earlier data, test on the immediately following period, then advance the window and repeat.",
     "Think of it as simulating strategy development month by month: at the start of January 2020, you have all data up to December 2019. You calibrate your strategy on that data, trade in January 2020, then see what actually happened. Then advance one month, retrain, trade February 2020, and so on. Each test period was genuinely out-of-sample when you were 'in it'.",

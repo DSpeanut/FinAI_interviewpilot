@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "Chunking is the process of splitting large documents into smaller pieces before storing them in a vector database. You can't embed an entire 100-page PDF as one unit — the embedding would be too general to be useful for specific questions. Chunks are the units of retrieval.",
+    "Chunk size matters a lot. Too small (50 tokens): each chunk is a sentence, highly precise but missing context when retrieved. Too large (2000 tokens): each chunk is several paragraphs, lots of context but retrieval is imprecise (many irrelevant sentences dilute the signal). Most systems use 256–512 token chunks with some overlap between adjacent chunks.",
+    "Modern chunking strategies go beyond simple fixed-size splitting: semantic chunking splits at topic boundaries, parent-child chunking stores small and large versions of the same content, and late chunking uses modern embedding models that chunk and embed in a single pass."
+  ],
+  "whenWhy": [
+    {
+      "title": "Embedding quality degrades with long texts",
+      "body": "Embedding models (text-embedding-3-small, BGE) are trained on short passages (typically < 512 tokens). When you embed longer texts, the model averages information across all tokens — the embedding becomes a blurry summary that doesn't represent any specific detail well. Chunking at ~512 tokens aligns with the embedding model's training distribution, producing embeddings that capture specific facts and concepts. Retrieval precision is directly proportional to how well the chunk embedding captures what a relevant query would match."
+    },
+    {
+      "title": "Different queries need different granularity",
+      "body": "A question about a specific number ('What was Apple's 2023 revenue?') is best answered by a small, precise chunk containing that sentence. A question requiring context ('Why did Apple's revenue decline in 2023?') needs a larger chunk with surrounding explanation. Advanced strategies address this: store both small chunks (for retrieval) and their parent paragraphs (for generation). Retrieve small chunks, return parent context. This 'small-to-big' strategy gives retrieval precision and generation context."
+    },
+    {
+      "title": "Boundary effects cause retrieval failures",
+      "body": "Naive fixed-size chunking splits sentences in the middle, separates a claim from its evidence, or cuts a table row from its header. These boundary errors cause the retrieved chunk to be incomplete or misleading. Chunk overlap (50-100 token overlap between adjacent chunks) partially mitigates this — a sentence cut at a boundary appears in both adjacent chunks. Semantic chunking (split at paragraph/section boundaries, not at fixed token counts) eliminates most boundary issues but is more complex to implement."
+    }
+  ],
+  "deepDiveIntro": [
+    "Chunking strategy is arguably the most impactful and under-appreciated decision in RAG pipeline design. Naive fixed-size chunking is fast but degrades retrieval quality significantly compared to content-aware strategies. The RAGAS (Es et al. 2023) evaluation framework has been used to empirically compare chunking strategies; sentence-window and parent-child chunking consistently outperform fixed-size chunking on context precision and recall metrics.",
+    "LlamaIndex and LangChain both provide multiple chunking implementations: RecursiveCharacterTextSplitter (LangChain default), SentenceSplitter (LlamaIndex default), SemanticChunker (split on embedding similarity drops), and custom hierarchical splitters. The 'right' strategy depends on document structure and query types — always evaluate on a representative query set before committing."
+  ],
+  "deepDive": [
+    {
+      "heading": "Fixed-Size vs Semantic Chunking",
+      "body": "Fixed-size: split every N tokens (or characters) with overlap M. Simple, fast, no ML required. Default: 512 tokens, 50-token overlap. Weakness: splits mid-sentence, mid-table, mid-list. Best for: homogeneous, well-structured documents (technical manuals, encyclopedia articles). Semantic: use an embedding model to detect topic shifts — split when the cosine similarity between adjacent sentence embeddings drops below a threshold. Produces chunks that are semantically coherent but variable in length. Slower (requires embedding every sentence during indexing). Best for: heterogeneous documents with multiple topics (news articles, research papers). LangChain SemanticChunker implements this with three breakpoint threshold types: percentile, standard_deviation, interquartile. [1]"
+    },
+    {
+      "heading": "Parent-Child and Sentence-Window Chunking",
+      "body": "Parent-child (hierarchical) chunking: index two sizes simultaneously. Child chunks: 128 tokens (high precision for retrieval). Parent chunks: 512 tokens (sufficient context for synthesis). At retrieval time: search child chunk embeddings (small = precise match). At synthesis time: return the parent chunk (large = full context). Implementation: store parent_id in child chunk metadata; after retrieving child chunks, fetch their parents. LlamaIndex AutoMergingRetriever does this automatically. Sentence-window: embed individual sentences; at retrieval, return the sentence ± K surrounding sentences (window_size=3 means return 7 sentences total). More fine-grained than parent-child. [1]"
+    },
+    {
+      "heading": "Late Chunking with Long-Context Embedding Models",
+      "body": "Late chunking (Jina AI, 2024): a novel approach that avoids the traditional chunking → embedding pipeline. Feed the entire document to a long-context embedding model (jina-embeddings-v2, max 8192 tokens). The model produces one embedding per token (contextual token embeddings). Then pool token embeddings into chunk embeddings by mean-pooling the token embeddings within each chunk boundary. Result: each chunk embedding is contextualised by the full document, not just the chunk itself. This preserves cross-chunk context (e.g., a pronoun in chunk 3 that refers to a noun in chunk 1 is correctly contextualised). Demonstrated to outperform standard chunking on multi-hop retrieval benchmarks. [2]"
+    }
+  ],
+  "takeaways": [
+    "Chunk size trade-off: small = precise retrieval, less context; large = more context, imprecise retrieval. Default: 512 tokens. [1]",
+    "Chunk overlap (50-100 tokens) mitigates boundary splits — critical for sentence-spanning facts. [1]",
+    "Parent-child: embed small child chunks (retrieve precisely), return large parent chunks (synthesise with context). [1]",
+    "Semantic chunking: split on embedding similarity drops — coherent topics, variable length, slower indexing. [1]",
+    "Late chunking: contextualised chunk embeddings from long-context models — better cross-chunk retrieval. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you chunk structured data like tables and code files?",
+      "a": "Tables: never split a table across chunks — extract each table as a complete unit (use pdfplumber or Camelot for PDFs). Embed the table as Markdown (preserves structure). If a table is very large (> 1000 tokens), split by row groups with the header row repeated in each chunk. Alternative: convert the table to natural language ('Row 1: Q1 2024 revenue was $5.2B, representing 12% YoY growth'). Code: split at function/class boundaries, not at character count. Use AST parsing (Python's ast module, tree-sitter for multi-language) to identify function definitions; each function is one chunk. Never split inside a function. Add metadata: {file_path, function_name, class_name, language}. For code RAG, code-specific embedding models (CodeBERT, code-embedding-3-small) outperform text embedding models."
+    },
+    {
+      "q": "How do you determine the optimal chunk size experimentally?",
+      "a": "Systematic evaluation: (1) Create a golden dataset: 50-100 question-answer pairs over your documents where you know which passage contains the answer; (2) Test chunk sizes: 128, 256, 512, 1024 tokens; for each size, build the index and run all questions; (3) Metrics: retrieval hit rate (does the correct chunk appear in top-k retrieved results?), MRR (mean reciprocal rank of the correct chunk), and end-to-end answer accuracy; (4) Pick the chunk size that maximises the combination of hit rate and end-to-end accuracy. Typical finding: 256-512 is optimal for most document types; very long-form documents (textbooks) benefit from 512-1024. The evaluation cost is low (a few hundred LLM calls) but prevents weeks of debugging production retrieval failures."
+    }
+  ],
+  "sources": [
+    { "label": "LangChain Text Splitters Documentation — chunking strategies", "url": "https://python.langchain.com/docs/how_to/character_text_splitter/" },
+    { "label": "Günther et al. (2024) — Late Chunking: Contextual Chunk Embeddings Using Long-Context Embedding Models, Jina AI", "url": "https://arxiv.org/abs/2409.04701" }
+  ]
+}

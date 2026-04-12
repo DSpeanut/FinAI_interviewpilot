@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "Structured outputs force an LLM to respond in a specific format (usually JSON) that matches a schema you define. Instead of getting a free-form text answer, you get a guaranteed-valid JSON object that your code can parse and use directly.",
+    "This is much more reliable than asking the model to 'respond in JSON' via the prompt — the model sometimes forgets, uses wrong field names, or produces invalid JSON. With structured outputs, the API enforces the format at the generation level using constrained decoding.",
+    "Structured outputs are used whenever you need the LLM's response to be machine-readable: extracting data from documents, classifying inputs, generating structured plans, populating forms. They turn the LLM into a reliable data extraction and classification engine."
+  ],
+  "whenWhy": [
+    {
+      "title": "Extracting structured data from unstructured text",
+      "body": "The primary use case: given a messy document (invoice, resume, news article), extract specific fields into a clean JSON object. Without structured outputs, you prompt the model and regex-parse the response — fragile and high-maintenance. With structured outputs (OpenAI response_format, Anthropic tool use with a single extraction tool), you define a Pydantic/JSON Schema and get a guaranteed-valid object back. The model handles edge cases (missing fields, varied date formats, ambiguous values) more gracefully than regex."
+    },
+    {
+      "title": "Classification and routing with type-safe outputs",
+      "body": "Routing queries to the correct handler (customer intent classification, ticket categorisation, safety screening) requires machine-readable outputs. Structured outputs + enum fields (category: 'billing' | 'technical' | 'general') give a clean, type-safe classification result. The model can't produce an out-of-vocabulary category. Downstream code uses the category field directly — no string parsing, no regex, no 'if category contains billing'. This is simpler, faster, and more reliable than prompt-based classification."
+    },
+    {
+      "title": "Chaining LLM calls with typed intermediate results",
+      "body": "In multi-step agent pipelines, each LLM call may produce intermediate results consumed by the next step. Structured outputs enable typed interfaces between steps: step 1 produces AnalysisResult, step 2 consumes AnalysisResult and produces PlanObject, step 3 consumes PlanObject. This makes the pipeline verifiable at each step (validate the schema before passing to the next step), debuggable (log structured objects), and maintainable (the interface is explicit, not implicit in prompt language)."
+    }
+  ],
+  "deepDiveIntro": [
+    "OpenAI introduced structured outputs (strict mode) in August 2024 for GPT-4o. The API accepts a response_format parameter with a JSON Schema; the model is constrained to output JSON that exactly matches the schema using constrained decoding (logit masking — tokens that would produce invalid JSON at the current parse state are masked to zero probability). This guarantees valid JSON and schema conformance, not just 'the model usually outputs JSON'.",
+    "Anthropic's approach uses tool use for structured extraction: define a single tool with the desired output schema; set tool_choice to force the model to call it; the model's tool call arguments are the structured output. This works because tool calls already use constrained JSON generation. LangChain and LlamaIndex wrap both approaches in a .with_structured_output() method that selects the appropriate backend per model."
+  ],
+  "deepDive": [
+    {
+      "heading": "Constrained Decoding: How Strict JSON Mode Works",
+      "body": "Standard LLM decoding: at each token, the model outputs a probability distribution over the full vocabulary; sample or argmax. Constrained decoding: at each token, compute which tokens are valid continuations given the current parse state (using a finite state automaton built from the JSON Schema). Mask invalid tokens to -∞ (zero probability). Only valid tokens can be sampled. Implementation: OpenAI uses a grammar-constrained sampler; Outlines (open-source library) implements this for any LLM using a CFG parser. The constraint is applied per-token during generation — the model never 'produces invalid JSON' because the invalid tokens are never selectable. Constraint overhead: ~5-15% latency increase from the grammar checking at each token step. [1]"
+    },
+    {
+      "heading": "Designing Effective JSON Schemas",
+      "body": "Effective structured output schemas: (1) Use additionalProperties: false — prevents the model from adding extra fields; (2) Mark all required fields explicitly — the constrained decoder will produce values for required fields even if the model would otherwise omit them; (3) Use enum for categorical fields — constrains the output to valid categories; (4) Use descriptions on each field — the model reads field descriptions to understand what value to produce; (5) Avoid deeply nested schemas for simple extraction — flat schemas are more reliable; (6) For optional fields, use anyOf: [{type: 'string'}, {type: 'null'}] — strictly typed nullability. Common mistake: defining a schema that's technically valid JSON Schema but semantically ambiguous — the model will make arbitrary choices for ambiguous fields. [1]"
+    },
+    {
+      "heading": "Pydantic Integration for Python",
+      "body": "OpenAI Python SDK (v1.40+): client.beta.chat.completions.parse(response_format=YourPydanticModel). Pydantic model is automatically converted to JSON Schema. The response.choices[0].message.parsed field returns a YourPydanticModel instance (not a string to parse). Anthropic equivalent: define a tool with input_schema = YourModel.model_json_schema(); access result via tool_input after parsing. LangChain: llm.with_structured_output(YourModel) returns a chain that always produces YourModel instances. Key benefit of Pydantic integration: Python type checking, IDE autocomplete, and validation (model_validator, field_validator) on the extracted output. A Pydantic model with validators is the recommended pattern for production structured extraction. [1]"
+    }
+  ],
+  "takeaways": [
+    "Structured outputs: constrained decoding forces valid JSON matching your schema — more reliable than prompt-based JSON. [1]",
+    "OpenAI: response_format with strict mode; Anthropic: single-tool tool_use with forced tool_choice. [1]",
+    "Use additionalProperties: false and enum fields for maximum constraint — prevent out-of-schema values. [1]",
+    "Pydantic integration: llm.with_structured_output(Model) → typed Python objects directly, no JSON parsing. [1]",
+    "Overhead: ~5-15% latency increase from constrained decoding — negligible for most use cases. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What happens when the model can't extract a required field (the information isn't in the source text)?",
+      "a": "For required fields: the constrained decoder will force the model to produce a value even if the source doesn't contain it — resulting in a hallucinated value. Mitigation: mark non-guaranteed fields as optional (anyOf: [{type: 'string'}, {type: 'null'}]) with explicit instructions: 'Set to null if the information is not present in the source'. For extraction, this is critical: a schema with all required fields will produce hallucinated values for missing information; a schema with optional nullable fields allows the model to signal absence honestly. In prompt: 'Only extract information explicitly stated in the document. Set fields to null if not present.' Validate nullable fields post-extraction to distinguish 'not found' from 'found as null'."
+    },
+    {
+      "q": "How do structured outputs handle very complex nested schemas?",
+      "a": "Deep nesting degrades reliability: the model must maintain the JSON structure through many nesting levels, increasing the chance of structural errors even with constrained decoding. Practical limits: schemas with nesting depth > 4 show measurably higher error rates in production. Recommendations: (1) Flatten the schema where possible — use arrays of simple objects instead of deeply nested objects; (2) Two-pass extraction — first extract top-level fields (flat schema), then extract nested details for each top-level object (second LLM call with a simpler schema); (3) Schema simplification — if you need 15 fields, split into two 7-field extraction calls and merge results. Two smaller reliable extractions beat one large unreliable extraction. For schemas with recursive structures (e.g., a tree of category nodes), constrained decoding may not support them — use a flat array representation instead."
+    }
+  ],
+  "sources": [
+    { "label": "OpenAI Structured Outputs Documentation — official API reference", "url": "https://platform.openai.com/docs/guides/structured-outputs" },
+    { "label": "Willard & Louf (2023) — Efficient Guided Generation for Large Language Models (Outlines)", "url": "https://arxiv.org/abs/2307.09702" }
+  ]
+}

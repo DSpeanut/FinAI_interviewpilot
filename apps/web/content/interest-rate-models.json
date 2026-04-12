@@ -1,4 +1,12 @@
 {
+  "terms": [
+    { "term": "Short Rate (r_t)", "def": "Instantaneous risk-free rate at time t; the fundamental state variable in short-rate models (Vasicek, CIR, Hull-White)." },
+    { "term": "Mean Reversion (κ)", "def": "Speed at which the short rate returns to its long-run mean θ; interest rates are mean-reverting unlike equities." },
+    { "term": "Vasicek Model", "def": "dr = κ(θ−r)dt + σdW; Gaussian mean-reverting short rate. Analytically tractable but allows negative rates." },
+    { "term": "CIR Model", "def": "dr = κ(θ−r)dt + σ√r dW; square-root diffusion prevents negative rates; less tractable than Vasicek." },
+    { "term": "HJM Framework", "def": "Heath-Jarrow-Morton: models evolution of the entire forward rate curve; no-arbitrage constrains the drift." },
+    { "term": "Term Structure", "def": "The full set of yields/prices across all maturities at a given time; what interest rate models must be consistent with." }
+  ],
   "eli3": [
     "Interest rate models describe how interest rates evolve randomly over time. Unlike stocks, interest rates are mean-reverting (they don't wander off to infinity; they pull back toward a long-run level) and have complex term structure dynamics (short rates and long rates don't move in lockstep). These properties require specialised models beyond simple GBM.",
     "There are two main families: short-rate models (model the instantaneous short rate r_t; derive bond prices from it) and forward-rate models (model the entire yield curve directly). Short-rate models: Vasicek (mean-reverting Gaussian), CIR (mean-reverting, always positive), Hull-White (time-varying mean, fits today's yield curve exactly). Forward-rate models: Heath-Jarrow-Morton (HJM) framework models all forward rates simultaneously.",

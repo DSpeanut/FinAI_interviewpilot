@@ -1,4 +1,12 @@
 {
+  "terms": [
+    { "term": "Low-Vol Anomaly", "def": "Empirical finding that low-volatility / low-beta stocks earn higher risk-adjusted returns than high-vol stocks — violates CAPM." },
+    { "term": "Beta (β)", "def": "Sensitivity to the market; low-beta stocks have β < 1 and historically outperform on a risk-adjusted basis." },
+    { "term": "Idiosyncratic Volatility", "def": "Stock-specific volatility beyond market exposure; high idiosyncratic vol is associated with poor future returns." },
+    { "term": "Leverage Constraint", "def": "Black (1972) explanation: constrained investors overweight high-beta stocks for leverage, driving them overpriced." },
+    { "term": "BAB Factor", "def": "Betting Against Beta (Frazzini-Pedersen) — long low-beta, short high-beta; formal long-short low-vol factor portfolio." },
+    { "term": "Volatility Targeting", "def": "Scaling position sizes inversely with recent volatility to maintain constant risk; related to low-vol strategies." }
+  ],
   "eli3": [
     "Standard finance theory (CAPM) says higher risk = higher return. But the low-volatility anomaly shows the opposite in equities: stocks with low historical volatility (or low beta) earn higher risk-adjusted returns than high-volatility stocks. Buying boring, stable stocks and avoiding exciting, high-volatility ones beats the market on a risk-adjusted basis.",
     "The anomaly is also called the 'low-beta anomaly' or 'defensive anomaly.' On an absolute return basis, high-beta stocks earn slightly higher returns — but not enough to compensate for the extra risk. On a risk-adjusted basis (Sharpe ratio), low-volatility stocks dominate. This violates CAPM's core prediction that beta should be linearly rewarded.",

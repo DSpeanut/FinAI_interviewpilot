@@ -1,0 +1,67 @@
+{
+  "terms": [
+    { "term": "Information Ratio (IR)", "def": "Active return / tracking error; the Sharpe ratio of active management. IR > 0.5 is considered good for long-only." },
+    { "term": "Active Return", "def": "Portfolio return − benchmark return (alpha); the excess return the manager must explain." },
+    { "term": "Tracking Error (TE)", "def": "Std dev of active returns; how much the portfolio deviates from the benchmark." },
+    { "term": "IC (Information Coefficient)", "def": "Correlation between return forecasts and actual returns; measures skill per individual bet." },
+    { "term": "Breadth (BR)", "def": "Number of independent active bets per year; more bets = more opportunities to express skill." },
+    { "term": "Fundamental Law", "def": "IR = IC × √BR (Grinold 1989); high IR requires both skill (IC) and many opportunities (BR)." }
+  ],
+  "eli3": [
+    "The Information Ratio (IR) measures an active manager's ability to generate excess returns above a benchmark per unit of active risk taken. IR = Active Return / Tracking Error = (Portfolio Return - Benchmark Return) / std(Active Return). It's the Sharpe ratio of active management — a high IR means the manager consistently adds value without taking excessive deviation from the benchmark.",
+    "A manager who beats their benchmark by 3% per year with 2% tracking error has an IR of 1.5 — exceptional. A manager who beats by 3% per year with 6% tracking error has IR of 0.5 — modest. The IR rewards consistency: a small, steady outperformance is better than a large, erratic one because investors are penalised by benchmark-relative underperformance (career risk).",
+    "The Fundamental Law of Active Management (Grinold 1989) connects IR to the manager's skill and breadth: IR ≈ IC × √BR, where IC is the Information Coefficient (correlation between predictions and outcomes) and BR is the number of independent bets. This says breadth and skill are equally important — a manager with modest skill but many independent bets can achieve a high IR."
+  ],
+  "whenWhy": [
+    {
+      "title": "IR in fund evaluation",
+      "body": "Standard thresholds: IR > 0.5 = good; IR > 0.75 = very good; IR > 1.0 = exceptional; rare to sustain above 1.5. Why? The Fundamental Law limits most managers: a typical long-only equity manager has IC ≈ 0.05 (modest skill) and BR ≈ 300 independent positions per year. IR ≈ 0.05 × √300 ≈ 0.87. To achieve IR > 1.5: need either higher IC (very skilled manager) or more breadth (more positions, more asset classes). Comparison across managers: IR is more comparable across managers with different risk profiles than absolute return. A manager with IR = 0.8 at 2% TE is better than a manager with IR = 0.5 at 5% TE, even though both beat the benchmark. Stability: IR computed over a 3-year track record has high statistical uncertainty. Standard error: SE(IR) ≈ √(1+IR²/2) / √T ≈ 0.25 for T = 36 months and IR = 0.5. A '95% CI' spans from -0 to 1.0 — so 3 years is barely sufficient to confirm even moderate skill. Minimum track record for statistical confidence: 5-10 years."
+    },
+    {
+      "title": "Fundamental Law of Active Management",
+      "body": "Grinold's Law: IR ≈ IC × √BR. IC = Information Coefficient: rank correlation between manager's forecasts and actual outcomes. IC of 0.05 is good for equity; 0.1-0.15 is excellent. BR = Breadth: number of independent investment decisions per year. For a stock picker with 50 positions: BR ≈ 50 (if annual rebalancing). For a quantitative fund making daily factor bets: BR = 252 × N_assets. The √BR scaling: adding independent bets improves IR proportionally to their square root — the law of large numbers. Practical implications: (1) Diversification improves IR: more positions → higher BR → higher IR for same IC; (2) Transaction costs reduce BR: each trade costs real money, reducing net IC; (3) Short selling increases BR: by taking both long and short positions, a manager doubles their bets; explains the higher IR of market-neutral vs. long-only funds; (4) Multi-asset diversification: a manager who makes independent bets across equities, bonds, currencies, and commodities has much higher BR than a single-asset manager — key advantage of global macro and systematic macro funds."
+    },
+    {
+      "title": "IR in portfolio construction and allocation",
+      "body": "The IR is the optimal alpha-to-risk ratio in the following sense: if a manager has IR = μ_α / σ_TE, the optimal active risk budget (TE) that maximises the Sharpe ratio of the total portfolio (benchmark + active) is: TE* = (IR / λ) = (μ_α/σ_TE) / λ, where λ is the fund's risk aversion coefficient. Higher IR → larger active risk budget is optimal. This framework is used by pension funds to allocate active risk across managers: a manager with IR = 0.8 at 4% TE should receive a larger active allocation than a manager with IR = 0.4 at 4% TE. In multi-manager portfolios: optimal weights are proportional to each manager's IR (similar to Sharpe ratio weighting in asset allocation). An aggregate IR across multiple uncorrelated managers: IR_portfolio ≈ √Σ IR²_i — diversification of active risk improves aggregate IR."
+    }
+  ],
+  "deepDiveIntro": [
+    "IR formula: IR = μ_A / σ_A, where μ_A = mean(r_p,t - r_b,t) and σ_A = std(r_p,t - r_b,t). Both measured over the same period. Annualise: if computed monthly, μ_A × 12, σ_A × √12. Information ratio and t-statistic: t = IR × √T, where T = number of years of data. For IR = 0.5 over 5 years: t = 0.5 × √5 = 1.12 — NOT statistically significant. For IR = 0.5 over 20 years: t = 0.5 × √20 = 2.24 — marginally significant at 95%. This shows why long track records are required to confirm manager skill. Relationship to Sharpe: Sharpe = (μ_p - r_f) / σ_p; IR = (μ_p - μ_b) / TE. When benchmark has no volatility (cash benchmark): IR = Sharpe. For an equity benchmark: Sharpe and IR measure different things — Sharpe measures absolute risk-adjusted return; IR measures active return per active risk."
+  ],
+  "deepDive": [
+    {
+      "heading": "Modified Fundamental Law: Incorporating Transfer Coefficient",
+      "body": "Clarke, de Silva & Thorley (2002) extended Grinold's Law to include the Transfer Coefficient (TC): IR ≈ TC × IC × √BR. TC measures how efficiently the manager translates signals into portfolio positions. TC = 1: all signals fully reflected in positions (no constraints). TC < 1: constraints (long-only, position limits, turnover limits, sector constraints) prevent full signal implementation. For a long-only manager: TC ≈ 0.6-0.7 (long-only constraint prevents shorting the negative signals — roughly half the information is lost). For a long-short manager: TC ≈ 0.9+ (can fully express both long and short views). Implication: a long-short equity fund with IC = 0.05 and TC = 0.9 has IR ≈ 0.9 × 0.05 × √300 = 0.78. The same manager in a long-only format with TC = 0.65: IR ≈ 0.65 × 0.05 × √300 = 0.56. This explains the IR premium of hedge funds over long-only managers — ability to short increases TC and therefore IR. [1]"
+    },
+    {
+      "heading": "Ex-Ante vs Ex-Post IR",
+      "body": "Ex-ante IR: the expected IR given the manager's current signal and process. Estimated from: (1) IC estimated from signal validation (IC of specific factors/signals in model); (2) BR from the number of independent positions and signal turnover; (3) TC from portfolio construction efficiency. Used for: planning the target active risk (TE) budget; communicating expected performance to investors; evaluating whether a strategy is worth pursuing. Ex-post IR: the realised IR computed from actual returns over a historical period. Used for: manager evaluation; performance attribution; track record analysis. Gap between ex-ante and ex-post: typically, ex-post IR < ex-ante IR due to: (1) IC decay over time (signals lose predictive power); (2) Correlation between positions (actual BR < assumed BR); (3) Transaction costs eroding net IC; (4) Implementation errors. A common pitfall: estimating IC from a paper portfolio (no real costs, no capacity constraints, no trading errors) and applying the Fundamental Law to project IR — the gap to reality is typically 20-40%. [2]"
+    },
+    {
+      "heading": "IR Persistence and Manager Selection",
+      "body": "Key question for allocators: does a high past IR predict high future IR? Evidence is mixed: (1) Over short horizons (1-3 years): IR persistence is weak — past winners are only slightly more likely to be future winners (Carhart 1997 showed 3-factor alpha persists weakly); (2) Over long horizons (10+ years): genuinely skilled managers (structural edge, disciplined process) show stronger persistence; (3) Factor-based IR: persistence is higher because factor premiums are structural, not manager-skill-dependent; (4) Strategy-level persistence: CTA trend-following strategies show strong IR persistence because the factor (momentum) is structural. Implications for manager selection: (1) Require 5+ year track records for meaningful confidence; (2) Focus on the quality of the process, not just the track record; (3) Prefer strategies with structural, repeatable alpha (factor-based) over discretionary strategies; (4) Performance after fees: many managers with gross IR = 0.5 have net IR ≈ 0 after 2+20 fees — net IR matters most. [1]"
+    }
+  ],
+  "takeaways": [
+    "IR = Active Return / Tracking Error; thresholds: 0.5 = good, 0.75 = very good, 1.0 = exceptional. [1]",
+    "Fundamental Law: IR ≈ IC × √BR; breadth and skill are equally important. [1]",
+    "Modified law: IR ≈ TC × IC × √BR; long-only constraint reduces TC to ~0.65, lowering IR vs. long-short. [1]",
+    "Statistical significance: t-stat = IR × √T; need 20+ years for IR = 0.5 to reach 95% confidence. [2]",
+    "IR persistence: weak at 1-3 years; stronger for factor-based and systematic strategies. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why can IR be negative even if the manager has positive gross returns?",
+      "a": "IR measures active return vs. benchmark, not absolute return. A manager can have positive absolute returns but negative IR if: (1) The benchmark returned more than the manager (e.g., manager +8%, S&P 500 +15% in a bull market); (2) The manager's active return is negative (they underperformed the benchmark) on average. This is very common: in bull markets, value managers typically have positive absolute returns but negative IR because their 'cheap' stocks underperform the bull market's growth leaders. Example: 2015-2019, US value equity managers averaged +6%/year absolute, but the S&P 500 returned +12%/year. IR = (6% - 12%) / TE = negative. This is why IR is the correct benchmark for active management evaluation — absolute returns reflect both the market beta (which can be obtained cheaply from an index fund) and the active contribution."
+    },
+    {
+      "q": "How does IR change when you run the same strategy across multiple markets?",
+      "a": "Applying the same strategy (same IC) across N independent markets multiplies breadth by N: IR_multi = IC × √(BR × N) = √N × IR_single. A momentum strategy with IC = 0.05 and BR = 100 per market, run across 5 independent markets: IR = 0.05 × √500 ≈ 1.12 vs. single market IR = 0.05 × √100 ≈ 0.5. This is the diversification benefit of global multi-asset strategies — the same signal quality (IC) generates higher IR when applied across more markets. Key caveat: the markets must be truly independent (correlation of factor returns ≈ 0). If the factor has high cross-market correlation (global momentum tends to be correlated internationally), the effective BR is much less than N × BR_single. The actual IR improvement is √(1 + (N-1) × (1-ρ)) × IR_single, where ρ is the cross-market signal correlation. At ρ = 0.5, adding a second market improves IR by only √1.5 ≈ 1.22×, not √2 = 1.41×."
+    }
+  ],
+  "sources": [
+    { "label": "Grinold, R.C. (1989) — The Fundamental Law of Active Management, JPM", "url": "https://doi.org/10.3905/jpm.1989.409211" },
+    { "label": "Clarke, R., de Silva, H. & Thorley, S. (2002) — Portfolio Constraints and the Fundamental Law, FAJ", "url": "https://doi.org/10.2469/faj.v58.n5.2468" }
+  ]
+}

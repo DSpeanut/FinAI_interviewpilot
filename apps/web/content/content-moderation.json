@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "Content moderation for AI systems is the process of reviewing and managing AI-generated content to ensure it complies with safety policies, legal requirements, and community standards. It combines automated moderation (ML classifiers) with human review for edge cases.",
+    "The challenge with AI-generated content is scale: an AI chatbot may generate millions of responses per day — far too many for humans to review individually. Automated moderation handles the bulk, flagging problematic content; human moderators review flagged content and handle appeals.",
+    "Content moderation is distinct from input/output filtering: filtering is a real-time gate (block before delivery), moderation is often post-hoc (review after delivery, take action retroactively). Both are needed in a comprehensive content safety system."
+  ],
+  "whenWhy": [
+    {
+      "title": "User-generated content in AI-assisted platforms",
+      "body": "In AI platforms where users can create content (AI-assisted writing, code generation, image generation), content moderation ensures generated content meets platform standards. Examples: Copilot-generated code (check for obvious security vulnerabilities), ChatGPT-generated essays (check for plagiarism and policy violations), Stable Diffusion outputs (check for CSAM, celebrity deepfakes). Both the AI's output AND user behavior (abuse of the AI to generate policy-violating content) must be moderated."
+    },
+    {
+      "title": "Trust and safety at scale for AI chatbots",
+      "body": "Consumer AI chatbots (Claude, ChatGPT, Gemini) handle millions of conversations daily. Content moderation ensures: no CSAM in any context, no instructions for mass-casualty weapons, no content that violates the model provider's policies. Automated moderation (built into the model through RLHF and output classifiers) is the primary layer; human review handles model failures, policy updates, and novel abuse patterns. Incident response processes address when moderation fails at scale."
+    },
+    {
+      "title": "Enterprise compliance and brand safety",
+      "body": "Enterprise AI deployments face specific content moderation requirements: ensure AI-generated customer communications comply with industry regulations (FINRA, HIPAA, GDPR), prevent AI from making claims about competitors, ensure AI doesn't discuss litigation-sensitive topics. Enterprise content moderation is more policy-specific than general safety moderation, requiring custom classifiers for business-specific constraints."
+    }
+  ],
+  "deepDiveIntro": [
+    "Content moderation systems combine three components: (1) Real-time automated moderation — safety classifiers applied at generation time (covered in Input/Output Filtering); (2) Async automated moderation — batch processing of generated content through more expensive models (LLM-as-judge) for quality assurance; (3) Human review — human moderators reviewing flagged content, making policy decisions, and handling appeals. The human review layer is essential because automated systems have non-zero error rates and policy requires human judgment for novel or borderline cases.",
+    "The Trust & Safety policy framework defines what content is prohibited (absolute), restricted (requires context or user consent), and allowed. Policy frameworks for major AI providers (Anthropic's Acceptable Use Policy, OpenAI's Usage Policies) define categories: prohibited content (CSAM, weapons of mass destruction, targeted harassment), restricted content (adult content, medical advice, financial advice), and context-dependent content (violence in fiction vs. instructions for violence). The moderation system enforces these policies."
+  ],
+  "deepDive": [
+    {
+      "heading": "Automated Moderation Pipeline",
+      "body": "Two-phase automated moderation: (1) Real-time gate (< 100ms): safety classifier (Llama Guard, OpenAI Moderation) on input and output; reject/allow in real time. (2) Async quality check (seconds to minutes): sample 1-10% of generated content; run through a more capable LLM judge with detailed rubric; flag for human review if score < threshold. The async phase catches: subtle policy violations that real-time classifiers miss, emerging abuse patterns not in training data, and quality issues (not safety) like factual errors or unhelpful responses. Store moderation decisions with: content_id, classifier_scores, final_decision (allow/reject/flag), reviewer_id (if human review), and decision_reason. This audit log is essential for policy enforcement, appeals, and classifier improvement. [1]"
+    },
+    {
+      "heading": "Human Review Workflows",
+      "body": "Human review queue management: (1) Priority tiers — Tier 1 (hours): CSAM, incitement to violence, severe policy violations; Tier 2 (24h): hate speech, harassment, misleading content; Tier 3 (72h): borderline policy violations, quality issues; (2) Context injection — reviewers see: the flagged content, the classifier scores, the user's conversation history (for context), relevant policy excerpts, and similar past cases that were reviewed; (3) Decision framework — a structured decision flowchart prevents inconsistent moderation (yes/no/unsure + required policy citation); (4) Inter-rater reliability — randomly assign 5% of tasks to two reviewers; measure agreement; calibrate when agreement drops below 80%; (5) Appeals process — users can appeal moderation decisions; appeals are reviewed by senior moderators. Reviewer well-being: content moderation exposes reviewers to harmful content; rotate assignments, provide counseling access, and limit exposure hours. [1]"
+    },
+    {
+      "heading": "Classifier Training and Policy Updates",
+      "body": "Safety classifiers degrade over time as abuse patterns evolve. Continuous improvement cycle: (1) Error mining — weekly analysis of false positives (over-moderated content) and false negatives (under-moderated content) from human review decisions. Each human decision that disagrees with the classifier is a training signal; (2) Active learning — human reviewers focus on near-threshold classifier decisions (highest information value for retraining); (3) Policy change response — when a new abuse pattern emerges, immediately add examples to the training set and trigger a classifier fine-tuning run; (4) Classifier versioning — deploy new classifier versions via shadow mode first (run new and old classifiers in parallel, compare decisions) before full rollout; (5) Red-team testing — after each classifier update, run a red-team exercise to verify the new attack patterns are blocked and the previous false positives are resolved. [2]"
+    }
+  ],
+  "takeaways": [
+    "Two-phase moderation: real-time gate (safety classifier) + async quality check (LLM judge on 1-10% sample). [1]",
+    "Human review tiers: hours for severe violations, 24h for hate/harassment, 72h for borderline cases. [1]",
+    "Audit log every moderation decision: content_id, classifier_scores, final_decision, reviewer_id, decision_reason. [1]",
+    "Classifier improvement: error mine human review disagreements weekly; active learning on near-threshold cases. [2]",
+    "Reviewer well-being: rotate assignments, cap daily exposure hours, provide counseling for harmful content work. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you moderate AI-generated content in languages other than English?",
+      "a": "Multilingual moderation challenges: (1) Classifier coverage — most safety classifiers are primarily trained on English data; accuracy degrades significantly on other languages, especially low-resource languages; (2) Cultural context — harmful content norms vary by culture and region; what is acceptable speech in one context may be prohibited in another; translation-based approaches lose cultural nuance. Solutions: (1) Multilingual safety models — mDeBERTa-based or mLLaMA-based classifiers fine-tuned on multilingual harm datasets; (2) Translate-then-classify — translate non-English content to English before classification (fast, but loses nuance and incurs translation cost); (3) Native-language LLM-as-judge — use an LLM with strong multilingual capability (Claude, GPT-4) as the judge with the policy in English but content in the original language; (4) Native-language human reviewers — for high-risk content categories in major non-English languages, maintain human review queues with native speakers."
+    },
+    {
+      "q": "How do you handle 'jailbreaks' — inputs specifically designed to bypass AI safety training?",
+      "a": "Jailbreaks exploit gaps in the model's RLHF training: the model behaves safely on distribution but fails on adversarial inputs. Moderation-level defences: (1) Jailbreak classifiers — train dedicated classifiers on known jailbreak patterns (role-playing overrides, 'DAN' prompts, hypothetical framing); Llama Guard includes jailbreak detection; (2) Input preprocessing — normalise inputs before classification to catch encoding and substitution evasions; (3) Multi-turn context — include the full conversation history in the safety classifier input; jailbreaks often develop over multiple turns (each turn slightly shifts the model's context); (4) Output moderation regardless of input — a safe response is the goal regardless of input; output classifiers catch cases where input classifiers fail; (5) Responsible disclosure program — offer a bug bounty for novel jailbreaks; security researchers find them faster and more creatively than internal teams alone."
+    }
+  ],
+  "sources": [
+    { "label": "Inan et al. (2023) — Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations", "url": "https://arxiv.org/abs/2312.06674" },
+    { "label": "Anthropic Acceptable Use Policy — content policy framework", "url": "https://www.anthropic.com/legal/aup" }
+  ]
+}

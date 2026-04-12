@@ -1,0 +1,68 @@
+{
+  "terms": [
+    { "term": "Bid-Ask Spread", "def": "The gap between the market maker's buy price (bid) and sell price (ask); the market maker's gross revenue per round-trip." },
+    { "term": "Inventory Risk", "def": "Risk of holding a large directional position while making markets; price moves against accumulated inventory." },
+    { "term": "Adverse Selection", "def": "Informed traders take from market makers at unfair prices; MM widens spreads to protect against informed flow." },
+    { "term": "Quote Skew", "def": "Adjusting bid/ask asymmetrically based on inventory to encourage trades that reduce risk." },
+    { "term": "HFT", "def": "High-Frequency Trading — market making at microsecond speed using co-located servers and ultra-low latency." },
+    { "term": "Fill Rate", "def": "% of quoted orders that are filled by incoming trades; too high = adverse selection, too low = missing volume." }
+  ],
+  "eli3": [
+    "A market maker is a firm or individual that continuously quotes both a price to buy (bid) and a price to sell (ask) for a security, making it easy for others to trade. The market maker profits from the bid-ask spread — buying at the lower bid price and selling at the higher ask price.",
+    "Without market makers, buying or selling would require finding someone who wants to do the opposite trade at the exact same time. Market makers solve this coordination problem by being always ready to take the other side of any trade, providing 'liquidity' to the market.",
+    "Modern market making is highly automated. HFT firms use ultra-fast algorithms to quote prices in thousands of securities simultaneously, managing their inventory and hedging risk in real time. The profit margins per trade are tiny (fractions of a cent) but the volume is enormous."
+  ],
+  "whenWhy": [
+    {
+      "title": "Providing continuous liquidity and enabling price discovery",
+      "body": "Market makers are the infrastructure of financial markets. Without them, markets would be 'quote-driven' only when natural buyers and sellers arrive simultaneously — illiquid and slow. Market makers stand ready to buy when sellers arrive and sell when buyers arrive, ensuring trades can execute at any time. Their continuous quoting provides pre-trade price transparency (the bid/ask prices). The spread they charge compensates for: inventory risk (holding unwanted positions), adverse selection (trading against better-informed counterparties), and operational costs. Without this compensation, no rational agent would provide continuous liquidity."
+    },
+    {
+      "title": "Earning the bid-ask spread while managing inventory risk",
+      "body": "The market maker's P&L: earn the spread (sell at ask, buy at bid) × turnover, minus losses from inventory positions that move against them. Inventory accumulates when one side dominates (net selling pressure → long inventory → long delta risk). Market makers manage inventory by: skewing quotes (lower bid AND ask when long, to attract more selling and discourage buying), using futures/ETF hedges to offset delta, and temporarily widening spreads to reduce activity when inventory is uncomfortable. The goal: zero inventory at the end of the day, having collected the spread on all trades."
+    },
+    {
+      "title": "Earning adverse selection compensation through speed and signal detection",
+      "body": "Adverse selection is the primary risk for market makers: informed traders (who know the stock will move) transact against them at the current quotes, then the price moves against the market maker's position. HFT market makers manage this by: (1) detecting informed order flow from signals (correlated market moves, order book imbalance, recent trade direction) and widening spreads or cancelling quotes before the informed trader can act; (2) using co-location (placing servers at the exchange) to detect and respond to price changes in microseconds; (3) only quoting liquid instruments where the order flow is less information-driven. The ability to detect and respond to adverse selection faster than counterparties is the HFT market maker's core competitive advantage."
+    }
+  ],
+  "deepDiveIntro": [
+    "The theoretical foundation for market making is the Avellaneda-Stoikov (2008) model: a market maker continuously posts bid and ask quotes; the mid-price follows a random walk; the market maker faces: inventory risk (Brownian motion of the mid-price) and adverse selection (informed traders). The model derives optimal bid/ask quotes as a function of current inventory, remaining time horizon, and risk aversion. The key result: the optimal spread is wider when inventory is large, when the remaining time horizon is short (harder to unwind), and when price volatility is high. The reservation price (the mid-price adjusted for inventory risk) is central to optimal quoting.",
+    "In practice, HFT market makers implement variants of Avellaneda-Stoikov combined with short-term alpha signals (order book imbalance, recent trade direction, correlated asset prices). Modern market making is a signal processing problem: combine multiple real-time signals to estimate the fair value of the instrument, set quotes around that fair value, and update quotes as signals change — all in microseconds."
+  ],
+  "deepDive": [
+    {
+      "heading": "Avellaneda-Stoikov Optimal Market Making",
+      "body": "Setup: mid-price S follows dS = σdW (Brownian motion, drift zero for simplicity). Market maker posts bid q_b = S - δ_b and ask q_a = S + δ_a. Inventory q accumulates as trades arrive. Objective: maximise expected terminal wealth minus an inventory penalty. Key result: reservation price r = S - q·γ·σ²·(T-t), where q = current inventory, γ = risk aversion, σ = volatility, T-t = remaining time. Optimal spread: δ_a + δ_b = γσ²(T-t) + (2/γ)·ln(1 + γ/k), where k = market order arrival rate parameter. Intuition: the spread has two components — inventory risk compensation (γσ²(T-t)) and the market-making profit margin (2/γ·ln(...)). A risk-averse market maker with large inventory quotes lower (reservation price < mid), attracting more buying to reduce inventory. [1]"
+    },
+    {
+      "heading": "Market Making Strategies: Delta-Neutral vs Directional",
+      "body": "Delta-neutral market making: hedge all delta exposure (inventory) using correlated instruments (futures, ETFs, other equities). Example: long inventory in AAPL → short equivalent notional of QQQ (NASDAQ ETF). Goal: earn the spread with zero net directional exposure. Cost: hedging costs reduce spread income. Directional market making: take informed views on short-term price direction (using order flow signals) and tilt the book accordingly. More risky but higher return when signals are correct. In practice: most HFT market makers are delta-neutral on a net-portfolio basis but may carry small intentional positions when order flow signals are strong. Risk limits: maximum inventory per security, maximum portfolio delta, maximum overnight position (most HFT market makers are flat overnight). [1]"
+    },
+    {
+      "heading": "Market Maker Obligations and Designated Market Makers",
+      "body": "Exchange-designated market makers (DMMs) have formal obligations in exchange for privileges. NYSE DMM obligations: maintain continuous two-sided quotes, facilitate price discovery at the open and close (by accepting imbalances), step in during unusual volatility. DMM privileges: access to co-location, order flow information, ability to see incoming orders before they execute (flash orders — now banned). NASDAQ Market Makers: less formal obligations; compete with other market makers and HFT firms. Options market makers: required to quote for all strikes and expirations in their assigned underlyings, within maximum bid-ask spread width requirements. The regulatory framework attempts to ensure that market-making benefits (tight spreads, continuous liquidity) are available even in less liquid securities where pure HFT market making wouldn't be profitable. [2]"
+    }
+  ],
+  "takeaways": [
+    "Market makers earn the bid-ask spread in exchange for providing continuous liquidity and absorbing inventory risk. [1]",
+    "Avellaneda-Stoikov: optimal quotes are a function of current inventory, time horizon, risk aversion, and volatility. [1]",
+    "Reservation price: mid-price adjusted downward when long inventory — attracts buying to reduce the position. [1]",
+    "Adverse selection: market makers widen spreads / cancel quotes when they detect informed order flow. [1]",
+    "HFT market makers are typically delta-neutral (hedge inventory with ETFs/futures) and flat overnight. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do market makers handle liquidity crises when they need to reduce inventory fast?",
+      "a": "In normal conditions, market makers manage inventory gradually through quote skewing. In stress conditions (sudden large adverse price move, news event, circuit breaker threat), they may need to exit immediately. Options: (1) Aggressive market orders — place market sell orders to exit long inventory regardless of price; accept significant market impact; (2) Cross-venue hedging — sell correlated instruments (ETF, futures) on faster/more liquid venues first while trying to unwind the primary position; (3) Risk limit breach → mandatory flat — when inventory or P&L loss crosses pre-set limits, an automated system places market orders to flatten the book entirely; (4) Widen spreads / pull quotes — stop providing liquidity to stop inventory from growing worse; this is the 'liquidity withdrawal' that amplifies volatility during crashes. The 2010 Flash Crash occurred partly because HFT market makers used option (4), creating a vacuum. Post-crash, circuit breakers and stub quote elimination were introduced to prevent the worst outcomes."
+    },
+    {
+      "q": "How does market making in options differ from equity market making?",
+      "a": "Options market making is fundamentally different because of non-linear payoffs (the Greeks). An equity market maker primarily manages delta (directional inventory risk). An options market maker manages all Greeks: delta (directional exposure — hedge with underlying shares/futures), gamma (convexity — large moves cause accelerating P&L swings; long gamma is profitable but expensive), vega (volatility exposure — options prices depend on implied volatility; must hedge vega across the vol surface), theta (time decay — market makers are typically short gamma/vega and earn theta decay over time), rho (interest rate sensitivity). The options market maker's key insight: they're primarily trading implied volatility (IV) against their model of fair value volatility. If IV is high vs. their forecast, they sell options (short vega); if IV is low, they buy. Hedging the delta, gamma, and vega simultaneously while managing the bid-ask spread across hundreds of strikes and expirations is an extremely complex optimisation problem."
+    }
+  ],
+  "sources": [
+    { "label": "Avellaneda, M. & Stoikov, S. (2008) — High-Frequency Trading in a Limit Order Book, Quantitative Finance", "url": "https://doi.org/10.1080/14697680701381228" },
+    { "label": "Harris, L. — Trading and Exchanges: Market Microstructure for Practitioners, Oxford University Press (2002)", "url": "https://global.oup.com/academic/product/trading-and-exchanges-9780195144703" }
+  ]
+}

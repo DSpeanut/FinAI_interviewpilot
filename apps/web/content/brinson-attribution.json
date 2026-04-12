@@ -1,0 +1,68 @@
+{
+  "terms": [
+    { "term": "Active Return", "def": "Portfolio return − benchmark return; the total excess return attribution tries to explain." },
+    { "term": "Allocation Effect", "def": "Return from over/underweighting sectors vs. the benchmark, independent of stock selection within sectors." },
+    { "term": "Selection Effect", "def": "Return from picking stocks that outperform the sector benchmark, holding sector weights constant." },
+    { "term": "Interaction Effect", "def": "Combined effect of over/underweighting sectors AND having good/bad stock selection in those sectors." },
+    { "term": "Benchmark Weight", "def": "The sector or security weight in the reference index; active weight = portfolio weight − benchmark weight." },
+    { "term": "GIPS", "def": "Global Investment Performance Standards; the industry standard for reporting and attributing investment returns." }
+  ],
+  "visualizationType": "brinson-attribution",
+  "eli3": [
+    "Brinson attribution decomposes an active portfolio's excess return over its benchmark into three effects: allocation (did the manager overweight the right sectors?), selection (did the manager pick better stocks within each sector?), and interaction (the combined effect of over/underweighting sectors where stock selection was also good or bad). Each effect explains a separate dimension of the manager's skill.",
+    "Example: if a manager overweights technology and also picks good tech stocks, both allocation and selection contribute positively. If the manager overweights a sector but then picks poor stocks in it, the allocation effect is positive but selection is negative — the combined interaction effect penalises this inconsistency.",
+    "Brinson-Hood-Beebower (1986) decomposition is the standard framework used by asset managers, pension funds, and consultants worldwide to explain fund performance. It answers: 'Was the outperformance due to smart sector tilts, smart stock picking, or just luck?'"
+  ],
+  "whenWhy": [
+    {
+      "title": "BHB return decomposition",
+      "body": "Brinson-Hood-Beebower (1986) framework: let w_i^p = portfolio weight in sector i, w_i^b = benchmark weight in sector i, R_i^p = portfolio return in sector i, R_i^b = benchmark return in sector i, R^b = total benchmark return. Attribution effects for each sector i: (1) Allocation = (w_i^p - w_i^b) × (R_i^b - R^b): did the manager's overweight/underweight of the sector add value? Positive when manager overweighted (w_i^p > w_i^b) a sector that outperformed (R_i^b > R^b). (2) Selection = w_i^b × (R_i^p - R_i^b): did the manager's stock picks outperform within the sector? Positive when stocks outperformed the sector benchmark, weighted by benchmark sector weight. (3) Interaction = (w_i^p - w_i^b) × (R_i^p - R_i^b): reward for simultaneously overweighting a sector AND picking better stocks in it. Total active return = Σ (Allocation_i + Selection_i + Interaction_i). Some frameworks combine interaction with selection or allocation — the pure BHB model keeps them separate."
+    },
+    {
+      "title": "Brinson-Fachler variant",
+      "body": "Brinson-Fachler (1985) modifies the allocation effect: Allocation_BF = (w_i^p - w_i^b) × (R_i^b - R^b). Same formula — but the interaction term is embedded differently: Selection_BF = w_i^p × (R_i^p - R_i^b). The key difference: BF attributes more of the combined allocation+interaction effect to allocation, while BHB keeps interaction separate. Many practitioners prefer Brinson-Fachler because interaction is hard to explain to clients ('it's both'). Brinson-Fachler ensures that if a manager exactly replicates the benchmark but overweights a sector, the allocation effect correctly shows zero (interaction makes up the difference in BHB). Practical choice: BF for client reporting (cleaner allocation attribution); BHB for internal analysis (captures all three dimensions separately)."
+    },
+    {
+      "title": "Multi-period and factor attribution",
+      "body": "Multi-period attribution: Brinson attribution is a single-period model; applied over multiple periods it suffers from geometric compounding. Geometric linking (Carino 1999, Menchero 2000): uses smoothing coefficients to link single-period attributions into a geometrically consistent multi-period decomposition. GRAP (Global Attribution Providers) method is the standard. Factor-based attribution: extends Brinson for multi-factor models. Instead of sector/stock decomposition, decompose returns into factor exposures: (1) Style factors (value, growth, momentum, quality); (2) Country/region factors; (3) Sector factors; (4) Currency factors; (5) Idiosyncratic (stock-specific) contribution. Factor attribution answers: 'Was the outperformance due to the value tilt, the momentum exposure, or actual stock selection (alpha)?' Used in risk factor frameworks like Barra, Axioma, and Northfield."
+    }
+  ],
+  "deepDiveIntro": [
+    "Mathematical formulation: total portfolio return R^p = Σ_i w_i^p × R_i^p; benchmark return R^b = Σ_i w_i^b × R_i^b. Active return AR = R^p - R^b. BHB decomposition: AR = Σ_i [(w_i^p - w_i^b)(R_i^b - R^b) + w_i^b(R_i^p - R_i^b) + (w_i^p - w_i^b)(R_i^p - R_i^b)]. Proof by expansion: Σ_i w_i^p R_i^p - Σ_i w_i^b R_i^b = Σ_i [(w_i^p - w_i^b)R_i^b + w_i^b(R_i^p - R_i^b) + (w_i^p - w_i^b)(R_i^p - R_i^b)] + Σ_i (w_i^b - w_i^p)R^b. Since Σ_i w_i^p = Σ_i w_i^b = 1, the last term simplifies to R^b × (1-1) = 0, confirming the decomposition is exact."
+  ],
+  "deepDive": [
+    {
+      "heading": "Currency Attribution in Global Portfolios",
+      "body": "For global portfolios, currency effects must be included. Total return decomposition for each holding in local currency: R_i^total = (1 + R_i^local) × (1 + FX_i) - 1 ≈ R_i^local + FX_i (for small moves). Currency attribution: (1) Currency allocation: did the manager's currency exposure (via FX hedging or country weights) add value? (2) Currency selection: impact of specific currency hedging decisions; (3) Currency timing: active FX position changes over the period. Standard approach (Karnosky-Singer 1994): decompose into local return attribution + currency return attribution. Currency contribution = Σ_i (w_i^p - w_i^b) × FX_i, where FX_i is the currency return for the currency associated with holding i. Fully hedged portfolio: currency contribution ≈ 0 (hedging removes FX risk); unhedged portfolio: currency can dominate return attribution for short periods. For EM managers: currency attribution is often the largest single component of active return — a correct country view may be offset by adverse currency moves. [1]"
+    },
+    {
+      "heading": "Attribution for Fixed Income Portfolios",
+      "body": "Fixed income attribution requires different factors than equity: (1) Duration contribution: active duration exposure × change in yields (parallel shift); (2) Curve contribution: positioning along the yield curve (bullet vs. barbell); (3) Spread contribution: credit spread changes by sector and rating; (4) Currency contribution: for global bond portfolios; (5) Selection: security-level outperformance within each bucket. Campisi model (2000): decomposes bond portfolio return into: income (coupon), Treasury return (duration × yield change), spread return (spread duration × spread change), and residual. This is the fixed income analogue of Brinson — it isolates the active bets (duration, curve, spread) from passive carry. Example: a portfolio that has the same duration as the benchmark but overweights HY credit outperforms when spreads tighten — this shows as a positive spread attribution, not a duration or selection effect. [2]"
+    },
+    {
+      "heading": "Attribution Pitfalls and Common Errors",
+      "body": "Common attribution pitfalls: (1) Benchmark misspecification: using the wrong benchmark makes attribution meaningless. A EM equity fund measured against the S&P 500 will show large positive allocation effects regardless of skill — the benchmark must match the fund's investment universe; (2) Transaction timing: Brinson assumes end-of-period weights; intra-period trading is not captured. Daily attribution (using beginning-of-day weights) is more accurate but computationally intensive; (3) Residual: unattributed return is typically small but non-zero due to discretisation, cash drag, rounding; (4) Significance: a sector attribution of +10bps over one quarter is not statistically significant (SE is typically ±20-30bps for a sector); (5) Aggregation across time: naive summation of monthly attributions does not give the correct annual attribution — geometric linking is required; (6) Multi-asset funds: a fund that holds both equities and bonds needs a different attribution framework for each asset class; applying equity Brinson to fixed income positions is incorrect. [1]"
+    }
+  ],
+  "takeaways": [
+    "BHB: active return = Σ (Allocation + Selection + Interaction) per sector; Brinson-Fachler merges interaction into selection. [1]",
+    "Allocation = (w^p - w^b) × (R^b - R^benchmark); Selection = w^b × (R^p - R^b) within sector. [1]",
+    "Multi-period: Carino/Menchero geometric linking required; naive summation of monthly attributions is wrong. [2]",
+    "Currency attribution (Karnosky-Singer): active FX return = Σ (w^p - w^b) × FX_i; large for EM/global funds. [1]",
+    "Fixed income Campisi model: income + Treasury + spread + selection — decomposes active bond return into factor bets. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle sector attribution when a portfolio has holdings not in the benchmark?",
+      "a": "Holdings not in the benchmark (e.g., IPOs, OTC derivatives, benchmark-excluded securities): (1) Create an 'Other' sector for non-benchmark holdings; their benchmark weight and return are zero. Selection effect = w_i^p × (R_i^p - 0) = w_i^p × R_i^p — the full return is attributed to selection since there is no benchmark holding to compare against. (2) Alternatively, assign them to the closest benchmark sector by industry/factor classification — more accurate economically. (3) For long-short portfolios: short positions have negative weights; BHB still works but interpretation changes: a short position in an underperforming sector shows positive selection. Benchmark weight is zero for most shorts, so active weight = portfolio weight (negative). For short positions: Selection = 0 × (R^p - R^b) = 0; Allocation = (w^p - 0) × (R^b - R^total benchmark) = w^p × (R^sector - R^b); since w^p < 0 and R^sector > R^b means you're short an outperforming sector: negative allocation. The framework handles long-short naturally if you use signed weights consistently."
+    },
+    {
+      "q": "Why can two managers with the same active return have completely different attribution results?",
+      "a": "Two managers can have AR = +200bps over a year but very different sources: Manager A: large positive allocation effects (correct sector tilts) but negative selection (poor stock picks within sectors, partially offsetting); overall comes out positive because sector bets were large and well-timed. Manager B: neutral allocation (replicates benchmark sector weights) but strong positive selection (excellent stock picks in every sector). Both earn 200bps, but Manager A is a top-down macro thinker, Manager B is a bottom-up stock picker. Implications: (1) Persistence: stock selection alpha (Manager B) is generally harder to sustain but more transferable to different market environments; (2) Capacity: selection-based alpha saturates faster than allocation-based alpha (more stocks needed); (3) Scalability: allocation effects can scale to large AUM; selection is limited by market impact; (4) In fee negotiations: selection skill is harder to replicate with passive instruments and thus commands higher fees; allocation tilts can be partially replicated by smart beta or factor ETFs. This is why attribution is not just about explaining the past — it informs how to evaluate the manager's edge."
+    }
+  ],
+  "sources": [
+    { "label": "Brinson, G.P., Hood, L.R. & Beebower, G.L. (1986) — Determinants of Portfolio Performance, FAJ", "url": "https://doi.org/10.2469/faj.v42.n4.39" },
+    { "label": "Karnosky, D.S. & Singer, B.D. (1994) — Global Asset Management and Performance Attribution, AIMR", "url": "https://www.cfainstitute.org/research/foundation/1994/global-asset-management-and-performance-attribution" }
+  ]
+}

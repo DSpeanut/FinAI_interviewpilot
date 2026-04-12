@@ -1,0 +1,68 @@
+{
+  "terms": [
+    { "term": "Bid-Ask Spread", "def": "Tightest bid-ask spread = most liquid market; the immediate cost of trading in and out." },
+    { "term": "Market Depth", "def": "Volume available at different price levels in the order book; deep market = large orders don't move price much." },
+    { "term": "Amihud Ratio", "def": "|Return| / Volume — illiquidity measure; high ratio means price moves a lot per dollar of trading." },
+    { "term": "Price Impact", "def": "The price move per unit of volume traded; central measure of liquidity risk for large orders." },
+    { "term": "Illiquidity Premium", "def": "Extra expected return demanded for holding illiquid assets; compensation for the risk of not being able to sell." },
+    { "term": "Funding Liquidity", "def": "Ability to roll debt and meet margin calls; distinct from market liquidity — both can dry up simultaneously in crises." }
+  ],
+  "eli3": [
+    "Liquidity is how easily you can buy or sell an asset without causing its price to move significantly. A liquid asset (like a US Treasury bond or Apple stock) can be traded in large quantities quickly without much price impact. An illiquid asset (like a small-cap stock or a piece of real estate) may take time to sell and the act of selling itself pushes the price down.",
+    "Think of liquidity like water: liquid markets flow freely — you can enter and exit positions smoothly. Illiquid markets are more like thick mud — even small transactions stir up the bottom and change the price.",
+    "Liquidity matters enormously during market crises. When fear spreads, everyone tries to sell at once, liquidity dries up, and prices collapse. Assets that seemed liquid in normal times — some corporate bonds, certain ETFs — can become nearly unsellable overnight."
+  ],
+  "whenWhy": [
+    {
+      "title": "Measuring and managing execution costs",
+      "body": "Liquidity determines transaction costs. More liquid assets: tighter bid-ask spreads, deeper order books (large orders absorb without moving price), faster execution. Less liquid assets: wider spreads, shallower books, significant market impact for large orders. Portfolio managers measure liquidity-adjusted costs using metrics like the Amihud illiquidity ratio (average price impact per unit of dollar volume) or bid-ask spread percentage. Illiquidity is a real drag on returns: a portfolio that appears to earn 8% gross may earn only 6% after accounting for the transaction costs of rebalancing and the liquidity premium required."
+    },
+    {
+      "title": "Pricing the illiquidity premium",
+      "body": "Illiquid assets must offer higher expected returns to compensate investors for the cost of holding them (Amihud & Mendelson 1986). The illiquidity premium is the extra return investors demand for holding hard-to-sell assets. Evidence: small-cap stocks have higher expected returns partly because of their lower liquidity. Private equity, real estate, and hedge fund lock-up periods command return premiums over public market equivalents. Estimating the liquidity premium is critical for comparing returns across asset classes — raw return differences often reflect compensation for illiquidity, not alpha."
+    },
+    {
+      "title": "Systemic risk and liquidity spirals",
+      "body": "Liquidity problems can become self-reinforcing: falling prices force leveraged investors to sell (margin calls), more selling reduces liquidity further, which drives prices down more. Brunnermeier & Pedersen (2009) formalised the 'liquidity spiral': funding liquidity (ability to fund positions) and market liquidity (ability to trade without price impact) interact. When funding liquidity tightens (lenders demand more collateral), forced selling reduces market liquidity; reduced market liquidity increases volatility; increased volatility triggers more margin calls. This feedback loop amplified the 2008 GFC, the 1998 LTCM crisis, and the March 2020 COVID shock."
+  }
+  ],
+  "deepDiveIntro": [
+    "Liquidity is multidimensional (Kyle 1985 identified three dimensions): (1) Tightness — the bid-ask spread; the cost of an immediate round-trip trade; (2) Depth — the order book depth; how much volume is available at or near the current price before the price moves significantly; (3) Resilience — how quickly prices recover after a large trade; a resilient market absorbs shocks quickly. To these, practitioners add: (4) Breadth — the volume of trading; (5) Immediacy — how quickly a large trade can be executed at a given cost. These dimensions are imperfectly correlated: a market can be tight (narrow spread) but shallow (small depth) — a single large order can still move the price significantly.",
+    "Common liquidity measures: Bid-ask spread (explicit liquidity cost). Amihud illiquidity ratio (Amihud 2002): ILLIQ = (1/T) × Σ|R_d| / VOLD, where R_d is the daily return and VOLD is the daily dollar volume. Higher ILLIQ = more price impact per dollar traded. Pastor-Stambaugh (2003) liquidity measure: uses the predictability of returns after signed order flow as a measure of illiquidity. Market impact models (Almgren-Chriss): estimate the temporary and permanent price impact of a given order size. Each measure captures slightly different aspects of liquidity."
+  ],
+  "deepDive": [
+    {
+      "heading": "Amihud Illiquidity Ratio",
+      "body": "The Amihud (2002) illiquidity ratio: ILLIQ_i = (1/T_i) × Σ_{t=1}^{T_i} (|R_{i,t}| / VOLD_{i,t}), where |R_{i,t}| is the absolute daily return on stock i on day t, and VOLD_{i,t} is the daily dollar volume. Interpretation: the average absolute return per dollar of trading volume — a measure of price impact per unit of trade. High ILLIQ → high price impact → illiquid. Cross-sectional findings: ILLIQ is higher for small-cap stocks, stocks with lower analyst coverage, and during market stress. Time-series findings: market-wide ILLIQ rises sharply during crises (GFC 2008: ILLIQ rose 5-10×). Amihud showed that expected stock returns increase with expected illiquidity, consistent with an illiquidity premium. [1]"
+    },
+    {
+      "heading": "Funding Liquidity vs Market Liquidity",
+      "body": "Brunnermeier & Pedersen (2009) distinguished two types of liquidity: Market liquidity: the ease of trading an asset without price impact (measured by Amihud, bid-ask spread). Funding liquidity: the ease of obtaining financing to hold a position — depends on haircuts (collateral requirements) and repo rates. The interaction: when funding liquidity tightens (lenders raise haircuts), investors must deleverage → sell assets → prices fall → more collateral needed → more forced selling. This liquidity spiral explains why seemingly unrelated assets sell off together during crises — the common factor is the funding stress of the marginal leveraged investor. Practical implication: risk models that assume liquidity is constant underestimate tail risk; effective risk management requires monitoring funding conditions (repo rates, LIBOR-OIS spread, CDS spreads). [2]"
+    },
+    {
+      "heading": "Liquidity Risk in Portfolio Management",
+      "body": "Liquidity-adjusted risk measures: standard VaR ignores liquidation costs. Liquidity-adjusted VaR (LVaR) adds the expected liquidation cost: LVaR = VaR + Liquidation cost. Liquidation cost = (1/2) × spread × position_size + market_impact(position_size, volume). For large institutional portfolios, liquidation cost can dominate pure price risk. Liquidity horizon: regulators (Basel III) require banks to hold liquid assets covering 30 days of net cash outflows (LCR — Liquidity Coverage Ratio). Portfolio managers using liquidity-adjusted analysis: consider how long it would take to liquidate the entire portfolio at a given market impact level ('days to liquidation' metric). Illiquid assets (private equity, real estate) may require months to liquidate, constraining the portfolio's ability to rebalance or meet redemptions. [1]"
+    }
+  ],
+  "takeaways": [
+    "Liquidity dimensions (Kyle 1985): tightness (spread), depth (order book), resilience (price recovery speed). [1]",
+    "Amihud ratio: average |return| / dollar volume — cross-sectional and time-series measure of price impact. [1]",
+    "Illiquidity premium: higher expected returns for less liquid assets — small-cap premium is partly an illiquidity premium. [1]",
+    "Funding-market liquidity spiral: funding tightening → forced selling → market illiquidity → more forced selling. [2]",
+    "LVaR = VaR + liquidation cost — standard VaR underestimates risk for large, illiquid positions. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How can an ETF be more liquid than its underlying assets?",
+      "a": "ETFs can trade more liquidly than their underlying assets due to the creation/redemption mechanism. Example: a high-yield bond ETF (HYG) trades on the NYSE throughout the day with a tight bid-ask spread, even though the underlying high-yield bonds trade in an OTC dealer market with wide spreads and limited liquidity. This seeming paradox is explained by: (1) Authorised Participants (APs) — large broker-dealers who can create new ETF shares by delivering a basket of underlying bonds (creation), or redeem ETF shares for the underlying bonds (redemption). This arbitrage mechanism keeps the ETF price close to NAV; (2) APs hedge their ETF positions with credit default swaps or CDX indices (which are liquid), not the individual bonds, enabling liquid ETF trading even with illiquid underlying; (3) Price discovery shifts to the ETF — during the March 2020 crisis, HYG's price was more reliable than the NAV calculated from stale OTC bond prices. The risk: if APs cannot or will not arbitrage (credit stress, regulatory constraints), ETF discounts to NAV can widen dramatically — as observed in March 2020 when HYG briefly traded at 5% below NAV."
+    },
+    {
+      "q": "What is the 'liquidity illusion' in private markets?",
+      "a": "Private market assets (private equity, infrastructure, real estate) are marked at appraised or modelled NAV values, not continuously traded prices. This creates the 'liquidity illusion': (1) Stale valuations — private equity fund NAVs are updated quarterly at best; during 2022's public market selloff, private equity NAVs showed minimal decline while public equivalents fell 20-30%. This smoothing makes private equity appear to have low volatility and low correlation with public markets — an artifact of the appraisal process, not genuine stability; (2) True illiquidity is hidden — in normal markets, there's a secondary market for private fund stakes (at discounts), but during crises this market freezes. Pension funds that relied on private equity to provide 'stable returns' faced redemption pressure from other investors when they couldn't actually sell; (3) Return smoothing artificially improves Sharpe ratios — the same cashflows, if marked to market at true prices, would show much higher volatility. Sophisticated allocators 'unsmooth' private market return series to get accurate correlation and volatility estimates for portfolio construction."
+    }
+  ],
+  "sources": [
+    { "label": "Amihud, Y. (2002) — Illiquidity and Stock Returns: Cross-Section and Time-Series Effects, Journal of Financial Markets", "url": "https://doi.org/10.1016/S1386-4181(01)00024-6" },
+    { "label": "Brunnermeier, M. & Pedersen, L. (2009) — Market Liquidity and Funding Liquidity, Review of Financial Studies", "url": "https://doi.org/10.1093/rfs/hhn098" }
+  ]
+}

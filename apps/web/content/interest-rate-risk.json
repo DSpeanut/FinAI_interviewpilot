@@ -1,0 +1,68 @@
+{
+  "terms": [
+    { "term": "DV01", "def": "Dollar Value of 1bp — $ change in portfolio value for a 1bp yield increase; the standard unit of rate risk." },
+    { "term": "Key Rate Duration", "def": "Sensitivity to a move at one specific maturity point only; captures non-parallel curve risk (twists, butterflies)." },
+    { "term": "Basis Risk", "def": "The hedge instrument and the exposure don't move identically; residual risk after hedging." },
+    { "term": "Interest Rate Swap", "def": "Exchange fixed-rate for floating-rate cash flows (or vice versa); used to adjust a portfolio's duration." },
+    { "term": "Repricing Gap", "def": "For banks: difference between rate-sensitive assets and liabilities repricing in a given period." },
+    { "term": "Parallel vs. Twist", "def": "Parallel: all maturities shift equally. Twist: short/long rates move differently (steepening vs. flattening)." }
+  ],
+  "eli3": [
+    "Interest rate risk is the risk that your bond (or bond portfolio) loses value when interest rates rise. Since bond prices and yields move in opposite directions, every fixed-rate bond holder faces this risk. If you hold a 10-year bond and rates rise 1%, your bond might lose about 7-8% of its value.",
+    "Interest rate risk is unavoidable for anyone holding fixed-rate bonds. The question is how much to take. Short-term bonds have low interest rate risk (low duration). Long-term bonds have high interest rate risk (high duration). The compensation for taking this risk is the term premium — the extra yield long-term bonds offer over short-term bonds.",
+    "Banks, insurance companies, pension funds, and bond investors all need to manage interest rate risk carefully. The tools: duration measurement, interest rate derivatives (futures, swaps, options), and liability matching. The 2022 Fed tightening cycle was the most painful rate environment for bond holders in 40 years — the Bloomberg US Aggregate Bond Index fell 13% in 2022."
+  ],
+  "whenWhy": [
+    {
+      "title": "Duration gap management for banks and insurance companies",
+      "body": "Banks fund long-term loans (mortgages, corporate loans) with short-term deposits and borrowings — creating a positive duration gap (asset duration > liability duration). When rates rise: asset values fall more than liability values → book value of equity declines. For banks: Net Interest Margin (NIM) initially improves (deposit rates are sticky; lending rates rise), but unrealised bond portfolio losses accumulate. For insurance companies with fixed annuity liabilities: liability duration can exceed 15-20 years; asset-liability matching requires holding long-duration assets (long bonds) that create reinvestment risk but reduce duration gap. SVB Bank's 2023 failure illustrated catastrophic duration mismatch consequences."
+    },
+    {
+      "title": "Yield curve risk in fixed income portfolios",
+      "body": "Interest rate risk has multiple dimensions: (1) Parallel shift risk — all yields rise/fall by the same amount; managed by total portfolio duration; (2) Twist risk — short rates rise more/less than long rates (yield curve flattening/steepening); managed by distributing duration across the curve (key rate durations); (3) Convexity risk — the duration itself changes as rates move; managed by maintaining consistent convexity relative to liabilities; (4) Spread duration risk — credit spreads widen; distinct from risk-free rate duration; managed by limiting credit concentration. For sovereign bond portfolios: primarily parallel shift and twist risk. For corporate bond portfolios: parallel shift + spread duration. Interest rate risk decomposition is essential for risk attribution."
+    },
+    {
+      "title": "Hedging with interest rate derivatives",
+      "body": "Interest rate derivatives are the primary tools for hedging: (1) Interest rate futures (Treasury futures, Eurodollar/SOFR futures): standardised, liquid, exchange-traded. Sell futures to reduce portfolio duration. DV01 per contract × number of contracts = target DV01 reduction; (2) Interest rate swaps: pay fixed, receive floating — equivalent to selling a fixed-rate bond; reduces portfolio duration. Customisable maturity. OTC (bilateral or cleared); (3) Interest rate options (swaptions, caps, floors): swaption = option to enter a swap; caps limit floating rate exposure; floors protect against rate declines. Options provide asymmetric hedging — cost money but preserve upside. Active hedging programs continuously manage duration and yield curve exposure through futures overlay strategies."
+    }
+  ],
+  "deepDiveIntro": [
+    "Interest rate risk manifests through four channels: (1) Repricing risk: assets and liabilities reprice at different rates when rates change (a bank's fixed-rate loans vs. variable-rate deposits); (2) Yield curve risk: non-parallel shifts in the yield curve affect asset and liability values differently; (3) Basis risk: imperfect correlation between the hedging instrument and the hedged exposure (e.g., SOFR-based hedge for a Prime-based asset); (4) Optionality risk: embedded options in assets (callable bonds, MBS prepayment options) or liabilities (demand deposits, early withdrawal). The Basel Committee's 'Interest Rate Risk in the Banking Book' (IRRBB) framework requires banks to measure and manage all four channels.",
+    "Duration measures first-order (linear) interest rate sensitivity. Key Rate Duration (KRD) extends this to non-parallel curve shifts. BPV/DV01 expresses risk in dollar terms. For a complete risk picture: compute DV01 at each key rate tenor (2yr, 5yr, 10yr, 30yr). Net DV01 at each tenor = hedge requirement for that segment. Example: portfolio is long $100,000 DV01 at 10yr, short $20,000 DV01 at 30yr — the manager is positioned for a flattening (10yr yields falling more than 30yr yields)."
+  ],
+  "deepDive": [
+    {
+      "heading": "Bank Interest Rate Risk: NII and EVE",
+      "body": "Two perspectives on bank interest rate risk: (1) Net Interest Income (NII) — the short-term earnings perspective: how does a 200bp shock to rates affect NII over the next 12 months? A bank with more variable-rate assets (loans repricing quickly) benefits from rising rates; a bank with more fixed-rate assets suffers. (2) Economic Value of Equity (EVE) — the long-term balance sheet perspective: how does a rate shock affect the present value of all future cash flows (assets minus liabilities)? EVE captures the long-term interest rate sensitivity. Regulators (Basel IRRBB): outlier test — if a 200bp shock reduces EVE by > 15% of Tier 1 capital, the bank is flagged for supervisory review. Banks with large mortgage portfolios and demand deposit liabilities may show large EVE sensitivity due to the complex optionality in prepayment and deposit behaviour. [1]"
+    },
+    {
+      "heading": "Interest Rate Swap Hedging",
+      "body": "Pay-fixed interest rate swap: pay fixed rate K, receive floating SOFR. Value at initiation: 0 (at-market swap). Value change for +Δy: fixed leg value falls less (fixed payments) → payer swap gains value when rates rise. Equivalent to being long a floating rate bond and short a fixed rate bond. Duration of a pay-fixed swap = duration of floating leg (≈ 0) − duration of fixed leg (≈ bond duration). For a 5-year at-market swap: D_swap ≈ −(D_fixed − D_float) ≈ −(4.5 − 0.25) ≈ −4.25 years. Adding a pay-fixed swap to a bond portfolio reduces duration. Notional required: to reduce portfolio DV01 by $50,000 from a 5-year swap with DV01 = $450 per $1M notional: notional = $50,000 / $450 × $1M ≈ $111M. [2]"
+    },
+    {
+      "heading": "Reinvestment Risk and Horizon Analysis",
+      "body": "Reinvestment risk: the risk that coupon payments will be reinvested at lower rates than the current YTM. YTM implicitly assumes coupons are reinvested at the YTM — if rates fall, realized yield < YTM. Duration immunisation exploits the trade-off between price risk and reinvestment risk: for a given investment horizon H, (1) if H < Macaulay duration: price risk dominates (rates rise → loss on bond value > gain on reinvestment); (2) if H > Macaulay duration: reinvestment risk dominates (rates rise → gain on reinvestment > loss on bond value); (3) if H = Macaulay duration: the two effects approximately cancel → the portfolio is immunised against parallel yield curve shifts. This is the classical Redington (1952) immunisation theorem: matching asset Macaulay duration to liability timing horizon immunises the surplus against interest rate risk. [1]"
+    }
+  ],
+  "takeaways": [
+    "Interest rate risk channels: repricing, yield curve, basis, optionality (Basel IRRBB framework). [1]",
+    "Bank perspectives: NII (short-term earnings sensitivity) and EVE (long-term balance sheet sensitivity to rates). [1]",
+    "Pay-fixed swap: hedge against rising rates; reduces portfolio duration by approximately the fixed leg duration. [2]",
+    "Reinvestment risk: if H < Macaulay duration, price risk dominates; H = duration → immunised against parallel shifts. [1]",
+    "2022 bond market: US Agg fell 13% — worst year in 40 years; duration mismatch was severe across fixed income. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What is basis risk in interest rate hedging and how does it arise?",
+      "a": "Basis risk occurs when the hedging instrument's rate doesn't move perfectly in sync with the rate being hedged. Sources in fixed income: (1) SOFR vs Prime basis: a bank with Prime-linked loans hedged with SOFR futures; if the Prime/SOFR spread changes (it does, reflecting credit and liquidity conditions), the hedge is imperfect; (2) Treasury vs swap spread: using Treasury futures to hedge corporate bond exposure; the swap spread (swap rate minus Treasury yield) can move independently; (3) On-the-run vs off-the-run basis: on-the-run Treasuries (most recently issued) trade at a premium to off-the-run; using on-the-run futures to hedge off-the-run bonds introduces basis; (4) Tenor basis: 3-month SOFR vs 6-month SOFR — not identical; tenor basis widened significantly during 2008 and 2020. Managing basis risk: use the most correlated hedging instrument; accept residual basis risk as a cost of hedging; monitor basis P&L separately from directional P&L; set basis risk limits in risk management frameworks."
+    },
+    {
+      "q": "How should a pension fund approach interest rate risk management?",
+      "a": "Pension fund interest rate risk management is unique because liabilities are long-duration (pension obligations discounted at corporate bond yields, typically 15-30 year duration). Framework: (1) Liability Duration Matching: calculate the duration of pension liabilities (using plan actuary data on benefit payment timing, discount rate); match asset duration to liability duration to immunise the surplus (assets minus PV of liabilities) against rate changes; (2) Funded ratio perspective: if funded ratio < 100%, prioritise duration matching to prevent further funding shortfalls; if funded ratio > 110%, can take more return-seeking risk; (3) Liability-driven investing (LDI): dedicate a portion of assets (the 'liability-matching portfolio') to long-duration bonds (strips, 30yr Treasuries, long credit) matching liability duration; the remainder ('return-seeking portfolio') pursues return; (4) Rate hedging overlay: use interest rate swaps or long Treasury futures to fill the duration gap when bond portfolio duration falls short of liability duration due to supply constraints; (5) Risk off trigger: as funded ratio improves, systematically increase LDI allocation (reduce return-seeking), 'de-risking glide path'."
+    }
+  ],
+  "sources": [
+    { "label": "Basel Committee on Banking Supervision — Interest Rate Risk in the Banking Book (IRRBB), BIS (2016)", "url": "https://www.bis.org/bcbs/publ/d368.htm" },
+    { "label": "Fabozzi, F.J. — Fixed Income Mathematics, 4th Edition, McGraw-Hill (2006)", "url": "https://www.mhprofessional.com/fixed-income-mathematics-4th-ed-9780071460736-usa" }
+  ]
+}

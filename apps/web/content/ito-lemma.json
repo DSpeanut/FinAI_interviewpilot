@@ -1,4 +1,12 @@
 {
+  "terms": [
+    { "term": "Ito's Lemma", "def": "Stochastic chain rule: df = f_x dX + ½ f_xx (dX)² + f_t dt. The (dX)² term is non-zero for Brownian motion." },
+    { "term": "Quadratic Variation", "def": "(dW)² = dt in Ito calculus; Brownian motion accumulates variance at rate dt, making the second-order term significant." },
+    { "term": "SDE", "def": "Stochastic Differential Equation — an ODE with a random noise term (e.g. dS = μS dt + σS dW for GBM)." },
+    { "term": "Brownian Motion (W)", "def": "Continuous-time random walk with increments dW ~ N(0, dt); the fundamental source of randomness in SDEs." },
+    { "term": "Wiener Process", "def": "Another name for standard Brownian motion; W_0 = 0, independent increments, continuous paths." },
+    { "term": "Black-Scholes PDE", "def": "Derived via Ito's Lemma applied to an option on a GBM stock; V_t + ½σ²S²V_SS + rSV_S − rV = 0." }
+  ],
   "eli3": [
     "Ito's lemma is the chain rule of stochastic calculus. In ordinary calculus, if y = f(x) and x changes by dx, then dy = f'(x) dx. But when x follows a random process (Brownian motion), there's an extra term: dy = f'(x) dx + ½ f''(x) (dx)². The second-order term survives because Brownian motion increments have (dW)² = dt, not zero.",
     "This extra term changes everything in finance. It's why the log of a stock price grows at μ - σ²/2, not μ (a fact crucial for understanding long-term portfolio returns). It's how Black and Scholes derived their option pricing formula. It's the foundation of all continuous-time finance.",

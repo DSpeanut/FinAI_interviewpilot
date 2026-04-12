@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "When you build an API for an AI-powered feature, you have to think about design challenges that don't exist in traditional APIs: responses take seconds (not milliseconds), responses may be streamed token-by-token, the same input can produce different outputs, and responses may be very long.",
+    "Good AI API design handles these challenges explicitly: use streaming (Server-Sent Events or WebSockets) so users see partial responses immediately, design idempotency carefully (LLMs are not deterministic), and design endpoints around the AI task's natural unit (a conversation, a generation job) rather than standard CRUD.",
+    "AI API design also requires careful attention to cost: unlike traditional APIs where more requests = more server cost, AI APIs have per-token costs that vary with input length. Rate limiting, token limits, and cost attribution are first-class concerns."
+  ],
+  "whenWhy": [
+    {
+      "title": "Streaming responses for low perceived latency",
+      "body": "LLM generation latency is 1-30 seconds depending on response length. Without streaming, users stare at a loading spinner for the full duration. With streaming (SSE or WebSockets), the first token appears in < 500ms (time to first token, TTFT), and subsequent tokens appear as they're generated. This dramatically improves perceived responsiveness. Server-Sent Events (SSE) are the standard for streaming LLM responses: the server sends text/event-stream events; the client processes them incrementally. All major LLM API providers (OpenAI, Anthropic, Google) use SSE for streaming."
+    },
+    {
+      "title": "Job-based APIs for long-running generations",
+      "body": "For very long generations (reports, code generation, multi-step analysis), a synchronous HTTP request-response pattern doesn't work — the connection may timeout. Job-based pattern: POST /generations returns a {job_id} immediately; the job runs asynchronously; GET /generations/{job_id}/status returns {status: 'in_progress' | 'complete' | 'failed'}; GET /generations/{job_id}/result returns the output when complete. Clients poll or receive a webhook. This decouples submission from retrieval and handles network interruptions gracefully."
+    },
+    {
+      "title": "Cost control and token-aware rate limiting",
+      "body": "AI APIs have per-token costs that dwarf compute costs for equivalent throughput in traditional services. API design must include: per-user token budgets (track input + output tokens per API key), rate limits by tokens per minute (not just requests per minute), context length limits (reject requests with oversized inputs), and cost attribution (log which user/feature consumed which tokens for billing and abuse detection). Token-aware rate limiting is more nuanced than request-rate limiting: one 10k-token request costs as much as 100 100-token requests."
+    }
+  ],
+  "deepDiveIntro": [
+    "RESTful API design for AI services differs from CRUD APIs in three fundamental ways: (1) Statefulness — LLM conversations are inherently stateful (conversation history); API design must decide where state lives (client-managed, server-managed, or stateless with client-sent history); (2) Non-determinism — the same request may return different responses; idempotency keys don't guarantee identical responses (unlike payment APIs); (3) Latency — LLM responses are slow; synchronous request-response works for short generations; async job patterns are required for long ones.",
+    "The OpenAI and Anthropic REST APIs are the industry reference designs. Both use: POST /messages (or /completions) for generation, streaming via SSE with stream=true, token usage in response metadata, and per-request model selection. Key design decision: stateless API (client sends full conversation history every request) vs. stateful (server manages conversation state by session_id). OpenAI and Anthropic use stateless design for simplicity and horizontal scalability. Stateful design simplifies clients but creates server-side storage scaling challenges."
+  ],
+  "deepDive": [
+    {
+      "heading": "Streaming with Server-Sent Events",
+      "body": "SSE format: HTTP response with Content-Type: text/event-stream. Each event is: data: {json_payload}\\n\\n. For LLM streaming: each event carries a delta (the new tokens generated since the last event). Final event: data: [DONE]\\n\\n (OpenAI) or an event with stop_reason (Anthropic). Client implementation: EventSource API (browser) or requests + iter_lines() (Python). Important: set the response headers correctly: Content-Type: text/event-stream, Cache-Control: no-cache, X-Accel-Buffering: no (disables Nginx/proxy buffering that would delay events). Intermediate proxies (load balancers, API gateways) must support SSE — some buffer responses by default; configure stream pass-through. [1]"
+    },
+    {
+      "heading": "Conversation State Management",
+      "body": "Stateless (client sends history): every request includes the full conversation history as an array of messages. Simple to implement server-side; each request is independent (easy to load balance). Drawbacks: large requests for long conversations (high token cost); client responsible for history truncation. Stateless with server-side context caching: same as stateless, but the server caches the KV cache for the static prefix (system prompt + early conversation) to reduce recomputation cost. Anthropic's prompt caching uses this pattern. Stateful (server stores history): client sends only the new message; server retrieves history by conversation_id. Smaller request payloads; server handles truncation. Drawbacks: stateful server (harder to scale horizontally); conversation lifecycle management (expiry, storage cost). Most production systems use stateless for scalability but add caching for cost efficiency. [1]"
+    },
+    {
+      "heading": "Token-Aware Rate Limiting and Cost Attribution",
+      "body": "Implementation: (1) Token counting — tokenise the request before the LLM call using tiktoken (OpenAI) or count_tokens API; reject requests exceeding max_input_tokens; (2) Token-per-minute (TPM) limiting — maintain a sliding window counter per API key: if (input_tokens + estimated_output_tokens) > remaining_TPM, return 429 with retry_after; (3) Cost attribution — log per request: {user_id, feature_name, input_tokens, output_tokens, model, timestamp, cost_usd}. Aggregate daily/weekly for billing and anomaly detection; (4) Budget alerts — alert when a user's daily token spend exceeds a threshold; auto-suspend accounts exceeding limits. Estimated output tokens: use a simple heuristic (max_tokens / 2) for remaining TPM calculation since actual output tokens aren't known at request time. [2]"
+    }
+  ],
+  "takeaways": [
+    "Streaming (SSE): first token in < 500ms TTFT — essential for LLM APIs; configure proxies to not buffer. [1]",
+    "Stateless history: client sends full conversation history; enables horizontal scaling and easy load balancing. [1]",
+    "Job-based pattern: POST returns job_id immediately; poll/webhook for result — handles long generations. [2]",
+    "Token-aware rate limits: TPM limits more meaningful than RPM for cost-sensitive AI APIs. [2]",
+    "Cost attribution: log {user, feature, input_tokens, output_tokens, model, cost_usd} per request for billing and anomaly detection. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle a user who sends a maliciously large input to inflate your costs?",
+      "a": "Input abuse vectors: (1) extremely long system prompts; (2) injecting the full text of books into user messages; (3) attaching very large files for processing. Defences at the API layer: (1) max_input_tokens hard limit — reject requests with input token count > limit before calling the LLM; (2) File upload size limits — validate file sizes at upload time (not at processing time); (3) Character-level pre-filters — quick string length check before tokenisation (approximate, but catches extreme cases fast); (4) Per-user daily token budgets — even if a single request is within limits, a user can exhaust your budget by making many requests; (5) CAPTCHA / proof-of-work for unauthenticated endpoints — prevents automated large-input attacks. Never rely on the LLM API's own rate limits as your only protection — they're per-account, not per-user."
+    },
+    {
+      "q": "How do you design idempotency for AI API requests?",
+      "a": "Traditional idempotency (payment APIs): same request + same idempotency key → same response. LLMs are non-deterministic: same input may produce different output even with temperature=0 (model updates, sampling differences). True idempotency requires caching: store (request_hash → response) and return the cached response for duplicate requests. Implementation: hash the full request (model + messages + parameters) with SHA-256; check cache before calling LLM; on miss, call LLM and store response. Cache TTL: 24-48 hours for most use cases. When NOT to cache: creative tasks where variety is desired; tasks where the user explicitly refreshes. Idempotency key semantics in AI APIs: use it to deduplicate exact-same requests (e.g., retry after network failure), not to guarantee determinism. Document this distinction clearly in your API contract."
+    }
+  ],
+  "sources": [
+    { "label": "OpenAI API Design Reference — streaming, tool use, rate limits", "url": "https://platform.openai.com/docs/api-reference" },
+    { "label": "Anthropic API Reference — messages, streaming, token counting", "url": "https://docs.anthropic.com/en/api/getting-started" }
+  ]
+}

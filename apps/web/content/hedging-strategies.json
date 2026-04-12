@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "Hedging is taking a position designed to offset the risk of another position. If you own a stock and worry it might fall, you can buy a put option — if the stock falls, the put gains value and partially offsets your loss. You're paying a premium to cap your downside.",
+    "Hedges are rarely perfect. A perfect hedge eliminates all price risk; in practice, you deal with basis risk (the hedge instrument doesn't move exactly like your exposure), roll risk (hedges expire and need to be rolled), and cost (options have premiums, futures have carry costs).",
+    "The goal of hedging is not to make money — it's to reduce the variance of outcomes. A company that sells products in euros and has costs in dollars hedges FX risk so its profits become predictable, even if the hedge sometimes costs money in hindsight."
+  ],
+  "whenWhy": [
+    {
+      "title": "Hedging market risk with futures and forwards",
+      "body": "The hedge ratio determines how many futures contracts to use: h* = ρ(σ_S / σ_F), where ρ is the correlation between the spot position and the futures contract, σ_S is the standard deviation of spot price changes, and σ_F is the standard deviation of futures price changes. For a stock portfolio, the beta-adjusted hedge: number of contracts = (β_portfolio × Portfolio Value) / (Futures price × Contract multiplier). This creates a delta-neutral position — the portfolio becomes insensitive to market moves. Cross-hedging (using a correlated but different instrument) introduces basis risk. Minimum-variance hedge ratio minimises the residual variance after hedging."
+    },
+    {
+      "title": "Options-based hedging: protective puts and collars",
+      "body": "A protective put combines a long stock position with a long put option — it creates a floor on losses while retaining upside. Cost: the put premium. A collar adds a short call to the protective put, capping upside but reducing or eliminating the net premium cost. A zero-cost collar: choose the call strike so the call premium received equals the put premium paid. Trade-off: cheap protection in exchange for capped upside. Delta hedging (continuously rebalancing a portfolio of options and the underlying to maintain delta neutrality) is used by options market makers — theoretically perfect replication of the option payoff at the cost of continuous trading and transaction costs."
+    },
+    {
+      "title": "Duration hedging for fixed income portfolios",
+      "body": "A bond portfolio's price sensitivity to yield changes is captured by its dollar duration (DV01 — dollar change per 1bp yield move). To hedge interest rate risk: take an offsetting position in Treasury futures or interest rate swaps such that the combined DV01 is zero. Number of futures contracts = (DV01_portfolio) / (DV01_futures). Paying fixed in an interest rate swap converts a fixed-rate asset to a floating-rate asset, eliminating duration risk. Receiving fixed converts floating to fixed. Swap overlays allow liability-driven investors (pension funds, insurance companies) to precisely match the duration of their assets to their liabilities without changing the underlying bond portfolio."
+    }
+  ],
+  "deepDiveIntro": [
+    "Hedge effectiveness is measured by R² from the regression of the hedged position's P&L on the unhedged position's P&L — a perfect hedge has R² = 1. The residual variance is basis risk: the risk that the hedge instrument and the exposure don't move in lockstep. Basis risk is unavoidable whenever the hedge instrument is not identical to the exposure (cross-hedging, index hedging of individual stocks, etc.).",
+    "The cost of hedging has two components: (1) explicit cost — option premiums, bid-ask spreads, financing costs; (2) opportunity cost — gains foregone when the hedge pays off means the underlying moved against you (but the hedge worked). Over a full cycle, systematic hedging costs money in expectation (options are priced above fair value due to volatility risk premium). The decision to hedge should be based on the cost of variance vs. the cost of hedging, not on whether the hedge was profitable ex-post."
+  ],
+  "deepDive": [
+    {
+      "heading": "Delta, Gamma, and Vega Hedging",
+      "body": "An options position has multiple risk dimensions: delta (sensitivity to underlying price), gamma (rate of change of delta), vega (sensitivity to implied volatility), theta (time decay), rho (sensitivity to interest rates). Delta hedging: buy/sell the underlying so the combined delta is zero — the position is instantaneously market-neutral. But delta changes as the underlying moves (gamma risk) and as time passes (theta). Gamma hedging: add another option position to zero out gamma — the portfolio remains delta-hedged even as the underlying moves. Vega hedging: hedge against changes in implied volatility using other options (or VIX futures). A fully hedged options book (delta, gamma, vega neutral) has minimal P&L sensitivity to market moves — but earns income from the bid-ask spread (market maker's profit). [1]"
+    },
+    {
+      "heading": "Dynamic vs. Static Hedging",
+      "body": "Static hedge: set up once and hold to expiry. Works for vanilla options replication using put-call parity, or for a simple futures hedge held to delivery. Low transaction costs but imperfect — basis risk accumulates over time as the hedge drifts. Dynamic hedge: continuously (or frequently) rebalance to maintain neutrality. The Black-Scholes model implies continuous delta hedging perfectly replicates an option — but requires continuous trading and zero transaction costs. In practice, discrete rebalancing (daily or when delta moves by a threshold) introduces hedging error. The optimal rebalancing frequency trades off hedging error (less frequent = more error) against transaction costs (more frequent = more costs). Hodges-Neuberger (1989) utility-based framework gives the optimal rebalancing strategy under transaction costs. [2]"
+    },
+    {
+      "heading": "Tail Risk Hedging and Variance Swaps",
+      "body": "Standard delta hedging protects against small, continuous price moves but not against large jumps (crash risk). Tail risk hedges: deep out-of-the-money puts (cheap individually but provide large payoffs in crashes), variance swaps (pay when realised volatility exceeds implied), CDS (pay when credit events occur). Variance swap payoff: N_var × (σ²_realised - K²_var), where K_var is the variance strike. Long variance swaps profit when markets are more volatile than priced — typically in crises. The VIX is approximately the fair value of a 30-day variance swap on the S&P 500 (square root of the fair variance). Crisis alpha strategies (trend following, long volatility) act as natural tail hedges — they tend to perform well when equities sell off sharply. [1]"
+    }
+  ],
+  "takeaways": [
+    "Minimum-variance hedge ratio: h* = ρ(σ_S/σ_F) — scales the futures position to the correlation and relative volatility. [1]",
+    "Beta-adjusted equity hedge: contracts = (β × portfolio value) / (futures price × multiplier). [1]",
+    "Protective put: long stock + long put = capped downside, full upside, costs the put premium. [1]",
+    "DV01 hedging: match bond portfolio DV01 with offsetting futures or swaps positions to immunise against rate moves. [1]",
+    "Variance swap: payoff on realised vs. implied variance — long variance benefits in volatile/crisis environments. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "When does a hedge increase rather than decrease risk?",
+      "a": "Several scenarios: (1) Over-hedging: using too many contracts (h > 1) adds net short exposure that increases total variance. (2) Wrong correlation assumption: if ρ assumed for the hedge ratio turns out to be much lower (basis risk is higher than expected), the hedge barely reduces variance while adding transaction costs. (3) Liquidity mismatch: hedging an illiquid asset with a liquid instrument works if they move together in normal times, but in a crisis, correlations change and you may face margin calls on the futures/options hedge while the underlying is illiquid. (4) Wrong tenor: hedging long-dated exposure with short-dated instruments requires rolling — roll risk means the hedge may be ineffective precisely when the market moves most (futures prices can gap at rolls). Always stress-test hedge effectiveness under crisis correlation assumptions."
+    },
+    {
+      "q": "How do you hedge a portfolio of options (not just a single option)?",
+      "a": "Portfolio-level options hedging uses aggregate Greeks. Aggregate delta: sum of all positions' deltas weighted by notional — hedge the total with the underlying or futures. Aggregate gamma and vega: more complex — these are not additive across strikes and maturities because gamma peaks at the money and vega has different time sensitivities. A portfolio with positive gamma at one strike and negative gamma at another may look gamma-neutral overall but has significant gamma risk at each strike. Proper portfolio Greeks management requires a full revaluation grid across spot levels and vol levels (a 'p&l explain grid') rather than just aggregating point estimates. Large options books typically manage to a risk limit on the full revaluation grid, not just aggregate Greeks."
+    }
+  ],
+  "sources": [
+    { "label": "Hull, J. (2022) — Options, Futures, and Other Derivatives, 11th ed., Pearson", "url": "https://www.pearson.com/en-us/subject-catalog/p/options-futures-and-other-derivatives/P200000005938" },
+    { "label": "Hodges, S. & Neuberger, A. (1989) — Optimal Replication of Contingent Claims under Transaction Costs, Review of Futures Markets", "url": "https://www.researchgate.net/publication/228260446" }
+  ]
+}

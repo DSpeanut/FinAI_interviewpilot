@@ -1,4 +1,12 @@
 {
+  "terms": [
+    { "term": "Covariance Matrix", "def": "N×N matrix of return variances and covariances; the fundamental input to portfolio risk and optimisation." },
+    { "term": "Factor Model", "def": "Σ = B F B′ + D — decompose covariance into factor covariance (B F B′) + idiosyncratic (D); reduces dimensionality." },
+    { "term": "Ledoit-Wolf Shrinkage", "def": "Regularise the sample covariance matrix by shrinking toward a structured target; reduces estimation error." },
+    { "term": "RMT (Random Matrix Theory)", "def": "Separates signal (non-random eigenvalues) from noise (eigenvalues consistent with random matrices) in covariance matrices." },
+    { "term": "BARRA / Axioma", "def": "Commercial risk model providers; factor models used by most institutional quant PMs for risk and attribution." },
+    { "term": "Stress Test", "def": "Evaluate portfolio loss under extreme but plausible scenarios; complement to risk model normal-conditions estimates." }
+  ],
   "eli3": [
     "Traditional risk models (like Barra) use a fixed set of factors — market beta, size, value, industry — to decompose portfolio risk. ML risk models use machine learning to estimate factor exposures and covariance matrices more accurately, especially for non-linear relationships, tail risk, and dynamic correlations that change over time.",
     "The key challenge in portfolio risk modelling: estimating the covariance matrix of N assets. With N = 500 stocks, the covariance matrix has 500×501/2 = 125,250 parameters to estimate from, say, 252 daily returns — there are more parameters than data points. This requires either a factor model (dimensionality reduction) or statistical regularisation. ML provides better regularisation and the ability to model non-linear, time-varying relationships.",

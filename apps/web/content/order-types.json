@@ -1,0 +1,68 @@
+{
+  "terms": [
+    { "term": "Market Order", "def": "Execute immediately at the best available price; guaranteed fill, uncertain price." },
+    { "term": "Limit Order", "def": "Execute only at a specified price or better; certain price, uncertain fill." },
+    { "term": "Stop Order", "def": "Becomes a market order when a trigger price is reached; used to exit positions or protect profits." },
+    { "term": "Stop-Limit", "def": "Becomes a limit order (not market) when triggered; risk of non-execution if price moves through the limit." },
+    { "term": "IOC / FOK", "def": "Immediate-Or-Cancel: fill what you can now, cancel the rest. Fill-Or-Kill: fill the entire order or cancel all." },
+    { "term": "Slippage", "def": "Difference between expected execution price and actual fill price; caused by market impact and timing." }
+  ],
+  "eli3": [
+    "An order type tells the exchange exactly how you want to buy or sell a security. A market order says 'buy immediately at whatever the current price is.' A limit order says 'only buy if the price is at or below $50.' A stop order says 'wait until the price drops to $40, then sell immediately to limit my losses.'",
+    "Order types give investors control over execution. Market orders guarantee execution but not price — you get filled immediately but you might pay more than you expected if the market moves fast. Limit orders guarantee price but not execution — you might not get filled if the price never reaches your limit.",
+    "Institutional traders use sophisticated order types (iceberg orders, TWAP/VWAP algorithms) to execute large orders without revealing their full size to the market — if the market knows you need to buy 1 million shares, the price will move against you before you finish."
+  ],
+  "whenWhy": [
+    {
+      "title": "Controlling execution price vs. execution certainty trade-off",
+      "body": "The fundamental trade-off in order selection: price certainty vs. execution certainty. Market orders guarantee execution (always filled immediately) but expose you to adverse price moves — in illiquid markets or fast-moving conditions, market orders can execute far from the expected price ('slippage'). Limit orders guarantee price (you'll never pay more than your limit) but may not execute if the price never reaches your limit. The right order type depends on: urgency (need to trade now → market order; can wait → limit order), liquidity (liquid market → market order safely; illiquid market → limit order to avoid wide spreads), and information (have time-sensitive information → market order to act before it's priced in)."
+    },
+    {
+      "title": "Risk management and loss limitation",
+      "body": "Stop orders are the primary tool for automated loss limitation. A stop-loss order: if the price drops to the stop price, a market sell order triggers automatically. Prevents catastrophic losses if you're away from your screen. A stop-limit order: if the price drops to the stop price, a limit sell order triggers — more price control but may not fill in a fast market. Trailing stop orders: the stop price moves up as the stock price rises (preserves profits), but triggers a sell if the price drops more than X% from its peak. These orders automate risk management rules that would otherwise require constant monitoring."
+    },
+    {
+      "title": "Algorithmic execution for large institutional orders",
+      "body": "Institutional investors must execute large orders (millions of shares) without moving the market against themselves. Algorithmic order types: VWAP (Volume-Weighted Average Price) — execute at the market's volume-weighted average price by spreading the order throughout the day proportional to volume; TWAP (Time-Weighted Average Price) — spread the order equally over a time period; POV (Percentage of Volume) — execute at X% of market volume; Iceberg/Reserve orders — show only a small portion of the total order size (the 'tip of the iceberg') at any time. These algorithms balance urgency (execute faster → more market impact) against stealth (execute slowly → less market impact, more time risk)."
+    }
+  ],
+  "deepDiveIntro": [
+    "Order priority rules determine the sequence in which orders are executed. Most exchanges use price-time priority: (1) Price priority — better-priced orders execute first (highest bid, lowest ask); (2) Time priority — among orders at the same price, earlier orders execute first (FIFO). Price-size priority is used on some derivatives exchanges: larger orders at the same price have priority over smaller ones. Pro-rata allocation: orders at the same price are allocated proportionally to size (common in fixed income futures). Understanding priority rules is critical for HFT market-making — submitting a limit order first (highest time priority) gives you the best chance of execution at that price level.",
+    "Order routing complexity: in the US, Regulation NMS requires brokers to route orders to the venue displaying the best price (NBBO). In practice, order routing is complex: dark pools (private exchanges with no pre-trade price transparency), payment for order flow (brokers sell retail order flow to HFT wholesalers who execute it off-exchange), and smart order routing algorithms that consider multiple venues simultaneously. The SEC's best execution requirement obliges brokers to achieve the best reasonably available execution terms — this goes beyond price to include speed, likelihood of fill, and total transaction costs."
+  ],
+  "deepDive": [
+    {
+      "heading": "Core Order Types",
+      "body": "Market order: execute immediately at the best available price. Guarantee: execution. No price guarantee. Risk: slippage in illiquid markets or during high volatility. Limit order: execute only at the specified limit price or better. Buy limit: at or below limit price. Sell limit: at or above limit price. Guarantee: price. No execution guarantee — order may expire unfilled. Stop order (stop-market): when the trigger price is reached, a market order activates. Used for stop-loss (sell stop below current price) or buy-stop (enter a breakout above resistance). Risk: in fast markets, actual fill may be far from the trigger price ('stop running'). Stop-limit: when trigger price is reached, a limit order activates. More price control than a stop-market but may fail to fill in a fast market — critical distinction for risk management use cases. [1]"
+    },
+    {
+      "heading": "Time-in-Force Conditions",
+      "body": "Time-in-force (TIF) specifies how long an unexecuted order remains active: Day: order expires at end of the trading day if unfilled (default). GTC (Good Till Cancelled): remains active until explicitly cancelled or filled. IOC (Immediate or Cancel): fill as much as possible immediately; cancel the unfilled remainder. FOK (Fill or Kill): fill the entire order immediately or cancel entirely — no partial fills. GTD (Good Till Date): remains until a specified date. AON (All or None): fill all or cancel — may reduce fill probability but prevents partial fills that create tracking error in indexed portfolios. HFT market makers primarily use IOC for aggressive orders (to avoid being picked off at stale prices) and Day orders for passive limit orders that provide liquidity. [1]"
+  },
+    {
+      "heading": "Algorithmic Order Types: VWAP and TWAP",
+      "body": "VWAP (Volume-Weighted Average Price): the benchmark price = Σ(price × volume) / Σ(volume) over a period. VWAP algorithms slice a large order to match the market's intraday volume distribution (typically U-shaped: high volume at open and close, low at midday). Goal: execute at or better than VWAP — a VWAP buy order below the VWAP benchmark is considered a successful execution. TWAP (Time-Weighted Average Price): slice the order equally over N time intervals. Simpler than VWAP; avoids participation in high-volume periods (which might increase market impact). POV (Participation of Volume): execute at X% of market volume. Adapts to actual market conditions. Choosing between them: VWAP is appropriate when the investor has no information advantage; TWAP when volume patterns are unreliable; POV when urgency varies dynamically. [2]"
+    }
+  ],
+  "takeaways": [
+    "Market order: immediate execution, no price guarantee — slippage risk in illiquid markets. [1]",
+    "Limit order: price guarantee, no execution guarantee — may expire unfilled if price never reaches limit. [1]",
+    "Stop-loss: triggers market order at stop price — may fill far from stop in fast markets. [1]",
+    "Stop-limit: triggers limit order at stop price — more price control but may fail to fill in crashes. [1]",
+    "VWAP algo: slice large orders proportionally to intraday volume — benchmark is the day's volume-weighted average price. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why can a stop-loss order fail to protect you in a market crash?",
+      "a": "In a fast-moving or gapping market, a stop-loss order may execute at a price dramatically worse than the stop trigger — a phenomenon called 'gap risk.' Example: a stock closes at $50; you have a stop-loss at $45. The stock opens the next day at $30 (after a negative overnight announcement). Your stop triggers at $45 but there are no buyers at $45 — the first available market price is $30, so your sell order fills at $30, not $45. Stop-limit orders partially address this: your limit at $44 means you won't sell below $44, but if the price gaps through $44, you don't sell at all and remain exposed. There is no order type that guarantees both execution and price in a gapping market. Risk management implication: stop orders are not a substitute for position sizing and portfolio-level risk controls (VaR, stress testing) that account for gap risk."
+    },
+    {
+      "q": "What is 'payment for order flow' and how does it affect retail execution quality?",
+      "a": "Payment for order flow (PFOF): brokers (Robinhood, TD Ameritrade) route retail customer orders to wholesale market makers (Citadel Securities, Virtu) who pay the broker for this order flow. In exchange, the wholesaler executes the retail order at a slightly better price than the NBBO (price improvement) and keeps the difference between the price improvement given and the full spread as profit. The wholesaler profits because retail order flow is largely uninformed (not information-driven) — low adverse selection risk. Critics argue: retail clients are entitled to the full spread savings; PFOF creates a conflict of interest (broker is paid by the wholesaler, not optimising for the client). Defenders argue: retail clients receive price improvement and zero commissions. SEC proposed new rules (2022-2024) requiring competitive auctions for retail orders. The empirical evidence on whether PFOF helps or hurts retail execution quality is actively debated."
+    }
+  ],
+  "sources": [
+    { "label": "Harris, L. — Trading and Exchanges: Market Microstructure for Practitioners, Oxford University Press (2002)", "url": "https://global.oup.com/academic/product/trading-and-exchanges-9780195144703" },
+    { "label": "Kissell, R. — The Science of Algorithmic Trading and Portfolio Management, Academic Press (2013)", "url": "https://www.sciencedirect.com/book/9780124016897/the-science-of-algorithmic-trading-and-portfolio-management" }
+  ]
+}

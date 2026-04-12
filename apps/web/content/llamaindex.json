@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "LlamaIndex (formerly GPT Index) is a Python framework specialised for connecting LLMs to data. Its core strength is RAG: loading documents, indexing them, and retrieving relevant pieces to answer questions. It goes deeper than LangChain on the retrieval and indexing side.",
+    "If LangChain is a general LEGO set for LLM apps, LlamaIndex is the specialised data-retrieval set. It has more sophisticated indexing structures (tree indices, keyword indices, knowledge graphs), more retrieval strategies (sub-question decomposition, auto-merging, sentence window), and a dedicated data query language.",
+    "As of 2024, LlamaIndex also has agent capabilities (AgentRunner), multi-modal support, and workflows for complex pipelines. But its strongest differentiator remains advanced RAG pipelines for document-heavy applications."
+  ],
+  "whenWhy": [
+    {
+      "title": "Production RAG with advanced retrieval strategies",
+      "body": "LlamaIndex is the go-to framework when basic top-k semantic search isn't enough. Its advanced retrieval features: auto-merging retrieval (retrieve small chunks, but return their parent nodes for full context), sentence window retrieval (embed sentences, return surrounding paragraph), sub-question decomposition (break complex queries into sub-questions, retrieve for each), recursive retrieval (query an index that returns references to other indices). These strategies significantly improve RAG quality over naive chunking + similarity search."
+    },
+    {
+      "title": "Diverse data source integration",
+      "body": "LlamaIndex's Reader ecosystem (100+ integrations): PDF, Word, HTML, Notion, Confluence, Slack, Google Drive, GitHub, databases, APIs. Each Reader normalises the source into LlamaIndex's Document format, handling source-specific parsing (PDF formatting, HTML tag stripping, database schema serialisation). For applications that must ingest heterogeneous data sources, LlamaIndex's Reader ecosystem reduces integration time significantly. The data connectors are its most extensive feature."
+    },
+    {
+      "title": "Knowledge graph-based retrieval",
+      "body": "LlamaIndex's KnowledgeGraphIndex and PropertyGraphIndex extract entities and relationships from documents and store them as a graph (backed by Neo4j, Nebula, or an in-memory graph). At query time, the query is converted to graph traversal, retrieving fact chains rather than passage embeddings. This is more effective than vector search for queries requiring multi-hop reasoning ('Who is the CEO of the company that acquired OpenAI?') where the answer requires chaining relationships across multiple entities."
+    }
+  ],
+  "deepDiveIntro": [
+    "LlamaIndex was created by Jerry Liu in November 2022 as a simple interface over OpenAI's API for document Q&A. It has since become a comprehensive framework for data-centric LLM applications. Key abstractions: Document (a piece of data with text and metadata), Node (a chunk derived from a Document, the unit of retrieval), Index (a data structure over Nodes for efficient retrieval), QueryEngine (a retrieval + synthesis pipeline over an Index), and AgentRunner (an agent loop over tools, which can include QueryEngines as tools).",
+    "LlamaIndex's retrieval architecture separates retrieval from synthesis: a Retriever finds relevant Nodes; a ResponseSynthesiser combines the retrieved Nodes into a final answer. This separation enables swapping retrieval strategies independently of the synthesis step, and enables evaluation of each component independently. The QueryEngine orchestrates the two."
+  ],
+  "deepDive": [
+    {
+      "heading": "Advanced Retrieval Strategies",
+      "body": "Sentence Window Retrieval: embed each sentence individually (high precision), but when a sentence is retrieved, return it along with a window of K surrounding sentences (provides context for synthesis). Auto-Merging Retrieval: build a hierarchical index (sentence → paragraph → document). Retrieve at sentence level; if K out of N sentences from the same parent paragraph are retrieved, return the full paragraph instead. Small-to-Big Retrieval: retrieve small chunks (high recall), then expand each chunk to its parent node (large chunk, more context). Sub-Question Decomposition: given a complex query, generate N sub-questions, retrieve for each, and synthesise a final answer. Best for multi-hop queries. [1]"
+    },
+    {
+      "heading": "Index Types",
+      "body": "VectorStoreIndex (most common): embeds nodes and stores in a vector DB; retrieval by ANN similarity search. SummaryIndex (formerly ListIndex): stores all nodes in a list; retrieval iterates over all nodes (suitable for small document sets). TreeIndex: builds a tree of summaries from leaf nodes up; retrieval traverses the tree from root to leaf. Useful for very long documents where you want hierarchical summarisation. KeywordTableIndex: extracts keywords from each node; retrieval by keyword intersection with the query. KnowledgeGraphIndex: extracts (entity, relation, entity) triples; retrieval by graph traversal. For most production RAG, VectorStoreIndex + an advanced retrieval strategy is the standard starting point. [1]"
+    },
+    {
+      "heading": "LlamaIndex vs LangChain for RAG",
+      "body": "LlamaIndex advantages for RAG: deeper retrieval abstractions (more built-in advanced strategies), better multi-index composition (query across multiple indices), more sophisticated evaluation (Ragas integration, TruLens integration). LangChain advantages: broader ecosystem beyond RAG (agents, memory, chains), wider community, more integrations for non-retrieval components. In practice: many teams use LlamaIndex for the retrieval layer and LangChain/LangGraph for the agent orchestration layer, since they can be combined: a LlamaIndex QueryEngine can be wrapped as a LangChain Tool and used inside a LangGraph agent. [1]"
+    }
+  ],
+  "takeaways": [
+    "LlamaIndex specialises in data-centric LLM applications — strongest at advanced RAG and document ingestion. [1]",
+    "Advanced retrieval: sentence window, auto-merging, sub-question decomposition — all outperform naive top-k. [1]",
+    "100+ Reader integrations: PDF, Notion, Confluence, databases — normalises heterogeneous sources to Document format. [1]",
+    "Index types: VectorStoreIndex (default), TreeIndex (hierarchical), KnowledgeGraphIndex (multi-hop reasoning). [1]",
+    "Can be combined with LangGraph: wrap a LlamaIndex QueryEngine as a LangChain tool for agent use. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "When should you build a custom retriever instead of using LlamaIndex's built-in strategies?",
+      "a": "Build a custom retriever when: (1) Your data has domain-specific structure that built-in strategies don't handle (e.g., financial filings with table data — tables need structured retrieval, not embedding-based); (2) You need retrieval logic that combines multiple signals (recency + semantic similarity + user-specific weighting); (3) The built-in strategies have too many layers of abstraction that prevent fine-tuning for your latency requirements; (4) You need to integrate a proprietary search system. LlamaIndex makes custom retrievers easy: subclass BaseRetriever, implement _retrieve(query_bundle) → list[NodeWithScore], and plug it into any QueryEngine. The rest of the pipeline (synthesis, caching, tracing) works as normal."
+    },
+    {
+      "q": "How do you keep the LlamaIndex index up-to-date as the underlying documents change?",
+      "a": "Document refresh strategies: (1) Full re-index — delete and rebuild the entire index on a schedule (simplest but expensive for large corpora); (2) Incremental update — track document hashes; re-embed and re-index only documents that have changed. LlamaIndex's RefreshIndex detects stale nodes by comparing stored document hashes to current source hashes; (3) Streaming ingest — for real-time document sources (Slack, email), use event-driven ingestion: a webhook triggers a LlamaIndex ingestion pipeline when new content arrives; (4) Deletion handling — when a source document is deleted, query the index by document_id and delete all its nodes. The ingestion pipeline (SimpleDirectoryReader + IngestionPipeline) handles all four cases with the right configuration."
+    }
+  ],
+  "sources": [
+    { "label": "LlamaIndex Documentation — official docs", "url": "https://docs.llamaindex.ai/" },
+    { "label": "LlamaIndex Blog — Advanced RAG techniques", "url": "https://www.llamaindex.ai/blog" }
+  ]
+}

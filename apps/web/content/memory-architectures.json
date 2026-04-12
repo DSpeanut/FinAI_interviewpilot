@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "A memory architecture is the complete design for how an AI agent stores and retrieves information. It combines short-term memory (context window), long-term memory (external storage), and the rules for moving information between them.",
+    "Think of it like a library system: you have the books on your desk right now (context window), the books on your local shelf (retrieved long-term memories in the prompt), and the rest of the library (external storage). The architecture defines what goes on your desk, what's on your shelf, and how you decide which books to pull from the library.",
+    "Different agent use cases need different architectures: a customer service bot needs user preference memory; a coding agent needs codebase-wide context; a research agent needs episodic memory of past work. The architecture must match the task."
+  ],
+  "whenWhy": [
+    {
+      "title": "Long-running personal assistants requiring multi-modal memory",
+      "body": "Personal AI assistants (Mem, Claude Projects, ChatGPT Memory) need all memory types: short-term for the current conversation, semantic long-term for user preferences and facts, episodic for past conversation history. The architecture must efficiently retrieve the right memories given the current query — not all memories are relevant to every query. This requires semantic search over long-term stores and recency-biased retrieval for episodic memory."
+    },
+    {
+      "title": "Large codebase agents needing hierarchical memory",
+      "body": "Coding agents (GitHub Copilot Workspace, Devin) face a unique problem: the entire codebase cannot fit in the context window. They need a hierarchical memory architecture: level 1 (in-context): currently open files and relevant code snippets; level 2 (retrieved): file summaries and function signatures fetched from an index; level 3 (external): full source code in a code search system (RAG over code). The architecture manages promotion and demotion between levels based on relevance to the current task."
+    },
+    {
+      "title": "Multi-agent systems requiring shared memory",
+      "body": "In multi-agent systems, multiple agents may need to share state: a planner and executor sharing the task plan; multiple research sub-agents contributing to a shared knowledge base. Shared memory architectures use an external store (Redis, a shared vector DB) that all agents can read from and write to. This requires concurrency controls (optimistic locking, message queues) to prevent race conditions when multiple agents write simultaneously."
+    }
+  ],
+  "deepDiveIntro": [
+    "The most cited memory architecture taxonomy (Wang et al. 2024) classifies agent memory into four types: (1) Sensory memory — raw inputs (text, images) before they're processed; (2) Short-term / working memory — the context window; (3) Long-term memory — external storage (episodic + semantic + procedural); (4) External memory — tools for accessing external knowledge bases (search engines, databases). Most practical architectures focus on short-term and long-term memory and the interface between them.",
+    "MemGPT (Packer et al. 2023) introduced the 'virtual context' architecture: the agent explicitly manages a main context (fixed-size, in-context) and a backing store (unlimited, out-of-context) with explicit read/write tool calls. The agent uses recall_memory(query) to fetch from the backing store and save_memory(text) to persist information. This is the most architecturally principled approach: the agent is aware of its memory limits and self-manages them."
+  ],
+  "deepDive": [
+    {
+      "heading": "Four-Layer Memory Architecture",
+      "body": "Practical agent memory architecture: Layer 1 — System prompt (static, always in context): agent identity, task instructions, user profile from semantic memory. Layer 2 — Retrieved context (dynamic, fetched at query time): top-k episodic memories, relevant semantic facts, recent conversation summary. Layer 3 — Working context (dynamic, accumulated during session): current conversation history, current session's tool outputs. Layer 4 — External storage (not in context, accessed via tools): full episodic history, full semantic memory, document/code/database stores. Promotion: important information moves up (from Layer 4 to Layer 2 via retrieval). Demotion: overflowing context moves down (summarise and archive to Layer 4). [1]"
+    },
+    {
+      "heading": "Read/Write Patterns",
+      "body": "Read patterns: (1) Pre-session retrieval — before the session starts, retrieve relevant memories based on the user's initial query and inject into system prompt; (2) In-session retrieval — the agent uses a recall tool mid-session when it needs information not in context; (3) Reactive retrieval — trigger retrieval when a specific context marker is detected (e.g., 'remember when we...', a project name is mentioned). Write patterns: (1) Post-session extraction — LLM reviews the session and extracts memorable facts, stores them; (2) Explicit in-session saving — the agent uses a save_memory tool when instructed ('Remember that I prefer...'); (3) Automated chunking — long documents are chunked and stored during onboarding. [2]"
+    },
+    {
+      "heading": "Concurrency and Consistency in Shared Memory",
+      "body": "Multi-agent shared memory requires: (1) Versioning — each memory write includes an agent ID and timestamp; conflicts are resolved by last-write-wins or conflict detection; (2) Locking for critical sections — agent A reads memory M, modifies it, and writes back — without a lock, agent B may overwrite A's write; use optimistic locking (read version → compute → write if version unchanged); (3) Event sourcing — instead of updating memory in place, append events: {type: 'memory_update', agent_id, content, timestamp}. Agents replay events to reconstruct current state. Event sourcing provides full auditability and enables rollback. Most simple multi-agent systems avoid these complexities by designating one agent as the sole memory writer. [1]"
+    }
+  ],
+  "takeaways": [
+    "Memory architecture = system prompt (static) + retrieved context + working context + external storage. [1]",
+    "MemGPT virtual context: agent self-manages memory with explicit recall/save tools — most principled approach. [2]",
+    "Pre-session retrieval: embed query → semantic search → inject top-k memories into system prompt before session. [1]",
+    "Post-session extraction: LLM reviews session, extracts memorable facts, stores to long-term memory. [2]",
+    "Multi-agent shared memory requires versioning, locking, or event sourcing to prevent conflicts. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you bootstrap a memory architecture for a new user with no history?",
+      "a": "Cold start strategies: (1) Onboarding flow — ask the new user explicit questions to populate semantic memory: preferences, role, common tasks; (2) Passive learning — in the first few sessions, extract semantic facts aggressively from the conversation (the agent is 'learning about the user'); (3) Transfer from similar users — in multi-tenant systems, bootstrap new user memory with global semantic facts (domain conventions, common user preferences) that apply broadly; (4) User-provided context — let users upload documents (a personal README: 'I am a data scientist at a fintech company, I prefer Python') as seed memory. By session 3-5 with an engaged user, semantic memory should have enough signal to provide meaningful personalisation."
+    },
+    {
+      "q": "How do you test a memory architecture without running full end-to-end sessions?",
+      "a": "Three testing levels: (1) Unit: test individual memory operations — store a memory, retrieve it with a semantically similar query, verify it's returned; test conflict resolution with a contradicting memory; (2) Integration: simulate a multi-session conversation history; verify that the correct memories are retrieved at session start; verify post-session extraction captures expected facts; (3) Behavioral: evaluate memory-augmented agent on a benchmark that requires cross-session information (e.g., ask in session 5 about a fact established in session 1). Key metrics: retrieval precision (are retrieved memories relevant?), recall (are all relevant memories retrieved?), and behavioral change (does memory actually improve task performance vs. no-memory baseline?)."
+    }
+  ],
+  "sources": [
+    { "label": "Wang et al. (2024) — A Survey on Large Language Model based Autonomous Agents", "url": "https://arxiv.org/abs/2308.11432" },
+    { "label": "Packer et al. (2023) — MemGPT: Towards LLMs as Operating Systems", "url": "https://arxiv.org/abs/2310.08560" }
+  ]
+}

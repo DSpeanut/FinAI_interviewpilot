@@ -1,0 +1,68 @@
+{
+  "terms": [
+    { "term": "Coupon Rate", "def": "Annual interest payment as a % of face value; a 5% coupon on a $1,000 bond pays $50/year." },
+    { "term": "Face Value (Par)", "def": "The principal amount repaid at maturity; typically $1,000 for corporate bonds." },
+    { "term": "Yield to Maturity (YTM)", "def": "The total annualised return if the bond is held to maturity and all coupons are reinvested at the same rate." },
+    { "term": "Duration", "def": "Weighted-average time to receive cash flows; also measures price sensitivity to a 1% rate change." },
+    { "term": "Credit Spread", "def": "Yield premium over risk-free Treasuries; compensates investors for default and liquidity risk." },
+    { "term": "Discount / Premium", "def": "Bond trades at discount when YTM > coupon; at premium when YTM < coupon; at par when YTM = coupon." }
+  ],
+  "eli3": [
+    "A bond is a loan that you make to a government or company. They promise to pay you a fixed amount (the coupon) every year and return your principal (face value) at a specific future date (maturity). In exchange for lending your money, you receive these contractual cash flows.",
+    "Bond prices and interest rates move in opposite directions. If you buy a bond paying 5% when rates are 5% and rates then rise to 7%, your bond pays less than new bonds, so its price falls. This inverse relationship is the central fact of bond investing.",
+    "Bonds are the world's largest asset class (over $130 trillion globally). Governments issue them to fund spending; corporations issue them to raise capital. They're the foundation of the global financial system: central bank policy is transmitted through bond yields; mortgages, corporate loans, and credit card rates are all benchmarked to government bond yields."
+  ],
+  "whenWhy": [
+    {
+      "title": "Generating predictable income and capital preservation",
+      "body": "Bonds provide contractually specified cash flows — unlike equities, the return is not dependent on corporate performance (except in default). High-grade government bonds (US Treasuries, German Bunds) are considered 'risk-free' in their own currency: virtually no default risk, liquid, and backed by the full taxing power of the sovereign. For income-dependent investors (retirees, pension funds with known liabilities), the predictable coupon stream and return of principal at maturity is invaluable. Bond laddering: buying bonds maturing at regular intervals ensures a predictable cash flow stream."
+    },
+    {
+      "title": "Portfolio diversification — equity risk hedge",
+      "body": "High-quality government bonds have historically had negative or near-zero correlation with equities during market stress. When equities fall in recessions, investors flee to safety ('flight to quality'), buying government bonds and pushing their prices up. This countercyclical behavior provides portfolio insurance: a 60/40 equity/bond portfolio has historically delivered similar long-run returns to 100% equity with significantly lower volatility and drawdowns. The negative correlation breaks down during inflationary periods (2022: both equities AND bonds fell), but remains the dominant regime over full economic cycles."
+    },
+    {
+      "title": "Valuation benchmark — risk-free discount rate",
+      "body": "Government bond yields set the risk-free rate used in all valuation models. The US Treasury yield curve (3-month, 2-year, 5-year, 10-year, 30-year) is the global benchmark: all other fixed income is priced as a spread over Treasuries; equity discount rates add an equity risk premium to the risk-free rate; corporate borrowing costs are benchmarked to government yields. When the Federal Reserve changes policy rates, it primarily affects short-term Treasury yields, which then ripple through the entire yield curve and into all asset prices. Understanding bonds is prerequisite to understanding all of finance."
+    }
+  ],
+  "deepDiveIntro": [
+    "A bond is defined by: Face value (par value, typically $1000 or $100 for government bonds): the principal repaid at maturity. Coupon rate: annual interest as a percentage of face value (a 5% coupon on $1000 face pays $50/year, typically in semi-annual payments of $25). Maturity: the date of final principal repayment. Yield to Maturity (YTM): the internal rate of return — the discount rate that equates the present value of all cash flows to the current price. Bond price equation: P = Σ_{t=1}^{T} C/(1+y)^t + F/(1+y)^T, where C = coupon, F = face value, y = YTM, T = maturity in periods.",
+    "Bond types: Government bonds (Treasuries in the US, Gilts in UK, JGBs in Japan): issued by sovereigns, typically highest credit quality, used as risk-free benchmarks. Zero-coupon bonds: no coupon payments; sold at a discount to face value; the only cash flow is the face value at maturity. Inflation-linked bonds (TIPS in the US): principal adjusts with the CPI; real yield is locked in at purchase. Corporate bonds: issued by companies; credit risk compensated by a credit spread over government yields. High-yield (junk) bonds: below investment-grade credit rating; higher yields compensating for higher default risk. Covered bonds (Pfandbriefe in Germany): backed by pools of mortgages; safer than unsecured corporate bonds."
+  ],
+  "deepDive": [
+    {
+      "heading": "Price-Yield Relationship and Bond Pricing",
+      "body": "Bond price formula: P = Σ_{t=1}^{2T} (C/2) / (1+y/2)^t + F / (1+y/2)^{2T}, for semi-annual coupon payment (standard US Treasury convention). Key properties: (1) Price and yield move inversely; (2) Price = par (100) when coupon rate = YTM; price > par (premium) when coupon > YTM; price < par (discount) when coupon < YTM; (3) Price sensitivity increases with maturity and decreases with coupon rate; (4) Pull-to-par: as a bond approaches maturity, its price converges to par (regardless of where it traded earlier). Clean price vs dirty price: clean price excludes accrued interest (what's quoted); dirty price = clean price + accrued coupon since last payment date (what you actually pay). [1]"
+    },
+    {
+      "heading": "Yield Measures: YTM, Current Yield, Yield Spread",
+      "body": "Yield to Maturity (YTM): the total annualised return if held to maturity (assumes coupons are reinvested at the YTM — the reinvestment assumption). Current yield: annual coupon / price. Simple but ignores capital gain/loss at maturity. Yield to Call (YTC): YTM calculated to the first call date for callable bonds; for callable bonds trading at premium, YTC is often quoted as the relevant yield. Yield spread: the difference between a bond's YTM and the relevant government bond YTM. Credit spread: the spread on a corporate bond above the same-maturity government bond yield — compensates for default risk. Spread = YTM_corporate - YTM_government. OAS (Option-Adjusted Spread): spread after removing the value of embedded options (call, put, prepayment); the pure credit and liquidity component. [1]"
+    },
+    {
+      "heading": "Bond Market Conventions and Credit Ratings",
+      "body": "Day count conventions: Actual/Actual (government bonds in US): actual days between payment dates in the numerator and denominator. 30/360: assumes each month has 30 days and each year has 360 days (common for corporate bonds). Actual/360 (money markets). Settlement: US Treasuries settle T+1 (next business day); corporate bonds T+2. Credit ratings: S&P and Moody's rate the creditworthiness of bond issuers. Investment grade: BBB-/Baa3 and above (S&P/Moody's). High yield (speculative): BB+/Ba1 and below. AAA/Aaa: highest quality (US Treasuries, some sovereigns). A rating downgrade to high yield ('fallen angel') triggers forced selling by investment-grade-only funds, causing the bond price to fall sharply. The spread between investment-grade and high-yield indices (the credit spread) is a key indicator of financial market stress. [2]"
+    }
+  ],
+  "takeaways": [
+    "Bond price: P = Σ C/(1+y)^t + F/(1+y)^T — present value of all cash flows discounted at YTM. [1]",
+    "Price/yield relationship: inverse — when yields rise, prices fall; when yields fall, prices rise. [1]",
+    "Clean vs dirty price: dirty price (actual payment) = clean price (quoted) + accrued interest. [1]",
+    "Credit spread = corporate YTM − government YTM — compensation for default risk. [1]",
+    "Investment grade: BBB-/Baa3 and above; high yield: BB+/Ba1 and below. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why can bond prices exceed face value (trade at a premium) and what does this mean for investors?",
+      "a": "A bond trades at a premium (price > 100) when its coupon rate exceeds the current market yield. Example: a 10% coupon bond in a 5% yield environment has a price well above par — investors pay a premium because the bond's coupon payments are more attractive than what new bonds offer. For the investor: (1) The YTM is below the coupon rate (the capital loss at maturity partially offsets the above-market coupons); (2) The current yield overstates the total return — the investor will lose the premium when the bond matures at par; (3) For tax purposes, premium bonds may be amortised differently from discount bonds. For callable bonds: a high-coupon bond in a low-yield environment is very likely to be called — the issuer will refinance at lower rates. The relevant yield for such bonds is the Yield to Call, not the YTM. Yield to Worst (YTW) = min(YTM, YTC, YTP) — the yield assuming the most disadvantageous outcome for the investor."
+    },
+    {
+      "q": "How do negative-yielding bonds work, and why would anyone buy them?",
+      "a": "Negative-yield bonds (common in Japan and Europe 2015-2022) have a YTM below zero — you pay more than the present value of all cash flows. Why would investors buy them? (1) Regulatory requirements: banks and insurance companies must hold high-grade sovereign bonds regardless of yield; mandatory buying pushes prices above par; (2) Capital appreciation speculation: buying a negative-yield bond may still produce profit if yields fall further (price rises); (3) Currency appreciation: a foreign investor in Japanese JGBs may earn a positive total return in their home currency if the yen appreciates; (4) Safe haven premium: in deflationary environments, even a -0.5% nominal yield may be positive in real terms if inflation is -1%; (5) ECB QE: the European Central Bank bought bonds indiscriminately for monetary policy purposes, forcing yields negative. At the peak (2020), ~$18 trillion of global government bonds had negative yields. Most returned to positive territory by 2022 as inflation forced central banks to raise rates."
+    }
+  ],
+  "sources": [
+    { "label": "Fabozzi, F.J. — Fixed Income Mathematics, 4th Edition, McGraw-Hill (2006)", "url": "https://www.mhprofessional.com/fixed-income-mathematics-4th-ed-9780071460736-usa" },
+    { "label": "CFA Institute — CFA Program Curriculum, Level 1: Fixed Income", "url": "https://www.cfainstitute.org/en/programs/cfa" }
+  ]
+}

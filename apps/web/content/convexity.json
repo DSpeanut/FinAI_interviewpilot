@@ -1,0 +1,68 @@
+{
+  "terms": [
+    { "term": "Convexity", "def": "Second derivative of bond price w.r.t. yield; measures curvature in the price-yield relationship." },
+    { "term": "Dollar Convexity", "def": "Convexity × Price / 2; the extra price gain from convexity on a Δy move: ½ × Convexity × Price × (Δy)²." },
+    { "term": "Positive Convexity", "def": "Price rises more when yields fall than it falls when yields rise — beneficial asymmetry for bondholders." },
+    { "term": "Negative Convexity", "def": "Callable bonds / MBS: price appreciation is capped (prepayment/call risk limits the upside)." },
+    { "term": "Duration", "def": "Linear (first-order) price-yield approximation; convexity is the second-order correction term." },
+    { "term": "Barbell vs Bullet", "def": "Same duration but barbell has higher convexity (more weight in short + long maturities) — outperforms in large rate moves." }
+  ],
+  "eli3": [
+    "Convexity measures the curvature of the price-yield relationship for a bond. Duration gives you the first approximation ('for every 1% rate rise, price falls 5%'), but the actual relationship is curved — the further rates move, the less accurate duration becomes. Convexity captures this curvature.",
+    "Positive convexity is good for the bondholder: when rates rise, the bond price falls less than duration predicts; when rates fall, the bond price rises more than duration predicts. It's an asymmetric benefit — you lose less on the downside and gain more on the upside. Investors pay a premium for convexity.",
+    "Negative convexity is bad: the bond price rises less when rates fall and falls more when rates rise than predicted by duration. Callable bonds and mortgage-backed securities have negative convexity — the issuer's option to call (or homeowners' ability to prepay) caps your gains when rates fall."
+  ],
+  "whenWhy": [
+    {
+      "title": "Correcting duration's approximation error for large rate moves",
+      "body": "For small yield changes (< 25bp), duration alone provides a good approximation. For large moves (> 100bp), the error becomes material. The second-order Taylor expansion: ΔP/P ≈ -D_mod × Δy + (1/2) × C × (Δy)², where C is convexity. Example: a bond with D_mod = 10, C = 120, Δy = +2% (200bp). Duration prediction: -20%. Convexity correction: +0.5×120×0.04 = +2.4%. Corrected prediction: -17.6%. Without convexity, you overestimate the loss by 2.4 percentage points. For portfolio immunisation and hedging strategies over large rate scenarios, incorporating convexity is essential."
+    },
+    {
+      "title": "Convexity as a portfolio characteristic to optimise",
+      "body": "All else equal (same duration and yield), a more convex bond is worth more — it performs better in both rising and falling rate environments. This convexity premium is priced: investors accept a lower yield for more convex bonds. The convexity-yield trade-off: investors actively choose between duration-matched portfolios with different convexity profiles. A barbell portfolio (short-term and long-term bonds) has higher convexity than a bullet portfolio (bonds clustered around the target duration) with the same duration. In a volatile rate environment, the barbell's higher convexity creates an advantage — it outperforms the bullet regardless of the direction of rate moves (as long as the curve shifts in parallel)."
+    },
+    {
+      "title": "Options and negative convexity in MBS and callable bonds",
+      "body": "Negative convexity arises from embedded options. Callable bonds: when rates fall, the issuer calls the bond and refinances at lower rates — the investor's bond is called away at par, missing the price appreciation. Mortgage-backed securities: when rates fall, homeowners prepay their mortgages and refinance — the MBS investor receives principal early (at par) when the bonds would have been worth more than par. This means MBS duration shortens as rates fall (opposite of a plain bond). Negative convexity is a significant risk factor in MBS portfolios and requires active management (option-adjusted duration, OAS hedging)."
+    }
+  ],
+  "deepDiveIntro": [
+    "Convexity is the second derivative of price with respect to yield, normalised by price: C = (1/P) × d²P/dy². Price approximation including convexity: ΔP/P ≈ -D_mod × Δy + (1/2) × C × (Δy)². For a bond with semi-annual coupons: C = [Σ_{t=1}^{2T} t(t+1) × C_t/2 / (1+y/2)^{t+2}] / P, where C_t is the cash flow at period t. A zero-coupon bond: C = T(T+1) / (1+y/2)² — convexity is approximately T². Coupon bonds have lower convexity than zero-coupon bonds with the same maturity.",
+    "Dollar convexity (DC): DC = C × P. The dollar price change from convexity: ΔP ≈ -DV01 × (Δy × 10000) + (1/2) × DC × (Δy)². Portfolio convexity: C_P = Σ w_i × C_i (market-value-weighted average). Convexity is always positive for standard (option-free) bonds — price-yield curve bows toward the lower-right. Negative convexity exists only for bonds with embedded options (callable, MBS, puttable) where the option cap/floor distorts the price-yield relationship."
+  ],
+  "deepDive": [
+    {
+      "heading": "Convexity Formula and Calculation",
+      "body": "Full price change formula: ΔP = (-D_mod × Δy + (1/2) × C × (Δy)²) × P. For a 10-year 5% coupon bond at par (D_mod ≈ 7.7, C ≈ 80): +100bp rate rise: ΔP/P ≈ -7.7% + 0.4% = -7.3%. +200bp rate rise: ΔP/P ≈ -15.4% + 1.6% = -13.8%. -100bp rate fall: ΔP/P ≈ +7.7% + 0.4% = +8.1%. The asymmetry: -7.3% loss on +100bp vs. +8.1% gain on -100bp — convexity creates an upward asymmetry for the investor. This asymmetry is not free: it is priced via a lower yield (convexity premium) or higher price relative to a less convex instrument with the same duration. [1]"
+    },
+    {
+      "heading": "Barbell vs Bullet: Convexity Trade-off",
+      "body": "Two portfolios with the same 7-year modified duration: Bullet: 7-year bond, D_mod = 7, C = 55. Barbell: 50% 2-year bond + 50% 12-year bond; portfolio D_mod = 0.5×1.9 + 0.5×9.5 ≈ 5.7 (need to adjust weights); portfolio C = 0.5×4 + 0.5×120 = 62. The barbell has higher convexity (62 vs. 55). If yields shift in parallel: the barbell outperforms for large rate moves in either direction (convexity benefit). If the yield curve twists (short rates rise more than long rates): the barbell may underperform (it's hurt by rising short rates). The bullet portfolio performs better in a yield curve steepening scenario. Barbell-vs-bullet bets are a standard yield curve strategy: long barbell vs. short bullet = long convexity bet (profits if rates are volatile); long bullet vs. short barbell = short convexity (profits if rates are stable). [2]"
+    },
+    {
+      "heading": "Negative Convexity: Callable Bonds and MBS",
+      "body": "Callable bond: the issuer has the right to redeem the bond at par (or a call price) before maturity. When rates fall, the call option is in-the-money: the issuer calls the bond to refinance at lower rates. The bond price is capped near the call price, preventing full participation in the rally. Price formula: P_callable = P_straight - Value(call option). When rates fall: P_straight rises, Value(call) rises even more → P_callable barely rises. When rates rise: P_straight falls, Value(call) falls toward zero → P_callable falls similarly to a straight bond. This creates negative convexity in the region around the call price. Mortgage-backed securities (MBS): homeowners prepay when refinancing is attractive (rates fall) — the MBS investor is 'called' at par by the prepayment. MBS price-yield relationship shows strong negative convexity, requiring complex option-adjusted analysis (OAS models, prepayment modelling). [1]"
+    }
+  ],
+  "takeaways": [
+    "ΔP/P ≈ -D_mod×Δy + (1/2)×C×(Δy)² — convexity corrects duration's linear approximation for large moves. [1]",
+    "Positive convexity: bond gains more when rates fall than it loses when rates rise by the same amount. [1]",
+    "Portfolio convexity = Σ w_i × C_i; barbell has higher convexity than bullet at same duration. [2]",
+    "Negative convexity: callable bonds and MBS — option caps price appreciation when rates fall. [1]",
+    "Convexity premium: more convex bonds trade at lower yields — investors pay for the asymmetric benefit. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Can convexity become negative for a long-only bond portfolio?",
+      "a": "Standard option-free bonds always have positive convexity (the price-yield curve is always convex toward the origin). For a long-only portfolio of option-free bonds, portfolio convexity is always positive. Negative convexity can only arise from: (1) Embedded options — callable bonds, MBS, prepayable ABS — where the issuer/borrower has an option that caps the investor's upside; (2) Short positions in options — if a portfolio includes short call/put positions on bonds or interest rates, the short option creates negative convexity; (3) Leveraged inverse ETFs — these use derivatives that create negative convexity mathematically. For most fixed income portfolio managers, negative convexity is a risk to be monitored when holding callable corporates or MBS. The OAS (Option-Adjusted Spread) and effective duration/convexity (computed by shocking the yield curve and observing the price change, accounting for option exercise) are the relevant risk measures."
+    },
+    {
+      "q": "How does convexity affect the hedging of long-duration bond portfolios?",
+      "a": "Convexity creates a hedging problem: duration hedges are only accurate for small yield moves. A DV01-matched hedge (long bond position + short futures position of equal DV01) is correct only at the current yield level. When rates change significantly: (1) The DV01 of the bond changes because its duration changes (non-linearly); (2) The DV01 of the futures changes at a different rate; (3) The hedge ratio becomes incorrect. This is called 'gamma risk' in interest rate options terminology. Dynamic re-hedging: to maintain a duration-matched hedge through large rate moves, the hedge ratio must be rebalanced continuously. Gamma P&L: for a convex bond portfolio that is DV01-hedged, there is a positive gamma component — the bond gains more than the hedge loses when rates move in either direction. The cost of this convexity is paid through negative carry (the hedge position loses theta when rates are stable). For large fixed income portfolios, convexity hedging using interest rate options (swaptions, caps/floors) is common."
+    }
+  ],
+  "sources": [
+    { "label": "Fabozzi, F.J. — Fixed Income Mathematics, 4th Edition, McGraw-Hill (2006)", "url": "https://www.mhprofessional.com/fixed-income-mathematics-4th-ed-9780071460736-usa" },
+    { "label": "Tuckman, B. & Serrat, A. — Fixed Income Securities: Tools for Today's Markets, 3rd Edition, Wiley (2011)", "url": "https://www.wiley.com/en-us/Fixed+Income+Securities%3A+Tools+for+Today%27s+Markets%2C+3rd+Edition-p-9780470891698" }
+  ]
+}

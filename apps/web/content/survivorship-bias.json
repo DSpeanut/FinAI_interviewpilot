@@ -1,4 +1,12 @@
 {
+  "terms": [
+    { "term": "Survivorship Bias", "def": "Only analysing entities that 'survived'; ignoring bankruptcies, delistings, fund closures inflates apparent returns." },
+    { "term": "Delisted Stock", "def": "A stock removed from an exchange (bankruptcy, acquisition, fraud); survivorship bias omits these losers from backtests." },
+    { "term": "CRSP Database", "def": "Comprehensive historical US stock database that includes delisted stocks; survivorship-bias-free source for research." },
+    { "term": "Backfill Bias", "def": "Hedge fund databases add funds retroactively with full history; only successful funds are added, inflating apparent returns." },
+    { "term": "Incubation Bias", "def": "Managers only launch funds that show good incubation-period results; inflates reported early-track-record performance." },
+    { "term": "Graveyard Database", "def": "Historical record of defunct funds; adding this to a live database removes survivorship bias in manager analysis." }
+  ],
   "eli3": [
     "Survivorship bias is the error of only looking at things that 'survived' some selection process and ignoring everything that didn't make it. In finance, it means building strategies on datasets that only include successful companies (those still trading today) and ignoring companies that went bankrupt, got acquired, or were delisted — making strategies look much better than they really are.",
     "Classic example: a mutual fund database that only includes funds currently operating looks great on average — the funds that failed and were shut down aren't there anymore. Abraham Wald showed the same logic during WWII: planes that returned had bullet holes in wings and fuselage, but not engines. He concluded: reinforce the engines (not the wings) — because planes hit in the engine never came back to be analyzed.",

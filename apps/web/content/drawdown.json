@@ -1,0 +1,68 @@
+{
+  "terms": [
+    { "term": "Maximum Drawdown (MDD)", "def": "Largest peak-to-trough decline over a period; the worst loss an investor timing the peak/trough would suffer." },
+    { "term": "Calmar Ratio", "def": "CAGR / |MDD|; risk-adjusted return relative to worst historical loss. Popular in hedge fund evaluation." },
+    { "term": "Underwater Period", "def": "Time the portfolio spends below its previous peak; long underwater periods signal slow recovery." },
+    { "term": "Recovery Time", "def": "Time from the trough back to the previous peak; longer recovery = worse drawdown characteristics." },
+    { "term": "Drawdown Duration", "def": "Total time from peak to recovery; peak-to-trough + trough-to-recovery." },
+    { "term": "High-Water Mark", "def": "Previous peak NAV; hedge fund performance fees are only charged on returns above the high-water mark." }
+  ],
+  "visualizationType": "drawdown",
+  "eli3": [
+    "Drawdown measures how much a portfolio has fallen from its peak value. If a portfolio reached $100 at its highest point and is now at $80, the current drawdown is 20%. Maximum drawdown (MDD) is the largest peak-to-trough decline over an entire period — it's the worst loss an investor who bought at the peak and sold at the trough would have experienced.",
+    "Drawdown matters enormously for investors because it captures something variance doesn't: the experience of watching your wealth decline. A portfolio can have low average volatility but a devastating single drawdown. Psychologically, investors typically exit at the worst time — near the trough — so drawdown is directly linked to capital destruction and investor redemptions.",
+    "Key drawdown metrics: maximum drawdown (worst peak-to-trough decline), drawdown duration (how long the portfolio was below its previous peak), Calmar ratio (annualised return / maximum drawdown), and Ulcer Index (RMS of drawdown over time). These complement Sharpe ratio by capturing the 'path' of returns, not just the average."
+  ],
+  "whenWhy": [
+    {
+      "title": "Computing and interpreting drawdown",
+      "body": "Drawdown at time t: DD(t) = (V(t) - Peak(t)) / Peak(t), where Peak(t) = max_{s≤t} V(s). DD(t) ≤ 0 always (you're either at the peak or below it). Maximum drawdown: MDD = min_{t} DD(t) = max loss from any peak to any subsequent trough. Recovery time: time from trough back to previous peak. Historical MDD for major asset classes: S&P 500: -55% (2007-2009 financial crisis), -49% (2000-2002 dot-com), -34% (2020 COVID). Bond indices: typically -10 to -20% in worst rate environments. Diversified 60/40: approximately -30 to -40% in major crises. Calmar ratio: annualised_return / |MDD|. A fund earning 10%/year with MDD = -20% has Calmar = 0.5; a fund earning 10%/year with MDD = -10% has Calmar = 1.0 — significantly better from a drawdown perspective despite identical return."
+    },
+    {
+      "title": "Drawdown control strategies",
+      "body": "Volatility targeting: scale portfolio weights so realised portfolio volatility stays near a target (e.g., 10%). When volatility rises, reduce exposure; when volatility falls, increase exposure. Implementation: w_t = target_vol / σ_t × w_baseline. Effect on drawdown: during market crashes (when vol spikes), positions are automatically reduced — limits drawdown at the cost of reduced participation in early recovery. Historically: volatility targeting reduces MDD by 30-50% while capturing ~70-80% of upside returns. Drawdown stop-loss: hard limit — if portfolio drawdown exceeds X%, reduce to cash or reduce risk to minimum. Risk: if triggered near the trough, you're selling into weakness and miss the recovery. Better implementation: gradual de-risking as drawdown increases, not binary on/off. CPPIs (Constant Proportion Portfolio Insurance): dynamically allocates between risky portfolio and risk-free asset based on cushion (portfolio value - floor). When cushion shrinks, risky allocation is reduced mechanically — guarantees the floor at the cost of performance gap in trending markets."
+    },
+    {
+      "title": "Drawdown as a fund management constraint",
+      "body": "For hedge fund managers: drawdown is the most critical risk metric from investors' perspective. Typical hedge fund mandates: maximum drawdown limit of -15% to -20% from HWM (high water mark); if breached, fund triggers a risk reduction or winds down. High water mark (HWM): performance fees are only earned on new peaks — if a fund is below HWM, it must recover all losses before earning new fees. HWM creates an option-like incentive: at large drawdowns, managers may take more risk (to earn fees) or quit (if recovery seems impossible). 'Zombie funds': funds far below HWM with little hope of recovery; investors are trapped (unrealised losses) while managers have no incentive to recover. Institutional investors: pension funds and endowments have drawdown constraints tied to spending requirements — a 30% drawdown may force an endowment to cut university distributions, making MDD a hardcoded constraint in ALM (asset-liability management)."
+    }
+  ],
+  "deepDiveIntro": [
+    "Drawdown time series: DD(t) = V(t)/max_{s≤t}V(s) - 1. Ulcer Index = √(mean(DD(t)²)) — RMS of drawdown; penalises both depth and duration. Drawdown duration: T_DD = length of time from peak to recovery. Maximum drawdown duration: max such period over history. Sterling ratio: annualised_return / (average of N largest drawdowns) — more stable than Calmar (less influenced by single worst drawdown). For GBM with drift μ and volatility σ: E[MDD] ≈ -σ²/(2μ) × ln(1 - 2μ/(σ² × something)) — maximum drawdown grows with σ²/μ (the variance-to-drift ratio). Sharpe ratio S = μ/σ: expected MDD ≈ c / S (inversely proportional to Sharpe) — high Sharpe strategies have lower expected drawdown, all else equal."
+  ],
+  "deepDive": [
+    {
+      "heading": "Drawdown Distribution Under GBM",
+      "body": "For a GBM process with drift μ > 0 and volatility σ, the distribution of maximum drawdown over a finite horizon T has been studied analytically. Key result (Magdon-Ismail & Atiya 2004): E[MDD_T] ≈ σ√T × f(μ√T/σ), where f is an increasing function. For a Sharpe ratio of 1.0 (μ/σ = 1 per year) over T = 10 years: E[MDD] ≈ 35-40% of initial portfolio value. This means even a skilled strategy (Sharpe = 1) will, on average, experience a 35-40% drawdown over a 10-year period — this is normal and expected, not evidence of failure. Practical implication: investors who expect a Sharpe = 1 strategy to have MDD < 10% will be disappointed. A 30-40% MDD over a long period is consistent with good strategy performance. Drawdown scales with √T: a 1-year strategy expected MDD ~15%; 10-year ~40%. This is why longer investment horizons increase the probability of experiencing a large drawdown, even for good strategies. [1]"
+    },
+    {
+      "heading": "Drawdown vs. Volatility: Different Risk Perspectives",
+      "body": "Volatility measures risk per unit time — it doesn't distinguish between upside and downside moves, or between scattered small moves and a sustained decline. Drawdown measures the cumulative experience of loss — the path matters. A portfolio with daily vol = 1% but positive autocorrelation (sustained trends) will have larger drawdowns than a portfolio with 1% vol but no autocorrelation. Example: momentum strategy has moderate daily vol but experiences large drawdowns during momentum crashes (e.g., 2009: -73% in 3 months). A low-vol mean-reverting strategy has lower drawdowns despite similar daily vol. Comparison: bond portfolio (vol ~5%/year, MDD ~15%) vs. equity portfolio (vol ~15%/year, MDD ~50%). The bond/equity ratio: MDD/vol is much higher for equities — equities have heavier autocorrelated downtrends during crises. This means vol-based risk limits (VaR, tracking error) can systematically underestimate drawdown risk for path-dependent or momentum strategies. [2]"
+    },
+    {
+      "heading": "Underwater Equity Curves and Psychological Impact",
+      "body": "An underwater equity curve shows the percentage by which a portfolio is below its all-time high at each point in time. A portfolio can have positive long-run returns while spending years underwater (below HWM). S&P 500 drawdown periods: (1) 1929-1954: 25 years to recover from Great Depression peak; (2) 2000-2013: 13 years to recover from dot-com peak; (3) 2007-2012: 5 years to recover from financial crisis peak. These recovery periods test investor patience — most institutional investors have stated investment horizons of 3-5 years, meaning they may be forced to sell during the recovery phase. Behavioural impact: loss aversion (Kahneman-Tversky: losses feel ~2× as bad as equivalent gains) means drawdowns cause disproportionate psychological distress. Manager implications: a long-only equity manager who underperforms the benchmark by 10% for 2 years typically faces redemptions — even if the strategy is sound long-term. This 'agency problem' creates shorter effective investment horizons than stated and contributes to momentum (managers sell losers to reduce benchmark relative drawdown). [2]"
+    }
+  ],
+  "takeaways": [
+    "Maximum drawdown: largest peak-to-trough decline; Calmar ratio = annual return / |MDD|. [1]",
+    "Expected MDD for Sharpe = 1 strategy over 10 years: ~35-40% — normal, not evidence of failure. [1]",
+    "Volatility targeting: scale position by target_vol / realized_vol; reduces MDD ~30-50% with modest return sacrifice. [1]",
+    "CPPI: allocates between risky and safe assets based on cushion; guarantees floor but creates performance gap. [2]",
+    "Loss aversion: drawdowns cause disproportionate investor pain; redemption risk peaks near trough. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you distinguish a temporary drawdown from a strategy breakdown?",
+      "a": "Distinguishing a 'normal' drawdown (within expected distribution) from a structural breakdown: (1) Statistical test: compute the probability of observing the current drawdown given the strategy's historical volatility and Sharpe ratio. If P(MDD ≥ observed | strategy is valid) < 5%, investigate further; (2) Factor attribution: during the drawdown, decompose losses into factor exposures. Is the drawdown explained by known risk factors (e.g., momentum strategy losing during a market recovery — expected) or by something unexplained? (3) Peer comparison: are other strategies with similar exposures also suffering? If yes → market regime change, not strategy-specific breakdown; if no → strategy-specific issue; (4) Signal behaviour: is the strategy's alpha signal (e.g., IC) still positive during the drawdown? If IC remains positive but returns are negative → probably adverse factor returns, not signal breakdown; if IC has collapsed → possible strategy breakdown. Rule of thumb: drawdowns within 2× the historical MDD are likely 'normal'; drawdowns exceeding 2× historical MDD warrant serious investigation."
+    },
+    {
+      "q": "How should drawdown limits be set for different investor types?",
+      "a": "Drawdown limits should be calibrated to the investor's actual risk tolerance and liquidity horizon, not generic: (1) Endowments/foundations (spending rate 4-5%/year): MDD limit ≈ -20 to -30%; they need to fund spending even in drawdowns, so capital preservation matters; (2) Pension funds (liability-driven): drawdown limit driven by funding ratio; a -20% equity loss might reduce funding ratio from 110% to 90% — breaching minimum funding requirements; (3) Hedge fund limited partners: typically -15 to -20% MDD limit with 3-6 month notice; beyond this, consider redemption; (4) Sovereign wealth funds (multi-generational): can tolerate MDD of -40 to -50% due to very long horizon; (5) Family offices: depends on concentration and liquidity needs; typically -25 to -35%. Key principle: drawdown limit should be set so that breaching it causes genuine harm (forced liquidation, spending cut) — not just discomfort. Setting overly tight limits creates perverse incentives for portfolio managers to take less risk than optimal."
+    }
+  ],
+  "sources": [
+    { "label": "Magdon-Ismail, M. & Atiya, A.F. (2004) — Maximum Drawdown, Risk Magazine", "url": "https://www.risk.net/journal-of-investment-strategies/2148814/maximum-drawdown" },
+    { "label": "Kahneman, D. & Tversky, A. (1979) — Prospect Theory, Econometrica", "url": "https://doi.org/10.2307/1914185" }
+  ]
+}

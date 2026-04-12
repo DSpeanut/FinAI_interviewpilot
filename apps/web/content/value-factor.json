@@ -1,4 +1,12 @@
 {
+  "terms": [
+    { "term": "P/E Ratio", "def": "Price-to-Earnings: market price / EPS. Low P/E = cheap (value); high P/E = expensive (growth)." },
+    { "term": "B/M Ratio", "def": "Book-to-Market: book value of equity / market cap. High B/M = value stock; used in Fama-French HML factor." },
+    { "term": "P/B Ratio", "def": "Price-to-Book: inverse of B/M. Low P/B = value; high P/B = growth. Common screening metric." },
+    { "term": "EV/EBITDA", "def": "Enterprise Value / EBITDA; capital-structure-neutral valuation multiple; lower = potentially undervalued." },
+    { "term": "HML Factor", "def": "High Minus Low — long high-B/M, short low-B/M; the factor portfolio that captures the value premium." },
+    { "term": "Value Trap", "def": "A stock that looks cheap but keeps getting cheaper due to deteriorating fundamentals; value investing's main risk." }
+  ],
   "eli3": [
     "The value factor is the tendency of 'cheap' stocks (low price relative to fundamentals like earnings, book value, or cash flow) to outperform 'expensive' stocks over time. It's one of the most documented and debated anomalies in finance — markets seem to systematically underprice boring, out-of-favour companies and overprice exciting, high-growth ones.",
     "The classic measure is book-to-market ratio (B/M): high B/M = value stock (cheap), low B/M = growth stock (expensive). Other metrics: price-to-earnings (P/E), enterprise value-to-EBITDA (EV/EBITDA), price-to-free cash flow (P/FCF), price-to-sales (P/S). The value premium (return of cheap minus expensive stocks) has averaged ~3-5% per year historically across many countries and asset classes.",

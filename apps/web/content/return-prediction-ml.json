@@ -1,4 +1,12 @@
 {
+  "terms": [
+    { "term": "IC (Information Coefficient)", "def": "Spearman correlation between ML predictions and actual returns; IC > 0.03 is economically meaningful for stocks." },
+    { "term": "Feature Engineering", "def": "Transforming raw data into ML input features; e.g. normalise by sector, compute cross-sectional z-scores." },
+    { "term": "Cross-Sectional Prediction", "def": "Predict relative return ranks at each rebalancing date; basis for stock selection in quant equity." },
+    { "term": "SHAP Values", "def": "Shapley Additive exPlanations — assigns each feature its marginal contribution to a model prediction; interpretability tool." },
+    { "term": "Purged CV", "def": "Cross-validation with gaps between train and test to prevent information leakage in financial time series." },
+    { "term": "Label Construction", "def": "Defining what the model predicts; e.g. forward 1-month return, risk-adjusted return, or triple-barrier labels." }
+  ],
   "eli3": [
     "Return prediction using ML means training machine learning models to forecast future asset returns based on historical features. Instead of a simple linear factor model (return = β₁×momentum + β₂×value + ...), ML models can capture non-linear relationships, interactions between factors, and time-varying dynamics that linear models miss.",
     "The challenge: financial return prediction is extremely hard. Signal-to-noise ratio is tiny (genuine predictors explain maybe 1-3% of return variance), the data is non-stationary (patterns shift over time), and the economy adapts (patterns are arbitraged away once discovered). ML models that work well in other domains tend to overfit badly in finance without careful regularisation.",

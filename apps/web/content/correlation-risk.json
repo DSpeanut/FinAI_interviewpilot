@@ -1,0 +1,67 @@
+{
+  "terms": [
+    { "term": "Correlation (ρ)", "def": "Normalised covariance in [−1, +1]; ρ=0 means no linear relationship, ρ=1 means perfect co-movement." },
+    { "term": "Tail Correlation", "def": "Correlation conditional on both assets being in their extreme tails; typically much higher than unconditional correlation." },
+    { "term": "Correlation Matrix", "def": "N×N matrix of pairwise correlations; must be positive semi-definite for a valid covariance matrix." },
+    { "term": "Diversification Ratio", "def": "Weighted-average individual vol / portfolio vol; higher = more diversification benefit from low correlations." },
+    { "term": "Crisis Correlation", "def": "In market stress, asset correlations spike toward 1 — 'diversification fails when you need it most'." },
+    { "term": "Copula", "def": "A function describing the joint dependence structure of assets, separating marginal distributions from correlation." }
+  ],
+  "eli3": [
+    "Correlation risk is the danger that correlations between assets change — especially in crises, when correlations that normally provide diversification suddenly spike toward 1 ('everything falls together'). A portfolio built on the assumption that stocks and bonds are negatively correlated suffers more than expected when that relationship breaks down.",
+    "Portfolio diversification is based on correlations. If equities and bonds have correlation = -0.4, a 60/40 portfolio has much lower volatility than either alone. But correlations are not stable — they change with economic regimes, monetary policy, and investor behaviour. The 2022 experience (bonds and equities both falling sharply) is the clearest recent example of correlation regime change.",
+    "Correlation risk is tricky because it's not directly observable in the way prices are — you infer it from historical returns, but historical correlations may not reflect the current or future regime. Managing correlation risk requires stress testing correlation assumptions, monitoring leading indicators of correlation regime change, and not over-relying on diversification benefits."
+  ],
+  "whenWhy": [
+    {
+      "title": "Equity-bond correlation and its drivers",
+      "body": "The equity-bond correlation is the most important correlation in multi-asset portfolio management. Historical regimes: (1) 1965-1990 (inflation era): positive correlation ~+0.3 to +0.5. Both hurt by inflation surprises: equities fall on higher rates; bonds fall on higher rates. Inflation = common enemy; (2) 1990-2020 (disinflationary era, 'Fed put' era): negative correlation ~-0.3 to -0.5. Recessions: equities fall, Fed cuts rates → bond prices rise. Equities and bonds negatively correlated; 60/40 works beautifully; (3) 2022-present: positive correlation again. Inflation drove rate hikes → bonds fell; simultaneously, economic fears drove equities lower. The Sharpe ratio of 60/40 was negative in 2022. Key driver of correlation: inflation expectations. When inflation uncertainty is high → positive equity-bond correlation. When growth uncertainty dominates (recession fears) → negative correlation. Monitor: 5y5y forward inflation breakeven, CPI surprise index, TIPS/nominal yield gap."
+    },
+    {
+      "title": "Correlation in stress: 'correlation 1' crises",
+      "body": "In liquidity crises, cross-asset correlations spike toward 1 as forced selling hits all asset classes simultaneously. Mechanism: (1) Margin calls force leveraged investors to sell everything; (2) Risk-off sentiment causes all risk assets to fall together; (3) Flight to quality bids up only the safest assets (US Treasuries, gold, JPY, CHF) while everything else falls. Examples: September 2008 (post-Lehman): equities, EM bonds, HY credit, commodities, EM FX all fell simultaneously; correlation among risk assets ≈ 0.9+. March 2020 (COVID): even Treasuries briefly sold off as investors needed cash — correlation among all assets ≈ 0.8+ for 2 weeks. Implication: diversification is most needed exactly when it is least available. A portfolio that looks well-diversified in calm times (correlation of 0.3 between portfolio components) may effectively be a single concentrated risk position in a crisis (correlation of 0.9)."
+    },
+    {
+      "title": "Monitoring and managing correlation risk",
+      "body": "Leading indicators of correlation regime change: (1) VIX level: above 25, correlations begin rising; above 35, near-panic correlation regime; (2) Cross-currency basis: widening USD funding premium signals global USD shortage → risk-off correlation spike; (3) TED spread (3M T-bill vs. LIBOR/SOFR): widening signals interbank stress; (4) Equity vs. credit divergence: if credit spreads widen while equities hold steady, credit market leading the coming equity selloff. Risk management responses: (1) Reduce gross exposure as correlation indicators deteriorate; (2) Use 'crisis correlations' (not calm-period correlations) in stress test covariance matrix; (3) Hold correlation-resistant assets: gold (negative correlation with equities in recessions, positive in inflationary periods), trend-following CTAs (negative correlation with equities during crises), long volatility (VIX calls). The key insight: assets that provide negative correlation during crises are expensive to hold in normal times — they're the 'insurance' that has a premium."
+    }
+  ],
+  "deepDiveIntro": [
+    "Dynamic Conditional Correlation (DCC-GARCH): model for time-varying correlations. Step 1: estimate univariate GARCH for each asset; compute standardised residuals ε_i,t. Step 2: model the correlation matrix Q_t = (1-a-b)Q̄ + a ε_{t-1}ε'_{t-1} + b Q_{t-1}, where Q̄ is the unconditional correlation. Step 3: normalise R_t = diag(Q_t)^{-½} Q_t diag(Q_t)^{-½}. Parameters a + b < 1 for stationarity; typical estimates: a ≈ 0.02-0.05 (sensitivity to recent shocks), b ≈ 0.90-0.96 (persistence of correlations). The DCC model shows that correlations spike during crises and slowly revert — consistent with empirical observation."
+  ],
+  "deepDive": [
+    {
+      "heading": "Copulas and Tail Dependence",
+      "body": "Correlation (Pearson's ρ) captures only linear dependence under normal distributions. Copulas model the full dependence structure, including tail dependence (probability of joint extreme events). Gaussian copula: implies zero tail dependence — joint extreme events are as likely as the product of individual probabilities (no more correlated in tails than in the middle). This was the critical flaw in CDO pricing pre-2008: Li (2000) proposed using Gaussian copulas to price CDOs; the model assigned low probability to joint mortgage defaults — precisely the tail event that materialised. T-copula: has tail dependence parameter υ (degrees of freedom); as υ → 2, tail dependence → 1 (extreme co-movements very likely); as υ → ∞, approaches Gaussian copula. For risk management: use t-copula (or Clayton copula for lower tail dependence) to model the tendency of assets to crash together. Implication: portfolio VaR computed with Gaussian copula underestimates the actual probability of portfolio loss exceeding VaR by 2-5× in practice. [1]"
+    },
+    {
+      "heading": "Correlation Between Factors vs. Assets",
+      "body": "In a factor model, asset correlations are driven by factor correlations. The correlation matrix of N assets decomposes as: Σ = B Σ_F B' + D, where B is the factor loading matrix, Σ_F is the factor covariance, D is diagonal idiosyncratic variance. Factor correlations: (1) Market vs. bonds: the equity-bond correlation; drives 60/40 risk; (2) Value vs. momentum: typically -0.4 to -0.5; diversifying; crucial for multi-factor portfolios; (3) Growth vs. defensive factors: positive correlation within each group, negative across; (4) Quality vs. low-vol: positively correlated (~0.4); these are related factors. Managing factor correlation risk: (1) Factor risk parity: equal contribution from each factor to portfolio variance; naturally hedges factor correlation changes; (2) Factor momentum: recent high-performing factors tend to stay correlated; (3) Factor hedge: when value and momentum become more correlated (less diversifying), reduce total factor exposure. Correlation between factors is more stable than correlation between individual assets — factor-based risk management is more robust to correlation instability. [2]"
+    },
+    {
+      "heading": "Correlation Risk in Fixed Income Portfolios",
+      "body": "Fixed income portfolios have multiple sources of correlation risk: (1) Duration-credit correlation: in risk-off environments, rates fall (bonds rally) AND credit spreads widen (bonds with credit risk fall) — these two effects partially offset for IG bonds but can cause severe losses for HY bonds; (2) Yield curve correlations: short rates and long rates don't always move together; steepening vs. flattening trades depend on the correlation between 2yr and 10yr yields; (3) Currency-bond correlation: for a USD investor holding EUR government bonds, the currency hedge removes FX risk but leaves the correlation between EUR bonds and USD bonds as a risk; (4) Inflation-nominal correlation: TIPS (inflation-linked) vs. nominal Treasury correlation determines real rate risk. Scenario: if nominal yields rise but inflation expectations fall (real rate rises), TIPS fall more than nominal bonds — unexpected by investors who assumed high correlation. Risk management: DV01 by bucket (2yr, 5yr, 10yr, 30yr) plus spread DV01 (credit), country exposure, currency exposure — each bucket needs separate monitoring. [1]"
+    }
+  ],
+  "takeaways": [
+    "Equity-bond correlation: negative during disinflationary era (1990-2020); turned positive in 2022 with inflation. [1]",
+    "In liquidity crises, all risk asset correlations spike toward 1; diversification fails precisely when needed most. [1]",
+    "Gaussian copula: zero tail dependence — underestimates joint crash probability; t-copula has tail dependence. [1]",
+    "DCC-GARCH: models time-varying correlations; parameters: a (sensitivity) + b (persistence) < 1. [2]",
+    "Leading indicators of correlation regime change: VIX > 25, USD cross-currency basis widening, TED spread. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you construct a portfolio that is robust to correlation breakdown?",
+      "a": "Correlation-robust portfolio construction: (1) Stress the correlation matrix: run optimisation using the crisis correlation matrix (all correlations 0.8) instead of the benign current matrix; accept higher cost of diversification in normal times for crisis resilience; (2) Hierarchical clustering: HRP (Hierarchical Risk Parity) allocates based on clustering structure, not the full correlation matrix — less sensitive to correlation estimation errors; (3) Include genuine crisis alpha assets: trend following CTAs (negative equity correlation in crises), long volatility positions, tail risk hedges (put spreads) — these have negative correlation with equity exactly in crises; (4) Maintain dry powder: hold more cash than optimal in normal conditions; deploy during crises when prices are low and correlations are extreme; (5) Factor diversification: blend factors with structurally different economic drivers (value + momentum + quality + defensive) rather than assets with coincidentally low current correlation."
+    },
+    {
+      "q": "What was the CDO pricing failure and how did correlation risk contribute?",
+      "a": "The 2008 CDO (Collateralised Debt Obligation) failure: CDOs bundled thousands of subprime mortgage loans; tranches were structured so senior tranches would only lose if a large fraction of mortgages defaulted simultaneously. The pricing model (Li Gaussian copula, 2000): assumed pairwise mortgage correlations ≈ 0.3 (historically observed); implied probability of 30%+ simultaneous defaults was infinitesimal. The model suggested AAA ratings for senior tranches. What happened: when US house prices fell nationally (first time since the 1930s), default correlations spiked to near 1 — all mortgages defaulted together. The Gaussian copula had zero tail dependence — it assigned essentially zero probability to this joint default scenario. Had the model used a t-copula with 3-5 degrees of freedom (strong tail dependence), the same correlation parameter ρ = 0.3 would have implied dramatically higher probability of joint defaults — consistent with the historical behaviour during the Great Depression. The mathematical flaw: using a model that captured average co-movement but completely ignored extreme co-movement."
+    }
+  ],
+  "sources": [
+    { "label": "Li, D.X. (2000) — On Default Correlation: A Copula Function Approach, Journal of Fixed Income", "url": "https://doi.org/10.3905/jfi.2000.319253" },
+    { "label": "Engle, R. (2002) — Dynamic Conditional Correlation, JBES", "url": "https://doi.org/10.1198/073500102288618487" }
+  ]
+}

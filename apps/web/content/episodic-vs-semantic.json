@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "Episodic memory is memory of specific events: 'Last Tuesday we worked on the budget report and you said the Q3 numbers were wrong.' Semantic memory is memory of facts: 'The user prefers concise answers and works in fintech.' Both are forms of long-term memory, but they store different types of information.",
+    "The distinction comes from cognitive science (Tulving 1972). Episodic = autobiographical events with time and place. Semantic = general knowledge without context. Your memory of your first day at school is episodic. Knowing that Paris is the capital of France is semantic.",
+    "In AI agents, episodic memory stores what happened in past interactions (events, conversations, decisions, outcomes). Semantic memory stores general facts about the user, the domain, or the world. Both are retrieved from external storage and injected into the agent's context."
+  ],
+  "whenWhy": [
+    {
+      "title": "Episodic: continuity across sessions for project work",
+      "body": "Episodic memory is critical for agents working on ongoing projects. 'What did we do last session?' requires episodic recall: the agent retrieves the episode (last session's summary) and continues from where it left off. Without episodic memory, every session starts from scratch, frustrating users and creating redundant work. Coding agents, research agents, and project management agents all benefit most from episodic memory."
+    },
+    {
+      "title": "Semantic: personalisation and domain knowledge",
+      "body": "Semantic memory stores stable, general facts: user preferences, domain-specific terminology, established conventions in the codebase, company-specific facts. These facts apply across many interactions and don't belong to a specific episode. 'The user always uses black formatting for Python' is semantic — it applies to every future coding session, not just the one where it was learned. Semantic memory enables consistent, personalised behavior without repeating the same preferences every session."
+    },
+    {
+      "title": "Combining both for full agent continuity",
+      "body": "Production agents use both: semantic memory for persistent facts (personalisation, domain knowledge), episodic memory for past events (conversation logs, task history, outcomes). Episodic memories can be converted to semantic ones through reflection: the agent reviews past episodes and extracts durable facts ('In the last 5 research sessions, the user always preferred papers from after 2020' → semantic fact). This distillation from episodes to semantics is analogous to how humans learn general principles from specific experiences."
+    }
+  ],
+  "deepDiveIntro": [
+    "The episodic/semantic distinction in AI agent architectures was formalised in the Generative Agents paper (Park et al. 2023) and expanded in MemGPT (Packer et al. 2023). Generative Agents (simulated social agents) maintain a memory stream (all episodic events), a reflection mechanism (periodically distills semantic insights from episodes), and a planning mechanism (uses semantic insights to guide future behavior). This architecture mirrors the cognitive science model: episodes feed into reflection, which updates the semantic knowledge base.",
+    "Implementation distinction: episodic memories are timestamped events, often stored as dense embeddings of episode summaries, retrieved by semantic similarity to the current task. Semantic memories are structured key-value facts or natural language statements, often retrieved by keyword match or direct lookup. Episodic memories have a natural 'forgetting curve' (older episodes become less relevant); semantic memories are more durable."
+  ],
+  "deepDive": [
+    {
+      "heading": "Episodic Memory: Storage and Retrieval",
+      "body": "Storage: at session end, generate a structured episode summary: {date, task, key_decisions, outcomes, open_questions, key_facts_discovered}. Store as a vector embedding (for semantic retrieval) and a JSON record (for structured access). Retrieval: at session start, embed the current task description and retrieve the top-3 most relevant past episodes. Also always retrieve the most recent episode (recency bias). Injection: insert episode summaries in the system prompt as 'Past session context'. Episode compression: after 30 days, compress old episodes to just their key_facts, discarding conversational details. [1]"
+    },
+    {
+      "heading": "Semantic Memory: Storage and Retrieval",
+      "body": "Storage: structured key-value pairs (user_preference: 'concise answers') and free-form facts ('The codebase uses snake_case for all Python functions'). Facts can have: category (user_preference, domain_fact, codebase_convention), confidence score, source (explicitly stated vs. inferred from behavior), and timestamp. Retrieval: keyword-based lookup for structured facts, semantic similarity for free-form facts. Semantic memories are retrieved more aggressively — inject all relevant semantic facts at session start. Conflict resolution: when a new fact contradicts a stored one, the newer fact wins but the old one is archived. [2]"
+    },
+    {
+      "heading": "Reflection: Converting Episodes to Semantics",
+      "body": "Reflection (Park et al. 2023): periodically prompt the LLM to review recent episodic memories and extract high-level semantic insights. Trigger: after every K episodes, or when a semantic insight threshold is met (enough episodes to support a generalisation). Prompt: 'Given the following 10 past session summaries, what are 3 durable facts about this user that would be useful to remember for all future sessions?' Output stored as new semantic memories. This distillation prevents episodic memory from growing unboundedly while ensuring durable patterns are captured. It's the primary mechanism by which agents 'learn' from experience. [1]"
+    }
+  ],
+  "takeaways": [
+    "Episodic memory: timestamped events (what happened), retrieved by recency and semantic similarity to current task. [1]",
+    "Semantic memory: stable facts and preferences, retrieved by keyword or semantic similarity, applied broadly. [2]",
+    "Reflection: periodic LLM-based distillation of episodes into semantic insights — how agents learn from experience. [1]",
+    "Generative Agents architecture: memory stream (episodic) + reflection (semantic extraction) + planning. [1]",
+    "Production agents combine both: episodes for task continuity, semantics for personalisation. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you know whether a piece of information should be stored as episodic or semantic?",
+      "a": "Decision criteria: (1) Time-indexed? → episodic (events belong to a specific session); (2) Durable across many sessions? → semantic (preferences, domain facts don't expire); (3) Specific to one interaction? → episodic; (4) Applicable to all future interactions? → semantic. In practice: after every session, run an extraction pass that classifies each memorable fact: facts with 'always', 'never', 'prefers', 'convention' signals → semantic; facts with 'in today's session', 'we decided', 'the task was' → episodic. Automated classification can use a small LLM or a simple rule-based classifier. When in doubt, store in both — retrieval can be deduplicated."
+    },
+    {
+      "q": "How do you prevent episodic memory from growing indefinitely?",
+      "a": "Four strategies: (1) Retention window — keep detailed episodes for the last 30 days only; older episodes are compressed to key_facts + outcome; (2) Reflection-based archiving — after reflection distills semantic insights from 10 episodes, those episodes are marked for compression; (3) Relevance-based pruning — when the memory store exceeds a size limit, prune episodes with low retrieval frequency (never retrieved in the last 90 days); (4) Summarisation chains — each week, summarise the week's episodes into a weekly summary; replace daily episodes with the weekly summary. This creates a hierarchical memory: daily (detailed) → weekly (summary) → monthly (abstract). Semantic memories do not need pruning as aggressively since they represent distilled, non-redundant facts."
+    }
+  ],
+  "sources": [
+    { "label": "Park et al. (2023) — Generative Agents: Interactive Simulacra of Human Behavior", "url": "https://arxiv.org/abs/2304.03442" },
+    { "label": "Packer et al. (2023) — MemGPT: Towards LLMs as Operating Systems", "url": "https://arxiv.org/abs/2310.08560" }
+  ]
+}

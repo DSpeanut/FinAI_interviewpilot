@@ -1,0 +1,59 @@
+{
+  "eli3": [
+    "Stress testing asks: 'What would happen to my portfolio in a severe but plausible scenario?' Instead of relying on historical statistics (which may not capture unprecedented events), you construct specific scenarios — a financial crisis, a pandemic, a geopolitical shock — and calculate how your portfolio would perform. The goal is to identify vulnerabilities before they materialise.",
+    "There are two types: historical stress tests use actual past crises (what would this portfolio have lost in 2008?); hypothetical stress tests construct new scenarios based on economic reasoning (what if inflation hits 10% and rates rise 400bps simultaneously?). Both are essential because the next crisis is never identical to past ones.",
+    "Regulators require stress testing for banks (DFAST, CCAR in the US; EBA stress tests in Europe). Asset managers run internal stress tests to understand tail exposures, size risk budgets, and set position limits. The key output is not just a P&L number — it's an understanding of which positions and risk factors create the largest vulnerability."
+  ],
+  "whenWhy": [
+    {
+      "title": "Historical scenario stress tests",
+      "body": "Historical scenarios: apply the actual risk factor moves from a past crisis to the current portfolio. Standard scenario library: (1) 2008 Global Financial Crisis (Sep-Nov 2008): equities -40%, HY spreads +1000bps, VIX +50, USD strong, oil -60%, gold +15%; (2) 2020 COVID crash (Feb-Mar 2020): equities -35% in 33 days, VIX to 66, credit spreads widen, short-term rates near zero; (3) 2022 rate shock: US 10yr +300bps, equities -20%, tech -35%, bonds -15%; (4) 1994 bond market crash: 10yr yields +250bps in 12 months; (5) 1997-98 Asia/Russia/LTCM: EM currencies -30-50%, credit spread widening, equity market contagion. Process: (1) Record daily/weekly changes in all risk factors during the scenario period; (2) Reprice current portfolio in each scenario using full revaluation or delta-gamma; (3) Compute P&L impact. Key output: which scenarios cause losses exceeding the risk limit? What positions drive the loss?"
+    },
+    {
+      "title": "Hypothetical scenario construction",
+      "body": "Hypothetical scenarios are more forward-looking. Methodology: (1) Identify the macro shock (e.g., 'Fed raises rates 400bps in 12 months'); (2) Determine primary market impacts: 2yr yield +400bps, 10yr yield +300bps (yield curve flattens), USD strengthens, equities -15%; (3) Determine secondary impacts: REITs fall (rate-sensitive), HY spreads widen 200bps (credit stress), EM currencies fall 15%; (4) Reprice portfolio. Approach for building hypothetical scenarios: factor model. Define a factor shock vector f_shock = (Δequity, Δrates, ΔFX, Δcredit, Δcommodities); use historical covariance matrix to generate correlated factor shocks consistent with the primary shock; fill in secondary impacts. Regime shift scenarios: most valuable when current correlations are assumed to break (e.g., 2022: equity and bond returns became positively correlated, breaking 20-year hedge). Explicitly test: 'What if bonds and equities fall simultaneously?'"
+    },
+    {
+      "title": "Reverse stress testing",
+      "body": "Reverse stress testing: instead of 'what happens in scenario X?', ask 'what scenario causes us to lose X%?' or 'what would cause us to fail?' Process: (1) Define the failure threshold (e.g., -20% portfolio loss, fund redemption trigger, capital breach); (2) Search for the minimum-norm scenario that causes this loss: find the factor shock vector f* that minimises ||f|| subject to P&L(f) ≤ -threshold; (3) f* reveals the portfolio's key vulnerability — the most efficient scenario to cause maximum damage. Mathematical formulation: min_f ||Σ⁻¹f||² (Mahalanobis distance = statistical plausibility) s.t. w'f ≤ -loss_threshold. The minimiser f* is the most likely scenario (in the risk-neutral sense) to cause the threshold loss. Output: the risk manager now knows exactly which risk factors pose the greatest threat and can size hedges accordingly. Required by regulators in the UK (PRA stress testing guidelines) and recommended for systemic institutions by the FSB."
+    }
+  ],
+  "deepDiveIntro": [
+    "Scenario P&L approximation: ΔP ≈ Σ_k ∂P/∂F_k × ΔF_k + ½ Σ_{k,l} ∂²P/∂F_k∂F_l × ΔF_k ΔF_l. For a linear portfolio: ΔP = w'Δr (just the factor exposures times factor shocks). For non-linear portfolios (options): include delta, gamma, vega, rho terms. Full revaluation: reprice each instrument using full model (Black-Scholes for options, yield curve model for bonds) — more accurate for large shocks and non-linear instruments but computationally expensive. Proxy revaluation: use a Taylor approximation; less accurate but fast. Regulatory stress test (CCAR): Federal Reserve provides 9-quarter macroeconomic scenario (GDP growth, unemployment, interest rates, equity prices); banks must demonstrate capital adequacy under stressed scenario."
+  ],
+  "deepDive": [
+    {
+      "heading": "CCAR and EBA Regulatory Stress Testing",
+      "body": "US CCAR (Comprehensive Capital Analysis and Review): annual Fed exercise for large banks. Scenarios: (1) Baseline: Fed's central economic forecast; (2) Adverse: moderate recession; (3) Severely adverse: severe global recession with financial market shock. Banks run their full balance sheet + trading book through 9 quarters; must maintain CET1 ratio > 4.5% under stressed scenario. The stressed scenario includes: GDP falls 6%, unemployment rises to 10%, equity markets fall 55%, corporate bonds widen 400bps, residential real estate falls 25%. Banks compute losses from: credit losses (loan defaults), market losses (trading book), operational losses, plus revenue impact. CCAR results are published; banks failing the stress test cannot pay dividends or do buybacks. EBA stress test (European Banking Authority): similar exercise for EU banks; Basel capital adequacy thresholds. These regulatory exercises forced banks to hold more capital and reduce risk concentrations, improving systemic resilience since 2009. [1]"
+    },
+    {
+      "heading": "Correlation Stress in Multi-Asset Portfolios",
+      "body": "Standard stress tests apply factor shocks but often assume the current correlation matrix. A more severe stress: shock the correlations themselves. In crises, correlations spike: stock-bond correlation turned from -0.4 (2010-2020) to +0.6 in 2022; cross-asset correlations approach 1 in liquidity crises ('everything sells off'). Correlation stress test: use the extreme historical correlation matrix (e.g., correlations from Oct-Nov 2008, March 2020) rather than the benign recent correlation matrix. Impact: a diversified 60/40 portfolio with expected volatility of 8% under normal correlations becomes a 15% vol portfolio when equity-bond correlation turns positive. Practical implementation: compute portfolio P&L under (1) normal correlations + stress returns, (2) stress correlations + stress returns, (3) stress correlations + normal returns. The combined scenario (3) reveals the pure diversification risk — what happens when your hedges stop working without any market crash. [2]"
+    },
+    {
+      "heading": "Liquidity Stress Testing",
+      "body": "Market risk stress testing (losses from price moves) must be combined with liquidity stress testing (inability to trade or fund positions). Liquidity stress: (1) Bid-ask spread widening: in normal markets, bid-ask = 0.05% for large-cap equities; in crisis (March 2020), spreads widened 3-10×; impact on a high-turnover strategy: cost doubles or triples; (2) Market depth reduction: average daily volume (ADV) for small-caps can fall 50-80% in crisis; a 5% ADV position can take weeks to unwind instead of days; (3) Funding liquidity: margin calls force liquidation at worst prices; (4) Investor redemptions: open-end funds face redemption pressure precisely when markets are most illiquid — a 10% redemption of AUM requires selling positions quickly into a declining market. Liquidity-adjusted VaR: VaR + cost of unwinding the portfolio over a liquidation horizon (typically 5-10 days). BCBS liquidity horizon by asset class: large-cap equity = 10 days; small-cap equity = 20 days; IG bonds = 10 days; HY bonds = 20 days. [1]"
+    }
+  ],
+  "takeaways": [
+    "Historical stress tests: reprice portfolio under actual past crises (2008, 2020, 2022); identify key vulnerability. [1]",
+    "Hypothetical scenarios: primary shock + correlated secondary effects via covariance matrix. [1]",
+    "Reverse stress testing: find minimum-plausibility scenario that causes fund failure; min ||Σ⁻¹f|| s.t. P&L ≤ -threshold. [2]",
+    "Correlation stress: in crises, cross-asset correlations spike toward 1; standard diversification fails. [2]",
+    "CCAR severely adverse: GDP -6%, unemployment 10%, equities -55%; banks must maintain CET1 > 4.5%. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you select which scenarios to include in a stress test library?",
+      "a": "Scenario selection should balance: (1) Historical coverage: include at least 3-5 historical crises covering different risk drivers — credit crisis (2008), rate shock (1994, 2022), EM contagion (1997), pandemic (2020), equity crash (1987, 2000-2002); (2) Current relevance: scenarios that stress your actual risk exposures. If you have no EM exposure, the 1997 EM crisis is less relevant than a rate shock; (3) Plausibility: hypothetical scenarios should be severe but not physically impossible (e.g., oil going negative is possible in specific futures market conditions — it happened in 2020; oil going to -$500 is implausible); (4) Completeness: cover all major risk factor types (equity, rates, credit, FX, commodities, volatility) with at least one scenario; don't overweight one risk type; (5) Forward-looking: include scenarios not in historical data — AI regulatory shock, major geopolitical escalation, systemic crypto collapse — even if probability is low. Annual review: scenario library should be updated at least annually to include recent events and reflect current geopolitical/economic risks."
+    },
+    {
+      "q": "What is the difference between stress testing and sensitivity analysis?",
+      "a": "Sensitivity analysis: measures portfolio P&L impact of a small, single-factor change. Example: 'What happens if the 10-year Treasury yield increases by 25bps?' This is a partial derivative (DV01 for rates, delta for options). It's linear, local, and examines one factor at a time. Stress testing: measures portfolio P&L impact of large, multi-factor simultaneous shocks. Example: '2008 crisis: equities fall 40%, credit spreads widen 500bps, rates fall 200bps, VIX rises 40 points.' This is non-linear (large moves require full revaluation), global (tests the full loss distribution), and involves multiple correlated factors simultaneously. When to use each: sensitivity analysis for daily hedging decisions and incremental risk assessment; stress testing for tail risk identification, capital planning, and communication with board/regulators. The two are complementary: sensitivity tells you the direction and first-order magnitude; stress testing tells you the portfolio's fate in a real crisis."
+    }
+  ],
+  "sources": [
+    { "label": "Federal Reserve — CCAR 2023: Assessment Framework and Results", "url": "https://www.federalreserve.gov/publications/2023-stress-test-results.htm" },
+    { "label": "Rebonato, R. (2010) — Coherent Stress Testing, Wiley", "url": "https://www.wiley.com/en-us/Coherent+Stress+Testing%3A+A+Bayesian+Approach+to+the+Analysis+of+Financial+Risk-p-9780470666012" }
+  ]
+}

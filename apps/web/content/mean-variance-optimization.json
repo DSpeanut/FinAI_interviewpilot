@@ -1,0 +1,68 @@
+{
+  "terms": [
+    { "term": "Expected Return (μ)", "def": "The probability-weighted average return of an asset over a future period; the key input to MVO alongside risk." },
+    { "term": "Variance (σ²)", "def": "The average squared deviation of returns from the mean; measures individual asset risk." },
+    { "term": "Covariance / Correlation", "def": "Covariance measures how two assets move together; correlation = cov/(σ₁σ₂), scaled to [−1, +1]." },
+    { "term": "Portfolio Weight (w)", "def": "The fraction of portfolio value allocated to each asset; weights sum to 1 (fully invested)." },
+    { "term": "Quadratic Programming", "def": "The optimisation class used for MVO: minimise w′Σw subject to linear constraints on weights and target return." },
+    { "term": "Estimation Error", "def": "The sensitivity of MVO to small errors in expected return inputs; the main practical failure of naive MVO." }
+  ],
+  "eli3": [
+    "Mean-variance optimization (MVO) is a mathematical method for building a portfolio that gives you the best possible expected return for a given level of risk. It was invented by Harry Markowitz in 1952 and earned him the Nobel Prize in Economics.",
+    "The key idea: risk isn't just about individual assets — it's about how assets move together. Two stocks that always move in opposite directions (negative correlation) can be combined into a portfolio that's much less risky than either stock alone. MVO finds the exact weights that minimize risk for a target return.",
+    "The main inputs are: expected returns for each asset, variances (individual risk), and covariances (how assets move together). The main output is the 'efficient frontier' — the set of portfolios that maximize return for each level of risk."
+  ],
+  "whenWhy": [
+    {
+      "title": "Constructing diversified portfolios with explicit risk-return trade-offs",
+      "body": "MVO provides a rigorous mathematical framework for diversification. Without it, portfolio construction is ad-hoc ('buy 10 stocks equally'). With MVO, you solve for weights that formally minimise portfolio variance subject to achieving a target expected return (or maximise expected return for a target variance). The framework formalises the intuition that adding low-correlation assets improves the risk-return trade-off. This is the foundation of modern institutional portfolio management: strategic asset allocation, risk budgeting, and factor portfolio construction all derive from MVO."
+    },
+    {
+      "title": "Risk budgeting and factor allocation",
+      "body": "MVO generalises to risk budgeting: instead of targeting a return, specify how much risk (variance contribution) each asset or factor should contribute to the portfolio. Risk Parity allocates equal risk contribution across assets rather than equal weight or MVO weights. Black-Litterman (1990) extends MVO to incorporate investor views ('I think US equities will outperform by 2% over the next year') as deviations from the market equilibrium expected returns. These extensions address practical limitations of vanilla MVO (extreme weight concentration, sensitivity to return estimates) while maintaining the mathematical framework."
+    },
+    {
+      "title": "Benchmarking and tracking error management",
+      "body": "Active portfolio managers often use MVO with an additional tracking error constraint: minimise tracking error (the volatility of the portfolio return minus benchmark return) subject to a target expected active return (alpha). This gives the information ratio-maximising active portfolio. The resulting portfolio tilts toward high-conviction bets while diversifying across independent alpha sources. The Fundamental Law of Active Management (Grinold & Kahn): IR ≈ IC × √BR, where IC is the information coefficient (signal quality) and BR is the breadth (number of independent bets). MVO identifies how to combine these bets optimally."
+    }
+  ],
+  "deepDiveIntro": [
+    "Markowitz (1952) formulated portfolio selection as a quadratic programming problem. Let w be the N×1 vector of portfolio weights, μ be the N×1 vector of expected returns, and Σ be the N×N covariance matrix. Portfolio expected return: E[R_p] = w'μ. Portfolio variance: σ²_p = w'Σw. The efficient frontier traces the minimum-variance portfolio for each level of expected return: min_w w'Σw subject to w'μ = μ_target, w'1 = 1 (and optionally w_i ≥ 0 for long-only). The mathematical solution uses Lagrange multipliers and results in closed-form expressions for the weights on the efficient frontier.",
+    "The two-fund separation theorem (Tobin 1958): all efficient portfolios are combinations of two funds — the global minimum variance portfolio and any other efficient portfolio. Adding a risk-free asset: the efficient frontier becomes the Capital Market Line (CML), a straight line from the risk-free rate tangent to the risky efficient frontier. The tangency portfolio (where the CML meets the efficient frontier) is the optimal risky portfolio for all investors regardless of risk aversion — risk tolerance only determines the split between the tangency portfolio and the risk-free asset."
+  ],
+  "deepDive": [
+    {
+      "heading": "Portfolio Variance and the Role of Covariance",
+      "body": "Portfolio variance: σ²_p = Σᵢ Σⱼ wᵢ wⱼ σᵢⱼ = w'Σw. For N assets, variance has N diagonal terms (individual variances) and N(N-1) off-diagonal terms (covariances). For large N, off-diagonal (covariance) terms dominate: with 100 equally weighted assets, the portfolio variance ≈ average covariance of pairs, not average individual variance. This is why diversification works: individual variances largely cancel; what remains is the undiversifiable systematic covariance. The minimum variance portfolio of a large universe of assets has variance ≈ average pairwise covariance — the limit of diversification. Adding assets to a long-only portfolio reduces risk until you've captured most of the diversification benefit (roughly 20-30 randomly selected stocks capture ~90% of the diversification benefit in US equities). [1]"
+    },
+    {
+      "heading": "Practical Limitations: Estimation Error and Weight Instability",
+      "body": "MVO's main practical weakness: extreme sensitivity to input estimation errors. Small changes in expected returns produce large changes in optimal weights — often extreme long-short positions in unconstrained MVO. Michaud (1989) called this 'error maximisation': MVO overweights assets with high estimated expected returns (which may just have estimation error) and underweights assets with low estimated expected returns. Mitigations: (1) Shrinkage estimators for expected returns (Black-Litterman uses market equilibrium as the prior, shrinking toward market-cap weights); (2) Covariance matrix regularisation (Ledoit-Wolf shrinkage toward a structured estimator reduces estimation error); (3) Robustness constraints (maximum weight per asset, minimum weight, maximum active weight); (4) Resampled efficient frontier (Michaud 1998): average weights over many bootstrap samples of the input data — more stable portfolios. [1]"
+    },
+    {
+      "heading": "Black-Litterman Extension",
+      "body": "Black & Litterman (1990, 1992) addressed MVO's estimation error problem by using the market equilibrium as the starting point. Π = λΣw_mkt: the equilibrium expected excess returns are implied by the market-cap weights and a risk aversion coefficient λ. Investor views: express K views as P·μ = Q + ε, where P is a K×N matrix (which assets the view is about), Q is the K×1 vector of view expected returns, and ε ~ N(0, Ω) captures uncertainty in the views. Posterior expected returns: μ_BL = [(τΣ)⁻¹ + P'Ω⁻¹P]⁻¹ × [(τΣ)⁻¹Π + P'Ω⁻¹Q]. The BL expected returns are a precision-weighted average of the equilibrium and the views. Practical advantage: BL portfolios are much more stable and intuitive than raw MVO portfolios — weights deviate from market cap proportional to view confidence. [2]"
+    }
+  ],
+  "takeaways": [
+    "MVO: minimise portfolio variance w'Σw subject to target return w'μ = μ_target and full investment w'1 = 1. [1]",
+    "Portfolio variance is dominated by average pairwise covariance for large N — diversification eliminates idiosyncratic risk. [1]",
+    "Two-fund separation: all efficient portfolios combine the minimum-variance portfolio and one other efficient portfolio. [1]",
+    "MVO is an 'error maximiser' in practice — input estimation errors amplify into extreme, unstable weights. [1]",
+    "Black-Litterman: blend market equilibrium expected returns with investor views using Bayesian updating. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does MVO often produce poorly diversified, concentrated portfolios in practice?",
+      "a": "MVO finds the mathematical optimum given the inputs — but the inputs (expected returns, covariance matrix) are estimated with significant error. The optimisation exploits estimation errors: assets with slightly overestimated expected returns receive very high weights; assets with slightly underestimated expected returns get zero or negative weights. Covariance matrix estimation error also matters, especially for large asset universes where the sample covariance matrix is numerically ill-conditioned (nearly singular). The result: MVO often produces portfolios with 5-10% of assets at extreme weights, with most assets at zero. Fixes: (1) Ledoit-Wolf shrinkage for covariance — regularises the matrix by shrinking toward a structured estimator (equal correlation, factor model); (2) Black-Litterman — replaces sample mean returns with equilibrium-implied returns; (3) Weight constraints — impose maximum weight per asset to prevent concentration; (4) Equal-weight or risk-parity as simpler alternatives — research (DeMiguel et al. 2009) showed that 1/N equal weighting outperforms MVO out-of-sample in many datasets, highlighting how severely estimation error hurts MVO."
+    },
+    {
+      "q": "How do you handle assets with non-normal return distributions in MVO?",
+      "a": "MVO's theoretical foundation assumes that investors care only about mean and variance — which is exactly true only if returns are normally distributed or if investors have quadratic utility. In practice, asset returns exhibit: fat tails (kurtosis > 3 — extreme returns occur more frequently than normal), negative skewness (large losses are more common than large gains, especially for equities and credit), and serial correlation (momentum effects in short horizons, mean reversion in long horizons). Extensions: (1) Mean-CVaR optimisation: replace variance with Conditional Value at Risk (CVaR = expected loss beyond a confidence level); handles fat tails and asymmetric distributions; computationally more demanding; (2) Mean-semivariance: only penalise downside variance; (3) Higher-moment optimisation: include skewness and kurtosis preferences; (4) Scenario-based optimisation: use stress-test scenarios rather than moments. For most institutional applications, augmenting MVO with stress test constraints and CVaR limits is more practical than replacing MVO entirely."
+    }
+  ],
+  "sources": [
+    { "label": "Markowitz, H. (1952) — Portfolio Selection, Journal of Finance", "url": "https://doi.org/10.2307/2975974" },
+    { "label": "Black, F. & Litterman, R. (1992) — Global Portfolio Optimization, Financial Analysts Journal", "url": "https://doi.org/10.2469/faj.v48.n5.28" }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "Long-term memory for AI agents is stored outside the model — in a database, a file, or a vector store — and can be retrieved across multiple sessions. Unlike short-term memory (the context window, which disappears when the session ends), long-term memory persists forever until explicitly deleted.",
+    "Imagine an assistant who, after your first conversation, writes down key facts about you in a notebook: your name, your preferences, past tasks you've done together. Next time you talk, they read the notebook first. That notebook is long-term memory.",
+    "Technically, LLMs have no intrinsic long-term memory — they're stateless. All long-term memory must be explicitly managed by the application: store information after a session ends, retrieve relevant facts before the next session starts, and inject them into the system prompt or context."
+  ],
+  "whenWhy": [
+    {
+      "title": "Personalisation across sessions",
+      "body": "Without long-term memory, every session starts from scratch — the agent doesn't know the user's name, preferences, or past interactions. With long-term memory, the agent retrieves relevant user facts at the start of each session: 'This user prefers concise responses, works in fintech, previously asked about CAPM.' This enables genuine personalisation. Production personal AI assistants (Mem, Notion AI, GitHub Copilot Workspace) all implement some form of long-term user memory."
+    },
+    {
+      "title": "Persisting knowledge from completed tasks",
+      "body": "Agents that perform research, analysis, or multi-session projects need to remember what they've already done. Long-term memory stores completed sub-tasks, discovered facts, and made decisions so future sessions can build on them rather than restarting from scratch. Example: a research agent that has already found and summarised 20 papers stores those summaries; the next session retrieves them and continues with papers 21-40, avoiding redundant work."
+    },
+    {
+      "title": "Agent identity and behavioral continuity",
+      "body": "Long-term memory enables consistent agent behavior over time: preferences, past mistakes, established conventions, and ongoing commitments. An agent without long-term memory can't learn from its mistakes across sessions; one with it can avoid repeating errors it has been corrected on. This is why agent memory architectures often distinguish between episodic memory (what happened) and semantic memory (what was learned from what happened)."
+    }
+  ],
+  "deepDiveIntro": [
+    "Long-term memory for AI agents is typically implemented as an external storage system with semantic retrieval. The most common architecture: a vector database stores text memories as dense embeddings. At the start of each session, the current query/context is embedded and a similarity search retrieves the top-k most relevant memories. These are injected into the system prompt or early context. At the end of a session, new information is extracted from the conversation and stored as new memory entries.",
+    "The memory lifecycle has four phases: (1) Capture — extract memorable information from the session (explicit instructions: 'Remember that...'; implicit extraction: LLM identifies important facts from conversation); (2) Consolidation — deduplicate, resolve conflicts, and compress; (3) Retrieval — semantic search at session start; (4) Forgetting — memories can decay, be explicitly deleted, or be superseded by newer memories. MemGPT (Packer et al. 2023) introduced a formal architecture for managing all four phases."
+  ],
+  "deepDive": [
+    {
+      "heading": "Storage Backends for Long-Term Memory",
+      "body": "Three common backends: (1) Vector database (Pinecone, Weaviate, pgvector) — stores memories as embeddings, enables semantic retrieval. Best for unstructured, natural-language memories. Retrieval: cosine similarity search over embedded memories; (2) Key-value store (Redis, DynamoDB) — stores structured facts as key-value pairs. Best for explicit facts: user_name, user_timezone, user_preferences. Retrieval: exact lookup by key; (3) Relational database (PostgreSQL) — stores structured, queryable memories. Best for memories with complex relationships: completed tasks, established conventions with timestamps. Retrieval: SQL queries. Production systems often combine all three: vector DB for semantic retrieval, KV for profile facts, SQL for structured history. [1]"
+    },
+    {
+      "heading": "Memory Extraction and Consolidation",
+      "body": "Two approaches to memory extraction: (1) Explicit — user says 'Remember that I prefer Python over JavaScript'. The agent detects the command and stores the fact immediately; (2) Implicit — the LLM reviews the conversation at session end and extracts memorable facts autonomously. Implicit extraction requires careful prompting: 'Extract up to 5 key facts from this conversation that would be useful to remember for future sessions. Output as JSON array of {fact, category, confidence}.' Consolidation: before storing, check for duplicates (embedding similarity > 0.95) and conflicts (if a new fact contradicts a stored one, update the stored memory and log the change). [2]"
+    },
+    {
+      "heading": "MemGPT and the Virtual Context Architecture",
+      "body": "MemGPT (Packer et al. 2023) models long-term memory as a hierarchical memory system inspired by OS virtual memory: 'main context' (in-context, fast, limited) and 'external storage' (out-of-context, slow, unlimited). The agent has explicit tools: recall_memory(query) to retrieve from external storage, save_memory(fact) to write to external storage. The agent manages its own memory — deciding what to save and when to retrieve — as part of the agent loop. This self-directed memory management allows the agent to maintain coherence across conversations far longer than the context window. [2]"
+    }
+  ],
+  "takeaways": [
+    "Long-term memory is stored externally (vector DB, KV store, SQL) and retrieved at session start — not intrinsic to the model. [1]",
+    "Memory lifecycle: capture → consolidate (deduplicate, resolve conflicts) → retrieve (semantic search) → forget. [2]",
+    "Semantic retrieval: embed current context, cosine-search stored memories, inject top-k into system prompt. [1]",
+    "MemGPT: agent manages its own memory with explicit save/recall tools — self-directed memory management. [2]",
+    "Combine backends: vector DB for unstructured facts, KV for user profile, SQL for structured history. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle conflicting memories? (e.g., the user previously said they prefer Python, now says they prefer TypeScript)",
+      "a": "Conflict resolution strategies: (1) Last-write-wins — the newer memory supersedes the older one; simple but loses history; (2) Temporal versioning — store both memories with timestamps; at retrieval time, retrieve the most recent version of each fact; (3) Explicit conflict detection — at save time, embed the new memory, find similar stored memories (cosine > 0.85), and if a conflict is detected, flag it: 'You previously remembered X; should I update it to Y?' Letting the user confirm avoids silent data loss; (4) Maintain a changelog — never delete a memory, mark it as superseded: {fact: 'prefers Python', superseded_by: 'prefers TypeScript', date: ...}. The changelog enables auditing and rollback."
+    },
+    {
+      "q": "How much long-term memory context is safe to inject without degrading LLM performance?",
+      "a": "Empirically: inject at most 5-15 relevant memories per session (500-2000 tokens). Injecting more memories: (1) increases the probability of including irrelevant ones that confuse the model; (2) consumes token budget needed for the actual conversation; (3) triggers the lost-in-the-middle effect if memories are too numerous. Best practice: use high-precision retrieval (k=5 with a relevance threshold) rather than high-recall (k=50). Place retrieved memories in a structured 'User Memory' block in the system prompt, not inline in the conversation. For memories with different categories (preferences, past tasks, profile facts), use separate retrieval queries to ensure diversity."
+    }
+  ],
+  "sources": [
+    { "label": "Packer et al. (2023) — MemGPT: Towards LLMs as Operating Systems", "url": "https://arxiv.org/abs/2310.08560" },
+    { "label": "Wang et al. (2024) — A Survey on Large Language Model based Autonomous Agents", "url": "https://arxiv.org/abs/2308.11432" }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "Tool calling patterns are the common ways that AI agents use tools in practice. Just like software design patterns (factory, singleton), tool calling has recurring patterns: sequential (call one tool, then use its result to call another), parallel (call multiple tools at the same time), and conditional (call different tools based on what you find).",
+    "Knowing these patterns helps you design better agents. Should you retrieve information first and then compute, or compute first? Should you check a cache before calling an expensive API? These design decisions significantly affect agent reliability, cost, and speed.",
+    "The right pattern depends on the task: some tasks require strict sequential tool calls (you must get the price before you can calculate the tax), others benefit from parallelism (look up 3 competitors simultaneously), and some need fallbacks (try the primary data source, fall back to a secondary one on error)."
+  ],
+  "whenWhy": [
+    {
+      "title": "Parallel tool calls for independent sub-tasks",
+      "body": "When a task requires multiple independent pieces of information, call the tools in parallel. Example: 'Compare the stock prices of Apple, Microsoft, and Google' — all three get_stock_price() calls are independent; execute them concurrently and reduce latency from 3× to 1× the individual call time. The LLM emits all three tool calls in a single response (parallel function calling). The framework executes them concurrently (asyncio.gather) and returns all results in a single tool_result message. Identifying parallel opportunities: if tool calls share no data dependencies and order doesn't matter, parallelize them."
+    },
+    {
+      "title": "Sequential calls for data-dependent pipelines",
+      "body": "When step N requires the output of step N-1, calls must be sequential. Example: 'Find a paper about RAG, then summarise its methodology section' — you must find the paper before you can summarise it. The LLM enforces this naturally: it emits get_paper(), waits for the result, then emits summarise(paper_content). Designing for sequential patterns: break complex tasks into steps where each step's output becomes the next step's input. Clear naming and description of tool output format helps the LLM correctly chain outputs to inputs."
+    },
+    {
+      "title": "Fallback and retry patterns for resilient agents",
+      "body": "External tools fail: APIs return errors, databases time out, search returns no results. Resilient agents implement fallbacks: try primary_search(), if it returns an error or empty results, try secondary_search(); if that fails, try a different approach (ask the user for clarification, use cached data). This requires the LLM to read tool results and decide to try alternatives — which requires good error messages in tool results (not just 'Error 500') and a system prompt that instructs the agent to retry with alternatives on failure."
+    }
+  ],
+  "deepDiveIntro": [
+    "Tool calling patterns can be classified along two dimensions: (1) Control flow — sequential (ordered dependencies), parallel (independent concurrency), conditional (branch on result), iterative (loop until condition); (2) Error handling — fail-fast, retry, fallback, graceful degradation. Production agents combine multiple patterns: a research agent might parallelize initial search queries (parallel), then sequentially process each result (sequential), retrying failed fetches with a different source (fallback).",
+    "The LLM's role in tool calling patterns: the LLM decides which pattern to apply based on its understanding of the task and the tool results it observes. Good system prompt design explicitly teaches the agent the desired patterns: 'Always search multiple sources in parallel before summarizing', 'If a tool returns an error, try an alternative tool before asking the user.'"
+  ],
+  "deepDive": [
+    {
+      "heading": "Parallel Tool Calling Implementation",
+      "body": "The LLM emits multiple tool_calls in one response: [{id: 'c1', name: 'get_price', input: {symbol: 'AAPL'}}, {id: 'c2', name: 'get_price', input: {symbol: 'MSFT'}}]. Framework execution: asyncio.gather(*[execute_tool(call) for call in tool_calls]) in Python; Promise.all in Node.js. Return all results in a single user message: [{type: 'tool_result', tool_use_id: 'c1', content: '182.50'}, {type: 'tool_result', tool_use_id: 'c2', content: '420.00'}]. The LLM then receives all results and continues. Edge case: if one parallel tool call fails, still return all results (including the error) — never wait for all tools to succeed before returning. The LLM can handle partial failures and decide whether to retry the failed call. [1]"
+    },
+    {
+      "heading": "Conditional Branching and Tool Routing",
+      "body": "Conditional tool calling: the LLM reads a tool result and decides which tool to call next based on the result. Example: query_type_classifier() returns {type: 'sql'} → call execute_sql(); returns {type: 'nosql'} → call execute_mongodb(). The LLM implements the conditional logic naturally through its reasoning (ReAct pattern). For deterministic conditional routing (type-checked, not probabilistic), implement routing at the framework layer: inspect the tool_call name after the LLM returns, route to the appropriate execution path, and return the result. Never rely solely on the LLM for routing decisions that have security or correctness implications — validate the LLM's routing choice before executing. [1]"
+    },
+    {
+      "heading": "Tool Caching and Idempotency",
+      "body": "Tool calls to external APIs are expensive (latency, cost, rate limits). Caching pattern: before calling a tool, check a cache keyed on (tool_name, parameters_hash). Cache TTL varies by tool: stock prices (1 min), news articles (1 hour), database queries with stable data (5 min), user profile data (1 day). Implementation: wrap each tool in a caching decorator that checks Redis/memcached before the real call. Return the cached result to the LLM transparently — the LLM doesn't know the result was cached. Idempotency: tools with side effects (send_email, create_record) must check whether the action was already performed (use an idempotency key based on the operation's parameters) to prevent duplicate actions when the agent retries a failed step. [2]"
+    }
+  ],
+  "takeaways": [
+    "Parallel calling: emit multiple tool calls in one LLM response; execute concurrently; return all results together. [1]",
+    "Sequential calling: wait for result N before emitting call N+1; the LLM enforces this through its reasoning. [1]",
+    "Fallback pattern: on tool error, the LLM reads the error message and decides to try an alternative tool. [1]",
+    "Caching: wrap tools in a (tool_name, params_hash) → result cache; TTL varies by data volatility. [2]",
+    "Idempotency for side-effect tools: deduplicate by operation hash to prevent duplicate sends/creates on retry. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle tool calls that must be executed in a specific order but the LLM doesn't enforce the order?",
+      "a": "When strict ordering is required (e.g., must create a record before updating it), don't rely on the LLM's reasoning to enforce it. Enforce at the framework layer: (1) Dependency injection — only expose the update_record tool after create_record has been called and succeeded (track available tools dynamically, adding and removing from the tool list as preconditions are met); (2) Tool sequencing via tool descriptions — explicitly state in the tool description 'Must be called after create_record is complete'; (3) Finite state machine — model the agent's state as an FSM where each state exposes a different set of available tools. The FSM transitions on tool call outcomes. The LLM can only call tools available in the current state. This is the most robust approach for workflows with strict ordering requirements but adds framework complexity."
+    },
+    {
+      "q": "What's the maximum number of tool calls in a single agent loop before quality degrades?",
+      "a": "Quality degradation in long tool-calling loops: (1) Context window saturation — each tool call adds tokens; after 15-20 calls, the context is often 50-80% full with tool output history, leaving little room for reasoning; (2) Attention dilution — performance on tasks requiring recall of early tool outputs degrades as the context grows (lost-in-the-middle); (3) Reasoning drift — over many steps, the agent can lose track of the original task and go off on tangents. Empirical limits: most tasks should complete in < 10 tool calls for reliable quality. For tasks requiring more: (a) Summarise completed steps and clear the context every 5 steps; (b) Use a Plan-and-Execute pattern — each executor step has a fresh, small context; (c) Break the task into subtasks, each handled by a fresh agent with a targeted context. Set max_iterations=15-20 as a hard safety limit; if the task isn't complete by then, surface it to the user."
+    }
+  ],
+  "sources": [
+    { "label": "Anthropic Tool Use Documentation — parallel tool use and patterns", "url": "https://docs.anthropic.com/en/docs/tool-use" },
+    { "label": "OpenAI Function Calling Documentation — parallel function calling", "url": "https://platform.openai.com/docs/guides/function-calling" }
+  ]
+}

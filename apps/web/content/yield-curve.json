@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "The yield curve shows the interest rates for government bonds at different maturities — from 3 months to 30 years — plotted as a line. Normally, longer-term bonds have higher yields (the curve slopes upward) because investors demand more compensation for lending money for longer and taking on more risk.",
+    "When short-term rates are higher than long-term rates, the curve is 'inverted' (slopes downward). An inverted yield curve is a famous predictor of recessions — it has preceded every US recession in the past 60 years. The logic: if short-term rates are very high (the Fed is tightening), investors expect the economy to slow and the Fed to cut rates in the future, pulling long-term rates below short-term rates.",
+    "The yield curve is the central object in fixed income finance. It determines the cost of mortgages, auto loans, corporate bonds, and government financing. Central banks primarily influence the short end (through policy rates); market forces and economic expectations determine the long end."
+  ],
+  "whenWhy": [
+    {
+      "title": "Economic cycle and monetary policy forecasting",
+      "body": "The yield curve's shape reflects the market's expectations for future interest rates and economic growth. Steep curve (long > short rates): markets expect strong growth and/or rising inflation; the Fed may tighten; equities tend to outperform. Flat curve: markets see little rate change expected; moderate economic outlook. Inverted curve (short > long rates): markets expect the Fed to cut rates (possibly due to recession); has preceded every US recession since 1955 with a 6-24 month lead. The 2/10 spread (10-year yield minus 2-year yield) is the most-watched inversion indicator. Inverted persistently in 2022-2024 following the aggressive Fed tightening cycle."
+    },
+    {
+      "title": "Bond portfolio positioning and duration management",
+      "body": "The yield curve determines which part of the maturity spectrum offers the best risk-adjusted return. Key strategies: (1) Carry trade — hold a bond with high yield and hedge duration; earn the roll-down (as time passes, the bond rolls to a shorter maturity and a lower yield on the upward-sloping curve, generating capital appreciation); (2) Duration positioning — lengthen duration if you expect yield curve to shift down (rally); shorten if you expect yields to rise; (3) Curve trade — steepener (long short-term, short long-term) if you expect the curve to steepen; flattener (short short-term, long long-term) if you expect flattening; (4) Butterfly trade — combined curve position exploiting relative value between belly and wings of the curve."
+    },
+    {
+      "title": "Derivatives pricing and discounting",
+      "body": "The yield curve is used as the discount rate surface for valuing all fixed income instruments. Before 2008: a single swap curve was used for discounting. Post-GFC multi-curve framework: different curves for different tenors (OIS, 3-month LIBOR, 6-month LIBOR) — tenor basis became significant. Modern framework: use OIS (Overnight Index Swap) curve for discounting (risk-free), and the relevant IBOR/SOFR curve for forecasting cash flows. Interest rate swap pricing, cap/floor pricing, mortgage valuation, and corporate bond option pricing all require the full yield curve as an input."
+    }
+  ],
+  "deepDiveIntro": [
+    "Yield curve theories explain the term structure of interest rates: (1) Pure Expectations Hypothesis (Cox, Ingersoll & Ross 1981): the long-term yield is the geometric average of expected future short-term rates. An upward-sloping curve implies the market expects rising short rates; a flat curve implies stable rates; an inverted curve implies falling rates. In this theory, all maturities have the same expected return; (2) Liquidity Preference Theory (Hicks 1946): investors require a term premium for holding longer bonds (liquidity premium). The yield curve should slope upward even if short rates are expected to stay constant; (3) Market Segmentation Theory: supply and demand in specific maturity segments determine yields; different investor types (money market funds: short end; pension funds: long end) create segmented demand. In practice, all three effects are present.",
+    "Key empirical facts about the yield curve: (1) The curve usually slopes upward (~70% of time since 1900); (2) Long rates are smoother than short rates (monetary policy drives short rate volatility; expectations and term premia drive long rates); (3) The first principal component of yield curve movements is level (parallel shift, explains ~80% of variation); the second is slope (steepening/flattening, ~15%); the third is curvature/butterfly (~5%); (4) The yield curve has strong predictive power for future economic activity (spread is a leading indicator in most macro models)."
+  ],
+  "deepDive": [
+    {
+      "heading": "Yield Curve Construction: Bootstrapping",
+      "body": "The yield curve (zero-coupon curve) is constructed by 'bootstrapping' from observable market prices. Process: (1) Use money market rates (SOFR, T-bills) for very short maturities (1M, 3M, 6M); (2) Use Eurodollar futures or OIS swaps for intermediate maturities (1-2yr); (3) Use on-the-run Treasury bonds for 2yr, 5yr, 7yr, 10yr, 30yr; (4) Solve for zero-coupon (spot) rates by stripping out coupon cash flows sequentially. For a 2-year Treasury: if spot rates for 6M and 12M are known, solve for the 18M and 24M spot rates that price the 2yr Treasury correctly (par). The result is the zero-coupon yield curve, which prices any cash flow at any maturity. In practice, interpolation is needed for off-the-run maturities: cubic spline, Nelson-Siegel, or Svensson parametric fitting. [1]"
+    },
+    {
+      "heading": "Yield Curve Shapes and Their Interpretation",
+      "body": "Normal (upward sloping): long rates > short rates. Reflects positive term premium and/or expectation of rising rates. Common in economic expansions. Flat: long rates ≈ short rates. Transition between normal and inverted; common in mid-cycle monetary policy normalisation. Inverted (downward sloping): short rates > long rates. Reflects expectation of future rate cuts (typically due to anticipated recession). The 2s10s spread (10yr minus 2yr) inverted in March 2022 (first inversion since 2019) and remained inverted until 2024. Humped: rates peak at intermediate maturities (5-7yr) and decline at long end. Rare; occurs when markets expect near-term rate hikes followed by long-term decline. Butterfly spread: butterfly = 2×5yr yield - 2yr yield - 10yr yield; measures the curvature of the mid-section relative to the wings. [2]"
+    },
+    {
+      "heading": "Roll-Down and Carry in Yield Curve Strategies",
+      "body": "Roll-down return: as a bond ages (moves closer to maturity), its maturity decreases. On an upward-sloping yield curve, a bond rolls from a higher-yield to a lower-yield point — its yield falls and its price rises (if the curve remains unchanged). Example: a 5-year bond at 4% yield; one year later, it's now a 4-year bond; if the 4-year yield is 3.8%, the bond's yield has rolled down 20bp → capital gain. Total return = coupon income + roll-down return + yield change P&L. The carry-plus-roll-down strategy: buy the steepest portion of the yield curve (where roll-down is highest per unit of duration) and hold as the bond rolls down. This is particularly attractive when the yield curve is steep (high roll-down) and the forward rates imply a stable curve (expected roll-down = actual roll-down). [1]"
+    }
+  ],
+  "takeaways": [
+    "Yield curve: plot of government bond yields vs. maturity; usually upward sloping (term premium). [1]",
+    "First three PCA components: level (80%), slope (15%), curvature (5%) — three risk factors. [2]",
+    "2s10s inversion: historically reliable leading indicator of US recessions, 6-24 months ahead. [2]",
+    "Roll-down: bond yield falls as it rolls to shorter maturity on an upward-sloping curve → capital gain. [1]",
+    "Bootstrapping: strip zero-coupon rates sequentially from observable bond prices and swap rates. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why didn't the 2022-2024 yield curve inversion immediately cause a recession?",
+      "a": "The 2/10 spread inverted in March 2022 and remained deeply inverted through 2023, yet the US economy remained resilient. Several factors explain the delayed/attenuated effect: (1) Long and variable lags: the transmission of monetary policy to the real economy operates with lags of 12-24 months via credit conditions, housing, and corporate investment; (2) Strong fiscal stimulus (post-COVID government spending) offset the monetary tightening; (3) Pandemic-era excess savings provided a consumption buffer; (4) Corporate debt maturity extension: many companies locked in long-term fixed-rate debt during 2020-2021 ultra-low rate era; higher rates didn't immediately feed through to corporate borrowing costs; (5) Structural changes: the labor market was tight post-COVID; normal recessionary dynamics (unemployment rising, spending falling) were delayed. The inversion did cause a housing slowdown and regional bank stress (SVB), consistent with its historical signal — but the full recessionary dynamics may simply be delayed, not absent. The 2/10 inversion remains a leading indicator, not an immediate one."
+    },
+    {
+      "q": "What is the forward rate and how does it relate to the yield curve?",
+      "a": "The forward rate f(t, T) is the interest rate implied by the yield curve for a loan starting at time t and maturing at time T — the rate that would make investors indifferent between investing to t and rolling over, vs. investing to T directly. Forward rate formula: (1 + f(t, T))^{T-t} = (1 + z_T)^T / (1 + z_t)^t, where z_t, z_T are the t-year and T-year zero-coupon spot rates. For example: 1-year spot rate = 4%, 2-year spot rate = 5%. 1-year forward rate, 1 year from now: (1.05)² / (1.04) - 1 = 6.01%. The forward rate is the market's implied expectation of the future short rate under the pure expectations hypothesis (adjusted for term premium under other theories). Forward rates are essential for: pricing interest rate swaps (which pay floating vs. fixed, valued using forward rates); hedging specific maturity exposures; and extracting the market's expected future rate path from the yield curve."
+    }
+  ],
+  "sources": [
+    { "label": "Campbell, J., Lo, A. & MacKinlay, A.C. — The Econometrics of Financial Markets, Princeton University Press (1997)", "url": "https://press.princeton.edu/books/hardcover/9780691043012/the-econometrics-of-financial-markets" },
+    { "label": "Tuckman, B. & Serrat, A. — Fixed Income Securities: Tools for Today's Markets, 3rd Edition, Wiley (2011)", "url": "https://www.wiley.com/en-us/Fixed+Income+Securities%3A+Tools+for+Today%27s+Markets%2C+3rd+Edition-p-9780470891698" }
+  ]
+}

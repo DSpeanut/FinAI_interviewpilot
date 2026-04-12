@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "LLM evaluation frameworks are tools that help you measure how good your AI application is, automatically. Instead of having humans read every AI response, these frameworks use LLMs (or other models) to judge responses on criteria like accuracy, helpfulness, and safety.",
+    "The key challenge: what makes an LLM response 'good' is often subjective and context-dependent. A factual answer might be accurate but unhelpful. A helpful answer might be engaging but contain errors. Evaluation frameworks give you multiple metrics that capture different quality dimensions.",
+    "The main frameworks are: RAGAS (for RAG pipelines), DeepEval (general LLM evaluation), TruLens (RAG + LLM evaluation), Braintrust (evaluation + experiment tracking), and Evals (OpenAI's open-source framework). Each has different strengths."
+  ],
+  "whenWhy": [
+    {
+      "title": "Automated evaluation at scale without human annotators",
+      "body": "Human evaluation of LLM outputs is expensive ($10-50/hour for annotators, 1-2 min per evaluation), slow (days to weeks for a large eval set), and inconsistent (inter-annotator agreement is often 70-80% for subjective criteria). LLM-as-judge frameworks automate this: for 1000 responses, automated evaluation costs cents and runs in minutes. Use automated eval for: catching regressions during deployment, running A/B tests between prompt versions, continuous monitoring of production quality. Reserve human evaluation for: validating the automated evaluator's quality, edge cases where automated judgment is uncertain."
+    },
+    {
+      "title": "Standardised evaluation across model versions and experiments",
+      "body": "Without a framework, evaluation is ad-hoc: different engineers use different criteria, different examples, different judge prompts. This makes it impossible to compare results across experiments or time. Evaluation frameworks provide: standardised metrics (same formulas, same judge prompts), reproducible results (deterministic seeds, same examples), experiment tracking (compare model A vs. model B on the same dataset), and regression alerting (current metrics vs. historical baseline). This rigour is the difference between 'it seems better' and 'it improved faithfulness by 8%'."
+    },
+    {
+      "title": "Debugging failure modes with component-level evaluation",
+      "body": "End-to-end quality metrics tell you there's a problem; component-level metrics tell you where. RAGAS's context_precision tells you if retrieval is the problem; faithfulness tells you if generation is the problem. TruLens's feedback functions allow custom component evaluation: is the query expansion producing better queries? Is the re-ranker actually improving precision? Component-level evaluation enables targeted fixes rather than trial-and-error prompting."
+    }
+  ],
+  "deepDiveIntro": [
+    "The dominant evaluation paradigm is LLM-as-judge: a judge LLM (typically GPT-4 or Claude 3.5 Sonnet) evaluates responses based on a structured rubric. Zheng et al. (2023) showed that GPT-4 as a judge achieves > 80% agreement with human expert evaluators on the MT-Bench benchmark. The key insight: a capable LLM can assess quality criteria that are difficult to encode as rules (helpfulness, fluency, accuracy, safety) through natural language rubrics.",
+    "Evaluation frameworks wrap LLM-as-judge with: standard rubric libraries (pre-built prompts for common criteria), structured scoring (numeric scores, not just text judgments), statistical aggregation (mean scores, confidence intervals), experiment tracking (comparing runs), and dataset management (curating evaluation sets). The quality of the judge prompt is the most important factor in evaluation framework quality."
+  ],
+  "deepDive": [
+    {
+      "heading": "RAGAS: RAG-Specific Evaluation",
+      "body": "RAGAS (Es et al. 2023) metrics: (1) Faithfulness — fraction of answer sentences supportable from retrieved context; (2) Answer Relevancy — cosine similarity between the answer and synthetically generated questions from it; (3) Context Precision — fraction of retrieved chunks that are useful for answering; (4) Context Recall — fraction of ground-truth answer claims covered by retrieved context. All four require: the question, the generated answer, and the retrieved context. Context Recall additionally requires a ground-truth answer. RAGAS computes all four metrics in parallel using async LLM calls. Default judge: OpenAI GPT-4. Can swap to any LLM via LangChain LLM abstraction. Run with: from ragas import evaluate; evaluate(dataset, metrics=[faithfulness, answer_relevancy, context_precision, context_recall]). [1]"
+    },
+    {
+      "heading": "DeepEval: General-Purpose LLM Evaluation",
+      "body": "DeepEval (Confident AI) provides 14+ metrics: G-Eval (general LLM-as-judge with custom criteria), Contextual Precision/Recall/Relevancy, Answer Relevancy, Faithfulness, Hallucination, Bias, Toxicity, Summarisation Quality, Code Correctness, and more. Integration with pytest: @pytest.mark.parametrize + DeepEval's assert_test allows LLM quality checks in your CI/CD pipeline — pull request checks fail if quality regresses. Features: Confident AI cloud dashboard (track metrics across runs), dataset curation, red-teaming (adversarial input generation), and LLM benchmarking. Best for: teams that want LLM quality checks in CI/CD; general-purpose evaluation beyond RAG. [2]"
+    },
+    {
+      "heading": "Evaluation Dataset Construction and Management",
+      "body": "A quality evaluation dataset is the foundation of reliable evaluation. Construction: (1) Golden examples — manually curated (question, expected_answer, relevant_chunk_ids); minimum 100 examples, covering edge cases; (2) Synthetic generation — LLM generates Q&A pairs from documents (RAGAS TestsetGenerator: generates simple, reasoning, and multi-context questions); (3) Production sampling — sample real user queries with known-good answers from production logs; validates against actual usage distribution. Dataset management: version the dataset (evaluation dataset v1 was last updated Jan 2025), track metrics per dataset version to separate dataset changes from model changes, maintain a held-out test set (never used for prompt development) for final model benchmarking. [1]"
+    }
+  ],
+  "takeaways": [
+    "RAGAS: four LLM-judged metrics for RAG (Faithfulness, Answer Relevancy, Context Precision, Context Recall). [1]",
+    "DeepEval: 14+ metrics, pytest integration for CI/CD quality gates, red-teaming support. [2]",
+    "LLM-as-judge: GPT-4 judge achieves > 80% human agreement — reliable for automated quality assessment. [1]",
+    "Component-level eval: separate retrieval metrics (context_precision) from generation metrics (faithfulness) to localise failures. [1]",
+    "Dataset: curate 100+ golden examples + synthetic generation; version the dataset separately from model versions. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you validate that your LLM judge is actually measuring what you think it's measuring?",
+      "a": "Judge validation: (1) Human calibration — manually annotate 100 examples with your quality criteria; run the LLM judge on the same 100 examples; measure agreement (Cohen's kappa or Pearson correlation). Target: kappa > 0.7 (strong agreement). If agreement is low, the judge rubric is misaligned with your actual criteria; (2) Inter-rater reliability — have 2-3 humans independently annotate a sample; compute human-human agreement. LLM judge agreement with humans should be ≥ human-human agreement to be useful; (3) Sensitivity testing — construct pairs of examples where one is clearly better than the other on a specific criterion; verify the judge consistently ranks them correctly; (4) Judge consistency — run the same examples through the judge twice (different seeds); measure score variance. High variance signals an unreliable judge. Run this calibration quarterly and after changing the judge model."
+    },
+    {
+      "q": "How do you handle evaluation when there are multiple valid correct answers?",
+      "a": "Many questions have multiple valid answers: 'Explain gradient descent' has many correct explanations at different levels of detail. Single-reference exact match fails here. Approaches: (1) Semantic similarity — embed the candidate and reference answers, compute cosine similarity; a threshold of 0.85+ indicates semantic equivalence; handles paraphrases but not genuinely different-but-valid explanations; (2) LLM-as-judge with a multi-answer aware rubric: 'Is the following answer correct and complete? Note that multiple different-but-valid explanations exist.' The judge assesses quality holistically rather than checking against one reference; (3) Multiple references — collect 3-5 valid reference answers; compute max similarity to any reference; (4) Criteria-based evaluation — define quality criteria (technical accuracy, completeness, clarity) independently of a reference answer; the judge scores each criterion. The last approach is most robust for open-ended generation tasks."
+    }
+  ],
+  "sources": [
+    { "label": "Es et al. (2023) — RAGAS: Automated Evaluation of Retrieval Augmented Generation", "url": "https://arxiv.org/abs/2309.15217" },
+    { "label": "DeepEval Documentation — LLM evaluation framework", "url": "https://docs.confident-ai.com/" }
+  ]
+}

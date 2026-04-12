@@ -1,4 +1,12 @@
 {
+  "terms": [
+    { "term": "IC (Information Coefficient)", "def": "Correlation between signal values and subsequent returns; IC = 0.05 is considered good for equity signals." },
+    { "term": "IR (Information Ratio)", "def": "Expected return from the signal / signal volatility; IC × √BR by the fundamental law." },
+    { "term": "Signal Decay", "def": "How quickly a signal's predictive power fades over time; fast-decay signals need higher turnover." },
+    { "term": "Alpha Capture", "def": "Framework for recording and evaluating analyst or model signals over time; tracks IC and IR per signal." },
+    { "term": "Composite Signal", "def": "Weighted combination of multiple signals; reduces noise and increases breadth (more independent bets)." },
+    { "term": "t-Stat", "def": "IC / (IC std dev / √N); measures statistical significance of a signal's predictive power across N periods." }
+  ],
   "eli3": [
     "A signal is a quantitative measure that predicts future asset returns. Signal generation is the process of turning raw data (prices, fundamentals, alternative data) into a numerical score that says how attractive an asset is to buy or sell. Good signals are: predictive (they actually work), robust (they work across markets and time periods), and independent (they add information beyond what other signals already capture).",
     "Signals exist at every data layer: price-based (momentum, mean reversion, volatility), fundamental (earnings yield, cash flow yield, growth), alternative data (satellite imagery of parking lots, credit card transactions, social media sentiment). Each captures a different market inefficiency. A portfolio of uncorrelated signals has much better risk-adjusted performance than any single signal alone.",

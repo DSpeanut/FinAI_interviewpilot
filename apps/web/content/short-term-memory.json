@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "Short-term memory in AI agents is what the agent can 'hold in mind' right now — it's the current conversation history and recent observations that fit inside the LLM's context window. Like human working memory, it's fast to access but limited in size.",
+    "Every time the agent runs, it reads from its short-term memory (the context window) to decide what to do. When the conversation gets too long, older messages fall off — like forgetting the beginning of a long conversation when you're focused on the current topic.",
+    "The context window IS the short-term memory. Bigger context windows (GPT-4's 128k tokens, Claude's 200k tokens) give agents a larger working memory, but it's still finite. Managing what goes into the context window is one of the most important engineering challenges in building long-running agents."
+  ],
+  "whenWhy": [
+    {
+      "title": "Maintaining conversation continuity within a session",
+      "body": "Short-term memory enables multi-turn conversations: the agent remembers what was said earlier in the same session, refers back to prior context, and builds coherent responses. Without it, every user message would be treated as a fresh query with no context. The entire message history (user + assistant turns) is the short-term memory. For short conversations this is sufficient; for long conversations or multi-tool agent loops, active management is needed."
+    },
+    {
+      "title": "Holding tool outputs for multi-step reasoning",
+      "body": "In the agent loop, each tool output (search result, code output, API response) is appended to the context. The agent reasons over the accumulated observations. Short-term memory is what makes multi-step reasoning possible — the agent can refer to a result from Step 1 when deciding what to do in Step 5. Without a context window holding all intermediate results, each step would be isolated and the agent couldn't synthesise across them."
+    },
+    {
+      "title": "Zero-persistence working space",
+      "body": "Short-term memory is ephemeral by design: it exists only for the duration of a single session or agent run. This makes it appropriate for temporary state that doesn't need to persist across sessions: draft calculations, intermediate search results, working hypotheses. The ephemeral nature also means no privacy/storage concerns — once the session ends, the memory is gone. Contrast with long-term memory, which requires explicit storage and retrieval infrastructure."
+    }
+  ],
+  "deepDiveIntro": [
+    "In Transformer-based LLMs, the context window is the physical substrate of short-term memory: all tokens within the window are jointly attended over. Memory capacity is therefore measured in tokens. GPT-4 Turbo: 128k tokens (~96k words). Claude 3.5 Sonnet: 200k tokens (~150k words). Gemini 1.5 Pro: 1M tokens. Despite large windows, performance degrades on tasks requiring precise recall of content in the middle of very long contexts (the 'lost in the middle' phenomenon, Liu et al. 2023).",
+    "Active short-term memory management strategies: (1) summarisation — periodically summarise older turns and replace them with a compressed representation; (2) sliding window — keep only the last N messages; (3) selective retention — identify and keep only the most relevant observations; (4) message compression — compress verbose tool outputs (e.g., a 1000-word web page) to a 50-word summary before storing. The goal: maximise information density within the token budget."
+  ],
+  "deepDive": [
+    {
+      "heading": "Context Window as RAM: The Token Budget",
+      "body": "Practical token budgeting for a 128k-token context: System prompt (1-3k tokens), conversation history (variable, grows per turn), tool definitions (0.5-2k per tool, multiplied by number of tools), tool outputs (variable, can be large), and the response (reserve ~2k). A 10-turn conversation with 5 tool calls can easily consume 20-40k tokens. With 3 tool definitions (1.5k) and 10 large search results (5k each = 50k), the context fills quickly. Budget allocation strategy: system prompt is fixed, response is fixed, tool definitions scale with tools exposed — the dynamic budget is primarily conversation history + tool outputs. [1]"
+    },
+    {
+      "heading": "Summarisation-Based Memory Compression",
+      "body": "When the context approaches its limit: trigger a summarisation step — call the LLM to summarise the conversation/observations so far into a dense paragraph; replace the summarised messages with the summary; continue with the freed-up token budget. Implementation: track running token count; when > 70% of the limit, summarise the oldest 50% of messages; insert the summary as a special 'memory' message. Risk: summaries lose detail — if a specific fact in the summarised portion is needed later, it may be missing from the summary. Use structured summaries (bullet points of key facts, decisions, and open questions) over prose summaries to preserve retrievable detail. [1]"
+    },
+    {
+      "heading": "Lost-in-the-Middle Degradation",
+      "body": "Liu et al. (2023) showed that LLM performance on multi-document QA degrades significantly when the relevant document is in the middle of a long context — models attend much more strongly to the beginning and end of the context. For short-term memory management: put the most recently observed and most critical information at the end of the context (recency bias of LLMs) and keep the system prompt / task description at the beginning. Avoid burying critical facts in the middle of long tool outputs. Truncate tool outputs to the most relevant sections rather than injecting full, raw outputs. [2]"
+    }
+  ],
+  "takeaways": [
+    "Short-term memory = context window: all tokens the LLM currently attends over, limited by window size. [1]",
+    "Grows with each turn; requires active management (summarisation, sliding window) for long-running agents. [1]",
+    "Token budget: allocate for system prompt (fixed), tools (fixed), history (dynamic), responses (reserved). [1]",
+    "LLMs attend more to beginning/end of context — place critical info at start or end, not middle. [2]",
+    "Short-term memory is ephemeral; for persistence across sessions, use long-term memory systems. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you decide what to keep vs. discard when the context is full?",
+      "a": "Priority hierarchy for context retention: (1) System prompt — never discard, always at top; (2) Current task/query — always keep the most recent user request; (3) Recent observations — the last 3-5 tool results, as they're most likely needed for immediate next steps; (4) Key facts extracted — if a critical fact was established early (a person's name, a company's revenue), keep it even if the surrounding conversation is summarised; (5) Earlier conversation history — least valuable, first to summarise. Implement with a token-aware message list: track cumulative tokens, and when a budget threshold is hit, compress/drop messages in reverse priority order. Structured summaries over full message retention."
+    },
+    {
+      "q": "What's the performance impact of using very large context windows (1M tokens) instead of active memory management?",
+      "a": "Very large contexts reduce the need for explicit memory management but introduce costs: (1) Latency — attention is O(n²) in sequence length; a 1M token context is ~10,000x slower to compute than a 10k context (though sparse attention implementations mitigate this); (2) Cost — API pricing scales linearly with input tokens; 1M tokens per call is expensive; (3) Quality degradation — the lost-in-the-middle effect worsens with longer contexts; relevant information can be 'drowned out' by irrelevant content even if technically within the window; (4) No forced prioritisation — active memory management forces you to think about what's important; unlimited context allows lazy accumulation of irrelevant content. Large contexts are useful for one-time document analysis; active management is better for long-running multi-session agents."
+    }
+  ],
+  "sources": [
+    { "label": "Liu et al. (2023) — Lost in the Middle: How Language Models Use Long Contexts", "url": "https://arxiv.org/abs/2307.03172" },
+    { "label": "Wang et al. (2024) — A Survey on Large Language Model based Autonomous Agents", "url": "https://arxiv.org/abs/2308.11432" }
+  ]
+}

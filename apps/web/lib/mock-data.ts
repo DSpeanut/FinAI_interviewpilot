@@ -163,8 +163,10 @@ export type WhenWhyItem = { title: string; body: string }
 export type DeepDiveSection = { heading: string; body: string; extraBody?: string[]; formula?: string }
 export type EdgeCaseItem = { q: string; a: string }
 export type Source = { label: string; url: string }
+export type TermItem = { term: string; def: string }
 
 export interface WikiEntryContent {
+  terms?: TermItem[]
   eli3: string[]
   whenWhy: WhenWhyItem[]
   deepDiveIntro?: string[]
@@ -417,6 +419,54 @@ export const mockEntries: WikiEntry[] = [
   { id: "e171", title: "Convex Optimisation for Portfolios", slug: "convex-optimization-portfolio", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "11-6", tags: ["convex-optimization", "cvxpy", "qp", "transaction-costs", "constraints"] },
   { id: "e172", title: "Transaction Cost Modeling", slug: "transaction-cost-modeling", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "11-6", tags: ["transaction-costs", "market-impact", "almgren-chriss", "vwap", "implementation-shortfall"] },
   { id: "e173", title: "Robust Optimisation", slug: "robust-optimization", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "11-6", tags: ["robust-optimization", "uncertainty-set", "minimax", "dro", "wasserstein"] },
+  // Finance (Asset Management) — Category 10
+  // Portfolio Theory (10-1)
+  { id: "e174", title: "Efficient Frontier", slug: "efficient-frontier", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-1", tags: ["efficient-frontier", "markowitz", "mvo", "gmv", "cml"] },
+  { id: "e175", title: "CAPM", slug: "capm", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-1", tags: ["capm", "beta", "sml", "risk-premium", "alpha"] },
+  { id: "e176", title: "Mean-Variance Optimisation", slug: "mean-variance-optimization", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-1", tags: ["mvo", "markowitz", "covariance", "efficient-frontier", "quadratic-programming"] },
+  { id: "e177", title: "Sharpe Ratio", slug: "sharpe-ratio", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "10-1", tags: ["sharpe-ratio", "risk-adjusted-return", "volatility", "cml", "sortino"] },
+  { id: "e178", title: "Alpha & Beta", slug: "alpha-beta", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "10-1", tags: ["alpha", "beta", "capm", "factor-loading", "r-squared"] },
+  // Fixed Income (10-2)
+  { id: "e179", title: "Bonds", slug: "bonds", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "10-2", tags: ["bonds", "coupon", "ytm", "duration", "credit-spread"] },
+  { id: "e180", title: "Duration", slug: "duration", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-2", tags: ["duration", "modified-duration", "dv01", "interest-rate-risk", "macaulay"] },
+  { id: "e181", title: "Convexity", slug: "convexity", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-2", tags: ["convexity", "duration", "price-yield", "barbell", "mbs"] },
+  { id: "e182", title: "Credit Spread", slug: "credit-spread", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-2", tags: ["credit-spread", "oas", "z-spread", "investment-grade", "high-yield"] },
+  { id: "e183", title: "Interest Rate Risk", slug: "interest-rate-risk", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-2", tags: ["interest-rate-risk", "dv01", "key-rate-duration", "basis-risk", "swap"] },
+  { id: "e184", title: "Yield Curve", slug: "yield-curve", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-2", tags: ["yield-curve", "term-structure", "inversion", "nelson-siegel", "bootstrapping"] },
+  // Derivatives & Hedging (10-3)
+  { id: "e185", title: "Options", slug: "options", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-3", tags: ["options", "call", "put", "black-scholes", "implied-volatility"] },
+  { id: "e186", title: "Futures", slug: "futures", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-3", tags: ["futures", "basis", "contango", "backwardation", "roll-yield"] },
+  { id: "e187", title: "Option Greeks", slug: "greeks", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "10-3", tags: ["greeks", "delta", "gamma", "theta", "vega"] },
+  { id: "e188", title: "Hedging Strategies", slug: "hedging-strategies", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-3", tags: ["hedging", "hedge-ratio", "protective-put", "collar", "delta-hedging"] },
+  // Risk Management (10-4)
+  { id: "e189", title: "CVaR / Expected Shortfall", slug: "cvar", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "10-4", tags: ["cvar", "expected-shortfall", "var", "tail-risk", "coherent"] },
+  { id: "e190", title: "Drawdown", slug: "drawdown", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "10-4", tags: ["drawdown", "mdd", "calmar-ratio", "high-water-mark", "underwater"] },
+  { id: "e191", title: "Correlation Risk", slug: "correlation-risk", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-4", tags: ["correlation", "diversification", "tail-correlation", "copula", "crisis"] },
+  { id: "e192", title: "Value at Risk (VaR)", slug: "var", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-4", tags: ["var", "value-at-risk", "historical-simulation", "parametric", "backtesting"] },
+  { id: "e193", title: "Stress Testing", slug: "stress-testing", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "10-4", tags: ["stress-testing", "scenario-analysis", "ccar", "reverse-stress-test", "tail-risk"] },
+  // Performance & Attribution (10-5)
+  { id: "e194", title: "Brinson Attribution", slug: "brinson-attribution", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-5", tags: ["brinson", "attribution", "allocation-effect", "selection-effect", "active-return"] },
+  { id: "e195", title: "Information Ratio", slug: "information-ratio", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-5", tags: ["information-ratio", "active-return", "tracking-error", "ic", "breadth"] },
+  { id: "e196", title: "Benchmark Selection", slug: "benchmark-selection", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "10-5", tags: ["benchmark", "active-share", "tracking-error", "msci", "closet-indexing"] },
+  { id: "e197", title: "Tracking Error", slug: "tracking-error", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-5", tags: ["tracking-error", "active-return", "information-ratio", "factor-te", "transfer-coefficient"] },
+  { id: "e198", title: "Sortino Ratio", slug: "sortino-ratio", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "10-5", tags: ["sortino-ratio", "downside-deviation", "sharpe-ratio", "risk-adjusted", "calmar"] },
+  // Market Microstructure & Trading (10-6)
+  { id: "e199", title: "Market Microstructure", slug: "market-microstructure", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-6", tags: ["microstructure", "bid-ask", "market-impact", "price-discovery", "adverse-selection"] },
+  { id: "e200", title: "Market Making", slug: "market-making", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "10-6", tags: ["market-making", "bid-ask", "inventory-risk", "adverse-selection", "hft"] },
+  { id: "e201", title: "Order Types", slug: "order-types", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "10-6", tags: ["order-types", "limit-order", "market-order", "stop-order", "slippage"] },
+  { id: "e202", title: "Execution Strategies", slug: "execution-strategies", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-6", tags: ["execution", "vwap", "twap", "implementation-shortfall", "market-impact"] },
+  { id: "e203", title: "Liquidity", slug: "liquidity", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-6", tags: ["liquidity", "bid-ask", "amihud", "price-impact", "illiquidity-premium"] },
+  // Alternative Investments (10-7)
+  { id: "e204", title: "Hedge Funds", slug: "hedge-funds", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-7", tags: ["hedge-funds", "2-and-20", "long-short", "high-water-mark", "lock-up"] },
+  { id: "e205", title: "Private Equity", slug: "private-equity", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-7", tags: ["private-equity", "irr", "moic", "carried-interest", "lbo"] },
+  { id: "e206", title: "Real Assets", slug: "real-assets", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-7", tags: ["real-assets", "real-estate", "infrastructure", "cap-rate", "inflation-hedge"] },
+  { id: "e207", title: "Commodities", slug: "commodities", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "10-7", tags: ["commodities", "contango", "backwardation", "roll-yield", "convenience-yield"] },
+  // Investment Strategy (10-8)
+  { id: "e208", title: "Asset Classes", slug: "asset-classes", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "10-8", tags: ["asset-classes", "equity", "fixed-income", "alternatives", "diversification"] },
+  { id: "e209", title: "Strategic Asset Allocation", slug: "strategic-asset-allocation", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-8", tags: ["strategic-asset-allocation", "policy-portfolio", "risk-tolerance", "rebalancing", "liability-matching"] },
+  { id: "e210", title: "Tactical Asset Allocation", slug: "tactical-asset-allocation", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-8", tags: ["tactical-asset-allocation", "market-timing", "factor-tilts", "regime", "active-allocation"] },
+  { id: "e211", title: "Active vs Passive Investing", slug: "active-vs-passive", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "10-8", tags: ["active", "passive", "index-fund", "etf", "cost-alpha"] },
+  { id: "e212", title: "Portfolio Rebalancing", slug: "rebalancing", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "10-8", tags: ["rebalancing", "drift", "transaction-costs", "threshold", "calendar"] },
 ]
 
 export const difficultyColors = {

@@ -1,4 +1,13 @@
 {
+  "terms": [
+    { "term": "GBM", "def": "Geometric Brownian Motion: dS = μS dt + σS dW; log-normal price process with constant drift and volatility." },
+    { "term": "Drift (μ)", "def": "Expected rate of return per unit time; the deterministic part of the GBM." },
+    { "term": "Volatility (σ)", "def": "Standard deviation of log-returns per unit time; the random part; annualised σ = daily σ × √252." },
+    { "term": "Wiener Process (W)", "def": "Continuous-time random walk; increments dW ~ N(0, dt) — the source of randomness in GBM." },
+    { "term": "Log-Normal", "def": "If S follows GBM, then log(S) is normally distributed — ensures prices remain positive." },
+    { "term": "Risk-Neutral Measure (Q)", "def": "Probability measure under which all assets grow at the risk-free rate; used for derivative pricing." }
+  ],
+  "visualizationType": "gbm-paths",
   "eli3": [
     "Geometric Brownian Motion (GBM) is the standard mathematical model for stock prices. It says stock prices grow at a constant expected rate (drift) and experience random, normally distributed shocks (diffusion). The 'geometric' part ensures prices can never go negative — which makes physical sense for stocks.",
     "The GBM equation: dS = μS dt + σS dW, where S is the stock price, μ is the expected return (drift), σ is the volatility, and dW is a Brownian motion increment (a tiny random shock). The key feature: percentage changes in price are normally distributed, which means log prices follow a random walk with drift — log-normal distribution for prices.",

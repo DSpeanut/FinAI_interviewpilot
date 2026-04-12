@@ -1,0 +1,69 @@
+{
+  "terms": [
+    { "term": "Beta (β)", "def": "Sensitivity of an asset's returns to the market; β=1 moves with the market, β=2 moves twice as much." },
+    { "term": "Market Risk Premium", "def": "E[Rm] − r_f: the extra return demanded for holding the market portfolio over risk-free assets; historically ~5–6%." },
+    { "term": "Alpha (α)", "def": "Return above the CAPM prediction; positive α means the asset earned more than its beta justified." },
+    { "term": "SML", "def": "Security Market Line — plots expected return vs beta; assets on the SML are fairly priced; above = positive α." },
+    { "term": "Systematic Risk", "def": "Market risk that cannot be diversified away; CAPM says only systematic risk is compensated by higher expected return." },
+    { "term": "Risk-Free Rate (r_f)", "def": "Return on a zero-risk asset (typically 3-month T-bill); the baseline against which risk premia are measured." }
+  ],
+  "visualizationType": "capm-sml",
+  "eli3": [
+    "CAPM (Capital Asset Pricing Model) says that the expected return of any investment depends on just one thing: how much the investment moves with the overall market. An investment that closely follows the market (high beta) should have a higher expected return because it's riskier. An investment that barely moves with the market (low beta) should have a lower expected return.",
+    "The idea: if two investments have the same expected return, rational investors prefer the one that moves less with the market — it provides better insurance when the market crashes. For investors to hold the riskier investment, it must offer higher expected return as compensation.",
+    "CAPM was derived independently by Sharpe (1964), Lintner (1965), and Mossin (1966), building on Markowitz's portfolio theory. It says every stock's expected excess return = beta × market risk premium. The market risk premium is the extra return investors demand for holding stocks instead of risk-free assets."
+  ],
+  "whenWhy": [
+    {
+      "title": "Estimating the cost of equity capital",
+      "body": "The most common application of CAPM in corporate finance: estimating the required return on equity capital for capital budgeting and valuation. CAPM formula: E[R_i] = r_f + β_i × (E[R_m] - r_f). Inputs: r_f (current 10-year Treasury yield, typically 4-5% in 2024), β_i (estimated from historical regression of stock returns on market returns, often from a data provider), E[R_m] - r_f (equity risk premium, typically estimated at 5-7% using historical data or implied from market prices). The resulting cost of equity is used as the discount rate for free cash flow projections in DCF valuation. Despite its empirical limitations, CAPM remains the most widely used cost-of-equity model in practice due to its simplicity."
+    },
+    {
+      "title": "Measuring active manager performance (Jensen's alpha)",
+      "body": "Jensen's alpha: α = R_i - [r_f + β_i(R_m - r_f)]. The intercept from regressing excess returns on market excess returns. A positive alpha indicates the manager earned more than CAPM predicts given their market exposure — evidence of genuine skill or factor exposure. Alpha should be estimated with: (1) sufficient time series (5+ years); (2) appropriate benchmark (not just the S&P 500 for a small-cap manager — use a small-cap index beta); (3) standard errors — most alphas are statistically indistinguishable from zero, especially over short periods. The extension to multi-factor alphas (Fama-French, Carhart) is more rigorous — many apparent CAPM alphas disappear when controlling for size, value, and momentum factors."
+    },
+    {
+      "title": "Security Market Line and portfolio construction",
+      "body": "The Security Market Line (SML) is the CAPM equilibrium: E[R_i] = r_f + β_i × ERP. Every security plots on the SML in equilibrium. Securities above the SML are underpriced (expected return > CAPM prediction → buy signal). Securities below the SML are overpriced (expected return < CAPM prediction → sell signal). In practice, identifying securities persistently above the SML (positive alpha) is the goal of active management — and one of the most empirically challenging tasks in finance. The SML provides the theoretical benchmark against which active managers' stock selection is evaluated."
+    }
+  ],
+  "deepDiveIntro": [
+    "CAPM derivation: under the assumptions (all investors maximise mean-variance utility, homogeneous expectations, risk-free borrowing/lending, no taxes or transaction costs), all investors hold the same tangency portfolio of risky assets. In equilibrium, this tangency portfolio must equal the market portfolio. For any asset i, its equilibrium expected return equals: E[R_i] - r_f = β_i × (E[R_m] - r_f), where β_i = Cov(R_i, R_m) / Var(R_m). Beta measures the asset's contribution to market portfolio variance — the only risk that is not diversified away. Idiosyncratic (asset-specific) risk is fully diversifiable and earns zero expected return in CAPM.",
+    "CAPM decomposition: total variance = systematic variance + idiosyncratic variance. σ²_i = β²_i × σ²_m + σ²_ε. The systematic component (β²_i × σ²_m) is the undiversifiable market risk. The idiosyncratic component (σ²_ε) is diversified away in the market portfolio. Only systematic risk commands a return premium. This is why CAPM says you shouldn't be compensated for holding a poorly diversified portfolio — the idiosyncratic risk you bear is avoidable."
+  ],
+  "deepDive": [
+    {
+      "heading": "Beta Estimation and Its Pitfalls",
+      "body": "Beta is typically estimated via OLS regression: R_i,t - r_f,t = α + β_i(R_m,t - r_f,t) + ε_t, using monthly or weekly returns over a 3-5 year window. Common choices: Bloomberg uses monthly returns, 5-year window; MSCI Barra uses daily returns, 1-year window. Estimation pitfalls: (1) Beta instability — betas change over time (a financial firm's beta rises dramatically during financial crises); (2) Thin trading bias — illiquid stocks have downward-biased betas (Dimson 1979 correction: use leads/lags in the regression); (3) Measurement frequency — using daily vs. monthly returns gives different betas; (4) Beta mean reversion — empirical betas mean-revert toward 1.0; Blume (1971) adjustment: β_adj = 0.67 × β_historical + 0.33 × 1.0; (5) Fundamental betas: use accounting data (operating leverage, financial leverage, earnings variability) rather than return history. [1]"
+    },
+    {
+      "heading": "CAPM Empirical Tests and Anomalies",
+      "body": "CAPM empirical tests (Black, Jensen & Scholes 1972; Fama & MacBeth 1973): the cross-sectional relationship between beta and expected return is flatter than CAPM predicts — high-beta stocks earn less than CAPM predicts; low-beta stocks earn more. This is the 'beta anomaly' (Frazzini & Pedersen 2014: Betting Against Beta strategy). Other failures: (1) Size effect (Banz 1981): small-cap stocks earn higher returns than CAPM predicts even after controlling for beta; (2) Value effect (Fama & French 1992): high book-to-market stocks earn higher returns; (3) Momentum (Jegadeesh & Titman 1993): past 12-month winners continue to outperform. These anomalies led to multi-factor models (Fama-French 3-factor, Carhart 4-factor, FF 5-factor) as empirically superior alternatives to CAPM. [2]"
+    },
+    {
+      "heading": "CAPM in Practice: Cost of Capital",
+      "body": "Cost of equity via CAPM: r_e = r_f + β × ERP. Industry practice (Damodaran 2024 estimates): r_f = 4.5% (US 10-year Treasury); ERP = 5.5% (implied from S&P 500 current level, earnings forecasts). For a stock with β = 1.2: r_e = 4.5% + 1.2 × 5.5% = 11.1%. Used in WACC: WACC = (E/V) × r_e + (D/V) × r_d × (1-t). Survey evidence (Graham & Harvey 2001): ~74% of CFOs use CAPM for cost of equity estimation, making it the dominant model in corporate practice despite its theoretical weaknesses. Extensions for markets outside the US: add a country risk premium (CRP) to account for political and economic risk of the investment country. [1]"
+    }
+  ],
+  "takeaways": [
+    "CAPM: E[R_i] = r_f + β_i × (E[R_m] - r_f). Only systematic risk (beta) earns a return premium. [1]",
+    "Beta = Cov(R_i, R_m) / Var(R_m) — measures contribution to market portfolio variance. [1]",
+    "Jensen's alpha: intercept of excess return regression — positive alpha indicates risk-adjusted outperformance. [1]",
+    "CAPM fails empirically: cross-sectional beta-return relationship is too flat; size, value, momentum effects are unexplained. [2]",
+    "74% of CFOs use CAPM for cost of equity — dominant in practice despite theoretical limitations. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "If CAPM fails empirically, why is it still widely used?",
+      "a": "CAPM persists for several reasons: (1) Simplicity — it produces a single, easily interpretable number (beta) for the risk-return trade-off; multi-factor models require estimating multiple betas and factor premia; (2) Consensus — cost-of-capital estimates need to be defensible to shareholders, regulators, and counterparties; CAPM's widespread use makes its estimates the 'industry standard'; (3) No obviously superior alternative — multi-factor models have better empirical fit but which factors to use is contested (Fama-French 3 vs. 5 vs. 6-factor; Carhart 4-factor?); (4) CAPM is directionally correct — more systematic risk should command higher return; CAPM's failure is quantitative, not directional; (5) Good enough for long-horizon valuation — the errors in CAPM beta estimation are small relative to uncertainty in growth rate projections in a DCF; optimising the cost of equity model is second-order. The pragmatic view: use CAPM as the baseline; apply multi-factor adjustments for portfolio construction and performance evaluation where empirical precision matters more."
+    },
+    {
+      "q": "How does CAPM handle assets with negative beta?",
+      "a": "CAPM predicts that assets with negative beta should have expected returns BELOW the risk-free rate: E[R_i] = r_f + β_i × ERP; if β_i < 0 and ERP > 0, then E[R_i] < r_f. This is rational: a negative-beta asset provides insurance — it pays off when the market falls, exactly when the insurance is most valuable. Investors are willing to accept below-risk-free expected returns for this insurance property. Real-world examples: (1) Long Treasury bonds in normal conditions (β ≈ -0.1 to -0.3 vs. equity market — flight-to-safety reduces bond yields when equities fall); (2) Long volatility positions (VIX calls): strongly negative beta — pay off in equity crashes; (3) Gold: sometimes negative beta; (4) Trend-following strategies: empirically negative beta in equity crashes (crisis alpha). In practice, truly negative beta assets are rare and often have zero or near-zero beta. The CAPM prediction of below-risk-free expected returns for negative beta assets is empirically verified for gold and long bonds in certain environments."
+    }
+  ],
+  "sources": [
+    { "label": "Sharpe, W.F. (1964) — Capital Asset Prices: A Theory of Market Equilibrium Under Conditions of Risk, Journal of Finance", "url": "https://doi.org/10.2307/2977928" },
+    { "label": "Fama, E. & French, K. (1992) — The Cross-Section of Expected Stock Returns, Journal of Finance", "url": "https://doi.org/10.2307/2329112" }
+  ]
+}

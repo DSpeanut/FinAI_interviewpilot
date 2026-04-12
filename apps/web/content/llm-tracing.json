@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "LLM tracing records every step an AI agent takes: which LLM calls were made, what was sent in, what came back, which tools were called, how long each step took, and how much it cost. It's like a flight data recorder for your AI application.",
+    "Without tracing, debugging a failed agent run is like trying to find out why a plane crashed without the black box. With tracing, you can replay the exact sequence of events: what the model was thinking, what tool it called, what error it received, and why it made the final response it did.",
+    "Tracing is the foundation of LLM observability. From traces, you build everything else: latency dashboards, cost reports, quality evaluation, failure alerting, and A/B test comparisons between model versions."
+  ],
+  "whenWhy": [
+    {
+      "title": "Debugging unexpected agent behavior in production",
+      "body": "Agents fail in ways that are difficult to reproduce: the model makes an unexpected tool call, misinterprets a tool result, or gives a wrong answer to a specific query. Without traces, you only see the final output, not the reasoning chain that produced it. With traces, you can inspect the exact prompt sent to the LLM, the model's reasoning trace, each tool call and its result, and the final response. Tracing turns debugging from guesswork into diagnosis."
+    },
+    {
+      "title": "Cost attribution and optimisation",
+      "body": "LLM API costs can be significant ($100s-$1000s/day for production systems). Traces contain token usage per call: input tokens, output tokens, cached tokens, and cost per request. Aggregated by feature, user, or time period, traces answer: Which feature is consuming 80% of the token budget? Which queries produce very long responses? Where can we add prompt caching to reduce costs? Without per-request cost data from traces, cost optimisation is impossible."
+    },
+    {
+      "title": "Quality monitoring and regression detection",
+      "body": "After a model upgrade or prompt change, you need to know if quality changed. Traces enable A/B comparison: capture traces from before and after the change; run quality metrics (LLM-as-judge, task success rate) on both sets; detect regressions. Without traces, you'd need to replay all production traffic (expensive) or rely on user feedback (lagging indicator). Continuous quality monitoring from traces enables early detection of model degradation."
+    }
+  ],
+  "deepDiveIntro": [
+    "LLM tracing follows the OpenTelemetry standard (spans with attributes) extended with LLM-specific semantics. A trace is a tree of spans: the root span is the user request; child spans are LLM calls, tool calls, retrieval steps, etc. Each span has: start_time, end_time, input, output, metadata (model, token counts, cost). LangSmith, LangFuse, and Helicone implement this model with their own SDKs. The OpenLLMetry project provides an OpenTelemetry-compatible tracing specification for LLMs.",
+    "Key instrumentation points: (1) LLM calls — instrument every model API call (input prompt, model, temperature, output, tokens, latency); (2) Tool calls — log every tool invocation (tool name, arguments, result, latency, success/failure); (3) Retrieval — log every vector search (query, retrieved chunks, similarity scores, retrieval latency); (4) Agent steps — log each iteration of the agent loop (step number, action taken, observation). Full trace coverage enables end-to-end visibility across the entire request lifecycle."
+  ],
+  "deepDive": [
+    {
+      "heading": "Trace Structure and Span Hierarchy",
+      "body": "Trace structure for a RAG agent request: Root span: 'handle_user_query' (full request lifecycle). Child spans: (1) 'retrieve_context' (retrieval step) → children: 'embed_query' (embedding API call), 'vector_search' (ANN query), 'rerank' (re-ranking call); (2) 'agent_loop_step_1' → children: 'llm_call' (model API call), 'tool_call_search' (tool execution); (3) 'agent_loop_step_2' → children: 'llm_call', 'final_response'. Each span stores: input (messages array), output (response), model (gpt-4o), input_tokens (1200), output_tokens (450), cost_usd (0.012), latency_ms (1850), status (success/error). Waterfall visualisation of these spans immediately shows which step is the latency bottleneck. [1]"
+    },
+    {
+      "heading": "LangSmith and LangFuse: Production Tracing Platforms",
+      "body": "LangSmith (LangChain Inc.): automatic tracing for LangChain/LangGraph applications (set LANGCHAIN_TRACING_V2=true). Features: trace timeline UI, dataset management (save traces as evaluation examples), online evaluation (run quality metrics on live traces), comparison views (compare two model versions). Pricing: free tier (3k traces/month), paid tiers for production. LangFuse (open-source): similar feature set, self-hostable (Docker Compose), OpenAI and Anthropic SDK integrations, Python decorator for manual instrumentation (@observe), cost tracking, session management. Both support: search by trace attributes, filtering by status/model/latency, LLM-as-judge quality scoring on sampled traces. For non-LangChain systems, LangFuse's decorator API is simpler to instrument. [1]"
+    },
+    {
+      "heading": "Sampling and Performance Overhead",
+      "body": "Sending every trace to an observability platform has overhead: network latency per traced request (~5-20ms), storage cost, and data volume at scale (10k requests/day × 10KB per trace = 100MB/day). Strategies: (1) 100% sampling during development (capture everything for debugging); (2) 10-20% random sampling in production (representative sample for dashboards); (3) 100% sampling for failing requests (error-triggered tracing: if response_quality < threshold or tool_call_errors > 0, send trace regardless of sample rate); (4) Async trace sending: send traces in a background thread/process to avoid blocking request latency. OpenTelemetry's batch exporter handles (4) automatically. [2]"
+    }
+  ],
+  "takeaways": [
+    "Traces: tree of spans (LLM calls, tool calls, retrieval) with input/output/tokens/cost/latency per span. [1]",
+    "LangSmith: automatic for LangChain apps; LangFuse: open-source, self-hostable, broader SDK support. [1]",
+    "Aggregate traces for cost attribution by feature/user and regression detection after model/prompt changes. [1]",
+    "Use 100% sampling in development, 10-20% in production, 100% for failing/low-quality requests. [2]",
+    "Async trace export (background thread) avoids adding latency to the critical request path. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you protect PII (Personally Identifiable Information) in traces?",
+      "a": "LLM traces often contain sensitive data: user messages, retrieved documents, generated responses. Strategies: (1) Scrubbing before export — run a PII detector (presidio, AWS Comprehend) on trace data and replace PII with placeholders before sending to the tracing platform; trade-off: reduces debugging value when the PII is relevant to the failure; (2) Encryption at rest and in transit — self-hosted LangFuse allows full control over storage; TLS for all trace exports; encrypt at-rest; (3) Data residency — use self-hosted tracing (LangFuse) if regulatory requirements prohibit sending user data to cloud observability platforms; (4) Trace data TTL — delete traces containing user data after 30-90 days; set TTL policies in the tracing platform; (5) Role-based access — restrict who can view full trace data (engineers during debugging) vs. aggregated metrics (business stakeholders)."
+    },
+    {
+      "q": "How do you trace across multiple LLMs in a multi-agent system?",
+      "a": "Multi-agent tracing challenge: the orchestrator makes calls to sub-agents running as separate processes; traces from different agents need to be correlated into a single distributed trace. Solution: (1) Trace context propagation — the orchestrator generates a root trace_id and span_id; passes them as headers/metadata to sub-agent API calls; each sub-agent creates child spans under the received parent span. OpenTelemetry's context propagation (W3C Trace Context headers) standardises this; (2) Trace stitching — if context propagation isn't possible (sub-agents are third-party services), stitch traces post-hoc using a shared correlation_id that both the orchestrator and sub-agent log; (3) Sampling consistency — use the parent's sampling decision for all child spans to avoid incomplete traces (either all spans of a trace are sampled or none are). LangSmith and LangFuse both support distributed tracing with parent-child span relationships."
+    }
+  ],
+  "sources": [
+    { "label": "LangSmith Documentation — tracing and evaluation", "url": "https://docs.smith.langchain.com/" },
+    { "label": "LangFuse Documentation — open-source LLM observability", "url": "https://langfuse.com/docs" }
+  ]
+}

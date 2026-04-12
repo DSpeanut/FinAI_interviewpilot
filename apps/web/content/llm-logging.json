@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "LLM logging is the practice of recording information about every AI interaction: what was asked, what was generated, which model was used, how much it cost, and how long it took. Unlike tracing (which captures the detailed step-by-step execution), logging focuses on persistent records of requests and responses for analysis, compliance, and debugging.",
+    "Good LLM logging answers questions like: How many requests did we get today? What's our average cost per query? Which queries are the most expensive? Which users are sending the most tokens? Are there any obvious failure patterns?",
+    "LLM logging is distinct from traditional application logging because of the unique properties of LLMs: responses are very long (thousands of tokens), inputs and outputs are semantically rich text (requiring NLP-aware analysis), and costs scale with content length (not just request count)."
+  ],
+  "whenWhy": [
+    {
+      "title": "Compliance and audit requirements",
+      "body": "In regulated industries (healthcare, finance, legal), every AI-generated decision or recommendation must be logged for audit. If an AI system approves a loan or recommends a treatment, regulators may require: the exact input provided, the exact output generated, the model version used, the timestamp, and the user who triggered the request. Logs provide the immutable record. GDPR and data residency requirements also affect where logs can be stored and for how long."
+    },
+    {
+      "title": "Usage analytics and capacity planning",
+      "body": "LLM logs power the metrics that drive infrastructure decisions: total token volume (determines API cost and rate limit headroom), peak QPS (determines concurrency requirements), p95/p99 latency (drives SLA commitments), token distribution (identify unexpectedly long inputs that inflate costs). Without structured logging with token counts and timestamps, these metrics are unavailable. Aggregated daily token logs also enable accurate cost forecasting as usage scales."
+    },
+    {
+      "title": "Model and prompt change impact analysis",
+      "body": "After deploying a new model version or updated system prompt, logs enable before/after comparison: response length (did it change?), user feedback rates (thumbs up/down), task completion rates, cost per query (output tokens). Logs capture the ground truth of what changed and how users responded. This is more reliable than relying on staging environment testing, where traffic patterns and edge cases differ from production."
+    }
+  ],
+  "deepDiveIntro": [
+    "LLM logging differs from traditional application logging in several ways: (1) Log size — a single LLM request-response pair can be 10-100KB of text; traditional log aggregation systems (Elasticsearch, Splunk) may need size tuning; (2) Semantic content — meaningful analysis requires NLP operations on log content (not just regex search); (3) Token-level granularity — costs are per-token, so logs must capture token counts per call (not just request count); (4) Long retention — for compliance, LLM logs may need 1-7 year retention, unlike operational logs (7-30 days).",
+    "The structured log schema for an LLM call should include: request_id (UUID), session_id (conversation), user_id, timestamp, model, system_prompt_hash (not the full prompt, to save space, but a hash for change detection), input_tokens, output_tokens, cached_tokens, latency_ms, cost_usd, finish_reason (stop/length/tool_use/content_filter), quality_score (if available), error (if any). Full prompts and responses are logged separately in a raw log store (S3/GCS) referenced by request_id."
+  ],
+  "deepDive": [
+    {
+      "heading": "Structured Logging Schema for LLM Calls",
+      "body": "Minimal required fields: {timestamp, request_id, user_id, session_id, model, input_tokens, output_tokens, latency_ms, cost_usd, finish_reason, status}. Additional useful fields: {feature_name, environment (prod/staging), model_version, system_prompt_version (hash), retrieved_chunks_count (for RAG), tool_calls_count, retry_count, cache_hit}. For compliance: {raw_input_s3_key, raw_output_s3_key} — store full prompts/responses in S3 with the request_id as the key; the structured log row contains only the reference. This separates cheap metadata (queryable in SQL) from expensive content (archived in S3). Use an append-only table (Postgres, BigQuery, ClickHouse) for the structured log — never update log records. [1]"
+    },
+    {
+      "heading": "Cost and Token Analytics",
+      "body": "Token cost calculation: cost_usd = (input_tokens × input_price_per_1k + output_tokens × output_price_per_1k) / 1000. Store as a decimal field with 6 decimal places (USD). Aggregate queries: daily cost by model, daily cost by feature, top-10 most expensive user queries (by output_tokens), p99 input_token length distribution (identifies inputs that should be truncated), cache_hit_rate (cached_tokens / input_tokens — measures prompt caching effectiveness). Alert thresholds: daily cost > $X triggers a Slack/PagerDuty alert; single request > $Y (anomalous expensive request) triggers immediate notification. Build these analytics in ClickHouse or BigQuery (OLAP) rather than Postgres (OLTP) for query performance at scale. [2]"
+    },
+    {
+      "heading": "Log Storage Architecture",
+      "body": "Two-tier storage: (1) Hot tier — structured metadata in an analytics database (ClickHouse, BigQuery). Stores last 90 days. Queryable for dashboards and alerting. Indexes on: timestamp, user_id, session_id, model, feature_name; (2) Cold tier — full prompt/response content in object storage (S3, GCS). Lifecycle policies: move to Glacier/Nearline after 90 days; delete after compliance retention period (typically 1-7 years). Access pattern: hot tier for metrics and dashboards; cold tier for compliance audits and debugging specific requests (retrieve by request_id). Log pipeline: structured log → streaming event (Kafka/Kinesis) → hot tier (ClickHouse sink connector) + cold tier (S3 write). PII redaction should happen in the streaming pipeline before logs reach storage. [1]"
+    }
+  ],
+  "takeaways": [
+    "Log schema: request_id, user_id, session_id, model, input/output tokens, cost_usd, latency_ms, finish_reason. [1]",
+    "Store content separately: full prompt/response in S3 (cold, cheap); metadata in ClickHouse/BigQuery (hot, queryable). [1]",
+    "Token cost formula: (input_tokens × price_in + output_tokens × price_out) / 1000 — log as cost_usd per request. [2]",
+    "Two-tier retention: 90-day hot tier for analytics; 1-7 year cold tier for compliance. [1]",
+    "PII redaction in the streaming pipeline before logs reach persistent storage. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle log storage costs when LLM call volumes are very high (millions of requests/day)?",
+      "a": "At 1M requests/day with 5KB metadata per request: 5GB structured log data per day = 150GB/month. At 10 requests/day average content size of 10KB: 10GB content per day = 300GB/month in S3. Cost management: (1) Columnar compression in ClickHouse — typical compression ratio is 5-10x for structured logs → 15-30GB compressed/month; (2) Metadata-only logging in hot tier — don't store prompt/response text in ClickHouse; reference S3 keys only; (3) Sampling for content logging — log full content for 10% of requests + 100% of error/feedback-flagged requests; reduce S3 volume by 90%; (4) TTL-based deletion — delete content logs older than 30 days for non-compliance use cases; (5) Schema pruning — audit the log schema quarterly; remove columns not used in any dashboard or alert."
+    },
+    {
+      "q": "How do you detect prompt injection attacks from logs?",
+      "a": "Prompt injection indicators in logs: (1) Input length anomaly — sudden spike in input_tokens for a specific user or feature (user may be injecting a very long payload); (2) Unusual tool call patterns — logs show the model calling tools it shouldn't call for the given feature (e.g., a customer service bot calling a send_email tool); (3) Finish reason 'content_filter' — the model's output was filtered, suggesting the input may have been designed to elicit policy-violating content; (4) Output divergence — statistical anomaly in output_tokens (unusually long or short responses) or output hash similarity to known injection payloads. Build a real-time detection query: if input_tokens > 3× p99 for this feature for this user_id, or if tool_call_name ∉ {expected_tools_for_feature}, alert the security team. Log-based detection catches injection patterns that bypass first-line input filters."
+    }
+  ],
+  "sources": [
+    { "label": "LangFuse Documentation — LLM logging and analytics", "url": "https://langfuse.com/docs" },
+    { "label": "OpenTelemetry LLM Semantic Conventions — standardised LLM log attributes", "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/" }
+  ]
+}

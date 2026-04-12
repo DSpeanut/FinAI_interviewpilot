@@ -4,7 +4,7 @@ import { mockEntries, difficultyColors } from "@/lib/mock-data"
 import type { WikiEntryContent, Source } from "@/lib/mock-data"
 import { loadEntryContent } from "@/lib/content"
 import { cn } from "@/lib/utils"
-import { ArrowLeft, PlayCircle, ExternalLink, Zap, Lightbulb, Brain, Target, AlertTriangle } from "lucide-react"
+import { ArrowLeft, PlayCircle, ExternalLink, Zap, Lightbulb, Brain, Target, AlertTriangle, BookOpen } from "lucide-react"
 
 export default async function EntryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -76,6 +76,20 @@ function cite(text: string, sources: Source[]) {
 function EntryContent({ content }: { content: WikiEntryContent }) {
   return (
     <div className="space-y-4">
+
+      {/* Key Terms */}
+      {content.terms && content.terms.length > 0 && (
+        <Section icon={<BookOpen className="h-4 w-4 text-sky-500" />} title="Key Terms">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10pt]">
+            {content.terms.map((item, i) => (
+              <div key={i} className="bg-sky-50 border border-sky-100 rounded-xl p-2.5 flex gap-2">
+                <span className="font-bold text-sky-700 shrink-0 min-w-[6rem]">{item.term}</span>
+                <span className="text-sky-600/90 leading-snug">{item.def}</span>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
 
       {/* Quick Intuition */}
       <Section icon={<Zap className="h-4 w-4 text-[#10B981]" />} title="Quick Intuition">
@@ -250,6 +264,19 @@ function Visualization({ type }: { type: string }) {
   if (type === "anova") return <AnovaViz />
   if (type === "mann-whitney-u") return <MannWhitneyViz />
   if (type === "multiple-testing-correction") return <MultipleTestingViz />
+  // Finance & Quant Finance
+  if (type === "efficient-frontier") return <EfficientFrontierViz />
+  if (type === "capm-sml") return <CAPMViz />
+  if (type === "yield-curve") return <YieldCurveViz />
+  if (type === "options-payoff") return <OptionsPayoffViz />
+  if (type === "var-distribution") return <VaRDistributionViz />
+  if (type === "drawdown") return <DrawdownViz />
+  if (type === "duration-price-yield") return <DurationPriceYieldViz />
+  if (type === "sharpe-cml") return <SharpeCMLViz />
+  if (type === "greeks-delta") return <GreeksDeltaViz />
+  if (type === "brinson-attribution") return <BrinsonAttributionViz />
+  if (type === "gbm-paths") return <GBMPathsViz />
+  if (type === "factor-returns") return <FactorReturnsViz />
   return null
 }
 
@@ -3209,6 +3236,745 @@ function UMAPViz() {
       {/* annotation */}
       <text x={sx(0.58)} y={sy(0.15)} fontSize="7.5" fill="#374151" textAnchor="middle">nearby in 2D</text>
       <text x={sx(0.58)} y={sy(0.08)} fontSize="7.5" fill="#374151" textAnchor="middle">= nearby in high-d</text>
+    </svg>
+  )
+}
+
+// ── Finance & Quant Finance Visualizations ────────────────────────────────────
+
+function EfficientFrontierViz() {
+  const W = 320, H = 210
+  const pad = { l: 44, r: 16, t: 16, b: 36 }
+  const pw = W - pad.l - pad.r
+  const ph = H - pad.t - pad.b
+  const sx = (x: number) => pad.l + x * pw
+  const sy = (y: number) => pad.t + (1 - y) * ph
+
+  // Frontier: parabola σ² = a(μ - μ_GMV)² + σ²_GMV, mapped to σ (x-axis) vs μ (y-axis)
+  const gmv = { sigma: 0.12, mu: 0.06 }
+  const pts: [number, number][] = []
+  for (let mu = 0.04; mu <= 0.22; mu += 0.002) {
+    const sigma = Math.sqrt(0.8 * Math.pow(mu - gmv.mu, 2) + gmv.sigma * gmv.sigma)
+    pts.push([sigma, mu])
+  }
+  const maxS = 0.24, maxMu = 0.24
+  const toSVG = (s: number, m: number): [number, number] => [sx(s / maxS), sy(m / maxMu)]
+
+  const frontierPts = pts.map(([s, m]) => toSVG(s, m))
+  const [midX, midY] = toSVG(0.185, 0.135)  // label position
+
+  // Tangency portfolio (max Sharpe, rf=0.02)
+  const rfMu = 0.02
+  let bestSharpe = -Infinity, tangS = 0, tangM = 0
+  for (const [s, m] of pts) {
+    const sharpe = (m - rfMu) / s
+    if (sharpe > bestSharpe) { bestSharpe = sharpe; tangS = s; tangM = m }
+  }
+  const [tx, ty] = toSVG(tangS, tangM)
+
+  // CML line from rf to tangency and beyond
+  const [cmlX0, cmlY0] = toSVG(0, rfMu)
+  const slope = (tangM - rfMu) / tangS
+  const [cmlX1, cmlY1] = toSVG(maxS, rfMu + slope * maxS)
+
+  // Inefficient portfolios (below GMV)
+  const ineffPts = pts.filter(([, m]) => m < gmv.mu)
+  const effPts = pts.filter(([, m]) => m >= gmv.mu)
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* grid */}
+      {[0.25, 0.5, 0.75].map(v => (
+        <line key={v} x1={pad.l} y1={sy(v)} x2={W - pad.r} y2={sy(v)} stroke="#ECFDF5" strokeWidth="1" />
+      ))}
+      {/* axes */}
+      <line x1={pad.l} y1={pad.t} x2={pad.l} y2={H - pad.b} stroke="#D1FAE5" strokeWidth="1.5" />
+      <line x1={pad.l} y1={H - pad.b} x2={W - pad.r} y2={H - pad.b} stroke="#D1FAE5" strokeWidth="1.5" />
+      <text x={W / 2} y={H - 4} textAnchor="middle" fontSize="8.5" fill="#9CA3AF">Risk (σ)</text>
+      <text x={10} y={H / 2} textAnchor="middle" fontSize="8.5" fill="#9CA3AF" transform={`rotate(-90,10,${H / 2})`}>Return (μ)</text>
+
+      {/* CML */}
+      <line x1={cmlX0} y1={cmlY0} x2={cmlX1} y2={cmlY1} stroke="#F59E0B" strokeWidth="1.4" strokeDasharray="4,2" opacity="0.8" />
+      <text x={cmlX1 - 4} y={cmlY1 - 5} fontSize="7.5" fill="#F59E0B" textAnchor="end">CML</text>
+
+      {/* inefficient part (dashed) */}
+      <polyline
+        points={ineffPts.map(([s, m]) => toSVG(s, m).join(",")).join(" ")}
+        fill="none" stroke="#9CA3AF" strokeWidth="1.5" strokeDasharray="3,2"
+      />
+      {/* efficient frontier */}
+      <polyline
+        points={effPts.map(([s, m]) => toSVG(s, m).join(",")).join(" ")}
+        fill="none" stroke="#10B981" strokeWidth="2.5"
+      />
+
+      {/* GMV */}
+      {(() => { const [gx, gy] = toSVG(gmv.sigma, gmv.mu); return (<><circle cx={gx} cy={gy} r={4} fill="#064E3B" /><text x={gx + 6} y={gy + 4} fontSize="7.5" fill="#064E3B" fontWeight="700">GMV</text></>) })()}
+
+      {/* Tangency */}
+      <circle cx={tx} cy={ty} r={5} fill="#F59E0B" />
+      <text x={tx + 7} y={ty - 3} fontSize="7.5" fill="#F59E0B" fontWeight="700">Tangency</text>
+
+      {/* rf point */}
+      <circle cx={cmlX0} cy={cmlY0} r={3} fill="#9CA3AF" />
+      <text x={cmlX0 + 5} y={cmlY0 + 4} fontSize="7" fill="#6B7280">r_f</text>
+
+      {/* frontier label */}
+      <text x={midX + 8} y={midY} fontSize="8" fill="#10B981" fontWeight="600">Efficient Frontier</text>
+    </svg>
+  )
+}
+
+function CAPMViz() {
+  const W = 320, H = 210
+  const pad = { l: 44, r: 16, t: 16, b: 36 }
+  const pw = W - pad.l - pad.r
+  const ph = H - pad.t - pad.b
+  const sx = (x: number) => pad.l + x * pw
+  const sy = (y: number) => pad.t + (1 - y) * ph
+
+  // SML: E[R] = rf + β(E[Rm] - rf), rf=0.03, E[Rm]=0.10
+  const rf = 0.03, rm = 0.10
+  const smlY = (beta: number) => rf + beta * (rm - rf)
+  const maxBeta = 2.2, maxR = 0.21
+  const bx = (b: number) => sx(b / maxBeta)
+  const ry = (r: number) => sy(r / maxR)
+
+  const stocks = [
+    { beta: 0.5, r: 0.065, name: "Low β" },
+    { beta: 1.0, r: 0.100, name: "Market" },
+    { beta: 1.5, r: 0.135, name: "High β" },
+    { beta: 0.8, r: 0.12, name: "Above SML" },  // above (positive alpha)
+    { beta: 1.8, r: 0.11, name: "Below SML" },  // below (negative alpha)
+  ]
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* grid */}
+      {[0.25, 0.5, 0.75].map(v => (
+        <line key={v} x1={pad.l} y1={sy(v)} x2={W - pad.r} y2={sy(v)} stroke="#ECFDF5" strokeWidth="1" />
+      ))}
+      <line x1={pad.l} y1={pad.t} x2={pad.l} y2={H - pad.b} stroke="#D1FAE5" strokeWidth="1.5" />
+      <line x1={pad.l} y1={H - pad.b} x2={W - pad.r} y2={H - pad.b} stroke="#D1FAE5" strokeWidth="1.5" />
+      <text x={W / 2} y={H - 4} textAnchor="middle" fontSize="8.5" fill="#9CA3AF">Beta (β)</text>
+      <text x={10} y={H / 2} textAnchor="middle" fontSize="8.5" fill="#9CA3AF" transform={`rotate(-90,10,${H / 2})`}>Expected Return</text>
+
+      {/* SML line */}
+      <line x1={bx(0)} y1={ry(rf)} x2={bx(maxBeta)} y2={ry(smlY(maxBeta))}
+        stroke="#10B981" strokeWidth="2.2" />
+      <text x={bx(maxBeta) - 4} y={ry(smlY(maxBeta)) - 5} fontSize="8" fill="#10B981" fontWeight="700" textAnchor="end">SML</text>
+
+      {/* beta=1, market */}
+      <line x1={bx(1)} y1={H - pad.b} x2={bx(1)} y2={ry(rm)} stroke="#D1FAE5" strokeWidth="1" strokeDasharray="3,2" />
+      <text x={bx(1)} y={H - pad.b + 10} fontSize="7.5" fill="#9CA3AF" textAnchor="middle">β=1</text>
+
+      {/* rf label */}
+      <circle cx={bx(0)} cy={ry(rf)} r={3} fill="#9CA3AF" />
+      <text x={bx(0) + 5} y={ry(rf) + 4} fontSize="7" fill="#6B7280">r_f</text>
+
+      {/* stock points */}
+      {stocks.map((s, i) => {
+        const onLine = Math.abs(s.r - smlY(s.beta)) < 0.005
+        const above = s.r > smlY(s.beta)
+        const col = onLine ? "#064E3B" : above ? "#F59E0B" : "#F87171"
+        return (
+          <g key={i}>
+            <circle cx={bx(s.beta)} cy={ry(s.r)} r={4.5} fill={col} opacity="0.85" />
+            {above && !onLine && (
+              <text x={bx(s.beta) - 5} y={ry(s.r) - 7} fontSize="7" fill={col} textAnchor="middle">+α</text>
+            )}
+            {!above && !onLine && (
+              <text x={bx(s.beta) + 5} y={ry(s.r) + 10} fontSize="7" fill={col}>-α</text>
+            )}
+          </g>
+        )
+      })}
+
+      {/* legend */}
+      <circle cx={pad.l + 4} cy={H - pad.b + 22} r={3} fill="#F59E0B" opacity="0.85" />
+      <text x={pad.l + 10} y={H - pad.b + 25} fontSize="7" fill="#6B7280">above SML (+α)</text>
+      <circle cx={pad.l + 90} cy={H - pad.b + 22} r={3} fill="#F87171" opacity="0.85" />
+      <text x={pad.l + 96} y={H - pad.b + 25} fontSize="7" fill="#6B7280">below SML (-α)</text>
+    </svg>
+  )
+}
+
+function YieldCurveViz() {
+  const W = 320, H = 210
+  const pad = { l: 44, r: 16, t: 16, b: 36 }
+  const pw = W - pad.l - pad.r
+  const ph = H - pad.t - pad.b
+
+  const maturities = [0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 30]
+  const maxM = 30, maxY = 0.065
+  const mx = (m: number) => pad.l + (m / maxM) * pw
+  const ry = (y: number) => pad.t + (1 - y / maxY) * ph
+
+  // Normal: upward sloping
+  const normal = [0.043, 0.044, 0.045, 0.046, 0.047, 0.050, 0.052, 0.055, 0.058, 0.060]
+  // Inverted: downward sloping
+  const inverted = [0.054, 0.053, 0.051, 0.048, 0.046, 0.043, 0.041, 0.039, 0.037, 0.035]
+  // Flat
+  const flat = [0.047, 0.047, 0.047, 0.047, 0.047, 0.047, 0.047, 0.047, 0.047, 0.047]
+
+  const toPoints = (yields: number[]) =>
+    maturities.map((m, i) => `${mx(m)},${ry(yields[i])}`).join(" ")
+
+  // Y-axis ticks
+  const yTicks = [0.02, 0.03, 0.04, 0.05, 0.06]
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* grid */}
+      {yTicks.map(y => (
+        <line key={y} x1={pad.l} y1={ry(y)} x2={W - pad.r} y2={ry(y)} stroke="#ECFDF5" strokeWidth="1" />
+      ))}
+      <line x1={pad.l} y1={pad.t} x2={pad.l} y2={H - pad.b} stroke="#D1FAE5" strokeWidth="1.5" />
+      <line x1={pad.l} y1={H - pad.b} x2={W - pad.r} y2={H - pad.b} stroke="#D1FAE5" strokeWidth="1.5" />
+
+      {/* axis labels */}
+      <text x={W / 2} y={H - 4} textAnchor="middle" fontSize="8.5" fill="#9CA3AF">Maturity (years)</text>
+      <text x={10} y={H / 2} textAnchor="middle" fontSize="8.5" fill="#9CA3AF" transform={`rotate(-90,10,${H / 2})`}>Yield</text>
+
+      {/* y-axis ticks */}
+      {yTicks.map(y => (
+        <text key={y} x={pad.l - 4} y={ry(y) + 3} fontSize="7" fill="#9CA3AF" textAnchor="end">{(y * 100).toFixed(0)}%</text>
+      ))}
+      {/* x-axis ticks */}
+      {[2, 5, 10, 20, 30].map(m => (
+        <text key={m} x={mx(m)} y={H - pad.b + 10} fontSize="7.5" fill="#9CA3AF" textAnchor="middle">{m}Y</text>
+      ))}
+
+      {/* curves */}
+      <polyline points={toPoints(flat)} stroke="#9CA3AF" strokeWidth="1.4" strokeDasharray="4,2" fill="none" />
+      <polyline points={toPoints(inverted)} fill="none" stroke="#F87171" strokeWidth="1.8" />
+      <polyline points={toPoints(normal)} fill="none" stroke="#10B981" strokeWidth="2.2" />
+
+      {/* labels */}
+      <text x={mx(22)} y={ry(normal[8]) - 6} fontSize="7.5" fill="#10B981" fontWeight="700">Normal</text>
+      <text x={mx(22)} y={ry(inverted[8]) + 12} fontSize="7.5" fill="#F87171" fontWeight="700">Inverted</text>
+      <text x={mx(25)} y={ry(flat[8]) - 5} fontSize="7.5" fill="#9CA3AF" fontWeight="600">Flat</text>
+    </svg>
+  )
+}
+
+function OptionsPayoffViz() {
+  const W = 320, H = 210
+  const pad = { l: 40, r: 16, t: 16, b: 36 }
+  const pw = W - pad.l - pad.r
+  const ph = H - pad.t - pad.b
+  const K = 100, premium = 8
+  const sMin = 60, sMax = 150
+
+  const sx = (s: number) => pad.l + ((s - sMin) / (sMax - sMin)) * pw
+  const profitRange = 60
+  const py = (p: number) => pad.t + (1 - (p + profitRange / 2) / profitRange) * ph
+
+  // Long call payoff
+  const callPts: string[] = []
+  const putPts: string[] = []
+  for (let s = sMin; s <= sMax; s += 2) {
+    callPts.push(`${sx(s)},${py(Math.max(0, s - K) - premium)}`)
+    putPts.push(`${sx(s)},${py(Math.max(0, K - s) - premium)}`)
+  }
+
+  const zeroY = py(0)
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* zero line */}
+      <line x1={pad.l} y1={zeroY} x2={W - pad.r} y2={zeroY} stroke="#D1FAE5" strokeWidth="1.5" />
+      {/* axes */}
+      <line x1={pad.l} y1={pad.t} x2={pad.l} y2={H - pad.b} stroke="#D1FAE5" strokeWidth="1.5" />
+      <line x1={pad.l} y1={H - pad.b} x2={W - pad.r} y2={H - pad.b} stroke="#D1FAE5" strokeWidth="1.5" />
+      <text x={W / 2} y={H - 4} textAnchor="middle" fontSize="8.5" fill="#9CA3AF">Stock Price at Expiry</text>
+      <text x={10} y={H / 2} textAnchor="middle" fontSize="8.5" fill="#9CA3AF" transform={`rotate(-90,10,${H / 2})`}>Profit / Loss</text>
+
+      {/* strike line */}
+      <line x1={sx(K)} y1={pad.t} x2={sx(K)} y2={H - pad.b} stroke="#E5E7EB" strokeWidth="1" strokeDasharray="3,2" />
+      <text x={sx(K)} y={H - pad.b + 10} fontSize="7.5" fill="#9CA3AF" textAnchor="middle">K={K}</text>
+
+      {/* payoffs */}
+      <polyline points={putPts.join(" ")} fill="none" stroke="#818CF8" strokeWidth="2" />
+      <polyline points={callPts.join(" ")} fill="none" stroke="#10B981" strokeWidth="2" />
+
+      {/* premium line */}
+      <line x1={pad.l} y1={py(-premium)} x2={W - pad.r} y2={py(-premium)} stroke="#F87171" strokeWidth="1" strokeDasharray="3,2" opacity="0.6" />
+      <text x={W - pad.r - 2} y={py(-premium) - 3} fontSize="7" fill="#F87171" textAnchor="end">max loss</text>
+
+      {/* labels */}
+      <text x={sx(135)} y={py(35 - premium) - 5} fontSize="8" fill="#10B981" fontWeight="700">Long Call</text>
+      <text x={sx(72)} y={py(28 - premium) - 5} fontSize="8" fill="#818CF8" fontWeight="700">Long Put</text>
+    </svg>
+  )
+}
+
+function VaRDistributionViz() {
+  const W = 320, H = 210
+  const pad = { l: 20, r: 16, t: 20, b: 36 }
+  const pw = W - pad.l - pad.r
+  const ph = H - pad.t - pad.b
+
+  // Normal distribution curve
+  const mean = 0.01, std = 0.02
+  const xMin = mean - 4 * std, xMax = mean + 4 * std
+  const varThreshold = mean - 2.33 * std  // 99% VaR
+  const esThreshold = mean - 2.7 * std    // approx ES
+
+  const norm = (x: number) => Math.exp(-0.5 * Math.pow((x - mean) / std, 2)) / (std * Math.sqrt(2 * Math.PI))
+  const maxDensity = norm(mean)
+
+  const px = (x: number) => pad.l + ((x - xMin) / (xMax - xMin)) * pw
+  const py = (d: number) => pad.t + (1 - d / (maxDensity * 1.05)) * ph
+
+  // Build curve points
+  const N = 80
+  const curvePts: string[] = []
+  for (let i = 0; i <= N; i++) {
+    const x = xMin + (i / N) * (xMax - xMin)
+    curvePts.push(`${px(x)},${py(norm(x))}`)
+  }
+
+  // Tail fill polygon (left of VaR)
+  const tailPts: string[] = [`${px(xMin)},${py(0)}`]
+  for (let i = 0; i <= N; i++) {
+    const x = xMin + (i / N) * (xMax - xMin)
+    if (x <= varThreshold) tailPts.push(`${px(x)},${py(norm(x))}`)
+  }
+  tailPts.push(`${px(varThreshold)},${py(0)}`)
+
+  const varX = px(varThreshold)
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* baseline */}
+      <line x1={pad.l} y1={py(0)} x2={W - pad.r} y2={py(0)} stroke="#D1FAE5" strokeWidth="1.5" />
+      <text x={W / 2} y={H - 4} textAnchor="middle" fontSize="8.5" fill="#9CA3AF">Daily P&amp;L</text>
+
+      {/* 1% tail shaded */}
+      <polygon points={tailPts.join(" ")} fill="#FCA5A5" opacity="0.5" />
+
+      {/* distribution curve */}
+      <polyline points={curvePts.join(" ")} fill="none" stroke="#10B981" strokeWidth="2.2" />
+
+      {/* VaR line */}
+      <line x1={varX} y1={pad.t} x2={varX} y2={py(0)} stroke="#EF4444" strokeWidth="1.5" strokeDasharray="4,2" />
+      <text x={varX - 3} y={pad.t + 10} fontSize="7.5" fill="#EF4444" fontWeight="700" textAnchor="end">99% VaR</text>
+
+      {/* annotations */}
+      <text x={varX - 18} y={py(0) - 6} fontSize="7.5" fill="#DC2626" textAnchor="middle">1% tail</text>
+      <text x={px(mean)} y={py(maxDensity) - 6} fontSize="7.5" fill="#10B981" fontWeight="600" textAnchor="middle">Expected P&amp;L</text>
+
+      {/* legend note */}
+      <text x={W - pad.r} y={H - 5} fontSize="7" fill="#9CA3AF" textAnchor="end">Tail beyond VaR = unknown loss</text>
+    </svg>
+  )
+}
+
+function DrawdownViz() {
+  const W = 320, H = 210
+  const pad = { l: 44, r: 16, t: 16, b: 36 }
+  const pw = W - pad.l - pad.r
+  const ph = H - pad.t - pad.b
+
+  // Simulated equity curve (normalised 0–1 time, 0–1 value)
+  const curve: [number, number][] = [
+    [0.00, 0.40], [0.05, 0.45], [0.10, 0.52], [0.15, 0.60], [0.20, 0.65],
+    [0.25, 0.72], [0.30, 0.68], [0.35, 0.55], [0.40, 0.48], [0.45, 0.44],
+    [0.50, 0.50], [0.55, 0.58], [0.60, 0.66], [0.65, 0.74], [0.70, 0.80],
+    [0.75, 0.76], [0.80, 0.70], [0.85, 0.72], [0.90, 0.78], [0.95, 0.84], [1.00, 0.90],
+  ]
+  const vMin = 0.3, vMax = 1.0
+  const tx = (t: number) => pad.l + t * pw
+  const vy = (v: number) => pad.t + (1 - (v - vMin) / (vMax - vMin)) * ph
+
+  // Peak before drawdown: t=0.25 (0.72), trough: t=0.45 (0.44)
+  const peakT = 0.25, peakV = 0.72
+  const troughT = 0.45, troughV = 0.44
+  const recoveryT = 0.57  // roughly where it crosses back above peak
+
+  const curvePts = curve.map(([t, v]) => `${tx(t)},${vy(v)}`).join(" ")
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* drawdown shading */}
+      <rect x={tx(peakT)} y={vy(peakV)} width={tx(recoveryT) - tx(peakT)}
+        height={vy(troughV) - vy(peakV)} fill="#FCA5A5" opacity="0.3" />
+
+      {/* axes */}
+      <line x1={pad.l} y1={pad.t} x2={pad.l} y2={H - pad.b} stroke="#D1FAE5" strokeWidth="1.5" />
+      <line x1={pad.l} y1={H - pad.b} x2={W - pad.r} y2={H - pad.b} stroke="#D1FAE5" strokeWidth="1.5" />
+      {[0.4, 0.5, 0.6, 0.7, 0.8, 0.9].map(v => (
+        <line key={v} x1={pad.l} y1={vy(v)} x2={W - pad.r} y2={vy(v)} stroke="#ECFDF5" strokeWidth="1" />
+      ))}
+      <text x={W / 2} y={H - 4} textAnchor="middle" fontSize="8.5" fill="#9CA3AF">Time</text>
+      <text x={10} y={H / 2} textAnchor="middle" fontSize="8.5" fill="#9CA3AF" transform={`rotate(-90,10,${H / 2})`}>Portfolio Value</text>
+
+      {/* equity curve */}
+      <polyline points={curvePts} fill="none" stroke="#10B981" strokeWidth="2.2" />
+
+      {/* peak line */}
+      <line x1={tx(peakT)} y1={vy(peakV)} x2={tx(recoveryT)} y2={vy(peakV)}
+        stroke="#9CA3AF" strokeWidth="1" strokeDasharray="3,2" />
+
+      {/* peak & trough markers */}
+      <circle cx={tx(peakT)} cy={vy(peakV)} r={4} fill="#064E3B" />
+      <circle cx={tx(troughT)} cy={vy(troughV)} r={4} fill="#EF4444" />
+
+      {/* drawdown arrow */}
+      <line x1={tx(0.37)} y1={vy(peakV)} x2={tx(0.37)} y2={vy(troughV)}
+        stroke="#EF4444" strokeWidth="1.5" markerEnd="url(#arr)" />
+      <text x={tx(0.37) + 4} y={(vy(peakV) + vy(troughV)) / 2} fontSize="8" fill="#EF4444" fontWeight="700">MDD</text>
+
+      {/* labels */}
+      <text x={tx(peakT) - 2} y={vy(peakV) - 6} fontSize="7.5" fill="#064E3B" textAnchor="middle">Peak</text>
+      <text x={tx(troughT)} y={vy(troughV) + 12} fontSize="7.5" fill="#EF4444" textAnchor="middle">Trough</text>
+      <text x={tx(recoveryT) + 3} y={vy(peakV) + 4} fontSize="7.5" fill="#9CA3AF">Recovery</text>
+    </svg>
+  )
+}
+
+function DurationPriceYieldViz() {
+  const W = 320, H = 210
+  const pad = { l: 44, r: 16, t: 16, b: 36 }
+  const pw = W - pad.l - pad.r
+  const ph = H - pad.t - pad.b
+
+  // Bond price P = C/y * (1 - 1/(1+y)^n) + F/(1+y)^n, C=5, F=100, n=10
+  const C = 5, F = 100, n = 10
+  const bondPrice = (y: number) => {
+    if (y === 0) return C * n + F
+    return (C / y) * (1 - Math.pow(1 + y, -n)) + F * Math.pow(1 + y, -n)
+  }
+
+  const yMin = 0.01, yMax = 0.12
+  const pMin = 60, pMax = 145
+  const yx = (y: number) => pad.l + ((y - yMin) / (yMax - yMin)) * pw
+  const py = (p: number) => pad.t + (1 - (p - pMin) / (pMax - pMin)) * ph
+
+  const pts: string[] = []
+  for (let y = yMin; y <= yMax; y += 0.001) {
+    pts.push(`${yx(y)},${py(bondPrice(y))}`)
+  }
+
+  // Par yield
+  const parY = 0.05
+  const parP = bondPrice(parY)
+
+  // Duration tangent at par
+  const dy = 0.0001
+  const dPdY = (bondPrice(parY + dy) - bondPrice(parY - dy)) / (2 * dy)
+  const tangentPts = [
+    `${yx(parY - 0.025)},${py(parP + dPdY * (-0.025))}`,
+    `${yx(parY + 0.025)},${py(parP + dPdY * 0.025)}`,
+  ]
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* grid */}
+      {[70, 85, 100, 115, 130].map(p => (
+        <line key={p} x1={pad.l} y1={py(p)} x2={W - pad.r} y2={py(p)} stroke="#ECFDF5" strokeWidth="1" />
+      ))}
+      <line x1={pad.l} y1={pad.t} x2={pad.l} y2={H - pad.b} stroke="#D1FAE5" strokeWidth="1.5" />
+      <line x1={pad.l} y1={H - pad.b} x2={W - pad.r} y2={H - pad.b} stroke="#D1FAE5" strokeWidth="1.5" />
+      <text x={W / 2} y={H - 4} textAnchor="middle" fontSize="8.5" fill="#9CA3AF">Yield to Maturity</text>
+      <text x={10} y={H / 2} textAnchor="middle" fontSize="8.5" fill="#9CA3AF" transform={`rotate(-90,10,${H / 2})`}>Bond Price</text>
+
+      {/* convex price-yield curve */}
+      <polyline points={pts.join(" ")} fill="none" stroke="#10B981" strokeWidth="2.2" />
+
+      {/* duration tangent */}
+      <polyline points={tangentPts.join(" ")} fill="none" stroke="#F59E0B" strokeWidth="1.5" strokeDasharray="4,2" />
+      <text x={yx(parY + 0.028)} y={py(parP + dPdY * 0.028) - 4} fontSize="7.5" fill="#F59E0B">Duration tangent</text>
+
+      {/* par point */}
+      <line x1={yx(parY)} y1={pad.t} x2={yx(parY)} y2={H - pad.b} stroke="#E5E7EB" strokeWidth="1" strokeDasharray="3,2" />
+      <circle cx={yx(parY)} cy={py(parP)} r={4.5} fill="#064E3B" />
+      <text x={yx(parY) + 6} y={py(parP) - 5} fontSize="7.5" fill="#064E3B">Par (y=5%)</text>
+
+      {/* convexity annotation */}
+      <text x={yx(0.03)} y={py(130)} fontSize="7.5" fill="#10B981" fontWeight="600">Convexity:</text>
+      <text x={yx(0.03)} y={py(125)} fontSize="7.5" fill="#10B981">curve bows above tangent</text>
+    </svg>
+  )
+}
+
+function SharpeCMLViz() {
+  const W = 320, H = 210
+  const pad = { l: 44, r: 16, t: 16, b: 36 }
+  const pw = W - pad.l - pad.r
+  const ph = H - pad.t - pad.b
+  const sx = (x: number) => pad.l + x * pw
+  const sy = (y: number) => pad.t + (1 - y) * ph
+
+  const rf = 0.02
+  // Two portfolios on the frontier
+  const portfolios = [
+    { sigma: 0.10, mu: 0.08, label: "A" },
+    { sigma: 0.18, mu: 0.13, label: "B (tangency)" },
+    { sigma: 0.26, mu: 0.16, label: "C" },
+  ]
+  const tangency = portfolios[1]
+  const maxS = 0.35, maxMu = 0.25
+
+  const bx = (s: number) => sx(s / maxS)
+  const ry = (m: number) => sy(m / maxMu)
+
+  // CML
+  const slope = (tangency.mu - rf) / tangency.sigma
+  const cmlY = (s: number) => rf + slope * s
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {[0.25, 0.5, 0.75].map(v => (
+        <line key={v} x1={pad.l} y1={sy(v)} x2={W - pad.r} y2={sy(v)} stroke="#ECFDF5" strokeWidth="1" />
+      ))}
+      <line x1={pad.l} y1={pad.t} x2={pad.l} y2={H - pad.b} stroke="#D1FAE5" strokeWidth="1.5" />
+      <line x1={pad.l} y1={H - pad.b} x2={W - pad.r} y2={H - pad.b} stroke="#D1FAE5" strokeWidth="1.5" />
+      <text x={W / 2} y={H - 4} textAnchor="middle" fontSize="8.5" fill="#9CA3AF">Risk (σ)</text>
+      <text x={10} y={H / 2} textAnchor="middle" fontSize="8.5" fill="#9CA3AF" transform={`rotate(-90,10,${H / 2})`}>Return (μ)</text>
+
+      {/* CML */}
+      <line x1={bx(0)} y1={ry(rf)} x2={bx(maxS)} y2={ry(cmlY(maxS))}
+        stroke="#F59E0B" strokeWidth="2" />
+      <text x={bx(0.30)} y={ry(cmlY(0.30)) - 6} fontSize="8" fill="#F59E0B" fontWeight="700">CML (slope = Sharpe)</text>
+
+      {/* portfolio points */}
+      {portfolios.map((p, i) => (
+        <g key={i}>
+          <circle cx={bx(p.sigma)} cy={ry(p.mu)} r={5}
+            fill={i === 1 ? "#F59E0B" : "#064E3B"} opacity="0.85" />
+          <text x={bx(p.sigma) + 7} y={ry(p.mu) + 4} fontSize="8" fill={i === 1 ? "#F59E0B" : "#064E3B"}
+            fontWeight={i === 1 ? "700" : "400"}>{p.label}</text>
+        </g>
+      ))}
+
+      {/* Sharpe triangle at tangency */}
+      <line x1={bx(0)} y1={ry(rf)} x2={bx(tangency.sigma)} y2={ry(rf)} stroke="#9CA3AF" strokeWidth="1" strokeDasharray="2,2" />
+      <line x1={bx(tangency.sigma)} y1={ry(rf)} x2={bx(tangency.sigma)} y2={ry(tangency.mu)} stroke="#9CA3AF" strokeWidth="1" strokeDasharray="2,2" />
+      <text x={bx(tangency.sigma / 2)} y={ry(rf) + 12} fontSize="7" fill="#6B7280" textAnchor="middle">σ</text>
+      <text x={bx(tangency.sigma) + 4} y={(ry(rf) + ry(tangency.mu)) / 2} fontSize="7" fill="#6B7280">μ - r_f</text>
+
+      {/* rf */}
+      <circle cx={bx(0)} cy={ry(rf)} r={3} fill="#9CA3AF" />
+      <text x={bx(0) + 5} y={ry(rf) + 4} fontSize="7" fill="#6B7280">r_f</text>
+    </svg>
+  )
+}
+
+function GreeksDeltaViz() {
+  const W = 320, H = 210
+  const pad = { l: 36, r: 16, t: 16, b: 36 }
+  const pw = W - pad.l - pad.r
+  const ph = H - pad.t - pad.b
+
+  const K = 100, sigma = 0.2, T = 0.5, r = 0.03
+  const sMin = 60, sMax = 150
+
+  // Black-Scholes delta approximation using erf
+  const erf = (x: number): number => {
+    const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741
+    const a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911
+    const sign = x < 0 ? -1 : 1
+    const t2 = 1 / (1 + p * Math.abs(x))
+    const y2 = 1 - ((((a5 * t2 + a4) * t2 + a3) * t2 + a2) * t2 + a1) * t2 * Math.exp(-x * x)
+    return sign * y2
+  }
+  const N = (x: number) => 0.5 * (1 + erf(x / Math.sqrt(2)))
+  const callDelta = (s: number) => {
+    const d1 = (Math.log(s / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T))
+    return N(d1)
+  }
+  const putDelta = (s: number) => callDelta(s) - 1
+
+  const sx = (s: number) => pad.l + ((s - sMin) / (sMax - sMin)) * pw
+  const dy = (d: number) => pad.t + (1 - (d + 1) / 2) * ph  // map [-1,1] to height
+
+  const callPts: string[] = [], putPts: string[] = []
+  for (let s = sMin; s <= sMax; s += 1) {
+    callPts.push(`${sx(s)},${dy(callDelta(s))}`)
+    putPts.push(`${sx(s)},${dy(putDelta(s))}`)
+  }
+
+  const zeroY = dy(0)
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {[-1, -0.5, 0, 0.5, 1].map(d => (
+        <line key={d} x1={pad.l} y1={dy(d)} x2={W - pad.r} y2={dy(d)}
+          stroke={d === 0 ? "#D1FAE5" : "#ECFDF5"} strokeWidth={d === 0 ? 1.5 : 1} />
+      ))}
+      <line x1={pad.l} y1={pad.t} x2={pad.l} y2={H - pad.b} stroke="#D1FAE5" strokeWidth="1.5" />
+      <line x1={pad.l} y1={H - pad.b} x2={W - pad.r} y2={H - pad.b} stroke="#D1FAE5" strokeWidth="1.5" />
+      <text x={W / 2} y={H - 4} textAnchor="middle" fontSize="8.5" fill="#9CA3AF">Underlying Price</text>
+      <text x={10} y={H / 2} textAnchor="middle" fontSize="8.5" fill="#9CA3AF" transform={`rotate(-90,10,${H / 2})`}>Delta</text>
+
+      {/* delta labels */}
+      {[1, 0.5, 0, -0.5, -1].map(d => (
+        <text key={d} x={pad.l - 4} y={dy(d) + 3} fontSize="7" fill="#9CA3AF" textAnchor="end">{d}</text>
+      ))}
+
+      {/* strike */}
+      <line x1={sx(K)} y1={pad.t} x2={sx(K)} y2={H - pad.b} stroke="#E5E7EB" strokeWidth="1" strokeDasharray="3,2" />
+      <text x={sx(K)} y={H - pad.b + 10} fontSize="7.5" fill="#9CA3AF" textAnchor="middle">K</text>
+
+      <polyline points={putPts.join(" ")} fill="none" stroke="#818CF8" strokeWidth="2" />
+      <polyline points={callPts.join(" ")} fill="none" stroke="#10B981" strokeWidth="2" />
+
+      <text x={sx(sMax) - 4} y={dy(callDelta(sMax)) - 5} fontSize="8" fill="#10B981" fontWeight="700" textAnchor="end">Call Δ</text>
+      <text x={sx(sMin) + 4} y={dy(putDelta(sMin)) + 12} fontSize="8" fill="#818CF8" fontWeight="700">Put Δ</text>
+    </svg>
+  )
+}
+
+function BrinsonAttributionViz() {
+  const W = 320, H = 210
+  const pad = { l: 100, r: 16, t: 16, b: 36 }
+  const pw = W - pad.l - pad.r
+  const ph = H - pad.t - pad.b
+
+  const items = [
+    { label: "Allocation", value: 0.8, col: "#10B981" },
+    { label: "Selection", value: 1.4, col: "#3B82F6" },
+    { label: "Interaction", value: -0.3, col: "#F87171" },
+    { label: "Total Active", value: 1.9, col: "#064E3B" },
+  ]
+  const maxVal = 2.2
+  const barH = 28, gap = 10
+  const zeroX = pad.l
+  const bx = (v: number) => zeroX + (v / maxVal) * pw
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* zero line */}
+      <line x1={zeroX} y1={pad.t} x2={zeroX} y2={H - pad.b} stroke="#D1FAE5" strokeWidth="1.5" />
+      <text x={W / 2} y={H - 4} textAnchor="middle" fontSize="8.5" fill="#9CA3AF">Contribution (bps)</text>
+
+      {/* bars */}
+      {items.map((item, i) => {
+        const y = pad.t + i * (barH + gap)
+        const w = (Math.abs(item.value) / maxVal) * pw
+        const x = item.value >= 0 ? zeroX : zeroX - w
+        const isTot = i === items.length - 1
+        return (
+          <g key={i}>
+            {isTot && <line x1={pad.l - 90} y1={y - 4} x2={W - pad.r} y2={y - 4} stroke="#ECFDF5" strokeWidth="1" />}
+            <rect x={x} y={y} width={w} height={barH}
+              fill={item.col} opacity={isTot ? 1 : 0.75} rx="3" />
+            <text x={pad.l - 6} y={y + barH / 2 + 4} fontSize="8.5" fill="#374151" textAnchor="end"
+              fontWeight={isTot ? "700" : "400"}>{item.label}</text>
+            <text x={x + (item.value >= 0 ? w + 4 : -4)} y={y + barH / 2 + 4}
+              fontSize="8.5" fill={item.col} fontWeight="700"
+              textAnchor={item.value >= 0 ? "start" : "end"}>
+              {item.value > 0 ? "+" : ""}{(item.value * 100).toFixed(0)}bps
+            </text>
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
+function GBMPathsViz() {
+  const W = 320, H = 210
+  const pad = { l: 44, r: 16, t: 16, b: 36 }
+  const pw = W - pad.l - pad.r
+  const ph = H - pad.t - pad.b
+
+  // Deterministic GBM paths using seeded pseudo-random
+  const seed = (s: number) => { let x = s; return () => { x = (x * 1664525 + 1013904223) & 0xffffffff; return (x >>> 0) / 0xffffffff } }
+  const paths: [number, number][][] = []
+  const S0 = 100, mu = 0.10, sigma = 0.25, T = 1, steps = 50
+  const dt = T / steps
+  const colors = ["#10B981", "#3B82F6", "#F59E0B", "#818CF8", "#EF4444"]
+
+  for (let p = 0; p < 5; p++) {
+    const rand = seed(p * 137 + 42)
+    const path: [number, number][] = [[0, S0]]
+    let S = S0
+    for (let i = 1; i <= steps; i++) {
+      const u1 = rand(), u2 = rand()
+      const z = Math.sqrt(-2 * Math.log(Math.max(u1, 1e-10))) * Math.cos(2 * Math.PI * u2)
+      S = S * Math.exp((mu - 0.5 * sigma * sigma) * dt + sigma * Math.sqrt(dt) * z)
+      path.push([i / steps, S])
+    }
+    paths.push(path)
+  }
+
+  const allS = paths.flatMap(p => p.map(([, s]) => s))
+  const sMin = Math.min(...allS) * 0.95, sMax = Math.max(...allS) * 1.05
+  const tx = (t: number) => pad.l + t * pw
+  const sy = (s: number) => pad.t + (1 - (s - sMin) / (sMax - sMin)) * ph
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* axes */}
+      <line x1={pad.l} y1={pad.t} x2={pad.l} y2={H - pad.b} stroke="#D1FAE5" strokeWidth="1.5" />
+      <line x1={pad.l} y1={H - pad.b} x2={W - pad.r} y2={H - pad.b} stroke="#D1FAE5" strokeWidth="1.5" />
+      <line x1={pad.l} y1={sy(S0)} x2={W - pad.r} y2={sy(S0)} stroke="#ECFDF5" strokeWidth="1" strokeDasharray="3,2" />
+      <text x={pad.l - 4} y={sy(S0) + 3} fontSize="7" fill="#9CA3AF" textAnchor="end">S₀</text>
+      <text x={W / 2} y={H - 4} textAnchor="middle" fontSize="8.5" fill="#9CA3AF">Time</text>
+      <text x={10} y={H / 2} textAnchor="middle" fontSize="8.5" fill="#9CA3AF" transform={`rotate(-90,10,${H / 2})`}>Asset Price</text>
+
+      {/* paths */}
+      {paths.map((path, i) => (
+        <polyline key={i}
+          points={path.map(([t, s]) => `${tx(t)},${sy(s)}`).join(" ")}
+          fill="none" stroke={colors[i]} strokeWidth="1.5" opacity="0.8"
+        />
+      ))}
+
+      <text x={W - pad.r} y={pad.t + 10} fontSize="7.5" fill="#6B7280" textAnchor="end">
+        μ={mu}, σ={sigma}
+      </text>
+    </svg>
+  )
+}
+
+function FactorReturnsViz() {
+  const W = 320, H = 210
+  const pad = { l: 76, r: 24, t: 20, b: 36 }
+  const pw = W - pad.l - pad.r
+  const ph = H - pad.t - pad.b
+
+  const factors = [
+    { name: "Mkt-RF", annualised: 6.2, col: "#10B981" },
+    { name: "SMB", annualised: 2.1, col: "#3B82F6" },
+    { name: "HML", annualised: 3.5, col: "#F59E0B" },
+    { name: "MOM", annualised: 7.8, col: "#818CF8" },
+    { name: "QMJ", annualised: 4.3, col: "#34D399" },
+  ]
+  const maxVal = 10
+  const barH = 24, gap = 8
+  const zeroX = pad.l
+  const bw = (v: number) => (v / maxVal) * pw
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      <line x1={zeroX} y1={pad.t} x2={zeroX} y2={H - pad.b} stroke="#D1FAE5" strokeWidth="1.5" />
+      {[2, 4, 6, 8].map(v => (
+        <line key={v} x1={zeroX + bw(v)} y1={pad.t} x2={zeroX + bw(v)} y2={H - pad.b}
+          stroke="#ECFDF5" strokeWidth="1" />
+      ))}
+      <text x={W / 2} y={H - 4} textAnchor="middle" fontSize="8.5" fill="#9CA3AF">Annualised Return (%)</text>
+
+      {factors.map((f, i) => {
+        const y = pad.t + i * (barH + gap)
+        return (
+          <g key={i}>
+            <rect x={zeroX} y={y} width={bw(f.annualised)} height={barH}
+              fill={f.col} opacity="0.8" rx="3" />
+            <text x={zeroX - 6} y={y + barH / 2 + 4} fontSize="9" fill="#374151" textAnchor="end" fontWeight="600">
+              {f.name}
+            </text>
+            <text x={zeroX + bw(f.annualised) + 5} y={y + barH / 2 + 4} fontSize="8" fill={f.col} fontWeight="700">
+              {f.annualised}%
+            </text>
+          </g>
+        )
+      })}
+
+      <text x={zeroX + 4} y={pad.t - 6} fontSize="7.5" fill="#6B7280">Fama-French factor premia (illustrative)</text>
     </svg>
   )
 }

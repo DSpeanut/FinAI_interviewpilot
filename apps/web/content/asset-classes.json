@@ -1,0 +1,68 @@
+{
+  "terms": [
+    { "term": "Asset Class", "def": "Category of investments with similar characteristics, risk/return drivers, and regulatory treatment." },
+    { "term": "Equity Risk Premium", "def": "Extra return demanded for holding stocks over risk-free assets; historically ~4–6% annualised." },
+    { "term": "Strategic Asset Allocation", "def": "Long-term target allocation to each asset class based on risk tolerance and return objectives." },
+    { "term": "Correlation", "def": "How asset class returns move together; low or negative correlation between classes is the diversification benefit." },
+    { "term": "Alternatives", "def": "Non-traditional asset classes: hedge funds, PE, real assets, commodities; often illiquid with different risk premia." },
+    { "term": "Risk Premium", "def": "Extra expected return above the risk-free rate for bearing a specific type of risk (equity, credit, illiquidity, etc.)." }
+  ],
+  "eli3": [
+    "An asset class is a category of investments that share similar characteristics, behave similarly in markets, and are subject to the same laws and regulations. The main asset classes are equities (stocks), fixed income (bonds), cash and cash equivalents, real assets (property, commodities), and alternatives (hedge funds, private equity).",
+    "Different asset classes respond differently to economic conditions. Stocks tend to do well in growth periods; bonds tend to do well when interest rates fall; commodities rise with inflation; cash preserves value in downturns. This is why mixing asset classes in a portfolio reduces risk — they don't all go up and down at the same time.",
+    "The distinction between asset classes matters for portfolio construction (diversification), regulation (different rules apply to different assets), and investor mandates (pension funds may be restricted from holding certain asset classes). Defining what is and isn't an asset class is itself contested — crypto, infrastructure, and reinsurance have been proposed as new asset classes."
+  ],
+  "whenWhy": [
+    {
+      "title": "Portfolio diversification across uncorrelated return streams",
+      "body": "Asset class diversification is the practical application of Markowitz (1952): combining assets with low pairwise correlations reduces portfolio volatility without proportionally reducing expected return. Stocks and high-quality government bonds have historically had negative or near-zero correlation (flight-to-safety in recessions drives bond prices up when stock prices fall). Adding real assets (REITs, commodities) and alternatives (hedge funds) to a stock-bond portfolio has historically improved the Sharpe ratio. The reason to define asset classes is to ensure exposure across genuinely different risk factors, not just different securities in the same asset class."
+    },
+    {
+      "title": "Strategic asset allocation and investment mandates",
+      "body": "Institutional investors (pension funds, endowments, sovereign wealth funds) manage money against a strategic asset allocation (SAA): a target portfolio split across asset classes (e.g., 60% equities, 30% fixed income, 10% alternatives). The SAA is the primary driver of long-term returns — Brinson et al. (1986) found that asset allocation explains ~90% of the variation in portfolio returns. Asset class definitions determine how assets are categorised for SAA purposes. Investment mandates often restrict which asset classes a manager can hold, requiring precise definitions."
+    },
+    {
+      "title": "Risk factor analysis and return attribution",
+      "body": "Modern finance decomposes asset class returns into systematic risk factors: equities → market beta, size, value, momentum; fixed income → duration, credit spread, carry; commodities → roll yield, spot return. Understanding asset classes at the factor level enables: better diversification (ensuring true factor diversification, not just asset class diversification), performance attribution (which factors drove returns?), and smart beta strategies (harvesting factor premia systematically). The factor lens reveals that many 'different' asset classes share common underlying risks."
+    }
+  ],
+  "deepDiveIntro": [
+    "The traditional three asset classes (equities, fixed income, cash) were expanded in the 1990s-2000s as institutional investors sought diversification beyond stock-bond portfolios. The Yale Endowment Model (Swensen 2000) popularised alternative asset classes: private equity, real assets, hedge funds. The CFA Institute curriculum defines the main asset classes as: equities (public and private), fixed income (government, corporate, high yield, structured), real assets (real estate, infrastructure, commodities, natural resources), alternatives (hedge funds, private equity, venture capital), and cash/currencies.",
+    "Asset class boundaries are blurry and context-dependent. High-yield bonds have equity-like risk and correlation; convertible bonds sit between equity and debt; real estate investment trusts (REITs) are publicly traded but expose investors to real asset risk. The practical criterion: assets qualify as a distinct class if they have a differentiated risk/return profile, low correlation with existing classes, sufficient market liquidity to provide meaningful allocation, and established investment infrastructure (benchmarks, managers, data)."
+  ],
+  "deepDive": [
+    {
+      "heading": "Equities: Ownership Claims on Corporate Earnings",
+      "body": "Equities represent residual claims on a firm's assets and earnings after all obligations are paid. Return sources: capital appreciation (price × earnings growth) + dividends. Risk characteristics: high volatility (~15-20% annualised for US equities historically), high long-run return premium over risk-free rate (~5-7% historically in the US, the equity risk premium). Subdivisions: large/small cap, growth/value, geography (domestic/international/emerging), sector. The MSCI All Country World Index (ACWI) is the standard global equity benchmark. Key risk factors: market beta (systematic), size (SMB), value (HML), profitability, investment (Fama-French 5-factor model). [1]"
+    },
+    {
+      "heading": "Fixed Income: Contractual Cash Flow Instruments",
+      "body": "Fixed income instruments are debt obligations with specified cash flows (coupon payments + principal repayment). Return sources: yield (coupon / price) + price appreciation from yield changes. Risk factors: duration (interest rate sensitivity), credit spread (default risk premium), liquidity. Subdivisions: sovereign (government) bonds — risk-free in own currency; investment-grade corporate bonds; high-yield (junk) bonds; structured products (ABS, MBS, CDO). The Bloomberg Global Aggregate Bond Index covers investment-grade government and corporate bonds across 70+ countries (~$68T of market value). Negative correlation with equities holds for high-quality government bonds; high-yield bonds have significant equity-like correlation. [2]"
+    },
+    {
+      "heading": "Real Assets and Alternatives",
+      "body": "Real assets: physical or tangible assets — real estate, infrastructure, commodities, farmland. Inflation-hedging properties (commodity prices and rental income tend to rise with inflation). Illiquidity premium: real assets are less liquid than public markets, commanding an additional return premium. Commodities: energy, metals, agriculture, livestock. Commodity returns: spot price change + roll yield (from futures curve rolling). Alternatives: hedge funds (liquid but complex strategies — L/S equity, macro, relative value), private equity (buyouts, venture capital), venture capital (early-stage companies). Common characteristic: illiquidity premium, low mark-to-market correlation with public markets, high fees. [1]"
+    }
+  ],
+  "takeaways": [
+    "Asset classes: equities, fixed income, real assets, alternatives, cash — categorised by similar risk/return characteristics. [1]",
+    "Asset allocation explains ~90% of long-run portfolio return variation (Brinson et al. 1986). [1]",
+    "Low pairwise correlation between asset classes reduces portfolio volatility — the core diversification mechanism. [1]",
+    "Fixed income / equity correlation: negative for high-quality government bonds (flight-to-safety); positive for high-yield. [2]",
+    "Factor lens: asset class returns decompose into systematic risk premia (market, size, value, duration, credit spread). [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Is cryptocurrency a distinct asset class?",
+      "a": "Debated. Arguments for: differentiated risk/return profile; correlation with equities and bonds is historically low (though it spiked during 2022 risk-off); driven by unique fundamentals (on-chain activity, adoption, regulatory risk, tokenomics). Arguments against: insufficient track record to establish return expectations; extreme volatility (Bitcoin annualised vol ~70-80% vs. equities ~15-20%); liquidity fragmentation across exchanges; regulatory uncertainty changes its characteristics; correlation with risk assets rose significantly in 2021-2022 during the Fed tightening cycle. Current institutional practice: crypto is treated as an alternative/speculative allocation (< 1-5% for allocators who hold it at all), not a core asset class. The key criterion it partially fails: stable, diversifying correlation with existing classes — crypto correlations are unstable and regime-dependent."
+    },
+    {
+      "q": "Why do correlations between asset classes rise during market crises?",
+      "a": "During market crises (2008 GFC, March 2020 COVID crash), correlations between most risky asset classes converge toward 1 — the diversification benefit disappears exactly when it's most needed. Mechanism: (1) Forced deleveraging — investors and funds facing margin calls sell whatever is liquid regardless of asset class; (2) Risk-off regime shift — all risky assets re-price simultaneously to higher required risk premia; (3) Liquidity drought — illiquid assets (private equity, real estate) show no mark-to-market loss (their NAVs are stale), creating the illusion of diversification; (4) Global interconnectedness — financial crises are now global; regional diversification provides less protection. The practical implication: correlation estimates from calm periods systematically understate crisis correlations; robust portfolio construction uses stress-test correlations or CVaR-based risk measures rather than Markowitz mean-variance with historical correlations."
+    }
+  ],
+  "sources": [
+    { "label": "CFA Institute — CFA Program Curriculum, Level 1: Asset Classes and Financial Instruments", "url": "https://www.cfainstitute.org/en/programs/cfa" },
+    { "label": "Fabozzi, F.J. — The Handbook of Fixed Income Securities, 8th Edition, McGraw-Hill (2012)", "url": "https://www.mhprofessional.com/the-handbook-of-fixed-income-securities-9780071768467-usa" }
+  ]
+}

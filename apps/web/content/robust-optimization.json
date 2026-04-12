@@ -1,4 +1,12 @@
 {
+  "terms": [
+    { "term": "Uncertainty Set", "def": "The set of plausible parameter values (e.g. expected returns in an ellipsoid around the estimate); robust optimisation optimises the worst case within this set." },
+    { "term": "Minimax", "def": "Minimise the maximum loss over all scenarios in the uncertainty set; the robust optimisation objective." },
+    { "term": "Regularisation", "def": "Adding a penalty term to the objective that shrinks extreme positions; equivalent to robust optimisation under an uncertainty set." },
+    { "term": "Estimation Error", "def": "Uncertainty in input parameters (μ, Σ) due to finite sample; robust optimisation explicitly accounts for this uncertainty." },
+    { "term": "DRO", "def": "Distributionally Robust Optimisation — optimise against worst-case distribution in a Wasserstein ball around empirical data." },
+    { "term": "Shrinkage", "def": "Pulling extreme parameter estimates toward a prior; reduces sensitivity to estimation error; equivalent to robust optimisation under certain setups." }
+  ],
   "eli3": [
     "Robust optimisation is an approach to making decisions that perform well even when your assumptions are wrong. In portfolio management, you never know exactly what future returns will be or what the exact covariance matrix is. Robust optimisation finds portfolios that perform well across a range of possible scenarios — not just the most likely one.",
     "Instead of 'what portfolio maximises expected return at a given risk?' (which can produce extreme portfolios when inputs are wrong), robust optimisation asks 'what portfolio maximises the worst-case expected return over all plausible inputs?' The result is a more cautious, diversified portfolio that sacrifices some expected performance for resilience.",

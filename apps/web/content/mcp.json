@@ -1,0 +1,60 @@
+{
+  "eli3": [
+    "MCP (Model Context Protocol) is an open standard created by Anthropic that defines how AI applications connect to external tools and data sources. Instead of every AI app having to write custom code to connect to Slack, GitHub, or a database, MCP provides one standard way to do it.",
+    "Think of MCP like USB: before USB, every peripheral (keyboard, mouse, printer) needed a different port and driver. After USB, everything uses the same standard. MCP does the same for AI tools — write one MCP server for your database, and any MCP-compatible AI app can use it.",
+    "MCP has three layers: the host (the AI app, like Claude Desktop or an agent framework), the client (manages the connection), and the server (exposes tools, resources, and prompts). The host communicates with servers over a standardised JSON-RPC protocol."
+  ],
+  "whenWhy": [
+    {
+      "title": "Building reusable tool integrations across AI applications",
+      "body": "Without MCP: each AI application (Claude Desktop, Cursor, a custom agent) writes its own custom integration with each external tool (Slack, GitHub, PostgreSQL). With MCP: write one MCP server per tool; every MCP-compatible application gets access automatically. This ecosystem effect means the community (and vendors) can build MCP servers once and share them. Anthropic maintains a registry of community MCP servers covering hundreds of tools. AI application developers get integrations for free; tool vendors write one MCP server instead of N integrations."
+    },
+    {
+      "title": "Giving AI agents secure, structured access to local data",
+      "body": "MCP servers can run locally (on the user's machine), exposing local resources (file system, local databases, local applications) to AI models without those resources ever leaving the user's machine. This solves the privacy problem: you can give Claude access to your local code files via an MCP filesystem server without uploading your files to Anthropic. The host controls which MCP servers are connected and what permissions they have, maintaining user control over data access."
+    },
+    {
+      "title": "Standardising context injection beyond tool calls",
+      "body": "MCP supports three primitives beyond tools: (1) Resources — URI-addressable data that the LLM can read (file contents, database rows, API responses); (2) Prompts — reusable prompt templates with parameters; (3) Sampling — the server can request the LLM to complete a text, enabling server-side agentic behaviour. This richer protocol enables MCP servers to inject relevant context into the LLM's prompt, not just expose callable functions."
+    }
+  ],
+  "deepDiveIntro": [
+    "MCP was open-sourced by Anthropic in November 2024. The protocol uses JSON-RPC 2.0 over stdio (local servers) or HTTP with SSE (remote servers). The host application (Claude Desktop, Cursor, a custom agent) acts as the MCP client, connecting to one or more MCP servers. Each server declares its capabilities: tools (callable functions with JSON Schema parameters), resources (addressable data sources), and prompts (named templates). The client discovery is static (configured in a JSON config file) or dynamic (server-sent capability announcements).",
+    "The protocol is transport-agnostic: local MCP servers communicate over stdin/stdout (the host spawns the server process); remote MCP servers use HTTP with Server-Sent Events for streaming. The JSON-RPC message format is standard: {jsonrpc: '2.0', id: N, method: 'tools/call', params: {name: 'tool_name', arguments: {...}}}. Anthropic provides official SDKs for Python and TypeScript for building MCP servers."
+  ],
+  "deepDive": [
+    {
+      "heading": "MCP Architecture: Host, Client, Server",
+      "body": "Host: the application that embeds the AI model (Claude Desktop, VS Code with Copilot, a custom agent). The host manages the lifecycle of MCP server connections. Client: embedded in the host, handles the protocol communication with each MCP server. One client per server connection. Server: an independent process that exposes tools, resources, and prompts over the MCP protocol. Servers are isolated processes — the host cannot access the server's internal state; it can only call declared tools and read declared resources. Security boundary: the server decides what to expose; the host decides which servers to connect to; the user configures which hosts and servers are allowed. [1]"
+    },
+    {
+      "heading": "Implementing an MCP Server (Python SDK)",
+      "body": "Minimal Python MCP server: import mcp.server.fastmcp; create a FastMCP instance; decorate functions with @mcp.tool() (with a docstring as the tool description) and @mcp.resource('resource://uri') for resources. The FastMCP framework handles: JSON Schema generation from Python type hints, JSON-RPC message parsing, stdio transport. Tool function signatures use Python type hints for parameter schema: def get_file(path: str) -> str: ... generates {name: 'get_file', inputSchema: {type: 'object', properties: {path: {type: 'string'}}}}. Run with mcp.run(transport='stdio'). The server is started by the host as a subprocess. [1]"
+    },
+    {
+      "heading": "MCP Resources and the Context Protocol",
+      "body": "Resources are URI-addressable data that MCP servers expose for AI models to read. Example resource URIs: file:///path/to/document.txt, db://table/users, github://repo/owner/repo. The host can list available resources (resources/list) and read them (resources/read). Unlike tools (which the LLM calls to take actions), resources are read-only context sources that the host injects into the LLM's context window. This enables use cases like: an MCP server that exposes the current state of a database as a readable resource, injected into the LLM's context at the start of each query. The distinction between tools (actions) and resources (context) mirrors the RAG architecture: resources are the retrieval layer; tools are the action layer. [1]"
+    }
+  ],
+  "takeaways": [
+    "MCP: open standard for AI-to-tool connectivity — write one server per tool, works with all MCP-compatible hosts. [1]",
+    "Three primitives: tools (callable functions), resources (readable context), prompts (reusable templates). [1]",
+    "Local stdio transport: MCP servers run locally — sensitive data never leaves the user's machine. [1]",
+    "JSON-RPC 2.0 over stdio (local) or HTTP+SSE (remote) — transport-agnostic protocol. [1]",
+    "Python/TypeScript SDKs: FastMCP generates JSON Schema from type hints — minimal boilerplate. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle authentication and secrets in MCP servers?",
+      "a": "MCP servers often need credentials to access external services (API keys, database passwords, OAuth tokens). Security guidelines: (1) Never hardcode credentials in MCP server source code — use environment variables or secret managers; the host spawns the server with environment variables set from a secure config; (2) OAuth 2.0 for remote MCP servers — MCP supports OAuth flows where the server redirects the user for authorization and exchanges the auth code for a token; the token is stored by the host and passed to the server; (3) Credential scoping — give each MCP server the minimum necessary permissions (read-only access if write is not needed); (4) Token rotation — for long-lived MCP connections, implement token refresh; (5) Audit logging — log all tool calls and resource reads by MCP servers for security monitoring. Never store credentials in the MCP server's state — they should be injected at startup via environment variables."
+    },
+    {
+      "q": "What's the difference between MCP and LangChain tools?",
+      "a": "LangChain tools are Python objects within the LangChain ecosystem — they only work with LangChain agents and applications. MCP servers are independent processes exposing a language-agnostic protocol — they work with any MCP-compatible host (Claude Desktop, Cursor, a custom agent written in any language). LangChain tools: tighter integration (no serialisation overhead, Python-native), but ecosystem-locked. MCP servers: more deployment complexity (separate process, stdio/HTTP transport), but universal compatibility. In practice: for production systems using LangChain/LangGraph, LangChain tools are simpler. For tools that should be reusable across multiple AI applications or exposed to Claude Desktop users, MCP is the right choice. The two are not mutually exclusive: a LangChain tool can be wrapped as an MCP server."
+    }
+  ],
+  "sources": [
+    { "label": "Anthropic MCP Documentation — official specification and SDKs", "url": "https://docs.anthropic.com/en/docs/mcp" },
+    { "label": "MCP GitHub Repository — open-source specification and reference implementations", "url": "https://github.com/modelcontextprotocol/specification" }
+  ]
+}
