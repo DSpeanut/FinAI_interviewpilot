@@ -166,8 +166,15 @@ export type EdgeCaseItem = { q: string; a: string }
 export type Source = { label: string; url: string }
 export type TermItem = { term: string; def: string }
 
+export interface PromptExample {
+  label: string
+  prompt: string
+  response?: string
+}
+
 export interface WikiEntryContent {
   terms?: TermItem[]
+  promptExample?: PromptExample
   eli3: string[]
   whenWhy: WhenWhyItem[]
   deepDiveIntro?: string[]

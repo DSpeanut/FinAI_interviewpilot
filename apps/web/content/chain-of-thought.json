@@ -1,4 +1,9 @@
 {
+  "promptExample": {
+    "label": "Multi-Step Math Word Problem",
+    "prompt": "User: A store started with 240 units of inventory. They sold 35% of stock on Monday, then sold 60 more units on Tuesday, and received a restock of 18 units on Wednesday. How many units are in stock at the end of Wednesday?\n\nLet's think step by step.",
+    "response": "Step 1: Units sold Monday = 35% × 240 = 84 units\nStep 2: Stock after Monday = 240 − 84 = 156 units\nStep 3: Stock after Tuesday = 156 − 60 = 96 units\nStep 4: Stock after Wednesday restock = 96 + 18 = 114 units\n\nThe answer is 114 units."
+  },
   "eli3": [
     "Chain-of-thought (CoT) prompting (Wei et al. 2022) instructs a language model to produce step-by-step reasoning before giving the final answer, rather than answering directly. 'Let's think step by step' (zero-shot CoT) or providing demonstrations with reasoning traces (few-shot CoT) triggers the model to externalize its reasoning. This dramatically improves performance on multi-step arithmetic, logical reasoning, and commonsense tasks.",
     "Why CoT works: multi-step problems require intermediate computations. Without CoT, the model must compress all reasoning into a single token prediction — this fails for complex problems. With CoT, the model generates intermediate results that are then available as context for subsequent steps. Each reasoning step is simpler than the full problem, and the model can verify partial results. CoT converts a hard single-step problem into a series of easier single-step problems.",

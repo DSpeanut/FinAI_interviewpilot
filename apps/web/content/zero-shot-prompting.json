@@ -1,4 +1,9 @@
 {
+  "promptExample": {
+    "label": "Sentiment Classification",
+    "prompt": "System: You are a sentiment analysis assistant.\n\nClassify the following customer review as exactly one of:\npositive, neutral, or negative.\nRespond with only the label — no explanation.\n\nUser: \"The delivery was fast, but the product quality was really disappointing. The packaging was damaged and one item was missing. Wouldn't order again.\"",
+    "response": "negative"
+  },
   "eli3": [
     "Zero-shot prompting means asking a language model to perform a task without providing any examples — just an instruction and the input. 'Classify this review as positive or negative: [review text]' is a zero-shot prompt. The model relies entirely on knowledge learned during pre-training and instruction tuning to understand and execute the task. No demonstrations, no labeled examples.",
     "Zero-shot prompting works well for large instruction-tuned models (GPT-4, Claude, Llama 2-chat) because these models were fine-tuned on diverse (instruction, response) pairs that teach them to follow natural language directives. For smaller or base (not instruction-tuned) models, zero-shot prompting is unreliable — they may complete the prompt rather than perform the task. Instruction tuning is what makes zero-shot work.",

@@ -1,10 +1,10 @@
 import Link from "next/link"
 import { WikiSidebar } from "@/components/layout/sidebar"
 import { mockEntries, difficultyColors } from "@/lib/mock-data"
-import type { WikiEntryContent, Source } from "@/lib/mock-data"
+import type { WikiEntryContent, Source, PromptExample } from "@/lib/mock-data"
 import { loadEntryContent } from "@/lib/content"
 import { cn } from "@/lib/utils"
-import { ArrowLeft, PlayCircle, ExternalLink, Zap, Lightbulb, Brain, Target, AlertTriangle, BookOpen } from "lucide-react"
+import { ArrowLeft, PlayCircle, ExternalLink, Zap, Lightbulb, Brain, Target, AlertTriangle, BookOpen, Terminal } from "lucide-react"
 
 export default async function EntryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -97,6 +97,13 @@ function EntryContent({ content }: { content: WikiEntryContent }) {
           {content.eli3.map((p, i) => <p key={i}>{p}</p>)}
         </div>
       </Section>
+
+      {/* Prompt Example */}
+      {content.promptExample && (
+        <Section icon={<Terminal className="h-4 w-4 text-violet-500" />} title="Prompt Example">
+          <PromptExampleBlock example={content.promptExample} />
+        </Section>
+      )}
 
       {/* When & Why */}
       <Section icon={<Lightbulb className="h-4 w-4 text-amber-500" />} title="When & Why to Use">
@@ -3977,6 +3984,76 @@ function FactorReturnsViz() {
 
       <text x={zeroX + 4} y={pad.t - 6} fontSize="7.5" fill="#6B7280">Fama-French factor premia (illustrative)</text>
     </svg>
+  )
+}
+
+function PromptExampleBlock({ example }: { example: PromptExample }) {
+  const lines = example.prompt.split("\n")
+
+  const getLineStyle = (line: string): { label: string | null; color: string; labelColor: string; bgColor: string } => {
+    if (line.startsWith("System:")) return { label: "SYS", color: "#C4B5FD", labelColor: "#7C3AED", bgColor: "rgba(124,58,237,0.08)" }
+    if (line.startsWith("User:")) return { label: "USR", color: "#93C5FD", labelColor: "#2563EB", bgColor: "rgba(37,99,235,0.08)" }
+    if (line.startsWith("Thought:")) return { label: "THK", color: "#FCD34D", labelColor: "#D97706", bgColor: "rgba(217,119,6,0.08)" }
+    if (line.startsWith("Action:")) return { label: "ACT", color: "#6EE7B7", labelColor: "#059669", bgColor: "rgba(5,150,105,0.08)" }
+    if (line.startsWith("Observation:")) return { label: "OBS", color: "#F9A8D4", labelColor: "#DB2777", bgColor: "rgba(219,39,119,0.08)" }
+    return { label: null, color: "#9CA3AF", labelColor: "", bgColor: "transparent" }
+  }
+
+  const responseLines = example.response ? example.response.split("\n") : []
+
+  return (
+    <div className="rounded-xl overflow-hidden border border-[#1E293B] text-[9.5pt] font-mono">
+      {/* header bar */}
+      <div className="bg-[#0F172A] flex items-center justify-between px-4 py-2 border-b border-[#1E293B]">
+        <span className="text-[#64748B] text-[8.5pt] tracking-wider uppercase">prompt</span>
+        <span className="text-violet-400 text-[8.5pt] font-semibold">{example.label}</span>
+      </div>
+
+      {/* prompt lines */}
+      <div className="bg-[#0F172A] px-4 py-3 space-y-0.5">
+        {lines.map((line, i) => {
+          const { label, color, labelColor, bgColor } = getLineStyle(line)
+          const rest = label ? line.slice(line.indexOf(":") + 1).trim() : line
+          return (
+            <div
+              key={i}
+              className="flex gap-2 items-start rounded px-1.5 py-0.5"
+              style={{ backgroundColor: bgColor !== "transparent" ? bgColor : undefined }}
+            >
+              {label ? (
+                <span
+                  className="shrink-0 text-[7.5pt] font-bold px-1 py-0 rounded mt-0.5 leading-tight"
+                  style={{ color: labelColor, backgroundColor: `${labelColor}22` }}
+                >
+                  {label}
+                </span>
+              ) : (
+                <span className="shrink-0 w-[26px]" />
+              )}
+              <span className="leading-relaxed whitespace-pre-wrap" style={{ color: label ? color : "#6B7280" }}>
+                {label ? rest : line}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* response */}
+      {example.response && (
+        <>
+          <div className="bg-[#0F172A] border-t border-dashed border-[#1E293B] flex items-center gap-2 px-4 py-1.5">
+            <span className="text-[#64748B] text-[8.5pt] tracking-wider uppercase">model response</span>
+          </div>
+          <div className="bg-[#071A12] px-4 py-3">
+            {responseLines.map((line, i) => (
+              <div key={i} className="leading-relaxed" style={{ color: line.startsWith("⚠️") ? "#FCA5A5" : line.startsWith("✅") ? "#6EE7B7" : "#34D399" }}>
+                {line || "\u00A0"}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   )
 }
 

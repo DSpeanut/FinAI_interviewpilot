@@ -1,4 +1,9 @@
 {
+  "promptExample": {
+    "label": "Multi-hop Research with Tool Use",
+    "prompt": "User: What is the GDP per capita of the country that won the 2022 FIFA World Cup?\n\nThought: I need to find out which country won the 2022 FIFA World Cup.\nAction: search(\"2022 FIFA World Cup winner\")\nObservation: Argentina won the 2022 FIFA World Cup, defeating France on penalties.\n\nThought: Now I need Argentina's GDP per capita.\nAction: search(\"Argentina GDP per capita 2023 World Bank\")\nObservation: Argentina's GDP per capita was approximately $13,700 USD in 2023 (World Bank).\n\nThought: I have both answers. I can now provide the final response.\nAction: finish(\"Argentina won the 2022 FIFA World Cup. Their GDP per capita is approximately $13,700 USD (2023, World Bank).\")",
+    "response": "Argentina won the 2022 FIFA World Cup. Their GDP per capita is approximately $13,700 USD (2023, World Bank)."
+  },
   "eli3": [
     "ReAct (Reasoning + Acting, Yao et al. 2023) is a prompting framework where the LLM alternates between generating reasoning thoughts and taking actions (tool calls) to complete a task. Thought: 'I need to find the population of France.' Action: search('population of France'). Observation: 'France has 68 million people.' Thought: 'Now I can answer.' Action: finish('68 million'). The model reasons about what to do, acts, observes the result, and repeats.",
     "ReAct combines the benefits of chain-of-thought (reasoning traces) with external tool use (search, calculator, code execution, APIs). Without tools, LLMs hallucinate facts they don't know. With ReAct, the model can retrieve real-time information, execute code for exact computation, and interact with external systems. This makes LLMs useful for tasks requiring up-to-date knowledge or deterministic computation.",
