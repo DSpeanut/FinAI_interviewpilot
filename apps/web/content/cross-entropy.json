@@ -1,0 +1,84 @@
+{
+  "eli3": [
+    "Cross-entropy measures the 'distance' between two probability distributions. It's H(p,q) = -Σ p(x) log q(x). Think of it as: if the true distribution is p, how surprised are you on average if you believe distribution q?",
+    "Cross-entropy combines two things: the inherent uncertainty of p (its entropy) plus the 'penalty' for using q instead of p (KL divergence). So H(p,q) = H(p) + KL(p||q).",
+    "In classification, we minimize cross-entropy loss between true labels (one-hot p) and predicted probabilities (softmax q). This forces predictions to match the true distribution."
+  ],
+  "whenWhy": [
+    {
+      "title": "Classification loss functions",
+      "body": "Cross-entropy loss (log loss) is standard for multi-class classification: L = -Σ yᵢ log(ŷᵢ). Penalizes confident wrong predictions heavily. Outperforms MSE for classification because it matches probability interpretation and has better gradients."
+    },
+    {
+      "title": "Language modeling",
+      "body": "Perplexity = exp(cross-entropy). Measures how well a language model predicts next words. Lower cross-entropy = lower perplexity = better model. Used to evaluate GPT, BERT, and all language models."
+    },
+    {
+      "title": "Generative models",
+      "body": "VAEs use reconstruction loss (often MSE or cross-entropy) plus KL regularization. GANs implicitly minimize Jensen-Shannon divergence (symmetrized KL). Diffusion models use cross-entropy-like objectives for noise prediction."
+    },
+    {
+      "title": "Multi-label and hierarchical classification",
+      "body": "Binary cross-entropy for each label independently. Sigmoid + BCE instead of softmax + CE. Handles multiple positive labels. Hierarchical cross-entropy exploits class hierarchies for better generalization."
+    }
+  ],
+  "deepDiveIntro": [
+    "For distributions p (true) and q (predicted/approximating), cross-entropy is H(p,q) = -Σ_x p(x) log q(x) = E_p[-log q(X)]. For continuous: -∫ p(x) log q(x) dx. Related to KL: H(p,q) = H(p) + D(p||q) = entropy + KL divergence. Since H(p) is constant w.r.t. q, minimizing cross-entropy ≡ minimizing KL.",
+    "In ML, p is typically the empirical distribution (one-hot for classification: p(k) = 1 if k = true label, else 0). Then H(p,q) = -log q(true label). This is the negative log-likelihood for categorical distributions, justifying cross-entropy as maximum likelihood estimation."
+  ],
+  "visualizationType": "cross-entropy",
+  "deepDive": [
+    {
+      "heading": "Definition and Relation to KL",
+      "body": "H(p,q) = -Σ p(x) log q(x). H(p,q) = H(p) + D(p||q). Cross-entropy = entropy of true distribution + KL divergence from true to predicted. Minimizing H(p,q) over q is equivalent to minimizing D(p||q) since H(p) is constant.",
+      "formula": "H(p,q) = H(p) + D(p||q) = -Σ p(x) log q(x)"
+    },
+    {
+      "heading": "Binary Cross-Entropy",
+      "body": "For binary classification with labels y ∈ {0,1} and predictions p = P(Y=1): BCE = -[y log p + (1-y) log(1-p)]. Convex in p. For multiple independent labels, sum BCE over each. Used in multi-label classification, GANs (discriminator loss).",
+      "formula": "L = -[y log(p) + (1-y) log(1-p)]"
+    },
+    {
+      "heading": "Categorical Cross-Entropy",
+      "body": "For K classes with one-hot target y and softmax probabilities ŷ: CE = -Σₖ₌₁ᴷ yₖ log(ŷₖ) = -log(ŷ_{true}). If prediction is confident and wrong (ŷ_{true} ≈ 0), loss → ∞. Numerically stable computation: subtract max(logits) before softmax.",
+      "formula": "L = -Σₖ yₖ log(ŷₖ) = -log(softmax(z)_{true})"
+    },
+    {
+      "heading": "Label Smoothing",
+      "body": "Replace one-hot targets (0,1) with smoothed (ε/(K-1), 1-ε). Prevents overconfident predictions, acts as regularization. Cross-entropy with smoothing: -(1-ε)log ŷ_{true} - Σ_{k≠true} (ε/(K-1)) log ŷₖ. Used in training transformers and image classifiers.",
+      "formula": "y'_k = 1 - ε if k = true, ε/(K-1) otherwise"
+    },
+    {
+      "heading": "Focal Loss",
+      "body": "Addresses class imbalance by down-weighting easy examples. FL = -Σ (1-ŷₖ)^γ yₖ log(ŷₖ) where γ ≥ 0. When γ=0, recovers CE. As γ increases, easy examples (high ŷₖ) contribute less. Used in object detection (RetinaNet) with extreme imbalance.",
+      "formula": "FL = -Σ (1-ŷₖ)^γ yₖ log(ŷₖ)"
+    }
+  ],
+  "youtubeLabel": "Cross Entropy Loss — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/6ArSyxRG63I",
+  "takeaways": [
+    "Cross-entropy H(p,q) = -Σ p(x) log q(x).",
+    "H(p,q) = H(p) + D(p||q). Minimizing CE = minimizing KL.",
+    "Classification: CE = -log(predicted probability of true class).",
+    "Binary CE for multi-label; softmax CE for multi-class.",
+    "Label smoothing and focal loss are CE variants for regularization and imbalance."
+  ],
+  "edgeCases": [
+    {
+      "q": "What happens when q(x) = 0 but p(x) > 0?",
+      "a": "Cross-entropy is infinite (∞). This means the model assigns zero probability to a true outcome, which is catastrophic. In practice, we clip probabilities (e.g., ε = 1e-7) to avoid numerical issues. This is why we don't use hard 0/1 targets in training."
+    },
+    {
+      "q": "Why is cross-entropy better than MSE for classification?",
+      "a": "(1) Gradients: CE has steeper gradients when predictions are wrong, faster learning. (2) Probabilistic: CE is negative log-likelihood, MSE assumes Gaussian errors. (3) Saturation: sigmoid + MSE gradients vanish when saturated; CE gradients don't. (4) Convexity: CE loss is convex in logits; MSE isn't."
+    },
+    {
+      "q": "What's the difference between cross-entropy and log loss?",
+      "a": "They're the same thing. 'Log loss' is common in competitions (Kaggle) and scikit-learn. 'Cross-entropy' is common in deep learning frameworks (PyTorch, TensorFlow). Both refer to -Σ p(x) log q(x). Binary log loss = binary cross-entropy."
+    }
+  ],
+  "sources": [
+    { "label": "Goodfellow et al. — Deep Learning, Ch. 6", "url": "https://www.deeplearningbook.org/" },
+    { "label": "Lin et al. — Focal Loss for Dense Object Detection", "url": "https://arxiv.org/abs/1708.02002" }
+  ]
+}

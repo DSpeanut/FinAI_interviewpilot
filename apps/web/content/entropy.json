@@ -1,0 +1,83 @@
+{
+  "eli3": [
+    "Entropy measures uncertainty or surprise in a random variable. A fair coin has 1 bit of entropy (max uncertainty). A biased coin has less — you're less surprised by the outcome. A coin that always lands heads has zero entropy (no uncertainty).",
+    "Formula: H(X) = -Σ p(x) log p(x). High entropy = unpredictable (uniform distribution). Low entropy = predictable (concentrated distribution). Entropy bounds how much you can compress data without loss.",
+    "Shannon showed that the minimum average number of bits needed to encode outcomes from distribution p is H(p). This is the fundamental limit of lossless compression."
+  ],
+  "whenWhy": [
+    {
+      "title": "Data compression",
+      "body": "Huffman coding and arithmetic coding approach entropy limit. Know the distribution, assign shorter codes to frequent symbols. Entropy gives theoretical minimum bits per symbol. Used in ZIP, JPEG, video codecs."
+    },
+    {
+      "title": "Decision trees and feature selection",
+      "body": "Information gain = entropy(parent) - weighted sum entropy(children). Measures how much a feature reduces uncertainty. ID3, C4.5, CART use information gain (or Gini impurity) to choose splits."
+    },
+    {
+      "title": "Policy entropy in reinforcement learning",
+      "body": "Adding entropy bonus to RL objectives encourages exploration. Prevents premature convergence to deterministic policies. SAC (Soft Actor-Critic) maximizes expected return plus policy entropy."
+    },
+    {
+      "title": "Model uncertainty and Bayesian inference",
+      "body": "Entropy of posterior measures uncertainty. Maximum entropy principle: choose distribution with maximum entropy subject to constraints. Used for prior specification and density estimation."
+    }
+  ],
+  "deepDiveIntro": [
+    "For discrete random variable X with PMF p(x), Shannon entropy is H(X) = -Σ_x p(x) log p(x) = E[-log p(X)]. Usually base-2 logarithm (bits), sometimes natural log (nats). H(X) ≥ 0 with equality iff X is deterministic. Maximum entropy for finite support is log|X| achieved by uniform distribution.",
+    "Joint entropy H(X,Y) = -Σ p(x,y) log p(x,y). Conditional entropy H(Y|X) = -Σ p(x,y) log p(y|x) = H(X,Y) - H(X). Chain rule: H(X₁,…,Xₙ) = Σᵢ H(Xᵢ|X₁,…,Xᵢ₋₁). Differential entropy extends to continuous variables: h(X) = -∫ f(x) log f(x) dx (but can be negative)."
+  ],
+  "visualizationType": "entropy",
+  "deepDive": [
+    {
+      "heading": "Shannon Entropy",
+      "body": "H(X) = -Σ p(x) log p(x). Measures expected surprise (information content). Properties: H(X) ≥ 0; H(X) ≤ log|X| with equality for uniform; H(X) = 0 iff X deterministic. Concave function of p — maximum at uniform.",
+      "formula": "H(X) = -Σₓ p(x) log p(x) = E[log(1/p(X))]"
+    },
+    {
+      "heading": "Joint and Conditional Entropy",
+      "body": "Joint: H(X,Y) measures uncertainty in pair. Conditional: H(Y|X) = H(X,Y) - H(X) measures remaining uncertainty in Y given X. H(Y|X) = 0 iff Y is function of X. Chain rule: joint = sum of conditionals.",
+      "formula": "H(Y|X) = H(X,Y) - H(X) = Σₓ p(x)H(Y|X=x)"
+    },
+    {
+      "heading": "Relative Entropy (KL Divergence)",
+      "body": "D(p||q) = Σ p(x) log(p(x)/q(x)) = E_p[log(p/q)]. Not symmetric, not a metric. Measures extra bits needed to encode from p using code optimized for q. D(p||q) ≥ 0 with equality iff p = q.",
+      "formula": "D(p||q) = Σₓ p(x) log(p(x)/q(x)) ≥ 0"
+    },
+    {
+      "heading": "Mutual Information",
+      "body": "I(X;Y) = H(X) - H(X|Y) = H(Y) - H(Y|X) = H(X) + H(Y) - H(X,Y). Measures reduction in uncertainty about X from knowing Y. Symmetric, non-negative, I(X;Y) = 0 iff X ⟂ Y. I(X;Y) = D(p(x,y)||p(x)p(y)).",
+      "formula": "I(X;Y) = Σₓ,ᵧ p(x,y) log(p(x,y)/(p(x)p(y)))"
+    },
+    {
+      "heading": "Data Inequality and Compression",
+      "body": "Source coding theorem: expected length of optimal prefix code satisfies H(X) ≤ L* < H(X) + 1. Asymptotically achievable with block coding. Huffman coding is optimal symbol-by-symbol; arithmetic coding approaches entropy for long blocks."
+    }
+  ],
+  "youtubeLabel": "Information Entropy — 3Blue1Brown",
+  "youtubeUrl": "https://www.youtube.com/embed/1J7xPLz6j40",
+  "takeaways": [
+    "Entropy H(X) = -Σ p(x) log p(x): measures uncertainty/surprise.",
+    "H(X) = 0 (deterministic) to log|X| (uniform).",
+    "Conditional entropy H(Y|X): remaining uncertainty after knowing X.",
+    "KL divergence D(p||q): extra cost of using q when true is p.",
+    "Mutual information I(X;Y): reduction in uncertainty, symmetric."
+  ],
+  "edgeCases": [
+    {
+      "q": "What about 0 log 0?",
+      "a": "Convention: 0 log 0 = 0 (continuous extension). Makes sense: outcomes with probability 0 contribute nothing to entropy (never occur, so no surprise). This is why we can sum over support only."
+    },
+    {
+      "q": "Can differential entropy be negative?",
+      "a": "Yes. Unlike discrete entropy, differential entropy h(X) = -∫ f(x) log f(x)dx can be negative. Example: Uniform[0,a] has h = log(a), negative for a < 1. Differential entropy is not invariant under transformations; relative entropy (KL) is better behaved."
+    },
+    {
+      "q": "What's the difference between bits and nats?",
+      "a": "Bits use log₂; nats use ln (natural log). 1 nat = log₂(e) ≈ 1.443 bits. Information theory traditionally uses bits. In optimization (e.g., cross-entropy loss), natural log is common for mathematical convenience. Convert: H_bits = H_nats / ln(2)."
+    }
+  ],
+  "sources": [
+    { "label": "Cover & Thomas — Elements of Information Theory (2nd ed.)", "url": "https://www.wiley.com/en-us/Elements+of+Information+Theory" },
+    { "label": "MacKay — Information Theory, Inference, and Learning Algorithms", "url": "https://www.inference.org.uk/itprnn/book.html" }
+  ]
+}

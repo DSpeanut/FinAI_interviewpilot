@@ -1,0 +1,83 @@
+{
+  "eli3": [
+    "A vector is a list of numbers that points in some direction — like an arrow from the origin to a point in space. [3, 4] points 3 units right and 4 units up. A matrix is a grid of numbers, like a spreadsheet. It can stretch, rotate, or flip vectors.",
+    "Think of a matrix as a machine: you feed it a vector, and it spits out a new vector. Each row of the matrix tells you how much of each input number to mix into each output number.",
+    "Vectors represent things like position, velocity, or word embeddings. Matrices represent transformations, datasets (rows = examples, columns = features), or systems of equations."
+  ],
+  "whenWhy": [
+    {
+      "title": "Representing data in ML",
+      "body": "Each row of a data matrix X ∈ ℝⁿˣᵖ is one example with p features. Linear regression solves Xβ ≈ y. Neural networks are compositions of matrix multiplications with nonlinearities."
+    },
+    {
+      "title": "Working with embeddings",
+      "body": "Word2vec and BERT produce dense vectors. Similarity between documents is cosine of their vector angle. Matrix factorization (SVD, NMF) decomposes term-document matrices for topic modeling."
+    },
+    {
+      "title": "Transformations and coordinate systems",
+      "body": "PCA finds a new coordinate system (rotation) where axes are uncorrelated. CNNs use convolution matrices to detect local patterns. Computer graphics uses 4×4 matrices for 3D transformations."
+    },
+    {
+      "title": "Solving systems of linear equations",
+      "body": "Ax = b represents a system. Gaussian elimination, LU decomposition, or matrix inversion solve it. Used in optimization (Newton's method), circuit analysis, and structural engineering."
+    }
+  ],
+  "deepDiveIntro": [
+    "A vector v ∈ ℝⁿ is an element of n-dimensional real vector space. It has magnitude (norm) ||v|| and direction. A matrix A ∈ ℝᵐˣⁿ represents a linear transformation T: ℝⁿ → ℝᵐ via matrix-vector multiplication: (Av)ᵢ = Σⱼ Aᵢⱼvⱼ. Linearity means T(av + bw) = aT(v) + bT(w).",
+    "Matrix multiplication corresponds to composition of linear transformations. If A: ℝⁿ → ℝᵐ and B: ℝᵐ → ℝᵖ, then BA: ℝⁿ → ℝᵖ. The identity matrix I has Iᵢⱼ = δᵢⱼ (Kronecker delta). The inverse A⁻¹ exists iff det(A) ≠ 0, giving the unique solution to Ax = b as x = A⁻¹b."
+  ],
+  "visualizationType": "vectors-matrices",
+  "deepDive": [
+    {
+      "heading": "Vector Spaces",
+      "body": "A vector space over a field F (usually ℝ) is a set V with addition and scalar multiplication satisfying: closure, associativity, commutativity, identity (0 vector), inverses, and distributivity. Basis {v₁,…,vₙ} spans V linearly independently. Every v ∈ V has unique coordinates in a basis. Dimension = size of any basis.",
+      "formula": "v = Σᵢ αᵢvᵢ (unique linear combination)"
+    },
+    {
+      "heading": "Matrix Multiplication",
+      "body": "For A ∈ ℝᵐˣⁿ and B ∈ ℝⁿˣᵖ, the product AB ∈ ℝᵐˣᵖ has (AB)ᵢₖ = Σⱼ AᵢⱼBⱼₖ. Not commutative: AB ≠ BA in general. Associative: (AB)C = A(BC). Transpose: (AB)ᵀ = BᵀAᵀ. Computational complexity: O(mnp) for naive multiplication.",
+      "formula": "(AB)ᵢₖ = Σⱼ₌₁ⁿ AᵢⱼBⱼₖ"
+    },
+    {
+      "heading": "Rank and Null Space",
+      "body": "The column space C(A) = span of columns, dimension = rank(A). The null space N(A) = {x: Ax = 0}. Rank-nullity theorem: rank(A) + nullity(A) = n (number of columns). Full rank means rank = min(m, n). For square matrices, full rank ↔ invertible.",
+      "formula": "dim(C(A)) + dim(N(A)) = n"
+    },
+    {
+      "heading": "Special Matrix Types",
+      "body": "Symmetric: A = Aᵀ. Positive definite: xᵀAx > 0 for all x ≠ 0. Orthogonal: QᵀQ = I (preserves lengths and angles). Diagonal: nonzeros only on diagonal. Triangular: all zeros above (lower) or below (upper) diagonal. Sparse: mostly zeros — stored efficiently for large systems.",
+      "formula": "Q orthogonal ⟹ QᵀQ = I, ||Qx|| = ||x||"
+    },
+    {
+      "heading": "Geometric Interpretation",
+      "body": "Matrices encode linear transformations: scaling (diagonal), rotation (orthogonal with det=1), reflection (orthogonal with det=-1), shearing, projection (idempotent: P² = P). Singular Value Decomposition (SVD) reveals that every matrix is a rotation-scale-rotation composition."
+    }
+  ],
+  "youtubeLabel": "Linear Algebra — 3Blue1Brown Essence",
+  "youtubeUrl": "https://www.youtube.com/embed/fNk_zzaMoSs",
+  "takeaways": [
+    "Vectors are lists with magnitude/direction; matrices are linear transformation machines.",
+    "Matrix multiplication composes transformations: (AB)v = A(Bv).",
+    "Rank = dimension of column space; nullity = dimension of null space; sum to n.",
+    "A is invertible ⟺ full rank ⟺ det(A) ≠ 0 ⟺ columns are linearly independent.",
+    "Special types: symmetric, orthogonal, diagonal, positive definite — each with useful properties."
+  ],
+  "edgeCases": [
+    {
+      "q": "When does Ax = b have no solution?",
+      "a": "When b is not in the column space of A (system is inconsistent). This happens when rank([A|b]) > rank(A). The least squares solution x̂ = (AᵀA)⁻¹Aᵀb minimizes ||Ax - b||²."
+    },
+    {
+      "q": "Why is matrix multiplication non-commutative?",
+      "a": "AB applies B then A; BA applies A then B. Different order = different result. Example: A = rotation 90°, B = scaling [2,1]. AB ≠ BA. This is why matrix exponentials e^(A+B) ≠ e^A e^B unless AB = BA."
+    },
+    {
+      "q": "What is the difference between row rank and column rank?",
+      "a": "They're always equal (rank theorem). But column rank = dimension of output space, row rank = dimension of input space that maps to nonzero outputs. For non-square matrices, these are different spaces but have the same dimension."
+    }
+  ],
+  "sources": [
+    { "label": "Strang — Introduction to Linear Algebra (6th ed.)", "url": "https://math.mit.edu/~gs/linearalgebra/" },
+    { "label": "3Blue1Brown — Essence of Linear Algebra", "url": "https://www.3blue1brown.com/topics/linear-algebra" }
+  ]
+}

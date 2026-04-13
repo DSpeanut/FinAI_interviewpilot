@@ -1,0 +1,80 @@
+{
+  "eli3": [
+    "Alerting strategies determine when to wake someone up about model issues. Too sensitive = alert fatigue (ignored alerts). Too lenient = miss real problems. Balance is critical for operational sustainability.",
+    "Multi-layered approach: warnings (investigate tomorrow), alerts (fix today), pages (fix now). Different channels: Slack/email for warnings, ticketing for alerts, PagerDuty for pages. Not everything needs 3 AM wake-up.",
+    "Good alerts are: actionable (clear what to do), specific (identifies problem), relevant (real user impact), and timely (enough time to react). Bad alerts: 'CPU high' without context or action."
+  ],
+  "whenWhy": [
+    {
+      "title": "Operational sustainability",
+      "body": "Alert fatigue is real — teams start ignoring alerts after too many false positives. Leads to missing real incidents. Thoughtful alerting maintains team health and system reliability. Google SRE principle: pages should be urgent, actionable, and real."
+    },
+    {
+      "title": "Incident response",
+      "body": "Clear severity levels determine response: SEV1 (page immediately, all hands), SEV2 (work hours, dedicated team), SEV3 (backlog). Escalation policies if first responder doesn't acknowledge. Runbooks linked to each alert type."
+    },
+    {
+      "title": "Proactive vs reactive monitoring",
+      "body": "Leading indicators (feature drift, latency trend) provide early warning. Lagging indicators (accuracy drop, user complaints) mean damage already done. Layer alerts: early warning → degradation → outage. Time to react increases at each layer."
+    },
+    {
+      "title": "On-call rotation management",
+      "body": "Fair distribution of on-call burden. Primary/secondary schedules. Follow-the-sun for global teams. Compensation for off-hours pages. Regular review of alert frequency and quality. Goal: <5 pages per week per team."
+    }
+  ],
+  "deepDiveIntro": [
+    "Alert taxonomy: (1) Black-box monitoring: user-visible behavior (error rate, latency). (2) White-box monitoring: internal state (queue depth, CPU). (3) Business metrics: conversion rate, fraud rate. Severity: P0 (immediate response), P1 (same day), P2 (this week), P3 (backlog).",
+    "Alert quality metrics: Signal-to-noise ratio (true positives / total alerts). Mean time to detection (MTTD). Mean time to resolution (MTTR). Alert fatigue index (alerts per on-call shift). Regular alert review: remove noisy alerts, tune thresholds."
+  ],
+  "visualizationType": "alerting-strategies",
+  "deepDive": [
+    {
+      "heading": "Severity Levels",
+      "body": "P0/Critical: service down, data loss, security incident. Page immediately, all hands, SLA breach. P1/High: degraded service, significant impact. Work hours, dedicated resources. P2/Medium: partial impact, workarounds exist. Backlog, plan fix. P3/Low: minor issues, cosmetic. Track, fix when convenient. Clear criteria for each severity.",
+      "formula": "Severity = Impact × Urgency"
+    },
+    {
+      "heading": "Threshold Selection",
+      "body": "Static: fixed thresholds (latency > 100ms). Problem: doesn't adapt to load, seasonality. Dynamic: relative to baseline (latency > 3σ from normal). ML-based: anomaly detection on metrics. Windowed: sustained violation for N minutes (reduce noise). Percentile-based: p99 latency vs mean (catch tail)."
+    },
+    {
+      "heading": "Notification Channels",
+      "body": "Pages (PagerDuty, Opsgenie): urgent, interruptive, expensive. Use sparingly. Tickets (Jira, ServiceNow): trackable, assignable, non-urgent. Email/Slack: informational, reference. Dashboards: self-serve investigation. Runbooks: linked in alert, step-by-step remediation. Escalation: auto-escalate if not acknowledged in N minutes."
+    },
+    {
+      "heading": "Reducing Alert Fatigue",
+      "body": "Aggregation: group related alerts (all model endpoints, not each separately). Deduplication: one alert for same root cause. Actionability: every alert must have clear action. Context: include relevant logs, dashboards, recent changes. Review: weekly on-call retro, remove top 3 noisy alerts. Automation: self-healing where possible."
+    },
+    {
+      "heading": "ML-Specific Alerts",
+      "body": "Data: schema change, null rate spike, distribution drift (PSI > 0.2). Model: prediction distribution shift, confidence score drop, high uncertainty rate. Performance: accuracy/AUC drop, latency regression, error rate. Business: conversion drop, fraud rate change, user complaints. System: training job failure, feature store staleness."
+    }
+  ],
+  "youtubeLabel": "Alerting Best Practices — Google SRE",
+  "youtubeUrl": "https://www.youtube.com/embed/4k3N2S4bSHY",
+  "takeaways": [
+    "Alert severity: P0 (page now) → P3 (backlog).",
+    "Quality alerts: actionable, specific, relevant, timely.",
+    "Thresholds: static, dynamic (σ-based), ML anomaly detection.",
+    "Channels: pages (urgent), tickets (trackable), Slack (info).",
+    "Fight alert fatigue: aggregation, deduplication, regular review."
+  ],
+  "edgeCases": [
+    {
+      "q": "What if everything is alerting?",
+      "a": "Alert storm usually indicates single root cause. Solutions: (1) Correlation: group alerts by time, service, dependency. (2) Suppression: if P0 fires, suppress related P1/P2 temporarily. (3) Dependency mapping: don't alert on symptoms (high latency) if cause already alerted (DB down). (4) Circuit breaker: stop cascading alerts. Post-storm: retrospective to add correlation rules."
+    },
+    {
+      "q": "How do you handle false positives?",
+      "a": "Tune thresholds: increase if too sensitive. Add sustained duration: alert only if condition holds for 5+ minutes. Add hysteresis: different threshold for entering vs exiting alert state. Context-aware: different thresholds for peak vs off-peak hours. Statistical: use p-values instead of fixed thresholds. Regular review: top 5 noisiest alerts get tuning priority."
+    },
+    {
+      "q": "Should you alert on predictions of failure?",
+      "a": "Predictive alerts (AI-powered anomaly detection) can be powerful but dangerous. Risk: black box, hard to debug false positives. Best practice: (1) Start with simple rules, add ML later if needed. (2) Human-in-the-loop: ML suggests, human decides. (3) High precision over recall for auto-pages (better to miss some than wake up for nothing). (4) Clear feedback loop: was this alert useful?"
+    }
+  ],
+  "sources": [
+    { "label": "Google SRE Book — Monitoring Distributed Systems", "url": "https://sre.google/sre-book/monitoring-distributed-systems/" },
+    { "label": "Niessen — Reducing Alert Fatigue", "url": "https://www.infoq.com/articles/alert-fatigue/" }
+  ]
+}

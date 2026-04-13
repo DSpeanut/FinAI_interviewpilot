@@ -1,0 +1,82 @@
+{
+  "eli3": [
+    "Shadow deployment runs a new model alongside the production model without serving its predictions to users. The new model receives copies of live traffic, makes predictions, and logs them for comparison — but users only see production model output.",
+    "Think of it like a dress rehearsal: the understudy (new model) performs backstage while the star (production model) is on stage. You compare their performances without the audience knowing or risking a bad show.",
+    "Benefits: validate model with real data distribution, catch training-serving skew, measure latency under production load, compare predictions to production model — all with zero user impact."
+  ],
+  "whenWhy": [
+    {
+      "title": "Validating model with real traffic",
+      "body": "Test set may not match production distribution. Shadow deployment reveals issues: features computed differently, data edge cases, unexpected inputs. Catch problems before users affected. Essential for high-stakes applications (finance, healthcare, safety)."
+    },
+    {
+      "title": "Measuring production performance",
+      "body": "Latency under real concurrent load, not synthetic benchmarks. Resource consumption (CPU, memory, GPU) with actual traffic patterns. Compare to production model baseline. Validate SLO compliance before rollout."
+    },
+    {
+      "title": "Prediction comparison and validation",
+      "body": "Log both model predictions, analyze disagreement. High disagreement rate flags potential issues. Analyze cases where models differ significantly. Build confidence that new model is safe before canary deployment."
+    },
+    {
+      "title": "Infrastructure validation",
+      "body": "Test new serving infrastructure (different framework, optimization, hardware) without risk. Validate monitoring, logging, alerting work correctly. Ensure scaling policies trigger appropriately."
+    }
+  ],
+  "deepDiveIntro": [
+    "Shadow deployment architecture: Load balancer or proxy duplicates incoming requests, sends to both production and shadow models. Production responses returned to users; shadow responses logged/discarded. Both models receive same input features (ensuring fair comparison). Shadow has no SLO requirements (can be slower), but ideally similar resources to validate performance.",
+    "Implementation: Istio/Envoy service mesh (traffic mirroring), Seldon (shadow field in SeldonDeployment), custom proxy (nginx, HAProxy), or application-level duplication. Storage: log shadow predictions to data lake for offline analysis. Compare: prediction distributions, latency histograms, error rates. Duration: hours to days depending on traffic and confidence needed."
+  ],
+  "visualizationType": "shadow-deployment",
+  "deepDive": [
+    {
+      "heading": "Architecture Patterns",
+      "body": "Service mesh: Istio traffic mirroring copies requests to shadow service. Load balancer: nginx mirror module duplicates traffic. Application: code dispatches to both models (async). Proxy layer: Envoy filter routes to both. Tradeoffs: infrastructure complexity vs application changes. Service mesh preferred for no code changes.",
+      "formula": "Request → Load Balancer → [Production Model, Shadow Model] → Production response to user, Shadow response logged"
+    },
+    {
+      "heading": "Analysis and Comparison",
+      "body": "Prediction agreement: % of identical predictions, distribution of differences. Metrics: KL divergence, PSI between prediction distributions. Error analysis: where do models disagree? Feature importance of disagreement cases. Latency: p50, p99 comparison. Resource: CPU/memory utilization. Decision thresholds: >95% agreement + similar latency = safe for canary.",
+      "formula": "Agreement Rate = Σ(prediction_shadow == prediction_prod) / N"
+    },
+    {
+      "heading": "Cost and Overhead",
+      "body": "Shadow doubles compute cost (both models run). Mitigation: sample 10% traffic to shadow (still representative). Async processing allows shadow to lag. Stateless models easier to shadow than stateful. Storage cost for logging shadow predictions. Worth the cost for risk reduction in critical systems.",
+      "formula": "Shadow Cost = Traffic Ratio × (Inference Cost Shadow + Storage Cost)"
+    },
+    {
+      "heading": "When to Advance to Canary",
+      "body": "Checklist: (1) Prediction agreement > threshold (e.g., 95%). (2) Latency within SLO budget. (3) No errors/exceptions. (4) Resource usage acceptable. (5) No anomalies in prediction distribution. (6) Business stakeholders approve. Duration: minimum 24 hours to capture daily patterns, longer for weekly seasonality."
+    },
+    {
+      "heading": "Limitations",
+      "body": "Cannot measure business impact (predictions not served). User feedback loop missing (can't measure click-through on recommendations). Only validates model correctness, not user experience. Still need canary/A/B for final validation. Don't catch issues that only appear when predictions affect user behavior (feedback loops)."
+    }
+  ],
+  "youtubeLabel": "Shadow Deployment — Seldon",
+  "youtubeUrl": "https://www.youtube.com/embed/6gdrUiQbPIw",
+  "takeaways": [
+    "Shadow deployment = run new model with production traffic, don't serve predictions.",
+    "Validates model with real data, catches training-serving skew, zero user impact.",
+    "Implemented via service mesh (Istio), load balancer (nginx), or app code.",
+    "Analyze: prediction agreement, latency, resource usage, error rates.",
+    "Advance to canary when agreement > threshold, latency acceptable, no errors."
+  ],
+  "edgeCases": [
+    {
+      "q": "What if shadow model has side effects?",
+      "a": "Problem: model calls external API, writes to DB, charges credit card. Shadow should not have side effects. Solutions: (1) Mock/stub external dependencies in shadow. (2) Dry-run mode: log what would happen without doing it. (3) Separate code paths for shadow (but risks testing different code). (4) Only shadow pure prediction functions."
+    },
+    {
+      "q": "How do you handle stateful models in shadow?",
+      "a": "Harder: model has internal state (caches, embeddings, session data). Options: (1) Copy state from production to shadow (complex, may be large). (2) Cold-start shadow (different behavior, but conservative). (3) Don't shadow stateful models; use extensive offline testing + small canary instead. (4) Use synthetic traffic that doesn't affect state."
+    },
+    {
+      "q": "Does shadow deployment replace A/B testing?",
+      "a": "No — complementary. Shadow: technical validation (correctness, latency). A/B: business validation (user engagement, revenue). Shadow first (no user impact), then canary/small A/B (minimal user impact), then full rollout. Shadow catches technical bugs; A/B catches user experience issues. Both together provide comprehensive validation."
+    }
+  ],
+  "sources": [
+    { "label": "Huyen — Designing Machine Learning Systems, Ch. 7", "url": "https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/" },
+    { "label": "Seldon — Shadow Deployment Documentation", "url": "https://docs.seldon.io/seldon-core/contents/ingress/knative.html" }
+  ]
+}

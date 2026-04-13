@@ -1,0 +1,83 @@
+{
+  "eli3": [
+    "KL divergence measures how different two probability distributions are. It's not symmetric: KL(p||q) ≠ KL(q||p). Think of it as the 'cost' of using distribution q to approximate the true distribution p.",
+    "Formula: KL(p||q) = Σ p(x) log(p(x)/q(x)). If q assigns low probability where p is high, KL is large (bad approximation). If q matches p exactly, KL = 0.",
+    "Unlike a distance metric, KL divergence isn't symmetric and doesn't satisfy the triangle inequality. But it's always non-negative (Gibbs' inequality), making it useful for optimization."
+  ],
+  "whenWhy": [
+    {
+      "title": "Variational inference",
+      "body": "Approximate complex posterior p(θ|D) with simpler q(θ) by minimizing KL(q||p). Evidence lower bound (ELBO) = log p(D) - KL(q||p). Used in VAEs, Bayesian neural networks, and topic models."
+    },
+    {
+      "title": "Reinforcement learning (policy optimization)",
+      "body": "TRPO and PPO constrain policy updates using KL divergence. Prevent overly large steps that destabilize training. Natural gradient descent uses KL to define trust regions in parameter space."
+    },
+    {
+      "title": "Model comparison and goodness-of-fit",
+      "body": "Expected log-likelihood relates to KL between true and estimated distributions. AIC and BIC penalize model complexity. Minimum KL estimation is asymptotically equivalent to maximum likelihood."
+    },
+    {
+      "title": "Domain adaptation and transfer learning",
+      "body": "Minimize KL between source and target domain distributions. Align feature distributions for better transfer. Used in domain adversarial neural networks (DANN) and importance weighting."
+    }
+  ],
+  "deepDiveIntro": [
+    "For discrete distributions p and q on the same support, KL divergence (relative entropy) is D(p||q) = Σ_x p(x) log(p(x)/q(x)) = E_p[log(p/q)]. Convention: 0 log 0 = 0, and if p(x) > 0 while q(x) = 0, then D(p||q) = ∞. Continuous version: D(p||q) = ∫ p(x) log(p(x)/q(x)) dx.",
+    "Gibbs' inequality: D(p||q) ≥ 0 with equality iff p = q almost everywhere. Not symmetric: D(p||q) ≠ D(q||p). Not a metric (no triangle inequality). Forward KL (mean-seeking): D(p||q) forces q to cover all of p. Reverse KL (mode-seeking): D(q||p) allows q to focus on one mode of p."
+  ],
+  "visualizationType": "kl-divergence",
+  "deepDive": [
+    {
+      "heading": "Definition and Properties",
+      "body": "D(p||q) = E_p[log(p/q)] = Σ p(x) log(p(x)/q(x)). Non-negative (Gibbs' inequality). Zero iff p = q. Convex in pair (p,q). Additive for independent distributions: D(p₁p₂||q₁q₂) = D(p₁||q₁) + D(p₂||q₂). Not symmetric, not a metric.",
+      "formula": "D(p||q) ≥ 0, equality iff p = q"
+    },
+    {
+      "heading": "Forward vs Reverse KL",
+      "body": "Forward: D(p||q). Mean-seeking: q must cover all modes of p to avoid infinite penalty. Reverse: D(q||p). Mode-seeking: q can focus on single mode. Variational inference typically uses reverse KL (KL(q||p)) for computational tractability, leading to posterior collapse issues.",
+      "formula": "Forward (moment projection): D(p||q). Reverse (information projection): D(q||p)"
+    },
+    {
+      "heading": "Connection to Maximum Likelihood",
+      "body": "Minimizing KL(p||q_θ) over θ is equivalent to maximizing E_p[log q_θ(X)] — expected log-likelihood. With samples from p, this is approximately maximizing Σ log q_θ(xᵢ), i.e., maximum likelihood estimation. MLE minimizes KL between true and model distributions.",
+      "formula": "argmin_θ D(p||q_θ) = argmax_θ E_p[log q_θ(X)]"
+    },
+    {
+      "heading": "Variational Inference",
+      "body": "Minimize KL(q(z)||p(z|x)) to approximate posterior. Equivalent to maximizing ELBO: E_q[log p(x|z)] - KL(q(z)||p(z)). First term is reconstruction; second is regularization toward prior. Reverse KL leads to mode-seeking approximation.",
+      "formula": "ELBO = E_q[log p(x,z)] - E_q[log q(z)] = log p(x) - KL(q||p)"
+    },
+    {
+      "heading": "Information Projection and I-Projection",
+      "body": "I-projection: minimize D(p||q) over q in some family. Moment-matching (mean-seeking). M-projection (reverse): minimize D(q||p). Mode-matching. For exponential families, I-projection has closed form and matches moments."
+    }
+  ],
+  "youtubeLabel": "KL Divergence — Machine Learning Street Talk",
+  "youtubeUrl": "https://www.youtube.com/embed/ErfnhcEV9O8",
+  "takeaways": [
+    "KL(p||q) = Σ p(x) log(p(x)/q(x)): cost of using q instead of p.",
+    "Always non-negative, zero iff p = q. Not symmetric.",
+    "Forward KL (D(p||q)): mean-seeking, covers all modes.",
+    "Reverse KL (D(q||p)): mode-seeking, can ignore modes.",
+    "MLE minimizes KL between true distribution and model."
+  ],
+  "edgeCases": [
+    {
+      "q": "What if q(x) = 0 where p(x) > 0?",
+      "a": "Then D(p||q) = ∞. This is a key property: forward KL requires q to have support covering p's support. In variational inference, this means q must be flexible enough to place mass where the posterior has mass, or the objective blows up."
+    },
+    {
+      "q": "Why is KL divergence not a metric?",
+      "a": "(1) Not symmetric: D(p||q) ≠ D(q||p) in general. (2) No triangle inequality. It satisfies non-negativity and identity (D=0 iff p=q), but fails other metric properties. This makes it an 'information divergence' rather than a true distance."
+    },
+    {
+      "q": "What's the relationship between KL and cross-entropy?",
+      "a": "H(p,q) = H(p) + D(p||q). Cross-entropy = entropy + KL divergence. Since H(p) is constant (true distribution), minimizing cross-entropy is equivalent to minimizing KL divergence. This is why cross-entropy loss in classification is really minimizing KL between true labels and predictions."
+    }
+  ],
+  "sources": [
+    { "label": "Cover & Thomas — Elements of Information Theory (2nd ed.), Ch. 2", "url": "https://www.wiley.com/en-us/Elements+of+Information+Theory" },
+    { "label": "Murphy — Machine Learning: A Probabilistic Perspective, Ch. 21", "url": "https://mitpress.mit.edu/books/machine-learning-0" }
+  ]
+}

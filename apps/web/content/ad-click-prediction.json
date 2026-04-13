@@ -1,0 +1,79 @@
+{
+  "eli3": [
+    "Ad click prediction estimates the probability a user will click an ad (CTR = click-through rate). Google Ads, Facebook Ads, and programmatic platforms use this to decide which ad to show and how much to charge.",
+    "Real-time bidding happens in milliseconds: user visits page → auction triggered → bids calculated → winner selected → ad displayed. All in <100ms. Billions of auctions daily.",
+    "Unique challenges: sparse categorical features (billions of users, queries, ads), real-time freshness (trending topics), and auction dynamics (higher predicted CTR = higher bid value)."
+  ],
+  "whenWhy": [
+    {
+      "title": "Search advertising",
+      "body": "Google Ads: predict CTR for each query-ad pair. Determines ad rank (bid × quality score = expected value). Higher CTR prediction means lower cost per click for advertiser. Revenue optimization for search engine."
+    },
+    {
+      "title": "Display and social advertising",
+      "body": "Facebook, Instagram, display networks: predict CTR based on user demographics, interests, behavior. Targeting: show relevant ads to right users. Frequency capping: don't show same ad too often."
+    },
+    {
+      "title": "Programmatic real-time bidding (RTB)",
+      "body": "Ad exchanges: DSPs (Demand Side Platforms) bid on impressions in real-time. Predict CTR, conversion rate to determine bid price. Latency critical: must respond in <100ms or lose auction."
+    },
+    {
+      "title": "Retargeting and personalization",
+      "body": "Predict likelihood to convert based on site visits, cart abandonment. Dynamic creative optimization: which ad creative performs best for this user. Cross-device attribution: user journey across phone, tablet, desktop."
+    }
+  ],
+  "deepDiveIntro": [
+    "CTR prediction features: (1) User: demographics, interests, behavior history. (2) Query/context: search terms, page content, app category. (3) Ad: advertiser, creative, landing page, keywords. (4) Cross features: user-ad interactions, query-ad relevance. All high-cardinality categorical (one-hot encoding infeasible).",
+    "Models: Logistic regression baseline (scalable, interpretable). Factorization machines: capture feature interactions. Field-aware factorization (FFM): different embeddings per field. Deep learning: Wide & Deep, DeepFM, xDeepFM for feature interactions. Embeddings for categorical features, dense layers for combinations."
+  ],
+  "visualizationType": "ad-click-prediction",
+  "deepDive": [
+    {
+      "heading": "Feature Engineering",
+      "body": "Categorical: user_id (billions), query_id (millions), ad_id (millions), device, location. High cardinality → embeddings. Cross features: user × ad (co-occurrence), query × ad (relevance). Continuous: time of day, historical CTR for this ad. Sequence: user recent queries, browsing history (transformer/RNN). Freshness: trending queries, new ads."
+    },
+    {
+      "heading": "Model Evolution",
+      "body": "Logistic regression: sparse features, L1 regularization, online learning via FTRL. Factorization machines: pairwise feature interactions via latent vectors. Field-aware FM: separate embeddings per field for each feature. Deep: Wide & Deep (memorization + generalization). DeepFM: FM + deep neural network. xDeepFM: explicit high-order feature interactions via CIN."
+    },
+    {
+      "heading": "Online Learning",
+      "body": "Ad patterns change fast (trending topics, new ads). FTRL-Proximal: per-coordinate learning rates, L1 regularization for sparsity. Updates model continuously from click stream. Fast adaptation critical. Downside: model instability, need safeguards (outlier detection, gradient clipping)."
+    },
+    {
+      "heading": "Auction Mechanics",
+      "body": "Generalized Second Price (GSP): winner pays price of second-highest bidder. Ad rank: bid × quality_score (CTR prediction). Expected revenue: CTR × bid. Optimization: VCG (Vickrey-Clarke-Groves) for truthfulness but complex. Reserve prices: minimum bid to enter auction. Reserve optimization based on competition."
+    },
+    {
+      "heading": "Serving at Scale",
+      "body": "Feature store: sub-10ms lookup for user/ad features. Model serving: TensorFlow Serving, custom C++ servers. Latency budget: <50ms for prediction. Batching: score multiple ads in parallel. Caching: popular query-ad pairs. A/B testing: measure CTR, revenue, advertiser satisfaction."
+    }
+  ],
+  "youtubeLabel": "Ad Click Prediction — Google",
+  "youtubeUrl": "https://www.youtube.com/embed/1-vcErOPjdQ",
+  "takeaways": [
+    "CTR prediction: estimate click probability for ad auctions.",
+    "Sparse categorical features require embeddings, high cardinality.",
+    "Models: logistic regression, factorization machines, deep learning.",
+    "Online learning: FTRL for real-time adaptation to trends.",
+    "Auction: bid × quality_score determines rank and price."
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle new ads (cold start)?",
+      "a": "New ads have no click history. Solutions: (1) Content features: advertiser, landing page category, creative attributes. (2) Similar ads: find similar existing ads, borrow CTR. (3) Exploration: show new ads to learn CTR (bandit approach). (4) Bayesian: start with prior (category average), update with observations. (5) Advertiser history: new ad from trusted advertiser gets benefit of doubt."
+    },
+    {
+      "q": "What about click fraud?",
+      "a": "Competitors click to exhaust budget, bots generate fake clicks. Detection: (1) IP analysis: too many clicks from same IP. (2) Behavioral: click patterns (time on site after click). (3) Device fingerprinting: identify bots. (4) Rate limiting: cap clicks per user per time. (5) Post-click quality: bounce rate, conversion. Refund invalid clicks to advertisers."
+    },
+    {
+      "q": "How do you balance revenue vs user experience?",
+      "a": "Tension: more ads = more revenue, but annoys users. Solutions: (1) Quality score: low-quality ads (high bounce rate) penalized even with high bids. (2) Ad load optimization: test number of ads per page. (3) Relevance: prioritize CTR over bid for user satisfaction. (4) Format: native ads less intrusive. (5) Long-term: measure user retention, not just immediate clicks."
+    }
+  ],
+  "sources": [
+    { "label": "McMahan et al. — Ad Click Prediction: A View from the Trenches", "url": "https://research.google/pubs/pub41159/" },
+    { "label": "Cheng et al. — Wide & Deep Learning for Recommender Systems", "url": "https://arxiv.org/abs/1606.07792" }
+  ]
+}

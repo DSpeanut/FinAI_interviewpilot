@@ -42,6 +42,7 @@
     {
       "heading": "Reverse DCF: Implied Growth Rate from Market Price",
       "body": "Rather than estimating value and comparing to price, reverse DCF asks: 'what assumptions does the current stock price imply?' Set the DCF output equal to the market cap and solve for the implied terminal growth rate or implied FCF margin. This reframes the investment question from 'is the stock cheap?' to 'do I believe the implied growth rate is achievable?' Reverse DCF is particularly powerful for high-multiple growth stocks: a stock at 40× earnings might imply 25% FCF growth for 10 years plus a 3% terminal growth rate. If you think that's achievable, the valuation is fair. If it seems heroic, the stock is expensive. Morgan Stanley's analysis of Amazon in 2000 showed the stock's price implied Amazon would become larger than the entire US retail sector within a decade — which made the thesis explicit rather than hidden in a bullish DCF. [2]"
+    }
   ],
   "takeaways": [
     "DCF = Σ FCFt/(1+WACC)^t + TV/(1+WACC)^n; TV is typically 60–80% of total value — terminal assumptions dominate. [1]",

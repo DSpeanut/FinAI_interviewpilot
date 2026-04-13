@@ -172,9 +172,15 @@ export interface PromptExample {
   response?: string
 }
 
+export interface CodeSnapshot {
+  label?: string
+  code: string
+}
+
 export interface WikiEntryContent {
   terms?: TermItem[]
   promptExample?: PromptExample
+  codeSnapshot?: CodeSnapshot
   eli3: string[]
   whenWhy: WhenWhyItem[]
   deepDiveIntro?: string[]
@@ -481,6 +487,65 @@ export const mockEntries: WikiEntry[] = [
   { id: "e215", title: "Dividend Discount Model", slug: "dividend-discount-model", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-9", tags: ["ddm", "gordon-growth", "dividend-yield", "cost-of-equity", "payout"] },
   { id: "e216", title: "Earnings Analysis", slug: "earnings-analysis", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-9", tags: ["eps", "earnings-surprise", "guidance", "consensus", "pead"] },
   { id: "e217", title: "Fundamental Analysis", slug: "fundamental-analysis", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "10-9", tags: ["moat", "roic", "porter", "competitive-advantage", "dupont"] },
+  { id: "e218", title: "Vectors & Matrices", slug: "vectors-matrices", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "1-1", tags: ["vectors", "matrices", "linear-transformations"] },
+  { id: "e219", title: "Matrix Operations", slug: "matrix-operations", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "1-1", tags: ["matrix-multiplication", "transpose", "inverse", "trace", "determinant"] },
+  { id: "e220", title: "Eigenvalues & Eigenvectors", slug: "eigenvalues-eigenvectors", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "1-1", tags: ["eigenvalues", "eigenvectors", "eigendecomposition", "spectral-theorem"] },
+  { id: "e221", title: "SVD", slug: "svd", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "1-1", tags: ["singular-value-decomposition", "low-rank-approximation", "pseudo-inverse"] },
+  { id: "e222", title: "PCA (Math)", slug: "pca-math", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "1-1", tags: ["pca", "covariance", "eigendecomposition", "dimensionality-reduction"] },
+  { id: "e223", title: "Dot Product & Projections", slug: "dot-product-projections", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "1-1", tags: ["dot-product", "projections", "orthogonality", "gram-schmidt"] },
+  { id: "e224", title: "Norms", slug: "norms", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "1-1", tags: ["lp-norms", "matrix-norms", "frobenius", "spectral-norm"] },
+  { id: "e225", title: "Derivatives & Gradients", slug: "derivatives-gradients", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "1-2", tags: ["derivatives", "gradients", "jacobian", "hessian"] },
+  { id: "e226", title: "Chain Rule", slug: "chain-rule", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "1-2", tags: ["chain-rule", "backpropagation", "jacobian-chain-rule"] },
+  { id: "e227", title: "Partial Derivatives", slug: "partial-derivatives", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "1-2", tags: ["partial-derivatives", "gradient", "directional-derivative"] },
+  { id: "e228", title: "Gradient Descent", slug: "gradient-descent-math", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "1-2", tags: ["gradient-descent", "convergence", "momentum", "learning-rate"] },
+  { id: "e229", title: "Convexity", slug: "convexity", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "1-2", tags: ["convex-functions", "convex-sets", "jensen-inequality"] },
+  { id: "e230", title: "Lagrange Multipliers", slug: "lagrange-multipliers", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "1-2", tags: ["lagrange-multipliers", "constrained-optimization", "kkt-conditions"] },
+  { id: "e231", title: "Taylor Series", slug: "taylor-series", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "1-2", tags: ["taylor-series", "approximation", "newtons-method"] },
+  { id: "e232", title: "Sample Space & Events", slug: "sample-space-events", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "1-3", tags: ["sample-space", "events", "sigma-algebra", "probability-measure"] },
+  { id: "e233", title: "Conditional Probability", slug: "conditional-probability", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "1-3", tags: ["conditional-probability", "bayes-theorem", "independence", "chain-rule"] },
+  { id: "e234", title: "Bayes' Theorem", slug: "bayes-theorem", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "1-3", tags: ["bayes-theorem", "posterior", "prior", "likelihood", "map"] },
+  { id: "e235", title: "Distributions (Discrete)", slug: "distributions-discrete", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "1-3", tags: ["bernoulli", "binomial", "poisson", "geometric", "multinomial"] },
+  { id: "e236", title: "Distributions (Continuous)", slug: "distributions-continuous", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "1-3", tags: ["normal", "exponential", "gamma", "beta", "log-normal"] },
+  { id: "e237", title: "Expectation & Variance", slug: "expectation-variance", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "1-3", tags: ["expectation", "variance", "covariance", "correlation", "moments"] },
+  { id: "e238", title: "Law of Large Numbers", slug: "law-of-large-numbers", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "1-3", tags: ["law-of-large-numbers", "convergence", "monte-carlo", "consistency"] },
+  { id: "e239", title: "Central Limit Theorem", slug: "central-limit-theorem", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "1-3", tags: ["central-limit-theorem", "normal-approximation", "berry-esseen"] },
+  { id: "e240", title: "Entropy", slug: "entropy", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "1-4", tags: ["entropy", "shannon-entropy", "joint-entropy", "conditional-entropy"] },
+  { id: "e241", title: "KL Divergence", slug: "kl-divergence", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "1-4", tags: ["kl-divergence", "relative-entropy", "variational-inference", "forward-kl", "reverse-kl"] },
+  { id: "e242", title: "Cross-Entropy", slug: "cross-entropy", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "1-4", tags: ["cross-entropy", "log-loss", "binary-cross-entropy", "focal-loss"] },
+  { id: "e243", title: "Mutual Information", slug: "mutual-information", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "1-4", tags: ["mutual-information", "information-gain", "feature-selection"] },
+  { id: "e244", title: "Floating Point Precision", slug: "floating-point-precision", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "1-5", tags: ["ieee-754", "machine-epsilon", "catastrophic-cancellation", "overflow", "underflow"] },
+  { id: "e245", title: "Numerical Stability", slug: "numerical-stability", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "1-5", tags: ["condition-number", "backward-stability", "lu-decomposition", "qr-decomposition"] },
+  { id: "e246", title: "Matrix Decomposition Methods", slug: "matrix-decomposition-methods", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "1-5", tags: ["lu", "cholesky", "qr", "svd", "eigendecomposition", "iterative-methods"] },
+  { id: "e247", title: "End-to-End ML Pipeline", slug: "end-to-end-ml-pipeline", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "9-1", tags: ["ml-pipeline", "data-validation", "training-serving-skew", "orchestration"] },
+  { id: "e248", title: "Batch vs Real-time", slug: "batch-vs-real-time", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "9-1", tags: ["batch-processing", "stream-processing", "latency", "throughput"] },
+  { id: "e249", title: "Lambda Architecture", slug: "lambda-architecture", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "9-1", tags: ["lambda", "batch-layer", "speed-layer", "serving-layer"] },
+  { id: "e250", title: "Online Learning", slug: "online-learning", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "9-1", tags: ["online-learning", "concept-drift", "ftrl", "catastrophic-forgetting"] },
+  { id: "e251", title: "Feature Store Design", slug: "feature-store-design", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "9-2", tags: ["feature-store", "offline-store", "online-store", "training-serving-skew"] },
+  { id: "e252", title: "Point-in-Time Correctness", slug: "point-in-time-correctness", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "9-2", tags: ["point-in-time", "data-leakage", "temporal-joins", "event-time"] },
+  { id: "e253", title: "Feast", slug: "feast", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "9-2", tags: ["feast", "open-source", "feature-platform", "kubernetes"] },
+  { id: "e254", title: "Tecton", slug: "tecton", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "9-2", tags: ["tecton", "managed", "feature-platform", "streaming"] },
+  { id: "e255", title: "REST API Serving", slug: "rest-api-serving", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "9-3", tags: ["rest-api", "fastapi", "flask", "model-serving"] },
+  { id: "e256", title: "gRPC", slug: "grpc", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "9-3", tags: ["grpc", "protobuf", "http2", "performance"] },
+  { id: "e257", title: "Model Batching", slug: "model-batching", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "9-3", tags: ["batching", "dynamic-batching", "throughput", "latency"] },
+  { id: "e258", title: "Latency vs Throughput", slug: "latency-vs-throughput", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "9-3", tags: ["latency", "throughput", "tradeoffs", "slo"] },
+  { id: "e259", title: "Edge Deployment", slug: "edge-deployment", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "9-3", tags: ["edge", "mobile", "tensorflow-lite", "core-ml", "quantization"] },
+  { id: "e260", title: "Model Registry", slug: "model-registry", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "9-4", tags: ["model-registry", "mlflow", "versioning", "governance"] },
+  { id: "e261", title: "MLflow", slug: "mlflow", difficulty: "beginner" as const, status: "published" as const, subcategoryId: "9-4", tags: ["mlflow", "experiment-tracking", "model-management", "open-source"] },
+  { id: "e262", title: "CI/CD for ML", slug: "cicd-for-ml", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "9-4", tags: ["cicd", "ml-pipelines", "testing", "deployment"] },
+  { id: "e263", title: "Shadow Deployment", slug: "shadow-deployment", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "9-4", tags: ["shadow", "canary", "testing", "zero-downtime"] },
+  { id: "e264", title: "Distributed Training", slug: "distributed-training", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "9-5", tags: ["distributed-training", "data-parallelism", "model-parallelism", "horovod"] },
+  { id: "e265", title: "Data Parallelism", slug: "data-parallelism", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "9-5", tags: ["data-parallelism", "ddp", "allreduce", "synchronization"] },
+  { id: "e266", title: "Model Parallelism", slug: "model-parallelism", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "9-5", tags: ["model-parallelism", "tensor-parallelism", "pipeline-parallelism", "megatron"] },
+  { id: "e267", title: "Parameter Servers", slug: "parameter-servers", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "9-5", tags: ["parameter-servers", "distributed", "sparse", "asynchronous"] },
+  { id: "e268", title: "Data Drift", slug: "data-drift", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "9-6", tags: ["data-drift", "psi", "ks-test", "distribution-shift"] },
+  { id: "e269", title: "Concept Drift", slug: "concept-drift", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "9-6", tags: ["concept-drift", "model-degradation", "adaptation", "online-learning"] },
+  { id: "e270", title: "Model Degradation", slug: "model-degradation", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "9-6", tags: ["model-degradation", "monitoring", "alerts", "retraining"] },
+  { id: "e271", title: "Alerting Strategies", slug: "alerting-strategies", difficulty: "intermediate" as const, status: "published" as const, subcategoryId: "9-6", tags: ["alerting", "slo", "on-call", "incident-response"] },
+  { id: "e272", title: "Search Ranking System", slug: "search-ranking-system", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "9-7", tags: ["search", "ranking", "learning-to-rank", "multi-stage"] },
+  { id: "e273", title: "Recommendation at Scale", slug: "recommendation-at-scale", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "9-7", tags: ["recommendation", "collaborative-filtering", "two-tower", "candidate-generation"] },
+  { id: "e274", title: "Fraud Detection", slug: "fraud-detection", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "9-7", tags: ["fraud-detection", "class-imbalance", "real-time", "adversarial"] },
+  { id: "e275", title: "Ad Click Prediction", slug: "ad-click-prediction", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "9-7", tags: ["ctr-prediction", "online-learning", "ftrl", "auction"] },
+  { id: "e276", title: "LLM Serving at Scale", slug: "llm-serving-at-scale", difficulty: "advanced" as const, status: "published" as const, subcategoryId: "9-7", tags: ["llm", "kv-cache", "continuous-batching", "speculative-decoding"] },
 ]
 
 export const difficultyColors = {

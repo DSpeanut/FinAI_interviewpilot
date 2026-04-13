@@ -1,0 +1,83 @@
+{
+  "eli3": [
+    "Matrix decompositions factor matrices into simpler forms, revealing structure and enabling efficient computation. Think of factoring numbers: 12 = 3 × 4. For matrices: A = product of simpler matrices with nice properties.",
+    "Common decompositions: LU (for solving systems), QR (for least squares, orthogonalization), SVD (for everything — low-rank approximation, PCA, pseudo-inverse), Eigendecomposition (for powers, exponentials, dynamics).",
+    "Choosing the right decomposition depends on the problem: symmetric positive definite → Cholesky; general dense → LU or QR; rank-deficient/ill-conditioned → SVD; large sparse → iterative methods (GMRES, Conjugate Gradient)."
+  ],
+  "whenWhy": [
+    {
+      "title": "Solving linear systems",
+      "body": "LU: Ax = b becomes LUx = b, solve Ly = b then Ux = y. O(n³) upfront, O(n²) per RHS. Cholesky for SPD: A = LLᵀ, half the cost. Once factored, multiple RHS are cheap."
+    },
+    {
+      "title": "Least squares problems",
+      "body": "QR: A = QR, solve R x = Qᵀ b. More stable than normal equations (AᵀA)⁻¹Aᵀb which squares condition number. SVD: A = UΣVᵀ, x = VΣ⁺Uᵀb gives minimum norm solution for rank-deficient A."
+    },
+    {
+      "title": "PCA and dimensionality reduction",
+      "body": "SVD of data matrix X. Right singular vectors V are principal components. Σ² gives eigenvalues of covariance. Truncated SVD for low-rank approximation. Eigendecomposition of covariance XᵀX = VΛVᵀ equivalent but less stable."
+    },
+    {
+      "title": "Matrix functions and differential equations",
+      "body": "Eigendecomposition A = VDV⁻¹: Aⁿ = VDⁿV⁻¹, e^A = Ve^DV⁻¹. For solving ẋ = Ax. Schur decomposition for non-diagonalizable matrices. Matrix square roots, logarithms via eigendecomposition or SVD."
+    }
+  ],
+  "deepDiveIntro": [
+    "LU decomposition: A = PLU where P is permutation, L is unit lower triangular, U is upper triangular. Cholesky: A = LLᵀ for SPD A. QR: A = QR where Q orthogonal, R upper triangular. SVD: A = UΣVᵀ. Eigendecomposition: A = VDV⁻¹ for diagonalizable A. Schur: A = UTU* where U unitary, T upper triangular.",
+    "Complexity: LU and Cholesky O(n³), QR O(mn²) for m×n with m≥n, SVD O(mn²). For large sparse matrices, use iterative methods (Conjugate Gradient for SPD, GMRES for general) or sparse direct methods (supernodal, multifrontal)."
+  ],
+  "visualizationType": "matrix-decomposition",
+  "deepDive": [
+    {
+      "heading": "LU Decomposition",
+      "body": "A = PLU. P for pivoting (stability). L unit lower triangular (1s on diagonal), U upper triangular. Solve Ax=b: Ly=Pb (forward substitution), Ux=y (back substitution). Cholesky A=LLᵀ for SPD: half storage, half operations, no pivoting needed, always stable.",
+      "formula": "Ax = b → PLUx = b → Ly = Pb → Ux = y"
+    },
+    {
+      "heading": "QR Decomposition",
+      "body": "A = QR: Q orthogonal (QᵀQ=I), R upper triangular. Methods: Gram-Schmidt (unstable), modified Gram-Schmidt, Householder reflections (stable), Givens rotations. Least squares: min||Ax-b||₂ = min||Rx-Qᵀb||₂. Solve Rx = Qᵀb (upper triangular).",
+      "formula": "A = QR, ||Ax-b||² = ||Rx-Qᵀb||²"
+    },
+    {
+      "heading": "Singular Value Decomposition",
+      "body": "A = UΣVᵀ. U, V orthogonal; Σ diagonal with singular values σ₁ ≥ … ≥ σᵣ > 0. Rank-k approximation: Aₖ = UₖΣₖVₖᵀ. Pseudo-inverse A⁺ = VΣ⁺Uᵀ. Best rank-k approximation in spectral and Frobenius norm (Eckart-Young-Mirsky).",
+      "formula": "A = UΣVᵀ, A⁺ = V diag(1/σ₁,…,1/σᵣ,0,…) Uᵀ"
+    },
+    {
+      "heading": "Eigendecomposition",
+      "body": "A = VDV⁻¹ for diagonalizable A. D = diag(λ₁,…,λₙ). Powers: Aⁿ = VDⁿV⁻¹. Exponential: e^A = Ve^DV⁻¹. Symmetric A = QΛQᵀ (orthogonal Q, real Λ). Not all matrices diagonalizable (Jordan form for defective matrices).",
+      "formula": "A = VDV⁻¹, Aⁿ = VDⁿV⁻¹, e^A = Ve^DV⁻¹"
+    },
+    {
+      "heading": "Iterative Methods",
+      "body": "For large sparse systems: Conjugate Gradient (CG) for SPD, O(n) per iteration, converges in ≤n steps (exact arithmetic). GMRES for general, BiCGSTAB for non-symmetric. Preconditioning crucial: solve M⁻¹Ax = M⁻¹b with M ≈ A cheap to invert."
+    }
+  ],
+  "youtubeLabel": "Matrix Decompositions — MIT OCW",
+  "youtubeUrl": "https://www.youtube.com/embed/9QHPe0Tj1qk",
+  "takeaways": [
+    "LU: solving systems. Cholesky: SPD, faster.",
+    "QR: least squares, stable orthogonalization.",
+    "SVD: low-rank approximation, pseudo-inverse, PCA. Most versatile.",
+    "Eigendecomposition: matrix powers, exponentials, dynamics.",
+    "Large sparse: iterative methods (CG, GMRES) with preconditioning."
+  ],
+  "edgeCases": [
+    {
+      "q": "When should I use SVD instead of eigendecomposition?",
+      "a": "(1) Non-square matrices (SVD always exists). (2) Numerical stability: computing AᵀA squares condition number. (3) Rank-deficient matrices (SVD handles gracefully). (4) Need pseudo-inverse. Eigendecomposition is faster when A is symmetric and you know it's well-conditioned."
+    },
+    {
+      "q": "What happens if a matrix is not diagonalizable?",
+      "a": "Use Jordan decomposition A = VJV⁻¹ where J is Jordan form (block diagonal with eigenvalues on diagonal, 1s on superdiagonal). Or use Schur decomposition A = UTU* which always exists. For numerical computation, Schur is preferred; Jordan is sensitive to perturbations."
+    },
+    {
+      "q": "When do iterative methods beat direct methods?",
+      "a": "For large sparse matrices. Direct methods (LU, Cholesky) suffer fill-in — sparse A becomes dense L and U. Iterative methods only need matrix-vector products, preserving sparsity. CG converges fast if condition number is small or eigenvalues are clustered. For 3D PDEs, iterative often win when n > 10⁴."
+    }
+  ],
+  "sources": [
+    { "label": "Golub & Van Loan — Matrix Computations (4th ed.)", "url": "https://www.cs.cornell.edu/cv/ResearchPDF/Matrix Computations.pdf" },
+    { "label": "Trefethen & Bau — Numerical Linear Algebra", "url": "https://people.maths.ox.ac.uk/trefethen/text.html" }
+  ]
+}

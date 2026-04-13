@@ -1,0 +1,83 @@
+{
+  "eli3": [
+    "Eigenvectors are special directions that stay on their own line when a matrix transforms space — they might stretch or shrink, but they don't rotate. The eigenvalue tells you how much stretching happens.",
+    "Think of a matrix as a stretching machine. Most directions get both stretched and twisted. But eigenvectors are the 'pure' directions where only stretching occurs. Finding them reveals the hidden structure of the transformation.",
+    "If v is an eigenvector of A with eigenvalue λ, then Av = λv. The vector doesn't change direction; it just scales by λ. This is incredibly useful for understanding matrices, solving differential equations, and compressing data."
+  ],
+  "whenWhy": [
+    {
+      "title": "Principal Component Analysis (PCA)",
+      "body": "The principal components are the eigenvectors of the covariance matrix, ordered by eigenvalue magnitude. They give the directions of maximum variance. Eigendecomposition diagonalizes the covariance, decorrelating the data."
+    },
+    {
+      "title": "Stability analysis of dynamical systems",
+      "body": "For ẋ = Ax, solutions are combinations of e^(λᵢt)vᵢ. If all eigenvalues have negative real part, the system is stable. This applies to control systems, physics simulations, and neural network training dynamics."
+    },
+    {
+      "title": "PageRank and graph analysis",
+      "body": "PageRank finds the dominant eigenvector (eigenvector with largest eigenvalue) of the web link matrix. This reveals the stationary distribution of a random walk. Spectral clustering uses eigenvectors of graph Laplacians."
+    },
+    {
+      "title": "Matrix powers and exponentials",
+      "body": "Aⁿ = P Dⁿ P⁻¹ where D is diagonal of eigenvalues. This makes computing matrix powers trivial. Similarly, e^A = P e^D P⁻¹, crucial for solving linear ODEs and continuous-time Markov chains."
+    }
+  ],
+  "deepDiveIntro": [
+    "For a square matrix A ∈ ℝⁿˣⁿ, a nonzero vector v ∈ ℝⁿ is an eigenvector with eigenvalue λ if Av = λv. This means v spans an invariant subspace: A maps the line through v to itself. The eigenvalues are roots of the characteristic polynomial det(A - λI) = 0.",
+    "A matrix is diagonalizable if it has n linearly independent eigenvectors, forming a basis. Then A = PDP⁻¹ where D = diag(λ₁,…,λₙ) and P has eigenvectors as columns. This simplifies computing functions of A: f(A) = P f(D) P⁻¹."
+  ],
+  "visualizationType": "eigenvalues-eigenvectors",
+  "deepDive": [
+    {
+      "heading": "Characteristic Equation",
+      "body": "Eigenvalues satisfy det(A - λI) = 0. For an n×n matrix, this is an nth degree polynomial with n roots (counting multiplicity, possibly complex). The sum of eigenvalues equals tr(A); product equals det(A).",
+      "formula": "det(A - λI) = 0, Σλᵢ = tr(A), Πλᵢ = det(A)"
+    },
+    {
+      "heading": "Eigendecomposition",
+      "body": "If A has n linearly independent eigenvectors, A = PDP⁻¹. D is diagonal of eigenvalues; P has eigenvectors as columns. This diagonalizes A. Not all matrices are diagonalizable (defective matrices lack enough eigenvectors).",
+      "formula": "A = PDP⁻¹, D = diag(λ₁,…,λₙ)"
+    },
+    {
+      "heading": "Symmetric Matrices",
+      "body": "Real symmetric matrices have real eigenvalues and orthogonal eigenvectors. They are always diagonalizable: A = QΛQᵀ where Q is orthogonal (QᵀQ = I). This is the spectral theorem — foundation of PCA and many optimization methods.",
+      "formula": "A = Aᵀ ⟹ λᵢ ∈ ℝ, vᵢ ⟂ vⱼ, A = QΛQᵀ"
+    },
+    {
+      "heading": "Power Iteration",
+      "body": "To find the dominant eigenvector (largest |λ|), iterate vₖ₊₁ = Avₖ / ||Avₖ||. Converges to eigenvector of largest eigenvalue. With deflation, can find subsequent eigenvectors. Basis of PageRank and many iterative eigenvalue algorithms.",
+      "formula": "vₖ₊₁ = Avₖ / ||Avₖ|| → v₁ (dominant eigenvector)"
+    },
+    {
+      "heading": "Generalized Eigenvalue Problem",
+      "body": "In optimization and physics, we often solve Av = λBv where B is positive definite. This arises in constrained optimization (Lagrange multipliers), vibration analysis, and canonical correlation analysis (CCA)."
+    }
+  ],
+  "youtubeLabel": "Eigenvectors and Eigenvalues — 3Blue1Brown",
+  "youtubeUrl": "https://www.youtube.com/embed/PFDu9oVAE-g",
+  "takeaways": [
+    "Eigenvectors are directions that only scale under transformation: Av = λv.",
+    "Eigendecomposition A = PDP⁻¹ diagonalizes matrices for easier computation.",
+    "Symmetric matrices have real eigenvalues and orthogonal eigenvectors (spectral theorem).",
+    "Power iteration finds dominant eigenvectors — used in PageRank, PCA.",
+    "Sum of eigenvalues = trace; product = determinant."
+  ],
+  "edgeCases": [
+    {
+      "q": "What are defective matrices?",
+      "a": "Matrices that don't have enough linearly independent eigenvectors to form a basis. They cannot be diagonalized. Example: Jordan block [[λ, 1], [0, λ]]. These require generalized eigenvectors and Jordan normal form."
+    },
+    {
+      "q": "Can eigenvalues be complex for real matrices?",
+      "a": "Yes. Complex eigenvalues come in conjugate pairs for real matrices. They indicate rotation in the plane spanned by the real and imaginary parts of the eigenvector. A 2D rotation matrix has purely imaginary eigenvalues ±i."
+    },
+    {
+      "q": "When is the dominant eigenvalue unique?",
+      "a": "When |λ₁| > |λ₂| (strictly larger magnitude). Power iteration converges faster when this gap is large. If two eigenvalues have equal magnitude, power iteration may oscillate or converge slowly."
+    }
+  ],
+  "sources": [
+    { "label": "Strang — Introduction to Linear Algebra (6th ed.), Ch. 6", "url": "https://math.mit.edu/~gs/linearalgebra/" },
+    { "label": "Trefethen & Embree — Spectra and Pseudospectra", "url": "https://people.maths.ox.ac.uk/trefethen/pseudospectra.html" }
+  ]
+}

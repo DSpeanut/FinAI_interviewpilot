@@ -1,0 +1,81 @@
+{
+  "eli3": [
+    "LLM serving at scale handles billions of tokens daily for applications like ChatGPT, Claude, and Copilot. Unlike traditional ML, LLMs generate text token-by-token, requiring iterative inference and massive GPU memory.",
+    "Unique challenges: autoregressive generation (one token at a time), KV-cache memory explosion (storing attention keys/values for all previous tokens), and variable-length outputs (can't batch efficiently like classification).",
+    "Optimization techniques: KV-cache management, continuous batching, model parallelism across GPUs, quantization to reduce memory, and speculative decoding to speed up generation."
+  ],
+  "whenWhy": [
+    {
+      "title": "Chatbots and assistants",
+      "body": "ChatGPT, Claude, Gemini: conversational AI with millions of users. Sub-second first token latency, streaming subsequent tokens. Handle concurrent conversations at massive scale. Cost dominated by inference, not training."
+    },
+    {
+      "title": "Code generation",
+      "body": "GitHub Copilot, Codeium: autocomplete and generate code. Low latency critical (<100ms for suggestions). Context window: entire file + related files. High throughput for IDE integration."
+    },
+    {
+      "title": "Enterprise search and RAG",
+      "body": "Retrieval-Augmented Generation: retrieve documents, generate answers. Long context windows (100k+ tokens). Batching challenging due to variable document lengths. Quality vs latency tradeoffs."
+    },
+    {
+      "title": "Content generation at scale",
+      "body": "Marketing copy, summarization, translation. Batch processing for bulk generation. Cost optimization crucial (millions of API calls). Quality consistency across batches."
+    }
+  ],
+  "deepDiveIntro": [
+    "LLM inference has two phases: (1) Prefill: process input prompt in parallel, compute KV-cache for all prompt tokens. (2) Decode: generate output tokens autoregressively (one at a time), using cached KVs. Prefill is compute-bound (can parallelize). Decode is memory-bound (sequential, waiting on memory bandwidth).",
+    "Memory challenges: Model parameters (70B model = 140GB FP16). KV-cache per request: 2 × layers × heads × head_dim × seq_len × bytes. For 4096 length, 80 layers: ~5GB per request! Limits concurrent requests. Solutions: paging (vLLM), quantization (4-bit), sparse attention."
+  ],
+  "visualizationType": "llm-serving",
+  "deepDive": [
+    {
+      "heading": "KV-Cache Management",
+      "body": "Attention requires keys and values for all previous tokens. Cache avoids recomputation. Memory grows with sequence length and batch size. vLLM's PagedAttention: allocate KV-cache in non-contiguous blocks like OS virtual memory. Reduces fragmentation, enables efficient memory sharing (parallel sampling). 2-4x throughput improvement.",
+      "formula": "KV_cache_size = 2 × num_layers × num_heads × head_dim × seq_len × sizeof(dtype)"
+    },
+    {
+      "heading": "Continuous Batching",
+      "body": "Static batching: wait for all sequences to complete (slow ones block batch). Continuous (inflight) batching: add new requests and complete finished ones dynamically. Orchestration layer manages batch composition. 10-20x throughput vs static for variable-length generation. Key innovation in vLLM, TensorRT-LLM, TGI."
+    },
+    {
+      "heading": "Model Parallelism for LLMs",
+      "body": "Single GPU can't hold large models (GPT-4 estimated 1.8T parameters = 3.6TB). Tensor parallelism: split layers across GPUs within node (NVLink). Pipeline parallelism: split layers across nodes. Data parallelism: replicate for throughput. ZeRO partitioning: shard optimizer states. 3D parallelism combines all."
+    },
+    {
+      "heading": "Quantization",
+      "body": "Reduce memory and increase speed. INT8: 2x smaller, minimal accuracy loss. INT4/GPTQ: 4x smaller, some degradation. AWQ: activation-aware quantization, better than GPTQ. SmoothQuant: balances difficulty of quantizing activations vs weights. FlashAttention-2: IO-aware algorithm reduces HBM reads. 2-4x speedup.",
+      "formula": "4-bit quantization: 70B model → ~35GB (from 140GB FP16)"
+    },
+    {
+      "heading": "Speculative Decoding",
+      "body": "Small draft model generates K candidate tokens quickly. Large target model verifies all K in parallel (single forward pass). Accept tokens up to first rejection. Speedup 2-3x if draft model quality reasonable. Draft can be smaller version of same model or specialized n-gram model. Medusa: multiple draft heads, tree attention for verification."
+    }
+  ],
+  "youtubeLabel": "LLM Serving — vLLM",
+  "youtubeUrl": "https://www.youtube.com/embed/aQeqspZ4HJE",
+  "takeaways": [
+    "LLM inference: prefill (parallel) + decode (autoregressive).",
+    "KV-cache dominates memory: vLLM's PagedAttention optimizes.",
+    "Continuous batching: 10-20x throughput for variable lengths.",
+    "Quantization: INT8/INT4 reduce memory 2-4x with minimal accuracy loss.",
+    "Speculative decoding: draft model + parallel verification = 2-3x speedup."
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle context length limits?",
+      "a": "Models have max context (4k, 32k, 100k+ tokens). Solutions: (1) Truncation: drop oldest tokens (lose early context). (2) Summarization: compress long context recursively. (3) RAG: retrieve relevant chunks instead of full context. (4) Long-context models: ALiBi, RoPE scaling, but slower. (5) Sliding window attention: tradeoff between local and global context."
+    },
+    {
+      "q": "What's the cost breakdown for LLM serving?",
+      "a": "Dominant costs: (1) GPU capital + operational (electricity, cooling) — 70%+. (2) Engineering: optimization, infrastructure — 20%. (3) Networking: especially for distributed serving — 10%. Per-token cost decreases with batch size but increases latency. Optimization priority: maximize batch size while meeting latency SLO. Spot/preemptible instances for batch workloads."
+    },
+    {
+      "q": "How do you ensure consistent output quality at scale?",
+      "a": "Challenges: temperature sampling introduces randomness, different outputs each time. Solutions: (1) Seed control: fix random seed for reproducibility. (2) Sampling parameters: top_p, top_k, temperature tuning. (3) A/B testing: measure quality metrics (BLEU, human eval) continuously. (4) Canary deployments: test new model versions on small traffic. (5) Output caching: store common queries. (6) Guardrails: post-processing filters for safety/policy."
+    }
+  ],
+  "sources": [
+    { "label": "Kwon et al. — Efficient Memory Management for Large Language Model Serving with PagedAttention", "url": "https://arxiv.org/abs/2309.06180" },
+    { "label": "Pope et al. — Efficiently Scaling Transformer Inference", "url": "https://arxiv.org/abs/2211.05102" }
+  ]
+}

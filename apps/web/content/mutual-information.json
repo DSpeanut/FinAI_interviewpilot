@@ -1,0 +1,82 @@
+{
+  "eli3": [
+    "Mutual information measures how much knowing one variable reduces uncertainty about another. I(X;Y) = H(X) - H(X|Y). If X and Y are independent, knowing Y tells you nothing about X, so I(X;Y) = 0.",
+    "Equivalently: I(X;Y) = H(X) + H(Y) - H(X,Y). It's symmetric: I(X;Y) = I(Y;X). Think of it as the amount of information shared between X and Y — how much knowing one helps you predict the other.",
+    "MI relates to KL divergence: I(X;Y) = KL(P(X,Y) || P(X)P(Y)). So it's zero exactly when X and Y are independent (joint equals product of marginals)."
+  ],
+  "whenWhy": [
+    {
+      "title": "Feature selection",
+      "body": "Select features X with high MI with target Y: I(X;Y). Captures any relationship (linear or nonlinear), unlike correlation. Fast MI-based selection (MIM, mRMR) scales to high dimensions. Used in bioinformatics, text classification."
+    },
+    {
+      "title": "Information bottleneck method",
+      "body": "Tradeoff between compression and prediction: minimize I(X;T) (bottleneck representation T) subject to I(T;Y) ≥ threshold. Used for interpretability, fair representation learning, and deep learning theory."
+    },
+    {
+      "title": "Clustering evaluation",
+      "body": "Normalized mutual information (NMI) compares cluster assignments to true labels. Adjusted for chance (AMI). Alternative to purity, Rand index. Captures information-theoretic agreement between partitions."
+    },
+    {
+      "title": "Representation learning",
+      "body": "Maximize MI between representations and original data (InfoNCE, Deep InfoMax). Contrastive learning (SimCLR, MoCo) maximizes MI between augmented views of same image. Used in self-supervised learning."
+    }
+  ],
+  "deepDiveIntro": [
+    "Mutual information between X and Y: I(X;Y) = H(X) - H(X|Y) = H(Y) - H(Y|X) = H(X) + H(Y) - H(X,Y). Symmetric, non-negative, I(X;Y) = 0 iff X ⟂ Y. Alternative form: I(X;Y) = Σ_{x,y} p(x,y) log(p(x,y)/(p(x)p(y))) = D(P(X,Y)||P(X)P(Y)) — KL divergence from independence.",
+    "Conditional mutual information: I(X;Y|Z) = H(X|Z) - H(X|Y,Z). Chain rule: I(X₁,…,Xₙ;Y) = Σᵢ I(Xᵢ;Y|X₁,…,Xᵢ₋₁). Data processing inequality: if X → Z → Y form a Markov chain, then I(X;Z) ≥ I(X;Y) — processing can't increase information."
+  ],
+  "visualizationType": "mutual-information",
+  "deepDive": [
+    {
+      "heading": "Definitions and Properties",
+      "body": "I(X;Y) = H(X) - H(X|Y) = H(Y) - H(Y|X) = H(X) + H(Y) - H(X,Y). Symmetric: I(X;Y) = I(Y;X). Non-negative: I(X;Y) ≥ 0. Zero iff independence. Bounded: I(X;Y) ≤ min(H(X), H(Y)).",
+      "formula": "I(X;Y) = Σₓ,ᵧ p(x,y) log(p(x,y)/(p(x)p(y))) = D(p(x,y)||p(x)p(y))"
+    },
+    {
+      "heading": "Conditional Mutual Information",
+      "body": "I(X;Y|Z) = H(X|Z) - H(X|Y,Z). Information between X and Y given Z. Measures conditional dependence. Chain rule: I(X,Y;Z) = I(X;Z) + I(Y;Z|X). Used in conditional independence testing, causal discovery.",
+      "formula": "I(X;Y|Z) = Σ p(z) I(X;Y|Z=z) = H(X|Z) - H(X|Y,Z)"
+    },
+    {
+      "heading": "Data Processing Inequality",
+      "body": "If X → Z → Y (Markov chain), then I(X;Z) ≥ I(X;Y). No processing of Z can increase information about X. Foundation of information theory. Equality iff Z is a sufficient statistic: X → Z → Y and I(X;Z) = I(X;Y) implies Y adds no info beyond Z.",
+      "formula": "X → Z → Y ⟹ I(X;Z) ≥ I(X;Y)"
+    },
+    {
+      "heading": "Estimating MI from Data",
+      "body": "Hard problem: need density estimation. Methods: (1) Histogram/binning (biased, doesn't scale). (2) k-NN estimators (Kraskov-Stögbauer-Grassberger). (3) Neural estimators (MINE: DV representation, InfoNCE). (4) Kernel density estimation. Each has tradeoffs."
+    },
+    {
+      "heading": "Normalized Variants",
+      "body": "Raw MI depends on marginal entropies. Normalized versions for comparison: NMI = 2I(X;Y)/(H(X)+H(Y)) or I(X;Y)/√(H(X)H(Y)). Range [0,1]. Adjusted MI corrects for chance (similar to adjusted Rand index)."
+    }
+  ],
+  "youtubeLabel": "Mutual Information — Machine Learning Street Talk",
+  "youtubeUrl": "https://www.youtube.com/embed/eJIp_mgW5GQ",
+  "takeaways": [
+    "MI I(X;Y) = H(X) - H(X|Y): information shared between X and Y.",
+    "Symmetric, non-negative, zero iff independent.",
+    "I(X;Y) = D(p(x,y)||p(x)p(y)): KL from independence.",
+    "Data processing inequality: I(X;Z) ≥ I(X;Y) for X→Z→Y.",
+    "Hard to estimate from data; methods include k-NN and neural estimators."
+  ],
+  "edgeCases": [
+    {
+      "q": "Can MI be larger than individual entropies?",
+      "a": "No. I(X;Y) ≤ min(H(X), H(Y)). The maximum MI is the smaller of the two entropies, achieved when one variable is a deterministic function of the other. If X = Y, then I(X;Y) = H(X) = H(Y)."
+    },
+    {
+      "q": "Why is estimating MI from samples hard?",
+      "a": "MI requires joint density p(x,y), which is hard to estimate in high dimensions. Histogram/binning suffers from curse of dimensionality. k-NN methods are better but still struggle. Neural methods (MINE) are promising but can be unstable. This is the fundamental challenge in information bottleneck and representation learning."
+    },
+    {
+      "q": "What's the relationship between correlation and MI?",
+      "a": "For jointly Gaussian variables, I(X;Y) = -½ log(1-ρ²) — one-to-one mapping. But MI captures any dependence (nonlinear, non-monotonic), while correlation only captures linear relationship. Variables can have zero correlation but high MI (e.g., X and X² for symmetric distributions)."
+    }
+  ],
+  "sources": [
+    { "label": "Cover & Thomas — Elements of Information Theory (2nd ed.), Ch. 2", "url": "https://www.wiley.com/en-us/Elements+of+Information+Theory" },
+    { "label": "Kraskov et al. — Estimating Mutual Information", "url": "https://arxiv.org/abs/cond-mat/0305641" }
+  ]
+}

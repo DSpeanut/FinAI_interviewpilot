@@ -1,0 +1,82 @@
+{
+  "eli3": [
+    "A model registry is like a library for ML models. It stores trained model artifacts, tracks versions, manages metadata (hyperparameters, metrics, datasets), and controls the model lifecycle from development to production.",
+    "Without a registry: models saved to random S3 paths, no versioning, hard to reproduce experiments, can't track which model is in production. With a registry: centralized catalog, lineage tracking, stage transitions (dev→staging→prod), and collaboration.",
+    "Popular registries: MLflow Model Registry (open-source), AWS SageMaker Model Registry, Azure ML Model Registry, Google Vertex AI Model Registry. All provide similar core capabilities with different integrations."
+  ],
+  "whenWhy": [
+    {
+      "title": "Production model management",
+      "body": "Track which model version is deployed in production. Rollback to previous version if issues detected. Audit trail: who trained, when, with what data. Essential for compliance (finance, healthcare) and debugging production issues."
+    },
+    {
+      "title": "Experiment tracking and comparison",
+      "body": "Data scientists try dozens of hyperparameter combinations. Registry stores results, metrics, artifacts. Compare model versions side-by-side. Identify best performers. Reproduce successful experiments exactly."
+    },
+    {
+      "title": "Collaboration across teams",
+      "body": "Research team trains model, engineering team deploys it. Registry as handoff point: research tags 'staging' version, engineering pulls and deploys. Comments, documentation, approval workflows. Prevents 'works on my machine' issues."
+    },
+    {
+      "title": "CI/CD integration",
+      "body": "Automated pipelines trigger on new model registration. Tests validate model quality, fairness, performance. Approved models auto-deploy to staging. Governance gates require human approval for production."
+    }
+  ],
+  "deepDiveIntro": [
+    "Model registry components: (1) Model artifacts: binary files (saved_model.pb, model.pt, sklearn pickle) stored in object storage (S3, GCS, Azure Blob). (2) Metadata: hyperparameters, metrics (accuracy, AUC), training dataset reference, code version (git commit), dependencies. (3) Versioning: immutable versions with semantic versioning or auto-increment. (4) Stages/aliases: 'production', 'staging', 'archived' tags that can move between versions. (5) Lineage: upstream data, downstream deployments.",
+    "MLflow Model Registry specifics: Python/Java/REST APIs. Model format: MLflow flavor system (pytorch, tensorflow, sklearn) for standardized loading. Stage transitions with optional approval workflows. Integration with MLflow Tracking for experiment correlation."
+  ],
+  "visualizationType": "model-registry",
+  "deepDive": [
+    {
+      "heading": "Core Capabilities",
+      "body": "Versioning: unique identifier per model version (UUID or semantic). Storage: artifact repository (S3 with metadata DB). Metadata: parameters, metrics, tags, descriptions. Staging: labels (None, Staging, Production, Archived). Lineage: training data, code version, environment. Search: filter by tags, metrics, creator.",
+      "formula": "ModelVersion = {id, artifact_uri, metrics, params, stage, tags}"
+    },
+    {
+      "heading": "MLflow Model Registry",
+      "body": "Open-source, widely adopted. Backend: file store, SQL database (PostgreSQL, MySQL), or tracking server. API: mlflow.register_model(), transition_model_version_stage(). UI: web interface for browsing, comparing, annotating. Model flavors: standardized loading (mlflow.pytorch.load_model()). Model signatures: input/output schema for validation.",
+      "formula": "mlflow.register_model(model_uri, name='fraud-detector')"
+    },
+    {
+      "heading": "Cloud-Native Registries",
+      "body": "AWS SageMaker: integrated with training jobs, approval workflows, multi-account support. Azure ML: dataset linkage, pipeline integration. Vertex AI: model garden (pre-trained), evaluation service. Databricks: Unity Catalog integration. Tradeoffs: vendor lock-in vs integration depth, managed vs self-hosted."
+    },
+    {
+      "heading": "CI/CD Integration",
+      "body": "GitOps: model promotion via git commits. Jenkins/GitHub Actions trigger on new model version. Automated tests: validate schema, check metrics thresholds, fairness checks. Deployment: pull artifact from registry, build container, deploy to K8s. Rollback: revert to previous registry version. Drift detection triggers retraining → new registry version.",
+      "formula": "Pipeline: Train → Register → Test → Approve → Deploy"
+    },
+    {
+      "heading": "Governance and Compliance",
+      "body": "RBAC: who can register, transition stages, delete. Audit logs: all actions recorded. Model cards: documentation (intended use, limitations, performance across demographics). Approval workflows: manual sign-off before production. Retention: archive old versions, delete with compliance rules."
+    }
+  ],
+  "youtubeLabel": "MLflow Model Registry — Databricks",
+  "youtubeUrl": "https://www.youtube.com/embed/lfLQT9p3euo",
+  "takeaways": [
+    "Model registry = centralized repository for model artifacts, versions, and metadata.",
+    "Tracks lifecycle: development → staging → production → archived.",
+    "MLflow popular open-source option; cloud providers have managed alternatives.",
+    "Enables reproducibility, collaboration, and CI/CD integration.",
+    "Governance: RBAC, audit logs, approval workflows, model cards."
+  ],
+  "edgeCases": [
+    {
+      "q": "How big can model artifacts be?",
+      "a": "Large models (GPT-3 sized: hundreds of GB) challenge registries. Solutions: (1) Store in dedicated model storage (NVIDIA NGC, Hugging Face Hub) with registry holding reference. (2) Shard across files. (3) Use efficient formats (GGML, ONNX). (4) Store deltas between versions not full copies. (5) Git LFS for version control integration. Consider registry only for smaller models (<10GB)."
+    },
+    {
+      "q": "What about model versioning vs code versioning?",
+      "a": "Both matter and should be linked. Model version ≠ code version. Registry tracks model; git tracks code. Best practice: tag model metadata with git commit SHA. Use model version for deployment decisions, code version for debugging training issues. Model can be trained by different code versions over time."
+    },
+    {
+      "q": "Can you have multiple 'production' models?",
+      "a": "Yes: (1) A/B testing: model_v1 (90% traffic) + model_v2 (10%) both 'production'. (2) Shadow mode: model_v2 in production but not serving traffic, just logging predictions. (3) Multi-region: us-prod, eu-prod with different versions. (4) Canary: gradual rollout across fleets. Registry stages are logical; actual traffic split managed by deployment orchestrator."
+    }
+  ],
+  "sources": [
+    { "label": "MLflow Model Registry Documentation", "url": "https://mlflow.org/docs/latest/model-registry.html" },
+    { "label": "Huyen — Designing Machine Learning Systems, Ch. 8", "url": "https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/" }
+  ]
+}

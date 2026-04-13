@@ -56,5 +56,10 @@
   "sources": [
     { "label": "Inan et al. (2023) — Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations, Meta AI", "url": "https://arxiv.org/abs/2312.06674" },
     { "label": "OpenAI Moderation Documentation — official API reference", "url": "https://platform.openai.com/docs/guides/moderation" }
-  ]
+  ],
+  "visualizationType": "io-filtering-viz",
+  "codeSnapshot": {
+    "label": "io_filtering.py",
+    "code": "from transformers import pipeline\nfrom langchain_openai import ChatOpenAI\nfrom langchain_core.runnables import RunnableLambda\nimport time\n\n# --- Layer 1: LlamaGuard input filter ---\nguard = pipeline(\"text-classification\", model=\"meta-llama/LlamaGuard-7b\")\n\ndef check_input(user_input: str) -> str:\n    \"\"\"Run LlamaGuard on the raw user input. Raises ValueError if unsafe.\"\"\"\n    prompt = f\"[INST] Task: Check if safe.\\n[/INST]\\nUser: {user_input}\"\n    result = guard(prompt)\n    if result[0][\"label\"] == \"unsafe\":\n        raise ValueError(f\"Input blocked by safety classifier: {result[0]}\")\n    return user_input\n\n# --- Layer 2: Output filter with keyword denylist fallback ---\nDENY_LIST = [\"bomb-making\", \"synthesize nerve agent\", \"child exploitation\"]\n\ndef check_output(response_text: str) -> str:\n    \"\"\"Keyword denylist as a fast fallback output filter.\"\"\"\n    lower = response_text.lower()\n    for banned in DENY_LIST:\n        if banned in lower:\n            raise ValueError(f\"Output blocked: matched denylist term '{banned}'\")\n    return response_text\n\n# --- LangChain integration: filter → LLM → filter ---\nllm = ChatOpenAI(model=\"gpt-4o-mini\", temperature=0)\n\nfilter_chain = (\n    RunnableLambda(check_input)\n    | llm\n    | RunnableLambda(lambda msg: check_output(msg.content))\n)\n\n# --- Measure filter overhead ---\nuser_query = \"How do I safely dispose of old medication?\"\n\nt0 = time.perf_counter()\ntry:\n    safe_input = check_input(user_query)\n    t_filter = time.perf_counter()\n    print(f\"Input filter latency: {(t_filter - t0)*1000:.1f}ms\")\n\n    result = filter_chain.invoke(user_query)\n    print(f\"Final response: {result}\")\nexcept ValueError as e:\n    print(f\"Blocked: {e}\")\n"
+  }
 }

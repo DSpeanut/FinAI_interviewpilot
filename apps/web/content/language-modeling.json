@@ -16,6 +16,7 @@
     {
       "title": "Measuring language model quality",
       "body": "Perplexity measures how surprised a LM is by held-out text: PPL(W) = P(w₁,…,wₙ)^{−1/n}. Lower PPL = better model. Perplexity is used to compare LMs on the same test set (e.g., Penn Treebank, Wikitext-103). Absolute perplexity values depend on vocabulary and tokenization — comparison across models requires the same tokenizer. Modern LLMs achieve perplexity < 10 on Wikitext-103."
+    }
   ],
   "deepDiveIntro": [
     "Autoregressive LM: P(w₁,…,wₙ) = Πᵢ P(wᵢ|w₁,…,wᵢ₋₁) by chain rule (exact, no approximation). Transformer LM: each token attends to all previous tokens via causal (masked) self-attention. Training objective: minimize cross-entropy loss — equivalently, maximize log-likelihood of the training corpus. This is equivalent to minimizing perplexity on the training data.",

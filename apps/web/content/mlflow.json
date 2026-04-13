@@ -1,0 +1,82 @@
+{
+  "eli3": [
+    "MLflow is an open-source platform for the ML lifecycle: experimentation, reproducibility, deployment. Think of it as 'Git for ML' — tracks experiments, packages models, manages deployments.",
+    "Four main components: Tracking (log parameters, metrics, artifacts), Projects (package code for reproducibility), Models (standardized model format), Registry (version and stage models). Can use components independently.",
+    "Tracking is most popular: data scientists log hyperparameters and metrics, compare runs in UI, identify best models. Integrates with any ML library (scikit-learn, TensorFlow, PyTorch, XGBoost)."
+  ],
+  "whenWhy": [
+    {
+      "title": "Experiment management",
+      "body": "Data scientists run hundreds of experiments varying hyperparameters. MLflow Tracking logs all automatically. UI for comparing: which learning rate gave best accuracy? Lineage: what data was this trained on? Artifact store: model files, plots, datasets."
+    },
+    {
+      "title": "Reproducibility",
+      "body": "MLflow Projects packages code, dependencies, entry points. Run anywhere with same results. Conda environments or Docker containers. mlflow run git@github.com:user/project.git executes reproducibly. Critical for collaboration and paper reproduction."
+    },
+    {
+      "title": "Model deployment standardization",
+      "body": "MLflow Models 'flavors' provide standard interface. Load any model type with mlflow.*.load_model(). Serve via REST API (mlflow models serve). Deploy to various platforms (SageMaker, Azure ML, custom). Model signatures validate inputs/outputs."
+    },
+    {
+      "title": "Model registry and governance",
+      "body": "Register best experiments as model versions. Stage transitions: None → Staging → Production → Archived. Approval workflows. Audit trail. Integration with CI/CD: trigger deployment on stage change. Open-source alternative to proprietary registries."
+    }
+  ],
+  "deepDiveIntro": [
+    "MLflow Tracking: Log metrics (mlflow.log_metric()), parameters (mlflow.log_param()), artifacts (mlflow.log_artifact()). Runs organized in experiments. UI shows parallel coordinates, metric time series, parameter importance. Backend stores: local files, SQLite, PostgreSQL, REST server. Artifact stores: local, S3, GCS, Azure Blob, SFTP.",
+    "MLflow Models: Standard format directory containing model binary, MLmodel descriptor file, conda.yaml environment. Flavors: sklearn, pytorch, tensorflow, xgboost, lightgbm, onnx, custom. pyfunc generic flavor for any Python function. Signatures define input/output schema for validation."
+  ],
+  "visualizationType": "mlflow",
+  "deepDive": [
+    {
+      "heading": "MLflow Tracking",
+      "body": "API: mlflow.start_run(), log_param('lr', 0.01), log_metric('accuracy', 0.95), log_artifact('plot.png'). Auto-logging: mlflow.autolog() captures sklearn, TensorFlow params/metrics automatically. Experiments organize runs. Tags and notes add context. Search: MLflow API or UI filters (accuracy > 0.9, sort by loss).",
+      "formula": "with mlflow.start_run(): mlflow.log_params(vars(args)) → captures all hyperparameters"
+    },
+    {
+      "heading": "MLflow Models",
+      "body": "Format: directory with model binary, MLmodel descriptor, conda environment. Save: mlflow.sklearn.log_model(model, 'model_path'). Load: mlflow.sklearn.load_model('runs:/run_id/model_path'). Serve: mlflow models serve -m model_uri. Deploy: mlflow.deployments to cloud endpoints.",
+      "formula": "model_uri formats: runs:/run_id/path, models:/model_name/version, s3://bucket/path"
+    },
+    {
+      "heading": "MLflow Projects",
+      "body": "MLproject file defines: name, conda_env or docker_env, entry points with parameters. Entry points: command to run with typed parameters. Execute: mlflow run . -P alpha=0.5. Git integration: run directly from repo. Reproducible: environment packaged, exact git commit tracked."
+    },
+    {
+      "heading": "MLflow Registry",
+      "body": "Register: mlflow.register_model('runs:/run_id/model', 'MyModel'). Stages: Staging, Production, Archived. Transitions: client.transition_model_version_stage(). UI: compare versions, view lineage, approve changes. Webhook integration: trigger CI/CD on stage change.",
+      "formula": "client.transition_model_version_stage(name='MyModel', version=3, stage='Production')"
+    },
+    {
+      "heading": "Deployment Patterns",
+      "body": "Local server: mlflow models serve (Flask, dev only). Production: Docker container (mlflow models build-docker). Cloud: mlflow.sagemaker, mlflow.azureml. Custom: load model in Python app. Scalability: MLflow doesn't scale serving itself; use Kubernetes or cloud endpoints with MLflow as registry."
+    }
+  ],
+  "youtubeLabel": "MLflow Tutorial — DataCamp",
+  "youtubeUrl": "https://www.youtube.com/embed/cz-SprSf0os",
+  "takeaways": [
+    "MLflow = open-source ML lifecycle platform (tracking, projects, models, registry).",
+    "Tracking: log params, metrics, artifacts; compare in UI.",
+    "Models: standardized format with flavors for different frameworks.",
+    "Registry: version models, manage stages, CI/CD integration.",
+    "Deployment: local dev server, Docker, or cloud integrations."
+  ],
+  "edgeCases": [
+    {
+      "q": "When should I use MLflow vs Weights & Biases vs SageMaker?",
+      "a": "MLflow: open-source, self-hosted, free, integrates anywhere. W&B: managed SaaS, better UI/visualization, experiment comparison, costs money. SageMaker: AWS-only, fully managed, scalable, vendor lock-in. Choose MLflow for flexibility/cost, W&B for collaboration/visualization, SageMaker if all-in on AWS. Many use MLflow + W&B together."
+    },
+    {
+      "q": "How does MLflow handle large artifacts?",
+      "a": "Artifacts stored in configured backend (S3, GCS, etc.). Large models: use artifact storage with multipart upload. Consider storing only small artifacts in MLflow, large models in dedicated storage with reference in MLflow. Databricks-hosted MLflow has 5GB artifact limit per file; self-hosted unlimited by config."
+    },
+    {
+      "q": "Can MLflow track distributed training?",
+      "a": "Yes: each worker logs to same run or separate runs. Horovod, Ray Train integrations. Best practice: rank 0 worker logs parameters (same for all), all workers log metrics (aggregated by MLflow). Or use single run with step parameter for iterations. For PyTorch DistributedDataParallel, only main process logs to avoid conflicts."
+    }
+  ],
+  "sources": [
+    { "label": "MLflow Documentation", "url": "https://mlflow.org/docs/latest/index.html" },
+    { "label": "Zaharia et al. — Accelerating the ML Lifecycle with MLflow", "url": "https://dl.acm.org/doi/10.1145/3394486.3406477" }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "eli3": [
+    "Tecton is a managed feature platform built by the creators of Feast. It provides a complete solution for feature engineering, storage, and serving without the operational overhead of self-managing infrastructure.",
+    "Unlike Feast (open-source, self-hosted), Tecton is a commercial SaaS platform. It offers built-in transformation capabilities, streaming support, and enterprise features like governance and monitoring out of the box.",
+    "Tecton abstracts away the infrastructure: you write feature definitions in Python or SQL, and Tecton handles compute (Spark, Snowflake), storage (offline/online), and serving at scale."
+  ],
+  "whenWhy": [
+    {
+      "title": "Managed feature platform",
+      "body": "Teams wanting feature store capabilities without DevOps overhead. No Kubernetes clusters to manage, no Redis to operate, no Spark jobs to debug. Tecton handles scaling, monitoring, and reliability. Faster time to production."
+    },
+    {
+      "title": "Real-time feature engineering",
+      "body": "Tecton's streaming support is more integrated than Feast. Define streaming features in Python/SQL; Tecton manages Flink/Spark Streaming infrastructure. Aggregations over event time windows (last 5 minutes, last hour) computed automatically."
+    },
+    {
+      "title": "Enterprise requirements",
+      "body": "Built-in data lineage, access control (RBAC), audit logging, PII detection. Compliance certifications (SOC 2, HIPAA). SSO integration. Feature quality monitoring and alerting. Support SLAs."
+    },
+    {
+      "title": "Feature transformation at scale",
+      "body": "Tecton executes transformations on your data warehouse (Snowflake, BigQuery, Redshift) or Spark. Optimized for cost and performance. Caching, materialization strategies, and compute scheduling handled automatically."
+    }
+  ],
+  "deepDiveIntro": [
+    "Tecton architecture: (1) Feature definitions: Python SDK with decorators (@entity, @feature_view, @stream_feature_view). (2) Materialization: Tecton orchestrates computation on your data warehouse or managed Spark. (3) Online store: managed Redis or DynamoDB (Tecton-hosted or customer-VPC). (4) Feature server: fully managed, autoscaling REST/gRPC API. (5) Monitoring: drift detection, quality metrics, lineage tracking.",
+    "Key differentiators from Feast: fully managed (no infrastructure to operate), built-in transformations, native streaming support, enterprise governance, and professional support. Tradeoff: vendor lock-in and cost (per-feature or per-request pricing vs self-managed infrastructure costs)."
+  ],
+  "visualizationType": "tecton",
+  "deepDive": [
+    {
+      "heading": "Feature Definitions",
+      "body": "Declarative Python SDK similar to Feast but more capabilities. @batch_feature_view for warehouse transformations. @stream_feature_view for real-time aggregations. @on_demand_feature_view for request-time transformations. SQL support for data analysts. Type hints for data validation. Unit testable with local mode.",
+      "formula": "@batch_feature_view(entity=User, ttl=timedelta(days=7)) → defines batch features"
+    },
+    {
+      "heading": "Stream Processing",
+      "body": "Native streaming support via managed Flink. Define aggregations: count, sum, avg, max, min over tumbling or sliding windows. Event-time semantics with watermarking. Automatic state management and fault tolerance. Join streams with batch features (stream-batch enrichment). Example: count of user actions in last 5 minutes updated in real-time.",
+      "formula": "@stream_feature_view(entities=[User], mode=streaming) with aggregation"
+    },
+    {
+      "heading": "Compute Engine",
+      "body": "Tecton runs transformations on your existing infrastructure: Snowflake, BigQuery, Redshift, Databricks. No data leaves your environment. Tecton submits queries/jobs, manages scheduling and dependencies. Cost optimization: incremental processing, predicate pushdown, materialization strategies. You pay your cloud provider for compute; Tecton for platform."
+    },
+    {
+      "heading": "Online Serving",
+      "body": "Fully managed feature server with autoscaling. REST and gRPC APIs. Sub-10ms p99 latency typical. Global distribution for low-latency serving worldwide. Consistency guarantees. No capacity planning — scales with your traffic. Direct SDK integration for Python, Java, Go."
+    },
+    {
+      "heading": "Enterprise Features",
+      "body": "Governance: role-based access control, feature catalog with ownership, approval workflows. Monitoring: drift detection (PSI, KS test), data quality (null rates, range checks), freshness SLAs. Lineage: upstream data sources, downstream models. Compliance: SOC 2 Type II, GDPR support, audit logs. Support: dedicated customer success engineers, SLAs."
+    }
+  ],
+  "youtubeLabel": "Tecton Feature Platform — Product Overview",
+  "youtubeUrl": "https://www.youtube.com/embed/FZh8pI5T_0M",
+  "takeaways": [
+    "Tecton = managed feature platform by Feast creators.",
+    "Fully managed: no infrastructure to operate, autoscaling, built-in monitoring.",
+    "Native streaming support with managed Flink for real-time features.",
+    "Enterprise: RBAC, lineage, drift detection, compliance certifications.",
+    "Tradeoff: vendor lock-in and cost vs operational simplicity."
+  ],
+  "edgeCases": [
+    {
+      "q": "How much does Tecton cost compared to Feast?",
+      "a": "Tecton: platform fee + compute costs (passed through or bundled). Typically $50K-200K+/year depending on scale. Feast: free (open-source) but you pay for infrastructure (Kubernetes, Redis, Spark, storage) and engineering time to operate. At small scale (<10 models), Feast cheaper. At scale with dedicated team, comparable. Value prop: Tecton reduces time-to-market and ops burden, not necessarily infrastructure cost."
+    },
+    {
+      "q": "Can I migrate from Feast to Tecton?",
+      "a": "Yes — Tecton provides migration path. Feature definitions similar (same conceptual model). Tecton can run alongside Feast during transition. Data migration: backfill offline store, sync online store. Some Feast features may need reimplementation in Tecton syntax. Tecton professional services assist with enterprise migrations."
+    },
+    {
+      "q": "What are Tecton's limitations?",
+      "a": "Vendor lock-in: proprietary platform, though feature definitions portable to some extent. Cost: can be expensive for very high scale (millions of features, billions of entities). Multi-cloud: supports AWS, GCP, Azure but cross-cloud deployments complex. Custom transformations: limited to Python/SQL; arbitrary code execution restricted for security. Latency: while low (<10ms), ultra-low latency (<1ms) may need custom solution."
+    }
+  ],
+  "sources": [
+    { "label": "Tecton Documentation — tecton.ai", "url": "https://docs.tecton.ai/" },
+    { "label": "Tecton vs Feast Comparison", "url": "https://www.tecton.ai/blog/feast-vs-tecton/" }
+  ]
+}

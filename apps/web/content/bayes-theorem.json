@@ -1,0 +1,83 @@
+{
+  "eli3": [
+    "Bayes' theorem tells us how to update beliefs: P(cause|evidence) = P(evidence|cause) × P(cause) / P(evidence). It inverts conditional probabilities, going from 'if disease then symptom' to 'if symptom then disease'.",
+    "P(cause) is your prior belief before seeing evidence. P(evidence|cause) is the likelihood — how likely the evidence is if the cause is true. Multiply them, normalize, and you get the posterior P(cause|evidence).",
+    "This is the foundation of Bayesian statistics. Instead of just testing hypotheses, you maintain probability distributions over hypotheses and update them as data arrives. It's how spam filters, medical diagnosis, and many ML systems work."
+  ],
+  "whenWhy": [
+    {
+      "title": "Medical diagnosis",
+      "body": "P(Disease|Symptoms) = P(Symptoms|Disease)P(Disease)/P(Symptoms). Even with highly accurate tests, rare diseases mean many false positives. Bayes' theorem correctly incorporates base rates to compute true probability."
+    },
+    {
+      "title": "Spam filtering",
+      "body": "Naive Bayes classifiers compute P(Spam|Words) using Bayes' theorem with word independence assumption. Despite simplicity, highly effective for spam detection and text classification."
+    },
+    {
+      "title": "Bayesian machine learning",
+      "body": "P(parameters|data) ∝ P(data|parameters)P(parameters). Prior over parameters updated by likelihood to give posterior. Enables uncertainty quantification, model comparison via Bayes factors, and automatic Occam's razor."
+    },
+    {
+      "title": "A/B testing and Bayesian optimization",
+      "body": "Maintain posterior over conversion rates. Update as data arrives. Bayesian optimization uses posterior to guide exploration vs exploitation. Thompson sampling pulls arms proportional to probability of being best."
+    }
+  ],
+  "deepDiveIntro": [
+    "Bayes' theorem: P(A|B) = P(B|A)P(A)/P(B). Derived from definition of conditional probability: P(A|B)P(B) = P(A ∩ B) = P(B|A)P(A). The theorem inverts the conditioning direction, which is crucial when one conditional is easier to specify than the other.",
+    "In Bayesian inference, A represents parameters θ and B represents data D. Posterior ∝ Likelihood × Prior. The marginal likelihood P(D) = ∫ P(D|θ)P(θ)dθ normalizes the posterior. For conjugate priors, posterior has same form as prior with updated parameters."
+  ],
+  "visualizationType": "bayes-theorem",
+  "deepDive": [
+    {
+      "heading": "The Theorem",
+      "body": "P(A|B) = P(B|A)P(A)/P(B). Three equivalent forms: (1) odds form for ratios, (2) with law of total probability for denominator, (3) continuous version with densities. The factor P(B|A)/P(B) is the likelihood ratio updating the odds.",
+      "formula": "P(A|B) = P(B|A)P(A)/P(B) = P(B|A)P(A)/Σᵢ P(B|Aᵢ)P(Aᵢ)"
+    },
+    {
+      "heading": "Bayesian Inference Framework",
+      "body": "Prior P(θ) encodes beliefs before data. Likelihood P(D|θ) is probability of data given parameters. Posterior P(θ|D) ∝ P(D|θ)P(θ). Normalize by marginal likelihood P(D) = ∫ P(D|θ)P(θ)dθ. Posterior becomes prior for next observation (sequential updating).",
+      "formula": "Posterior ∝ Likelihood × Prior, P(θ|D) = P(D|θ)P(θ)/∫P(D|θ)P(θ)dθ"
+    },
+    {
+      "heading": "Conjugate Priors",
+      "body": "When prior and posterior belong to same family given likelihood. Examples: Beta prior + Binomial likelihood → Beta posterior. Normal prior + Normal likelihood → Normal posterior. Conjugacy gives closed-form updates: add successes to α, failures to β for Beta-Binomial.",
+      "formula": "θ ~ Beta(α,β), X|θ ~ Bin(n,θ) ⟹ θ|X ~ Beta(α+X, β+n-X)"
+    },
+    {
+      "heading": "Maximum A Posteriori (MAP)",
+      "body": "Point estimate: θ_MAP = argmax P(θ|D) = argmax P(D|θ)P(θ). Generalizes MLE with prior as regularization. Gaussian prior → L2 regularization (Ridge). Laplace prior → L1 regularization (Lasso).",
+      "formula": "θ_MAP = argmax_θ [log P(D|θ) + log P(θ)]"
+    },
+    {
+      "heading": "Marginal Likelihood and Model Selection",
+      "body": "P(D|M) = ∫ P(D|θ,M)P(θ|M)dθ is the evidence for model M. Bayes factor BF₁₂ = P(D|M₁)/P(D|M₂) compares models. Automatically penalizes complexity (Occam's razor) because complex models spread prior mass thinly."
+    }
+  ],
+  "youtubeLabel": "Bayes' Theorem — 3Blue1Brown",
+  "youtubeUrl": "https://www.youtube.com/embed/HZGZtL2NO04",
+  "takeaways": [
+    "Bayes' theorem: P(A|B) = P(B|A)P(A)/P(B).",
+    "Bayesian inference: Posterior ∝ Likelihood × Prior.",
+    "Conjugate priors give closed-form posterior updates.",
+    "MAP estimate adds prior regularization to MLE.",
+    "Marginal likelihood enables Bayesian model comparison."
+  ],
+  "edgeCases": [
+    {
+      "q": "What happens with an improper prior?",
+      "a": "Improper priors don't integrate to 1 (e.g., P(θ) ∝ 1 over ℝ). Can still yield proper posteriors if likelihood is sufficiently concentrated. Jeffreys prior is a common improper prior invariant to reparameterization. Caution: improper priors can lead to improper posteriors or paradoxes in multi-parameter settings."
+    },
+    {
+      "q": "Why is the denominator P(B) hard to compute?",
+      "a": "For continuous parameters, P(D) = ∫ P(D|θ)P(θ)dθ requires integrating over all parameter space — often high-dimensional and intractable. This is why MCMC (sampling) and variational inference (approximation) are essential for practical Bayesian computation."
+    },
+    {
+      "q": "What's the difference between frequentist and Bayesian?",
+      "a": "Frequentist: parameters are fixed, data is random. Confidence intervals and p-values describe data behavior under repeated sampling. Bayesian: parameters are random variables with distributions. Credible intervals describe uncertainty about parameters given observed data. Philosophically different; practically often similar with flat priors."
+    }
+  ],
+  "sources": [
+    { "label": "Gelman et al. — Bayesian Data Analysis (3rd ed.)", "url": "http://www.stat.columbia.edu/~gelman/book/" },
+    { "label": "MacKay — Information Theory, Inference, and Learning Algorithms", "url": "https://www.inference.org.uk/itprnn/book.html" }
+  ]
+}

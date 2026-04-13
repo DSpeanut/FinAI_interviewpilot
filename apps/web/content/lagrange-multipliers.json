@@ -1,0 +1,82 @@
+{
+  "eli3": [
+    "Lagrange multipliers solve constrained optimization: maximize f(x) subject to g(x) = 0. The trick is to create a new function L = f(x) - λg(x) and find where its gradient is zero.",
+    "Geometrically, at the optimum, the gradient of f (direction of steepest increase) must be perpendicular to the constraint surface. This means ∇f and ∇g are parallel: ∇f = λ∇g. The multiplier λ measures how much the objective changes if we relax the constraint.",
+    "Think of walking along a path (constraint) looking for the highest point. You're at a peak when the uphill direction is perpendicular to the path — any step along the path neither climbs nor descends."
+  ],
+  "whenWhy": [
+    {
+      "title": "Support Vector Machines",
+      "body": "SVM optimization: maximize margin subject to classification constraints. Lagrange multipliers (dual variables) become support vector weights. The dual problem is often easier to solve and reveals sparsity (only support vectors matter)."
+    },
+    {
+      "title": "Portfolio optimization with constraints",
+      "body": "Maximize return subject to risk budget, or minimize risk subject to return target. Constraints include: sum of weights = 1, no shorting (w ≥ 0), sector limits. Lagrange multipliers give shadow prices of constraints."
+    },
+    {
+      "title": "Maximum entropy and exponential families",
+      "body": "Find maximum entropy distribution subject to moment constraints. Lagrange multipliers become natural parameters of the exponential family. This connects to maximum likelihood estimation and variational inference."
+    },
+    {
+      "title": "Physics and mechanics",
+      "body": "Principle of least action with constraints (holonomic constraints in Lagrangian mechanics). Forces of constraint appear as Lagrange multipliers. Duality between force and displacement constraints."
+    }
+  ],
+  "deepDiveIntro": [
+    "To optimize f(x) subject to equality constraint g(x) = 0, form the Lagrangian L(x,λ) = f(x) - λg(x). At optima, ∇ₓL = 0 and ∂L/∂λ = 0 (which recovers g(x) = 0). The condition ∇f = λ∇g means objective and constraint gradients are parallel.",
+    "For multiple constraints gᵢ(x) = 0, L = f(x) - Σ λᵢgᵢ(x). The multiplier λᵢ represents the rate of change of the optimal value with respect to relaxing constraint i: λᵢ = d(f*)/d(bᵢ) if constraint is gᵢ(x) = bᵢ. Inequality constraints use KKT conditions (generalization with complementary slackness)."
+  ],
+  "visualizationType": "lagrange-multipliers",
+  "deepDive": [
+    {
+      "heading": "The Lagrangian",
+      "body": "For minimize f(x) subject to g(x) = 0: L(x,λ) = f(x) + λg(x) (sign convention varies). Stationary points satisfy ∇ₓL = ∇f + λ∇g = 0 and ∂L/∂λ = g(x) = 0. The multiplier λ ∈ ℝ measures sensitivity to constraint perturbation.",
+      "formula": "L(x,λ) = f(x) + λg(x), ∇ₓL = 0, g(x) = 0"
+    },
+    {
+      "heading": "Geometric Interpretation",
+      "body": "At optimum, ∇f is perpendicular to constraint surface {x: g(x)=0} (tangent space). Since ∇g is also perpendicular to this surface, ∇f and ∇g must be parallel: ∇f = -λ∇g. The contour of f is tangent to the constraint surface at the optimum."
+    },
+    {
+      "heading": "Multiple Constraints",
+      "body": "For constraints g₁(x)=0,…,gₘ(x)=0: L(x,λ) = f(x) + Σ λᵢgᵢ(x). Each λᵢ is a separate multiplier. Stationarity: ∇f + Σ λᵢ∇gᵢ = 0. The gradients ∇gᵢ span the space orthogonal to the feasible set.",
+      "formula": "L(x,λ) = f(x) + λᵀg(x) where g(x) = [g₁(x),…,gₘ(x)]ᵀ"
+    },
+    {
+      "heading": "Sensitivity Interpretation",
+      "body": "If we change constraint to g(x) = c, optimal value changes by λc (to first order). So λ = df*/dc is the shadow price — how much we'd pay to relax the constraint slightly. If λ = 0, constraint is inactive (not binding at optimum).",
+      "formula": "λ = d(f*)/dc (shadow price)"
+    },
+    {
+      "heading": "Inequality Constraints (KKT)",
+      "body": "For g(x) ≤ 0, form Lagrangian L = f + λg. KKT conditions: (1) stationarity, (2) primal feasibility, (3) dual feasibility λ ≥ 0, (4) complementary slackness λg(x) = 0. If constraint active (g=0), λ≥0; if inactive (g<0), λ=0."
+    }
+  ],
+  "youtubeLabel": "Lagrange Multipliers — Khan Academy",
+  "youtubeUrl": "https://www.youtube.com/embed/8mjcnxGMTh0",
+  "takeaways": [
+    "Lagrangian L = f(x) + λg(x) converts constrained to unconstrained problem.",
+    "Optimum occurs where ∇f = -λ∇g (gradients parallel, contours tangent).",
+    "Multiplier λ = shadow price = rate of change of optimal value vs constraint.",
+    "Multiple constraints: one λᵢ per constraint, sum in Lagrangian.",
+    "KKT conditions generalize to inequality constraints with complementary slackness."
+  ],
+  "edgeCases": [
+    {
+      "q": "What if the constraint qualification fails?",
+      "a": "Constraint qualification (e.g., LICQ: ∇gᵢ linearly independent) ensures Lagrange multipliers exist. Without it, optimum may exist but no λ satisfies conditions. Example: minimize x subject to x³ = 0. At x=0, ∇g = 0, so ∇f = λ∇g has no solution with finite λ."
+    },
+    {
+      "q": "When are KKT conditions sufficient?",
+      "a": "For convex problems (convex f, convex feasible set from convex gᵢ), KKT conditions are sufficient for global optimality. For non-convex problems, KKT points can be local minima, maxima, or saddles — second-order conditions needed to classify."
+    },
+    {
+      "q": "How do I handle both equality and inequality constraints?",
+      "a": "Include both with separate multipliers: L = f + λᵀh + μᵀg where h(x)=0 are equalities and g(x)≤0 are inequalities. KKT applies to inequalities (μ ≥ 0, μᵢgᵢ = 0). Equalities have free λ (can be positive or negative)."
+    }
+  ],
+  "sources": [
+    { "label": "Boyd & Vandenberghe — Convex Optimization, Ch. 5", "url": "https://web.stanford.edu/~boyd/cvxbook/" },
+    { "label": "Nocedal & Wright — Numerical Optimization (2nd ed.), Ch. 12", "url": "https://www.springer.com/gp/book/9780387303031" }
+  ]
+}

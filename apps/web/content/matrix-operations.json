@@ -1,0 +1,84 @@
+{
+  "eli3": [
+    "Matrix operations are like arithmetic for grids of numbers. Addition adds corresponding cells. Multiplication mixes rows with columns — it's like applying one transformation after another.",
+    "Transpose flips a matrix over its diagonal: rows become columns. It's useful when you need to align dimensions for multiplication or when working with symmetric relationships.",
+    "The inverse of a matrix 'undoes' its transformation. If A sends a vector somewhere, A⁻¹ brings it back. Not all matrices have inverses — only square matrices with full rank."
+  ],
+  "whenWhy": [
+    {
+      "title": "Composing transformations in deep learning",
+      "body": "Each layer of a neural network computes Wx + b (matrix-vector multiplication + bias). Backpropagation requires transposes to propagate gradients backward through the network: ∂L/∂W = (∂L/∂z) xᵀ."
+    },
+    {
+      "title": "Solving linear systems",
+      "body": "Ax = b. If A is invertible, x = A⁻¹b. LU decomposition, QR decomposition, and Cholesky factorization are efficient ways to solve systems without explicitly computing the inverse, which is O(n³) and numerically unstable."
+    },
+    {
+      "title": "Covariance and correlation matrices",
+      "body": "Given data matrix X (centered), the covariance matrix is (1/n) XᵀX. This is symmetric positive semi-definite. Its eigendecomposition yields principal components (PCA)."
+    },
+    {
+      "title": "Change of basis and coordinate transforms",
+      "body": "To express a vector v in a new basis B, compute B⁻¹v. To transform a matrix to the new basis: B⁻¹AB. This is how we diagonalize matrices and simplify computations."
+    }
+  ],
+  "deepDiveIntro": [
+    "Matrix addition and scalar multiplication are elementwise and straightforward. Matrix multiplication is the fundamental operation: for A ∈ ℝᵐˣⁿ and B ∈ ℝⁿˣᵖ, (AB)ᵢₖ = Σⱼ AᵢⱼBⱼₖ. This represents composition of the linear transformations represented by A and B.",
+    "The transpose Aᵀ swaps rows and columns: (Aᵀ)ᵢⱼ = Aⱼᵢ. Key properties: (AB)ᵀ = BᵀAᵀ, (A⁻¹)ᵀ = (Aᵀ)⁻¹. The trace tr(A) = Σᵢ Aᵢᵢ is cyclic: tr(ABC) = tr(BCA) = tr(CAB), which is useful in derivations."
+  ],
+  "visualizationType": "matrix-operations",
+  "deepDive": [
+    {
+      "heading": "Matrix Multiplication",
+      "body": "Defined when inner dimensions match. Each entry is the dot product of a row from the first matrix with a column from the second. Complexity is O(mnp) for naive algorithm, O(n^2.373) theoretically with advanced methods. Strassen's algorithm achieves O(n^2.81). In practice, BLAS libraries use highly optimized blocking strategies.",
+      "formula": "(AB)ᵢₖ = Σⱼ₌₁ⁿ AᵢⱼBⱼₖ"
+    },
+    {
+      "heading": "Transpose",
+      "body": "Swaps rows and columns. A square matrix is symmetric if A = Aᵀ. The transpose converts column vectors to row vectors, enabling outer products: uvᵀ is a matrix. In ML, XᵀX appears frequently in normal equations and covariance estimation.",
+      "formula": "(Aᵀ)ᵢⱼ = Aⱼᵢ, (AB)ᵀ = BᵀAᵀ"
+    },
+    {
+      "heading": "Matrix Inverse",
+      "body": "A⁻¹ satisfies AA⁻¹ = A⁻¹A = I. Exists iff det(A) ≠ 0 (A is nonsingular). Computing the inverse is O(n³) with Gaussian elimination. In practice, we solve Ax = b using LU or QR decomposition rather than explicitly computing A⁻¹, for numerical stability.",
+      "formula": "A⁻¹A = AA⁻¹ = I, (AB)⁻¹ = B⁻¹A⁻¹"
+    },
+    {
+      "heading": "Trace and Determinant",
+      "body": "Trace is the sum of diagonal elements. Determinant measures volume scaling factor: det(A) is the signed volume of the parallelepiped spanned by columns. det(AB) = det(A)det(B). det(A) = 0 means the transformation collapses space (singular matrix).",
+      "formula": "tr(A) = Σᵢ Aᵢᵢ, det(AB) = det(A)det(B)"
+    },
+    {
+      "heading": "Hadamard (Elementwise) Product",
+      "body": "Different from matrix multiplication. (A ∘ B)ᵢⱼ = AᵢⱼBᵢⱼ. Used in attention mechanisms (Transformer queries and keys), gating mechanisms (LSTM, GRU), and some regularization schemes. Requires same dimensions.",
+      "formula": "(A ∘ B)ᵢⱼ = Aᵢⱼ · Bᵢⱼ"
+    }
+  ],
+  "youtubeLabel": "Matrix Operations — Khan Academy",
+  "youtubeUrl": "https://www.youtube.com/embed/kT4Mp9EdVqs",
+  "takeaways": [
+    "Matrix multiplication composes linear transformations: (AB)v = A(Bv).",
+    "Transpose swaps rows/columns: (AB)ᵀ = BᵀAᵀ.",
+    "Inverse undoes transformation: A⁻¹A = I. Exists iff det(A) ≠ 0.",
+    "Trace is cyclic: tr(ABC) = tr(BCA). Determinant measures volume scaling.",
+    "Hadamard product is elementwise multiplication, used in attention/gating."
+  ],
+  "edgeCases": [
+    {
+      "q": "Why is matrix multiplication non-commutative?",
+      "a": "AB applies B then A; BA applies A then B. Geometrically, rotating then scaling gives a different result than scaling then rotating. Only special cases commute: both diagonal, both scalar multiples of identity, or when one is a polynomial function of the other."
+    },
+    {
+      "q": "When should I compute A⁻¹ explicitly?",
+      "a": "Almost never. Computing the inverse is O(n³) and numerically unstable. Instead, use LU decomposition for solving Ax=b, QR for least squares, or iterative methods for large sparse systems. The inverse is useful conceptually but rarely in practice."
+    },
+    {
+      "q": "What is the geometric interpretation of trace?",
+      "a": "Trace is the sum of eigenvalues (counting multiplicity). Geometrically, it's related to the infinitesimal volume change under the flow generated by the matrix. In physics, it's connected to divergence and expansion/contraction rates."
+    }
+  ],
+  "sources": [
+    { "label": "Strang — Introduction to Linear Algebra (6th ed.), Ch. 1-2", "url": "https://math.mit.edu/~gs/linearalgebra/" },
+    { "label": "Boyd & Vandenberghe — Introduction to Applied Linear Algebra", "url": "https://web.stanford.edu/~boyd/vmls/" }
+  ]
+}

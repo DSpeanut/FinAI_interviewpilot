@@ -1,0 +1,83 @@
+{
+  "eli3": [
+    "CI/CD for ML extends traditional DevOps pipelines to handle ML-specific challenges: data validation, model training, evaluation, and deployment. It's not just code changes — models, data, and hyperparameters change too.",
+    "Traditional CI/CD: code → build → test → deploy. ML CI/CD adds: data validation → training → model evaluation → model testing → deployment. Retraining triggers: schedule, data drift, performance degradation, or manual.",
+    "Key difference: ML testing includes model quality (accuracy, fairness), not just code correctness. Deployment strategies differ: canary, shadow mode, A/B testing to validate model behavior with real traffic before full rollout."
+  ],
+  "whenWhy": [
+    {
+      "title": "Automated retraining pipelines",
+      "body": "Models degrade over time (concept drift). Automated CI/CD detects drift, triggers retraining on fresh data, evaluates against previous model, and deploys if better. Reduces manual intervention, ensures models stay current."
+    },
+    {
+      "title": "Safe model deployment",
+      "body": "Don't deploy new models directly to 100% traffic. CI/CD implements progressive delivery: shadow mode (log only), canary (1% traffic), A/B test, full rollout. Automatic rollback if error rates spike or latency degrades."
+    },
+    {
+      "title": "Reproducibility and auditability",
+      "body": "Every pipeline run logged: data version, code commit, hyperparameters, metrics, artifacts. Audit trail for compliance. Rollback to any previous version. GitOps: git as single source of truth for pipeline definitions."
+    },
+    {
+      "title": "Team collaboration",
+      "body": "Data scientists experiment in branches. PR triggers training pipeline on subset. Merge to main triggers full training and staging deployment. Production deployment requires approval. Clear separation between experimentation and production."
+    }
+  ],
+  "deepDiveIntro": [
+    "ML CI/CD pipeline stages: (1) Data validation: schema, distributions, quality checks fail fast if data bad. (2) Training: reproducible training with versioned data and code. (3) Model evaluation: metrics on test set, comparison to baseline. (4) Model testing: unit tests (specific cases), integration tests (API contract), bias/fairness tests. (5) Deployment: progressive rollout with monitoring. (6) Continuous monitoring: drift detection triggers retraining.",
+    "Tools: Jenkins, GitHub Actions, GitLab CI, CircleCI for orchestration. Kubeflow Pipelines, Airflow, Prefect for ML workflows. MLflow, Weights & Biases for tracking. Great Expectations for data validation. Seldon, KServe for model serving with canary/shadow support."
+  ],
+  "visualizationType": "cicd-ml",
+  "deepDive": [
+    {
+      "heading": "Pipeline Stages",
+      "body": "Source: git commit triggers pipeline. Data validation: Great Expectations, TFDV check schema and stats. Training: containerized, reproducible, logs to MLflow. Evaluation: compute metrics, compare to production model threshold. Testing: model cards, fairness (Aequitas), integration. Deployment: conditional on tests pass. Monitoring: continuous post-deployment.",
+      "formula": "Trigger → Data Val → Train → Evaluate → Test → Deploy → Monitor"
+    },
+    {
+      "heading": "Testing Strategies",
+      "body": "Code tests: unit tests for preprocessing, training logic. Model tests: invariance (synonyms should not change prediction), directional (more features → higher score), minimum functionality (specific cases). Data tests: schema, distribution drift. Integration: API contract, load testing. Canary: production shadow test before rollout.",
+      "formula": "Test pyramid: many unit tests, fewer integration, few end-to-end"
+    },
+    {
+      "heading": "GitOps for ML",
+      "body": "Git as source of truth: pipeline definitions (YAML), model configs, feature definitions. ArgoCD, Flux watch git and sync to cluster. Immutable infrastructure: container images with model artifacts. Rollback: revert git commit → pipeline reverts deployment. Auditability: who changed what when, all in git.",
+      "formula": "Git commit → CI/CD → Cluster state"
+    },
+    {
+      "heading": "Progressive Delivery",
+      "body": "Shadow: mirror traffic, compare predictions (no user impact). Canary: route small % (1-5%) to new model, monitor metrics. A/B test: split by user, measure business metrics. Blue-green: instant switch with rollback capability. Feature flags: disable model without redeploy. Gradual rollout based on confidence.",
+      "formula": "Shadow → Canary → A/B → Full Rollout"
+    },
+    {
+      "heading": "Retraining Triggers",
+      "body": "Scheduled: nightly, weekly batch jobs. Performance-based: accuracy drops below threshold. Drift-based: data or concept drift detected. Event-driven: new labeled data arrives (ground truth). Manual: data scientist initiates. Trigger creates new training run, automatic evaluation and conditional deployment if improved."
+    }
+  ],
+  "youtubeLabel": "MLOps CI/CD — Google Cloud",
+  "youtubeUrl": "https://www.youtube.com/embed/6gdrUiQbPIw",
+  "takeaways": [
+    "ML CI/CD = data validation → training → evaluation → testing → deployment → monitoring.",
+    "Progressive delivery: shadow, canary, A/B test before full rollout.",
+    "GitOps: git as source of truth for reproducibility and auditability.",
+    "Automated testing: code, model quality, fairness, integration.",
+    "Retraining triggers: schedule, drift, performance, or event-driven."
+  ],
+  "edgeCases": [
+    {
+      "q": "What if a model passes tests but fails in production?",
+      "a": "Happens due to training-serving skew, data drift, or edge cases not in test set. Mitigation: (1) Extensive shadow testing before canary. (2) Gradual rollout with automatic rollback on error rate threshold. (3) Feature flags to disable instantly. (4) Monitoring: error rate, latency, business metrics, data drift. (5) Run champion/challenger: always compare production to candidate. (6) Post-mortem: capture failed cases, add to test suite."
+    },
+    {
+      "q": "How long should CI/CD pipelines take?",
+      "a": "Tradeoff: fast feedback vs thorough testing. Code changes: <10 minutes for unit tests. Training pipelines: hours (depends on data size). Solutions: (1) Subset training for PR validation (10% data, fewer epochs). (2) Distributed training for speed. (3) Caching: cache preprocessed data, Docker layers. (4) Parallel stages: data validation + unit tests concurrently. (5) Nightly full training, per-PR subset training."
+    },
+    {
+      "q": "How do you version data in CI/CD?",
+      "a": "DVC (Data Version Control): git-like for data. Store metadata in git, data in S3/GCS with content-addressable storage. Reference specific version in pipeline: dvc checkout data@v1.2.3. Feast feature stores: version features by timestamp. MLflow: log dataset reference in run. Reproducibility requires code, data, and model version together."
+    }
+  ],
+  "sources": [
+    { "label": "Google — Machine Learning CI/CD", "url": "https://cloud.google.com/architecture/ml-ops-best-practices" },
+    { "label": "Sculley et al. — Machine Learning: The High Interest Credit Card of Technical Debt", "url": "https://research.google/pubs/pub43146/" }
+  ]
+}

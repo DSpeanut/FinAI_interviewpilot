@@ -1,0 +1,82 @@
+{
+  "eli3": [
+    "The chain rule tells you how to differentiate composed functions. If y = f(g(x)), the rate of change of y with respect to x is the product: dy/dx = f'(g(x)) · g'(x). Think of it as rates multiplying along a chain.",
+    "Imagine a production line: machine A processes input x into intermediate g(x), then machine B processes that into final output f(g(x)). The chain rule says: total change = (B's sensitivity to input) × (A's sensitivity to input).",
+    "In multiple dimensions, the chain rule uses matrix multiplication (Jacobians). If h(x) = f(g(x)), then Jh = Jf · Jg. This is why backpropagation works — gradients flow backward through the network via successive matrix multiplications."
+  ],
+  "whenWhy": [
+    {
+      "title": "Backpropagation in neural networks",
+      "body": "Neural networks are compositions of layers: fₙ∘fₙ₋₁∘…∘f₁(x). Backprop applies chain rule backward from loss to compute ∂L/∂W for all weights. Each layer passes gradients to previous layer via Jacobian-vector products."
+    },
+    {
+      "title": "Change of variables in probability",
+      "body": "For random variable transformation Y = g(X), the PDF transforms as f_Y(y) = f_X(g⁻¹(y)) · |d/dy g⁻¹(y)|. The determinant of the Jacobian accounts for how g stretches/compresses space."
+    },
+    {
+      "title": "Differentiating complex loss functions",
+      "body": "Loss functions often compose multiple operations: L = loss(model(parameters(data))). Chain rule decomposes this into manageable pieces: ∂L/∂params = ∂L/∂output × ∂output/∂params."
+    },
+    {
+      "title": "ODEs and dynamical systems",
+      "body": "If y depends on x, and x depends on t, then dy/dt = (dy/dx)(dx/dt). Used extensively in physics (related rates), control theory, and when analyzing optimization dynamics (gradient flow)."
+    }
+  ],
+  "deepDiveIntro": [
+    "For y = f(g(x)) where f: ℝ → ℝ and g: ℝ → ℝ, the chain rule states dy/dx = f'(g(x)) · g'(x). In Leibniz notation: dy/dx = (dy/dg)(dg/dx). This extends to multiple variables: if z = f(x(t), y(t)), then dz/dt = (∂z/∂x)(dx/dt) + (∂z/∂y)(dy/dt).",
+    "For vector functions, if h(x) = f(g(x)) where g: ℝⁿ → ℝᵐ and f: ℝᵐ → ℝᵖ, then Jh(x) = Jf(g(x)) · Jg(x) — matrix multiplication of Jacobians. The (i,j) entry is Σₖ (∂fᵢ/∂yₖ)(∂yₖ/∂xⱼ). This form is fundamental to automatic differentiation and backpropagation."
+  ],
+  "visualizationType": "chain-rule",
+  "deepDive": [
+    {
+      "heading": "Single Variable Chain Rule",
+      "body": "For composition f∘g: (f∘g)'(x) = f'(g(x)) · g'(x). Intuition: change in f due to change in g, times change in g due to change in x. Leibniz notation makes it look like fraction cancellation: dy/dx = (dy/dg)(dg/dx).",
+      "formula": "(f∘g)'(x) = f'(g(x)) · g'(x)"
+    },
+    {
+      "heading": "Multivariable Chain Rule",
+      "body": "For z = f(x(t), y(t)): dz/dt = (∂f/∂x)(dx/dt) + (∂f/∂y)(dy/dt). General form: if x depends on t, then df/dt = ∇fᵀ (dx/dt). Each path from t to f contributes a product of partials; sum over all paths.",
+      "formula": "dz/dt = Σᵢ (∂f/∂xᵢ)(dxᵢ/dt)"
+    },
+    {
+      "heading": "Chain Rule for Jacobians",
+      "body": "For h(x) = f(g(x)) with g: ℝⁿ → ℝᵐ, f: ℝᵐ → ℝᵖ: Jh(x) = Jf(g(x)) · Jg(x) ∈ ℝᵖˣⁿ. Matrix multiplication corresponds to composing linear approximations. This is the mathematical foundation of backpropagation.",
+      "formula": "Jh = Jf · Jg, (Jh)ᵢⱼ = Σₖ (∂fᵢ/∂gₖ)(∂gₖ/∂xⱼ)"
+    },
+    {
+      "heading": "Backpropagation as Chain Rule",
+      "body": "For neural network L = fₙ∘…∘f₁(x), the gradient ∂L/∂Wₖ requires Jacobian of all layers after k. Backprop efficiently computes this via vector-Jacobian products (VJPs) passing backward: vᵀJₙ, then (vᵀJₙ)Jₙ₋₁, etc. Complexity is linear in network depth."
+    },
+    {
+      "heading": "Higher-Order Chain Rule (Faà di Bruno)",
+      "body": "Generalizes to higher derivatives. The formula involves Bell polynomials and sums over partitions. Rarely used directly in ML, but relevant for higher-order optimization methods (Newton, natural gradient) and analyzing curvature of composed functions."
+    }
+  ],
+  "youtubeLabel": "Chain Rule — 3Blue1Brown",
+  "youtubeUrl": "https://www.youtube.com/embed/YG15m2VwSjA",
+  "takeaways": [
+    "Chain rule: (f∘g)'(x) = f'(g(x)) · g'(x).",
+    "Multivariable: dz/dt = Σ (∂f/∂xᵢ)(dxᵢ/dt). Sum over all paths.",
+    "Vector version: Jh = Jf · Jg (matrix multiplication of Jacobians).",
+    "Backpropagation is efficient application of chain rule via VJPs.",
+    "Leibniz notation makes chain rule look like fraction cancellation."
+  ],
+  "edgeCases": [
+    {
+      "q": "What if g is not differentiable at some point?",
+      "a": "The chain rule requires differentiability. If g is not differentiable at x but f is constant near g(x), f∘g might still be differentiable. For non-differentiable g (like ReLU at 0), we use subgradients: ∂(f∘g)(x) contains products of subgradients."
+    },
+    {
+      "q": "How does chain rule work with higher-order derivatives?",
+      "a": "Apply product rule to chain rule result. For (f∘g)'': differentiate f'(g(x))g'(x) using both product and chain rules: (f∘g)'' = f''(g)(g')² + f'(g)g''. This gets complicated quickly (Faà di Bruno formula)."
+    },
+    {
+      "q": "Why is backpropagation more efficient than naive chain rule?",
+      "a": "Naive evaluation would compute Jacobians explicitly (large matrices). Backprop uses vector-Jacobian products (VJPs), computing vᵀJ without forming J. This reduces complexity from O(nodes²) to O(nodes) for typical network architectures."
+    }
+  ],
+  "sources": [
+    { "label": "Stewart — Calculus: Early Transcendentals (8th ed.), Ch. 3", "url": "https://www.cengage.com/c/calculus-early-transcendentals-8e-stewart/" },
+    { "label": "Baydin et al. — Automatic Differentiation in Machine Learning", "url": "https://arxiv.org/abs/1502.05767" }
+  ]
+}

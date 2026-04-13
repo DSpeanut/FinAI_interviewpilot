@@ -1,0 +1,83 @@
+{
+  "eli3": [
+    "Batch processing handles data in chunks on a schedule — like processing yesterday's sales at midnight. Real-time (streaming) processes events as they arrive — like updating a stock price ticker instantly.",
+    "Batch is simpler, more efficient for large volumes, and easier to recover from failures. Streaming provides lower latency (milliseconds vs hours) but is more complex and resource-intensive.",
+    "Most modern systems use both: batch for historical analytics and model training, streaming for real-time features and predictions. The choice depends on latency requirements and data volume."
+  ],
+  "whenWhy": [
+    {
+      "title": "Recommendation systems",
+      "body": "Batch: nightly jobs retrain models and pre-compute recommendations for users. Real-time: adjust recommendations based on current browsing session. Hybrid approaches combine both for responsiveness and personalization."
+    },
+    {
+      "title": "Fraud detection",
+      "body": "Batch: analyze historical patterns, train models on past fraud cases. Real-time: score transactions as they happen, block suspicious ones immediately. Most fraud systems use both — batch for model updates, real-time for scoring."
+    },
+    {
+      "title": "IoT and sensor data",
+      "body": "Sensors produce continuous streams. Real-time processing detects anomalies immediately (equipment failure, health alerts). Batch processing aggregates for trend analysis and reporting. Edge computing processes locally before sending to cloud."
+    },
+    {
+      "title": "Feature engineering",
+      "body": "Batch features computed on schedule (user demographics, historical aggregates). Real-time features computed at request time (items in cart, current session length). Feature stores serve both consistently to prevent training-serving skew."
+    }
+  ],
+  "deepDiveIntro": [
+    "Batch processing collects data over time, then processes it together. MapReduce, Spark, and BigQuery are batch systems. Throughput optimized: can process petabytes efficiently. Latency is high (minutes to hours) due to scheduling and data accumulation.",
+    "Stream processing handles individual events or micro-batches as they arrive. Apache Kafka, Flink, and Spark Streaming are stream processors. Latency is low (milliseconds to seconds). Throughput can be high but requires more resources. Event time vs processing time, windowing, and exactly-once semantics add complexity."
+  ],
+  "visualizationType": "batch-vs-realtime",
+  "deepDive": [
+    {
+      "heading": "Batch Processing Architecture",
+      "body": "Data lands in storage (S3, HDFS, data warehouse). Scheduled jobs (Airflow, cron) trigger processing. Frameworks: Spark (in-memory), BigQuery (SQL analytics), Presto (federated query). Advantages: high throughput, cost-effective (spot instances), simple fault tolerance (retry job). Disadvantages: high latency, stale predictions between runs.",
+      "formula": "Latency = schedule_interval + processing_time"
+    },
+    {
+      "heading": "Stream Processing Architecture",
+      "body": "Event producers (apps, sensors) → message queue (Kafka, Kinesis, Pub/Sub) → stream processors (Flink, Spark Streaming, Kafka Streams) → sinks (database, API, alerts). Low latency (milliseconds to seconds). Stateful processing requires managing distributed state. Windowing: tumbling (fixed), sliding (overlapping), session (activity-based).",
+      "formula": "Latency = queue_delay + processing_time ≈ milliseconds to seconds"
+    },
+    {
+      "heading": "Lambda Architecture",
+      "body": "Hybrid approach: batch layer (full recompute on all data), speed layer (real-time processing of recent data), serving layer (merges results). Batch provides accuracy; speed provides low latency. Complex: maintain two codebases (batch and stream logic). Being replaced by Kappa architecture (single streaming pipeline with reprocessing).",
+      "formula": "Query result = batch_view ∪ real_time_view"
+    },
+    {
+      "heading": "Feature Computation",
+      "body": "Batch features: historical aggregates (avg purchase last 30 days), computed periodically, stored in feature store. Real-time features: current context (time of day, items in cart), computed at request time. Online feature store (Redis, DynamoDB) serves low-latency lookups. Consistency challenge: ensure batch pre-computation matches real-time logic.",
+      "formula": "Total_latency = feature_lookup_time + model_inference_time + overhead"
+    },
+    {
+      "heading": "When to Choose Which",
+      "body": "Choose batch when: latency > hours acceptable, large historical datasets, cost-sensitive, complex joins needed. Choose streaming when: latency < seconds required, continuous data sources, real-time alerts, event-driven actions. Most production systems use both: batch for training, streaming for inference and real-time features."
+    }
+  ],
+  "youtubeLabel": "Batch vs Stream Processing — Confluent",
+  "youtubeUrl": "https://www.youtube.com/embed/fSkueySDJP0",
+  "takeaways": [
+    "Batch: scheduled processing of data chunks, high throughput, high latency.",
+    "Streaming: event-by-event processing, low latency, higher complexity.",
+    "Lambda: hybrid batch + speed layers. Kappa: pure streaming with reprocessing.",
+    "Feature stores unify batch and real-time features to prevent skew.",
+    "Most systems use batch for training, streaming for real-time inference."
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle late-arriving data in streaming?",
+      "a": "Watermarks: track event time progress, trigger computations when watermark passes window end. Allowed lateness: buffer windows for late data, recompute and emit updated results. Tradeoffs: longer watermarks = more latency and state. For very late data (> hours), route to batch reprocessing pipeline instead."
+    },
+    {
+      "q": "What is exactly-once semantics?",
+      "a": "Each event processed exactly once despite failures. Hard in distributed systems. Mechanisms: idempotent writes (processing same event multiple times has same effect as once), transactional writes (atomic checkpoint with offset commit), deduplication (track processed event IDs). Flink and Kafka Streams provide exactly-once guarantees."
+    },
+    {
+      "q": "Can you train models on streaming data?",
+      "a": "Yes — online learning. Algorithms: stochastic gradient descent (natural fit), Bayesian updating, bandit algorithms. Challenges: catastrophic forgetting (lose old patterns), concept drift (distribution changes), no random access to data. Often use mini-batch training on micro-batches (e.g., 1-minute windows) rather than true per-event updates."
+    }
+  ],
+  "sources": [
+    { "label": "Kleppmann — Designing Data-Intensive Applications, Ch. 11", "url": "https://dataintensive.net/" },
+    { "label": "Marz & Warren — Big Data: Principles and Best Practices", "url": "https://www.manning.com/books/big-data" }
+  ]
+}

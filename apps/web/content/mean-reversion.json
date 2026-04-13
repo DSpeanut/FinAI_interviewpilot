@@ -41,8 +41,8 @@
     {
       "heading": "Limits to Arbitrage: Why Mean Reversion Isn't Free Money",
       "body": "If assets reliably mean-revert, why don't arbitrageurs drive profits to zero? Limits to arbitrage (Shleifer & Vishny 1997): (1) Noise trader risk: mispriced assets can become more mispriced before reverting; a mean-reversion strategy suffers mark-to-market losses that may trigger margin calls before the position profits; (2) Synchronisation risk: even if all arbitrageurs know an asset is mispriced, any individual arbitrageur doesn't know when others will trade — they may trade early and lose to subsequent divergence; (3) Horizon mismatch: mean reversion at 3-year horizon requires 3-year capital commitment; most institutional investors face redemption risk (clients can withdraw capital if short-term performance is poor). These limits explain why mean reversion persists — it's not free arbitrage; it requires capital, patience, and tolerance for interim losses. [2]"
-  ]
-  },
+    }
+  ],
   "takeaways": [
     "Test for mean reversion: ADF test (unit root), Hurst exponent H < 0.5, or variance ratio test VR(k) < 1. [1]",
     "OU process: dX = κ(μ-X)dt + σdW; half-life = log(2)/κ; larger κ = faster reversion. [1]",

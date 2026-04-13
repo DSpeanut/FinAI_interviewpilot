@@ -1,0 +1,82 @@
+{
+  "eli3": [
+    "Distributed training splits model training across multiple machines to speed up training or train models too large for one GPU. Instead of one computer working for a week, 8 computers work together for a day.",
+    "Two main types: data parallelism (split the data across devices, each has full model) and model parallelism (split the model across devices, each has all data). Most common is data parallelism for large datasets.",
+    "Challenges: communication overhead (devices must sync), stragglers (slowest device limits all), and fault tolerance (one failure shouldn't lose everything). Frameworks like Horovod, DeepSpeed, and PyTorch Distributed handle these complexities."
+  ],
+  "whenWhy": [
+    {
+      "title": "Training large models",
+      "body": "GPT-3, LLaMA, PaLM require hundreds to thousands of GPUs. Single GPU can't hold model or would take years to train. Distributed training is only way to train modern large language models."
+    },
+    {
+      "title": "Training on massive datasets",
+      "body": "ImageNet (14M images), web-scale text corpora (trillions of tokens). Even if model fits on one GPU, data parallelism speeds up training proportionally to GPUs (with some overhead)."
+    },
+    {
+      "title": "Hyperparameter search",
+      "body": "Try 100 different configurations in parallel on 100 GPUs vs sequentially on one. Distributed hyperparameter tuning with Ray Tune, Optuna. Reduces time from weeks to hours."
+    },
+    {
+      "title": "Faster experimentation",
+      "body": "Data scientists iterate faster with shorter training times. Model that trains in 1 day instead of 8 enables 8x more experiments per week. Critical for competitive AI research and product development."
+    }
+  ],
+  "deepDiveIntro": [
+    "Distributed training paradigms: (1) Data Parallelism: each worker has model copy, processes different data batch, synchronizes gradients. (2) Model Parallelism: each worker has model layer(s), passes activations forward and gradients backward. (3) Pipeline Parallelism: hybrid — each worker has model layer(s) and processes micro-batches. (4) Fully Sharded Data Parallel (FSDP): shards optimizer states, gradients, parameters across workers.",
+    "Communication: AllReduce operation synchronizes gradients (ring algorithm efficient). Bandwidth bottleneck: faster to compute on GPU than communicate over network. Strategies: gradient compression, overlapping communication with computation, sparse gradients. Fault tolerance: checkpoint frequently, elastic training (replace failed workers)."
+  ],
+  "visualizationType": "distributed-training",
+  "deepDive": [
+    {
+      "heading": "Data Parallelism (DDP)",
+      "body": "Each GPU has full model replica. Forward pass on local batch. Backward computes local gradients. AllReduce synchronizes gradients across GPUs (average). Optimizer step identical on all. PyTorch DistributedDataParallel, TensorFlow MirroredStrategy. Scales well to ~100 GPUs with fast interconnect (InfiniBand, NVLink).",
+      "formula": "Gradient_sync = AllReduce(gradients) / world_size"
+    },
+    {
+      "heading": "Model Parallelism",
+      "body": "Split model layers across GPUs. Forward: GPU0 → GPU1 → GPU2 (activations passed). Backward: GPU2 → GPU1 → GPU0 (gradients passed). Only need to store 1/N of model per GPU. Communication: activations and gradients (larger than gradients in data parallel). GPU utilization: low — only one GPU active at a time per batch.",
+      "formula": "Memory per GPU = Total_params / N (only model shards)"
+    },
+    {
+      "heading": "Pipeline Parallelism",
+      "body": "Model parallelism with micro-batching. Split batch into micro-batches, pipeline through stages. While GPU2 processes micro-batch 1, GPU1 processes micro-batch 2 (concurrent). Bubble overhead: pipeline fill/drain time. GPipe, PipeDream implementations. Combines with data parallelism: 4-way pipeline × 8-way data = 32 GPUs.",
+      "formula": "Bubble fraction = (N-1) / (M+N-1), N=stages, M=micro-batches"
+    },
+    {
+      "heading": "Optimizations",
+      "body": "Gradient accumulation: effective larger batch size without memory increase. Gradient compression: FP16, 1-bit Adam, Top-K sparsification. Overlapping: communication during backward pass (backward pass takes time, hide AllReduce latency). Mixed precision: FP16 training, FP32 master weights. ZeRO (DeepSpeed): shards optimizer states across GPUs."
+    },
+    {
+      "heading": "Frameworks and Infrastructure",
+      "body": "Horovod: Uber's layer over TensorFlow/PyTorch, uses MPI/NCCL. DeepSpeed: Microsoft's optimizations (ZeRO, 1-bit Adam). Ray Train: distributed training with Pythonic API. FSDP (PyTorch): shard parameters, gradients, optimizer states. Infrastructure: fast interconnect (InfiniBand, NVLink), high-bandwidth storage, checkpointing to distributed filesystem."
+    }
+  ],
+  "youtubeLabel": "Distributed Training — PyTorch",
+  "youtubeUrl": "https://www.youtube.com/embed/6pefA4E83Pg",
+  "takeaways": [
+    "Data parallelism: replicate model, split data, sync gradients (most common).",
+    "Model parallelism: split model layers, pass activations (for huge models).",
+    "Pipeline parallelism: micro-batches through model stages for efficiency.",
+    "Communication overhead is bottleneck; optimize with compression, overlapping.",
+    "Frameworks: Horovod, DeepSpeed, PyTorch DDP/FSDP, Ray Train."
+  ],
+  "edgeCases": [
+    {
+      "q": "What limits scaling efficiency?",
+      "a": "Amdahl's Law: sequential parts limit speedup. In distributed training: (1) Communication overhead (AllReduce time). (2) I/O bottleneck loading data. (3) Stragglers (slowest GPU). (4) Load imbalance (uneven work). Typical efficiency: 80-90% at 8 GPUs, 60-80% at 64 GPUs, 40-60% at 256+ GPUs. Fast interconnect (NVLink, InfiniBand) critical for scale."
+    },
+    {
+      "q": "How do you debug distributed training failures?",
+      "a": "Hard: non-deterministic, race conditions, hangs. Tools: (1) torch.distributed.run with debug logging. (2) NCCL_DEBUG=INFO for communication traces. (3) Check for NaN/Inf that propagate. (4) Gradient norm logging (spikes indicate issues). (5) Start with 2 GPUs, then scale. (6) Synchronization points to isolate hangs. (7) Collective communication visualizers (NVSHMEM)."
+    },
+    {
+      "q": "What's the difference between DDP and FSDP?",
+      "a": "DDP (DistributedDataParallel): each GPU holds full model, gradients averaged. Simple, scales to ~100 GPUs. FSDP (Fully Sharded Data Parallel): shards model parameters, gradients, optimizer states across GPUs. Each GPU holds 1/N of model. AllGather before forward, ReduceScatter after backward. Enables training models with trillions of parameters on moderate GPU counts."
+    }
+  ],
+  "sources": [
+    { "label": "Li et al. — PyTorch Distributed: Experiences on Accelerating Data Parallel Training", "url": "https://arxiv.org/abs/2006.15704" },
+    { "label": "Rajbhandari et al. — ZeRO: Memory Optimizations Toward Training Trillion Parameter Models", "url": "https://arxiv.org/abs/1910.02054" }
+  ]
+}

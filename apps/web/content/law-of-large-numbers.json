@@ -1,0 +1,82 @@
+{
+  "eli3": [
+    "The Law of Large Numbers says: as you take more samples, the sample average converges to the true expected value. Flip a fair coin 10 times, you might get 7 heads; flip 10,000 times, you'll get very close to 50% heads.",
+    "There are two versions: Weak LLN says the probability of being far from the mean goes to zero. Strong LLN says the sample average almost surely converges to the mean. Both formalize 'averages stabilize with more data'.",
+    "This is why polling works, why casinos always win in the long run, and why machine learning models improve with more data. It's the theoretical foundation of statistical estimation."
+  ],
+  "whenWhy": [
+    {
+      "title": "Statistical estimation consistency",
+      "body": "Sample mean X̄ₙ is consistent for population mean μ. Maximum likelihood estimators are consistent under regularity conditions. LLN guarantees that with enough data, estimators converge to true parameters."
+    },
+    {
+      "title": "Monte Carlo methods",
+      "body": "Estimate expectations E[f(X)] by sample average (1/n)Σf(Xᵢ). LLN guarantees convergence. Used for numerical integration, Bayesian inference (MCMC), reinforcement learning (policy evaluation), and risk analysis."
+    },
+    {
+      "title": "Risk management and insurance",
+      "body": "Insurance companies use LLN: individual claims are unpredictable, but average claims across thousands of policyholders is stable. This is the foundation of actuarial science and risk pooling."
+    },
+    {
+      "title": "A/B testing and experimentation",
+      "body": "Conversion rates stabilize as sample size increases. LLN justifies treating sample proportions as estimates of true probabilities. However, it doesn't say how fast convergence occurs (that's Central Limit Theorem)."
+    }
+  ],
+  "deepDiveIntro": [
+    "Weak Law of Large Numbers (WLLN): For i.i.d. X₁, X₂, … with E|X₁| < ∞ and mean μ, the sample mean X̄ₙ = (1/n)ΣᵢXᵢ converges in probability to μ: for any ε > 0, P(|X̄ₙ - μ| > ε) → 0 as n → ∞. Can be proved using Chebyshev's inequality if variance is finite.",
+    "Strong Law of Large Numbers (SLLN): Under same conditions, X̄ₙ converges almost surely to μ: P(lim_{n→∞} X̄ₙ = μ) = 1. Stronger than WLLN. Requires more sophisticated proof (Kolmogorov's criterion, Borel-Cantelli lemmas). The distinction matters in theoretical probability but rarely in practice."
+  ],
+  "visualizationType": "law-of-large-numbers",
+  "deepDive": [
+    {
+      "heading": "Weak Law of Large Numbers",
+      "body": "X̄ₙ →ᵖ μ (convergence in probability). Proof via Chebyshev: P(|X̄ₙ - μ| ≥ ε) ≤ Var(X̄ₙ)/ε² = σ²/(nε²) → 0. Only requires finite variance. Actually holds with just finite mean (using truncation arguments). WLLN is what justifies Monte Carlo estimation.",
+      "formula": "∀ε > 0: P(|X̄ₙ - μ| ≥ ε) → 0 as n → ∞"
+    },
+    {
+      "heading": "Strong Law of Large Numbers",
+      "body": "X̄ₙ → μ almost surely (a.s.). Stronger: P(lim_{n→∞} X̄ₙ = μ) = 1. Implies WLLN. Proved via Borel-Cantelli: show Σ P(|X̄ₙ - μ| > ε) < ∞ for each ε. SLLN says sample paths converge, not just probabilities.",
+      "formula": "P(lim_{n→∞} X̄ₙ = μ) = 1"
+    },
+    {
+      "heading": "Convergence Modes",
+      "body": "Almost sure (a.s.): P(Xₙ → X) = 1. In probability: P(|Xₙ - X| > ε) → 0. In distribution: CDFs converge. In Lᵖ: E[|Xₙ - X|ᵖ] → 0. Implications: a.s. ⟹ probability ⟹ distribution. Lᵖ ⟹ probability. For LLN: a.s. and probability convergence of sample mean.",
+      "formula": "Xₙ →ᵃˢ X ⟹ Xₙ →ᵖ X ⟹ Xₙ →ᵈ X"
+    },
+    {
+      "heading": "Extensions and Variants",
+      "body": "Independent but not identically distributed: requires Σ Var(Xₙ)/n² < ∞ (Kolmogorov). Weakly dependent (mixing): LLN still holds. Non-i.i.d. LLNs exist for martingales, stationary processes. Ergodic theorem generalizes SLLN for stationary processes."
+    },
+    {
+      "heading": "Rate of Convergence",
+      "body": "LLN says X̄ₙ → μ but not how fast. Central Limit Theorem gives rate: √n(X̄ₙ - μ) → N(0, σ²). So error is O(1/√n). Concentration inequalities (Hoeffding, Bernstein) give non-asymptotic bounds: P(|X̄ₙ - μ| > ε) ≤ 2exp(-2nε²) for bounded variables."
+    }
+  ],
+  "youtubeLabel": "Law of Large Numbers — Khan Academy",
+  "youtubeUrl": "https://www.youtube.com/embed/Mj7Z8SgVgyE",
+  "takeaways": [
+    "LLN: sample mean X̄ₙ converges to true mean μ as n → ∞.",
+    "Weak LLN: convergence in probability. Strong LLN: almost sure convergence.",
+    "Foundation of statistical estimation: more data → better estimates.",
+    "Justifies Monte Carlo: sample averages approximate expectations.",
+    "Rate of convergence O(1/√n) given by CLT; concentration bounds are non-asymptotic."
+  ],
+  "edgeCases": [
+    {
+      "q": "Does LLN hold without finite variance?",
+      "a": "WLLN requires only finite mean. SLLN also requires only finite mean (Kolmogorov's strong law). But without variance, we can't use Chebyshev for proof, and convergence may be slower. Cauchy distribution (no mean) violates LLN: sample mean remains Cauchy-distributed regardless of n."
+    },
+    {
+      "q": "What's the difference between WLLN and SLLN in practice?",
+      "a": "Mathematically, SLLN is stronger (implies WLLN). Practically, almost no difference — both say averages converge. SLLN guarantees that if you run the experiment once and watch forever, the average converges. WLLN allows for rare 'bad' sequences that don't converge, but their probability goes to zero."
+    },
+    {
+      "q": "Can LLN fail?",
+      "a": "Yes. Requirements: (1) i.i.d. or appropriate dependence structure, (2) finite mean. Violations: heavy-tailed distributions (Cauchy, stable with α ≤ 1), strong dependence (e.g., Xₙ = X₁ for all n), or non-stationary distributions. In ML, distribution shift can cause empirical risk to not converge to expected risk."
+    }
+  ],
+  "sources": [
+    { "label": "Durrett — Probability: Theory and Examples (5th ed.), Ch. 2", "url": "https://services.math.duke.edu/~rtd/PTE/" },
+    { "label": "Feller — An Introduction to Probability Theory, Vol. 1, Ch. 10", "url": "https://www.wiley.com/en-us/An+Introduction+to+Probability+Theory+and+Its+Applications" }
+  ]
+}

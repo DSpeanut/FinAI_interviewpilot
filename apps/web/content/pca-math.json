@@ -1,0 +1,84 @@
+{
+  "eli3": [
+    "PCA is a mathematical technique that finds the directions of maximum variance in data. Imagine rotating your data until the spread is largest along the horizontal axis — that's your first principal component.",
+    "Mathematically, PCA diagonalizes the covariance matrix. The principal components are the eigenvectors of the covariance matrix, and the eigenvalues tell you how much variance each component captures.",
+    "The data is centered (mean subtracted), then projected onto the eigenvectors of the covariance matrix. This gives a new coordinate system where axes are uncorrelated and ordered by importance."
+  ],
+  "whenWhy": [
+    {
+      "title": "Decorrelating features",
+      "body": "PCA transforms correlated features into uncorrelated principal components. The covariance matrix becomes diagonal. This simplifies modeling and removes multicollinearity issues in linear regression."
+    },
+    {
+      "title": "Optimal linear compression",
+      "body": "PCA gives the best linear low-dimensional approximation in terms of reconstruction error (Eckart-Young-Mirsky). The first k principal components minimize ||X - X̂||_F² among all rank-k approximations."
+    },
+    {
+      "title": "Whitening data",
+      "body": "PCA + scaling by 1/√λ (whitening) transforms data to have identity covariance. This is a preprocessing step for ICA, some neural network architectures, and when features have very different scales."
+    },
+    {
+      "title": "Feature extraction",
+      "body": "Instead of original features, use principal component scores as features. This can improve downstream models by removing noise (small variance components) and reducing dimensionality."
+    }
+  ],
+  "deepDiveIntro": [
+    "Given centered data X ∈ ℝⁿˣᵖ (n samples, p features), the sample covariance is S = (1/(n-1)) XᵀX. PCA finds the eigendecomposition S = VΛVᵀ where Λ = diag(λ₁,…,λₚ) with λ₁ ≥ … ≥ λₚ and V has orthonormal eigenvectors as columns.",
+    "The principal components are the columns of V. The k-th principal component score for sample i is zᵢₖ = xᵢᵀvₖ. The variance of the k-th score equals λₖ. Geometrically, PCA finds the best-fitting k-dimensional affine subspace in terms of least squares reconstruction error."
+  ],
+  "visualizationType": "pca-math",
+  "deepDive": [
+    {
+      "heading": "Covariance Matrix",
+      "body": "For centered X, the sample covariance S = (1/(n-1)) XᵀX is symmetric positive semi-definite. Its entries Sᵢⱼ measure how features i and j vary together. Diagonal entries are variances; off-diagonal are covariances.",
+      "formula": "S = (1/(n-1)) XᵀX, Sᵢⱼ = Cov(Xᵢ, Xⱼ)"
+    },
+    {
+      "heading": "Eigendecomposition",
+      "body": "S = VΛVᵀ. Columns of V are eigenvectors (principal component directions). Diagonal of Λ contains eigenvalues (variances along each PC). SVD of X gives the same: X = UΣVᵀ, then S = (1/(n-1)) VΣ²Vᵀ, so λᵢ = σᵢ²/(n-1).",
+      "formula": "Svᵢ = λᵢvᵢ, λᵢ = variance along vᵢ"
+    },
+    {
+      "heading": "Projection and Reconstruction",
+      "body": "Project data onto first k PCs: Z = XVₖ where Vₖ has first k eigenvectors. Reconstruction: X̂ = ZVₖᵀ = XVₖVₖᵀ. The projection matrix Pₖ = VₖVₖᵀ is orthogonal (Pₖ² = Pₖ, Pₖᵀ = Pₖ).",
+      "formula": "Z = XVₖ, X̂ = ZVₖᵀ, reconstruction error = Σᵢ₌ₖ₊₁ᵖ λᵢ"
+    },
+    {
+      "heading": "Variance Explained",
+      "body": "Total variance = tr(S) = Σ λᵢ. The k-th PC explains λₖ/Σλᵢ of total variance. Cumulative explained variance = Σᵢ₌₁ᵏ λᵢ / Σᵢ₌₁ᵖ λᵢ. Often plot this to choose k (elbow method or threshold like 95%).",
+      "formula": "Explained variance ratio = λₖ / Σλᵢ"
+    },
+    {
+      "heading": "PCA as Optimization",
+      "body": "First PC: v₁ = argmax_{||v||=1} vᵀSv = argmax Var(Xv). This is a Rayleigh quotient maximization. Subsequent PCs solve the same problem orthogonal to previous components. This is a sequence of constrained quadratic optimizations.",
+      "formula": "v₁ = argmax_{||v||=1} vᵀSv, vₖ = argmax_{||v||=1, v⟂v₁,...,vₖ₋₁} vᵀSv"
+    }
+  ],
+  "youtubeLabel": "PCA Math — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/FgakZw6K1QQ",
+  "takeaways": [
+    "PCA finds eigenvectors of covariance matrix S = (1/(n-1)) XᵀX.",
+    "Eigenvalues λᵢ are variances along principal component directions.",
+    "Projection onto k PCs: Z = XVₖ. Best rank-k approximation (Eckart-Young-Mirsky).",
+    "Total variance = sum of eigenvalues. Explained variance ratio = λₖ/Σλᵢ.",
+    "First PC maximizes Rayleigh quotient vᵀSv subject to ||v|| = 1."
+  ],
+  "edgeCases": [
+    {
+      "q": "What if features have different scales?",
+      "a": "PCA is not scale-invariant. Features with larger variances dominate. Always standardize (z-score) features before PCA if they're on different scales or units. Otherwise, height in cm vs weight in kg gives nonsense components."
+    },
+    {
+      "q": "What happens when n < p (more features than samples)?",
+      "a": "Covariance matrix is singular (at most n-1 nonzero eigenvalues). Standard eigendecomposition fails, but SVD works fine. At most n-1 meaningful principal components exist; the rest have zero variance (numerically: very small)."
+    },
+    {
+      "q": "How does PCA relate to SVD?",
+      "a": "SVD of centered X gives PCA: X = UΣVᵀ, then XV = UΣ gives PC scores. Covariance S = (1/(n-1))VΣ²Vᵀ. SVD is numerically preferred: computing XᵀX squares condition number; SVD of X is stable."
+    }
+  ],
+  "sources": [
+    { "label": "Jolliffe & Cadima — Principal component analysis: a review", "url": "https://doi.org/10.1098/rsta.2015.0202" },
+    { "label": "Shlens — A Tutorial on Principal Component Analysis", "url": "https://arxiv.org/abs/1404.1100" }
+  ]
+}

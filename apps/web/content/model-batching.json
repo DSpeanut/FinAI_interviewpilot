@@ -1,0 +1,82 @@
+{
+  "eli3": [
+    "Model batching combines multiple prediction requests into a single batch processed together. Instead of predicting on one image at a time, predict on 32 images simultaneously. This amortizes overhead and maximizes GPU/TPU utilization.",
+    "Think of it like a bus vs individual cars. One bus carries 50 people efficiently; 50 cars waste fuel and road space. Batching similarly 'fills the seats' of your GPU, keeping all compute units busy.",
+    "Dynamic batching queues requests and forms batches when enough accumulate or timeout triggers. Static batching requires clients to batch requests themselves. Dynamic is more flexible but adds latency."
+  ],
+  "whenWhy": [
+    {
+      "title": "GPU/TPU inference optimization",
+      "body": "GPUs excel at parallel processing. Batch size 1 leaves most CUDA cores idle. Optimal batch size (8-128) keeps GPU 100% utilized. 5-10x throughput improvement vs single-item inference. Critical for cost-effective cloud GPU serving."
+    },
+    {
+      "title": "High-throughput serving systems",
+      "body": "TensorFlow Serving, NVIDIA Triton, TorchServe all implement dynamic batching. Request queue accumulates incoming requests. Batch scheduler groups them based on batch size and timeout policies. Throughput scales sub-linearly with batch size until memory limits."
+    },
+    {
+      "title": "Cost optimization",
+      "body": "Cloud GPU pricing per hour, not per prediction. Higher throughput = lower cost per prediction. Batch size 64 on V100 gives 10x throughput of batch size 1, reducing cost per prediction by ~10x. Justifies dynamic batching even with slight latency increase."
+    },
+    {
+      "title": "Vectorization and SIMD",
+      "body": "CPUs also benefit from batching via SIMD instructions (AVX-512). Linear algebra libraries (BLAS, MKL) optimize for batched operations. Matrix multiplication (batch_size × features) × (features × outputs) more efficient than repeated vector-matrix multiplies."
+    }
+  ],
+  "deepDiveIntro": [
+    "Dynamic batching architecture: (1) Request queue: thread-safe queue holding pending requests. (2) Batch scheduler: forms batches based on max_batch_size, max_wait_time, and priority. (3) Inference executor: runs model on batch tensor. (4) Response splitter: decomposes batch results to individual responses.",
+    "Challenges: (1) Latency vs throughput tradeoff — larger batches increase tail latency. (2) Padding — variable-size inputs require padding to max in batch, wasting compute. (3) Memory — large batches may OOM. (4) Timeout — balance waiting for full batch vs serving partial batch. Configuration tuning critical for optimal performance."
+  ],
+  "visualizationType": "model-batching",
+  "deepDive": [
+    {
+      "heading": "Dynamic Batching",
+      "body": "Server-side batching transparent to clients. Queue holds individual requests. Scheduler waits for batch_size requests or timeout_ms, whichever comes first. Forms batch tensor (pad if variable length). Runs inference. Splits outputs and returns to respective clients. Timeout ensures latency SLO even at low traffic.",
+      "formula": "Batch_latency = wait_time + inference_time(batch) / batch_size"
+    },
+    {
+      "heading": "Static Batching",
+      "body": "Client responsible for batching. POST /predict_batch with multiple instances. Server processes as single batch, returns all predictions. Lower overhead (no queue management). Requires client coordination (complex in distributed systems). Best for offline inference or when client naturally has batches.",
+      "formula": "Requests: {instances: [[x1], [x2], ..., [xn]]} → Response: {predictions: [y1, y2, ..., yn]}"
+    },
+    {
+      "heading": "Batch Size Selection",
+      "body": "Tradeoff curve: throughput increases with batch size but plateaus; latency increases linearly. Sweet spot: where throughput/batch_size still good but latency acceptable. Memory bound: batch_size × max_memory_per_sample < GPU_memory. GPU utilization: aim for >90% compute utilization. Profile with nvprof or TensorBoard.",
+      "formula": "Optimal batch size = argmax_throughput (latency < SLO)"
+    },
+    {
+      "heading": "Padding and Variable Length",
+      "body": "Variable-length inputs (text sequences, images of different sizes) require padding to max length in batch. Waste: padded positions still consume compute and memory. Optimization: bucket by length (process similar lengths together), use packed sequences (RNNs), dynamic shapes with XLA. TensorFlow's bucket_by_sequence_length."
+    },
+    {
+      "heading": "Scheduling Policies",
+      "body": "TensorFlow Serving: basic (FIFO), earliest (prioritize oldest), priority (explicit priority header). NVIDIA Triton: default, dynamic, direct (no batching). Config: max_queue_size (reject if full), max_wait_time, preferred_batch_size. Priority queuing for different customer tiers (premium vs free)."
+    }
+  ],
+  "youtubeLabel": "TensorFlow Serving Batching — Google",
+  "youtubeUrl": "https://www.youtube.com/embed/1S7S5h7QYcw",
+  "takeaways": [
+    "Batching amortizes overhead and maximizes GPU utilization.",
+    "Dynamic batching: server-side, transparent to clients, adds slight latency.",
+    "Static batching: client-side, lower overhead, requires coordination.",
+    "Tradeoff: larger batches = higher throughput but higher latency.",
+    "Variable-length inputs need padding; bucketing reduces waste."
+  ],
+  "edgeCases": [
+    {
+      "q": "What if requests have very different sizes?",
+      "a": "Problem: padding to max wastes compute. Solutions: (1) Bucketing: separate queues for size ranges, batch within buckets. (2) Bucketing with padding per bucket (smaller max waste). (3) Ragged tensors (TensorFlow) or nested tensors (PyTorch) for variable-length without padding. (4) Process different sizes separately, merge responses. (5) Bucketing by sequence length common in NLP."
+    },
+    {
+      "q": "How do you handle timeouts with batching?",
+      "a": "max_wait_time configuration: if queue has 5 requests but batch_size=8, wait up to X ms for 3 more. Tradeoff: longer wait = fuller batches = better throughput but worse latency. At low traffic, timeout ensures requests don't wait forever. At high traffic, batches fill immediately. Tune based on latency SLOs and traffic patterns."
+    },
+    {
+      "q": "Can all models benefit from batching?",
+      "a": "Most neural networks yes. Exceptions: (1) Very small models where inference time < batching overhead. (2) Stateful models (RNN hidden states, attention cache) where batching requires careful state management. (3) Models with complex control flow hard to vectorize. (4) CPU-bound models with no SIMD benefits. Always benchmark — don't assume batching helps."
+    }
+  ],
+  "sources": [
+    { "label": "TensorFlow Serving Batching Guide", "url": "https://www.tensorflow.org/tfx/serving/serving_config#batching_configuration" },
+    { "label": "NVIDIA Triton Dynamic Batching", "url": "https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/user_guide/model_configuration.html#dynamic-batcher" }
+  ]
+}

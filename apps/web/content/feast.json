@@ -1,0 +1,83 @@
+{
+  "eli3": [
+    "Feast is an open-source feature store that helps teams manage, store, and serve ML features. It's cloud-native and integrates with popular data infrastructure like BigQuery, Snowflake, Spark, and Redis.",
+    "Feast decouples storage from serving: use data warehouses (BigQuery, Snowflake) for offline storage (training) and key-value stores (Redis, DynamoDB) for online serving. This gives flexibility and cost optimization.",
+    "It's Kubernetes-native and follows a 'declarative' approach: you define features in Python, and Feast handles the infrastructure. Good for teams already using Kubernetes and wanting open-source flexibility."
+  ],
+  "whenWhy": [
+    {
+      "title": "Open-source feature store adoption",
+      "body": "Teams wanting to avoid vendor lock-in choose Feast. Full control over infrastructure, customizable, no per-feature or per-request costs. Apache 2.0 license. Active community with contributions from Tecton, Google, and others."
+    },
+    {
+      "title": "Multi-cloud or hybrid deployments",
+      "body": "Feast is cloud-agnostic. Use BigQuery on GCP, Snowflake on AWS, Redis anywhere. Good for companies with multi-cloud strategy or requiring on-premises deployment. Avoid cloud-specific proprietary solutions."
+    },
+    {
+      "title": "Existing Kubernetes infrastructure",
+      "body": "Feast runs natively on Kubernetes. If you already have K8s expertise and infrastructure, Feast fits well. Server components (feature server, transformation service) deployed as pods. Integrates with existing monitoring (Prometheus, Grafana)."
+    },
+    {
+      "title": "Integration with existing data stack",
+      "body": "Works with Spark, Beam, dbt, Pandas. Doesn't force new computation frameworks. Use existing ETL pipelines, add Feast for feature serving and management. Incremental adoption path."
+    }
+  ],
+  "deepDiveIntro": [
+    "Feast architecture: (1) Provider abstraction: supports AWS, GCP, Azure with different offline/online store combinations. (2) Feature definitions: Python SDK using @entity, @feature_view decorators. (3) Materialization: sync offline features to online store via batch jobs or streaming. (4) Feature server: gRPC/HTTP API for low-latency feature retrieval. (5) Registry: PostgreSQL or SQLite for metadata.",
+    "Key abstractions: Entity (join key, e.g., user_id), FeatureView (group of features computed together), FeatureService (collection of features for a specific model), DataSource (connection to raw data). Feast handles the plumbing between these and physical storage."
+  ],
+  "visualizationType": "feast",
+  "deepDive": [
+    {
+      "heading": "Core Concepts",
+      "body": "Entity: primary key for joining (user_id, item_id). FeatureView: logical grouping of features with same entity and computation logic. DataSource: connection to raw data (BigQuery table, Parquet files). FeatureService: model-centric view specifying which features a model needs. Project: namespace for organizing related features.",
+      "formula": "FeatureView + Entity + DataSource → computed features"
+    },
+    {
+      "heading": "Providers and Infrastructure",
+      "body": "Provider configures offline and online stores. GCP provider: BigQuery (offline) + Datastore/Bigtable (online). AWS provider: Redshift/S3 (offline) + DynamoDB/ElastiCache (online). Custom provider: define your own. Feast doesn't manage the stores — you provision them (Terraform, CloudFormation), Feast connects to them.",
+      "formula": "Provider = OfflineStore + OnlineStore + Orchestration"
+    },
+    {
+      "heading": "Materialization",
+      "body": "Process of syncing offline features to online store for serving. Batch materialization: scheduled job (Airflow, Prefect) runs feast materialize. Incremental: only new/updated features. Streaming: Kafka/Redis Streams push updates to online store in real-time. TTL (time-to-live): online store entries expire after configured time.",
+      "formula": "feast materialize start_date end_date → syncs features to online store"
+    },
+    {
+      "heading": "Feature Retrieval",
+      "body": "Training: get_historical_features() returns point-in-time correct DataFrame. Joins with entity dataframe (entity_id, timestamp). Serving: get_online_features() returns current feature values via feature server. gRPC for low latency, HTTP for simplicity. Batch retrieval for offline inference.",
+      "formula": "get_historical_features(feature_refs, entity_df) → point-in-time training data"
+    },
+    {
+      "heading": "Limitations and Considerations",
+      "body": "Self-managed: you operate infrastructure, monitoring, backups. No built-in feature transformation (use Tecton or BYO). Online store consistency: eventual, not strong. No built-in drift detection (integrate with Evidently, WhyLabs). Learning curve: Kubernetes, multiple moving parts. Good for teams with DevOps capacity wanting flexibility; consider managed Tecton for simpler ops."
+    }
+  ],
+  "youtubeLabel": "Feast Feature Store — Documentation",
+  "youtubeUrl": "https://www.youtube.com/embed/FZh8pI5T_0M",
+  "takeaways": [
+    "Feast = open-source, cloud-native feature store with offline/online separation.",
+    "Declarative Python SDK: define features, Feast handles infrastructure.",
+    "Provider abstraction supports multi-cloud (AWS, GCP, Azure).",
+    "Materialization syncs offline features to online store for serving.",
+    "Self-managed: requires Kubernetes expertise and operational overhead."
+  ],
+  "edgeCases": [
+    {
+      "q": "How does Feast compare to Tecton?",
+      "a": "Feast: open-source, self-managed, bring-your-own transformation, community support. Tecton: managed service, built-in transformations (Python/SQL), enterprise support, higher cost. Feast for flexibility and cost control; Tecton for faster time-to-value and managed ops. Tecton originally built Feast, then commercialized. Feature parity increasing but Tecton has more advanced streaming and monitoring."
+    },
+    {
+      "q": "Can Feast handle real-time streaming features?",
+      "a": "Yes, but requires setup. Stream processor (Flink, Spark Streaming, Kafka Streams) computes features, writes to online store directly. Feast can push features via push() API. No built-in stream processing — you bring your own. Good for existing streaming infrastructure; Tecton offers more integrated streaming if starting fresh."
+    },
+    {
+      "q": "What are common Feast deployment patterns?",
+      "a": "(1) MVP: PostgreSQL registry, Redis online, Parquet offline — single VM, no Kubernetes. (2) Production Kubernetes: full deployment with feature server pods, Redis cluster, BigQuery/Snowflake offline. (3) Serverless: Lambda feature server, DynamoDB online, S3 offline — lower ops, higher latency. (4) Hybrid: Feast for offline, custom online store for ultra-low latency (<1ms) requirements."
+    }
+  ],
+  "sources": [
+    { "label": "Feast Documentation — feast.dev", "url": "https://docs.feast.dev/" },
+    { "label": "Feast GitHub Repository", "url": "https://github.com/feast-dev/feast" }
+  ]
+}

@@ -12,7 +12,7 @@
     {
       "title": "Validating model upgrades before rollout",
       "body": "LLM providers regularly release new model versions (GPT-4o → GPT-4o-mini, claude-3-5-sonnet-20241022 → claude-sonnet-4-6). New versions may improve some tasks while regressing others. Before switching to a new model in production: run your full regression suite on the new model; compare all metrics to the current model baseline; identify regressions on specific query types; decide whether the aggregate quality improvement justifies the regression in specific areas. This prevents 'model upgrade surprises' where a new model is better on benchmarks but worse on your specific use case."
-  ],
+    },
     {
       "title": "RAG pipeline component testing",
       "body": "Changes to any RAG component (chunking strategy, embedding model, retrieval k, re-ranker) can affect end-to-end quality. Regression tests catch these: baseline metrics from before the change vs. metrics after. Component-level regression tests are more diagnostic: test the retrieval stage independently (hit@k before and after changing the embedding model) before testing end-to-end quality. This localises regressions to the component that changed."

@@ -1,0 +1,81 @@
+{
+  "eli3": [
+    "Search ranking is the beating heart of Google, Amazon, and LinkedIn. Billions of queries daily, each needing personalized results in <100ms. It's one of the most challenging ML systems in production.",
+    "Architecture: retrieval (find candidates from billions), ranking (score top candidates), and re-ranking (apply business rules, diversity). Multi-stage cascade filters down from billions to hundreds to top 10 results.",
+    "Unique challenges: extreme scale (latency at p99), freshness (index updates in seconds), and position bias (users click top results more, regardless of quality)."
+  ],
+  "whenWhy": [
+    {
+      "title": "Web search engines",
+      "body": "Google, Bing: index billions of pages, serve billions of queries daily. Each query triggers retrieval from inverted index, ML ranking of candidates, and generation of snippets. Revenue directly tied to search quality (ads)."
+    },
+    {
+      "title": "E-commerce search",
+      "body": "Amazon, eBay: product search with faceted filtering. Combines text relevance, personalization, inventory constraints, and business rules (promote own brands, clear inventory). Direct impact on GMV (Gross Merchandise Value)."
+    },
+    {
+      "title": "Enterprise search",
+      "body": "Confluence, SharePoint, Google Workspace: internal document search. Security filtering (user only sees permitted docs), entity extraction, knowledge graph integration. Productivity impact."
+    },
+    {
+      "title": "Social media search",
+      "body": "LinkedIn people search, Twitter search, TikTok content discovery. Real-time index (tweets appear in seconds), personalization based on social graph, content moderation filtering."
+    }
+  ],
+  "deepDiveIntro": [
+    "Search architecture: (1) Query understanding: spelling correction, intent classification (navigational, informational, transactional), entity recognition. (2) Retrieval: inverted index lookup, approximate nearest neighbors (ANN) for dense vectors. (3) First-stage ranking: lightweight model (BM25, logistic regression) scores thousands of candidates. (4) Second-stage ranking: heavy ML model (neural network, LambdaMART) re-scores top few hundred. (5) Re-ranking: diversity, freshness, business rules, fairness constraints.",
+    "ML challenges: (1) Position bias: clicks don't equal relevance (users click #1 more). Solutions: click models, unbiased learning to rank (IPW). (2) Freshness: balance stable models with ability to surface new content. (3) Latency: p99 <100ms for complex neural models. Solutions: model distillation, caching, precomputation."
+  ],
+  "visualizationType": "search-ranking",
+  "deepDive": [
+    {
+      "heading": "Multi-Stage Architecture",
+      "body": "Retrieval (ms): Inverted index from billions → thousands. BM25, boolean filters. First-stage ranking (10ms): LightGBM, LambdaMART on thousands → hundreds. Second-stage ranking (50ms): Deep neural network (BERT, transformer) on hundreds → top 50. Re-ranking (10ms): Rules, diversity, business logic → top 10. Each stage 10-100x reduction.",
+      "formula": "10⁹ docs → 10⁴ candidates → 10² scored → 10 displayed"
+    },
+    {
+      "heading": "Learning to Rank",
+      "body": "Pointwise: predict relevance score (regression). Pairwise: learn relative ordering (which is better). Listwise: optimize entire ranking (NDCG, MAP). LambdaMART: boosted trees optimizing NDCG. Neural networks: DSSM, BERT for semantic matching. Training data: human raters (expensive) + click logs (noisy, biased).",
+      "formula": "NDCG = DCG / IDCG where DCG = Σ (2^relᵢ - 1) / log₂(i+1)"
+    },
+    {
+      "heading": "Position Bias Correction",
+      "body": "Users click top results even if irrelevant. Click-through rate (CTR) confounded by position. Solutions: (1) Click models: estimate examination probability given position. (2) Inverse Propensity Weighting (IPW): weight clicks by 1/P(examine). (3) Pairwise: compare items shown at same position. (4) Randomization: inject random results to get unbiased data (exploration cost)."
+    },
+    {
+      "heading": "Real-Time Indexing",
+      "body": "Fresh content (news, tweets, products) must appear quickly. Lambda architecture: batch index (stable) + real-time index (recent). Streaming index: Kafka → Elasticsearch/Solr. Incremental updates: add/modify docs without full rebuild. Soft commits vs hard commits (latency vs durability tradeoff)."
+    },
+    {
+      "heading": "Scaling Challenges",
+      "body": "Sharding: partition index across machines (by doc ID, by query hash). Replication: multiple copies for QPS capacity. Caching: query results, autocomplete, popular docs. Precomputation: pre-score common queries. Fanout: query multiple shards in parallel, merge results. Geo-distribution: replicas close to users."
+    }
+  ],
+  "youtubeLabel": "How Google Search Works — Google",
+  "youtubeUrl": "https://www.youtube.com/embed/0eKVizvYSUQ",
+  "takeaways": [
+    "Multi-stage cascade: retrieval → ranking → re-ranking.",
+    "Learning to rank: pointwise, pairwise, listwise approaches.",
+    "Position bias: clicks ≠ relevance, requires correction.",
+    "Latency constraints: heavy models only on top candidates.",
+    "Scale: sharding, replication, caching, precomputation."
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle queries with no results?",
+      "a": "Strategies: (1) Spelling correction: 'Did you mean X?' (2) Query relaxation: remove filters, try synonyms. (3) Federated search: search other sources. (4) Suggest alternatives: 'Try these related searches'. (5) Create content gap reports for product team. (6) Personalized recommendations instead of empty results."
+    },
+    {
+      "q": "What about adversarial SEO?",
+      "a": "Spammers manipulate ranking signals. Defenses: (1) Webspam classifiers (separate models). (2) Quality raters evaluate pages. (3) Penalties for black-hat techniques. (4) Panda/Penguin style algorithm updates. (5) Manual actions for egregious violations. Arms race: search engines vs SEO practitioners."
+    },
+    {
+      "q": "How do you personalize without filter bubbles?",
+      "a": "Tension: personalization improves relevance but can trap users in bubbles. Solutions: (1) Diversity constraints in re-ranking. (2) Explicit exploration: inject diverse results. (3) User controls: 'Show me something new' button. (4) Editorial guidelines: ensure diversity for sensitive topics. (5) Measure: longitudinal user diversity in clicked content."
+    }
+  ],
+  "sources": [
+    { "label": "Croft et al. — Search Engines: Information Retrieval in Practice", "url": "https://ciir.cs.umass.edu/irbook/" },
+    { "label": "Google — How Search Works", "url": "https://www.google.com/search/howsearchworks/" }
+  ]
+}

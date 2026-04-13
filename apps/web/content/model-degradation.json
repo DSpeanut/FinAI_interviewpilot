@@ -1,0 +1,81 @@
+{
+  "eli3": [
+    "Model degradation is the gradual decline in model performance over time. Unlike sudden failures, it's a slow erosion — death by a thousand cuts as the world changes around your model.",
+    "Causes: data drift, concept drift, feedback loops (model's own predictions affect future data), system changes (feature pipeline bugs, upstream data changes), and simple staleness (world evolved).",
+    "Prevention requires continuous monitoring, automated retraining triggers, and graceful degradation strategies. Don't wait for users to complain; monitor metrics proactively."
+  ],
+  "whenWhy": [
+    {
+      "title": "Production ML maintenance",
+      "body": "Models not 'set and forget'. Netflix, Google report models degrade weeks to months after deployment. Without monitoring, gradual degradation goes unnoticed. Continuous evaluation catches issues early."
+    },
+    {
+      "title": "Regulatory compliance",
+      "body": "Finance (SR 11-7): model risk management requires ongoing monitoring. Healthcare: model drift can affect patient outcomes, requires validation. Credit: fair lending laws require ongoing fairness monitoring."
+    },
+    {
+      "title": "Business impact prevention",
+      "body": "Recommendation model degrading → lower engagement → lost revenue. Fraud model degrading → more fraud losses. Catch degradation before business metrics suffer. Prevention cheaper than cure."
+    },
+    {
+      "title": "Root cause analysis",
+      "body": "Degradation diagnosis: is it data drift, concept drift, software bug, or external factor? Monitoring differentiates. Data drift in specific features suggests pipeline issue. Sudden drop suggests bug. Gradual suggests true drift."
+    }
+  ],
+  "deepDiveIntro": [
+    "Degradation timeline: Initial deployment (high performance) → honeymoon period (stable) → gradual decline (data/concept drift) → critical threshold breached → user impact → manual intervention. Goal: catch decline before critical threshold.",
+    "Monitoring pyramid: (1) Infrastructure: latency, error rate, throughput. (2) Data: feature distributions, schema validation, drift detection. (3) Model: prediction distributions, confidence scores. (4) Business: conversion rate, fraud caught, recommendations clicked. (5) Ground truth: accuracy, AUC, F1 (when labels available). Lower levels provide early warning for upper levels."
+  ],
+  "visualizationType": "model-degradation",
+  "deepDive": [
+    {
+      "heading": "Monitoring Metrics",
+      "body": "Input: feature statistics (mean, variance, null rate), schema validation, drift scores (PSI, KS). Output: prediction distribution, confidence scores, calibration error. Ground truth: accuracy, precision, recall, AUC, business KPIs. System: latency p50/p99, error rate, resource utilization. Coverage: per-segment (region, device type) to catch subset degradation.",
+      "formula": "Degradation = (Current_metric - Baseline_metric) / Baseline_metric"
+    },
+    {
+      "heading": "Alerting Strategies",
+      "body": "Threshold-based: alert when metric < threshold (simple, many false positives). Statistical: alert when p-value < 0.05 comparing to baseline (statistical significance). Change point detection: CUSUM, Bayesian online changepoint detection. Composite: multiple indicators must fire (reduce false alarms). Severity: warning (investigate), critical (rollback).",
+      "formula": "Alert if |μ_current - μ_baseline| > 3σ_baseline (3-sigma rule)"
+    },
+    {
+      "heading": "Graceful Degradation",
+      "body": "When model degrades, have fallback strategies: (1) Simpler model: rule-based backup if ML model confidence low. (2) Human-in-the-loop: route uncertain predictions to humans. (3) Conservative predictions: favor 'safe' class (e.g., don't approve suspicious loans). (4) Default values: use population averages. (5) Feature flags: disable model instantly without code deploy."
+    },
+    {
+      "heading": "Automated Remediation",
+      "body": "Self-healing systems: (1) Auto-rollback: deploy previous model version if error rate spikes. (2) Auto-retraining: trigger training pipeline on drift detection. (3) Circuit breaker: stop serving predictions if too many errors. (4) Load shedding: drop non-critical traffic during degradation. (5) Alert escalation: page on-call engineer if auto-remediation fails."
+    },
+    {
+      "heading": "Countermeasures",
+      "body": "Champion/challenger: always have candidate model being evaluated. Ensemble: combine multiple models for robustness. Online learning: adapt continuously to changes. Monitoring-driven development: build in observability from start. Regular retraining: schedule refreshes before degradation significant."
+    }
+  ],
+  "youtubeLabel": "ML Monitoring — MadeWithML",
+  "youtubeUrl": "https://www.youtube.com/embed/CIGnBb8BLKg",
+  "takeaways": [
+    "Model degradation = gradual performance decline after deployment.",
+    "Causes: drift, feedback loops, system changes, staleness.",
+    "Monitor: infrastructure → data → model → business metrics.",
+    "Alerting: threshold, statistical, change point, composite.",
+    "Remediation: graceful degradation, auto-rollback, circuit breakers."
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you set degradation thresholds?",
+      "a": "Business-driven: what accuracy loss costs $X? Statistical: 3-sigma from baseline. Empirical: historical degradation patterns. Conservative in high-stakes (medical, safety), lenient in low-stakes (recommendations). Dynamic: adjust based on seasonality (expect degradation during holidays). Multi-tier: warning at 2% drop, critical at 5% drop, emergency at 10% drop."
+    },
+    {
+      "q": "What if labels are extremely delayed (months)?",
+      "a": "Use leading indicators: (1) Proxy metrics (upstream events correlated with target). (2) Feature drift as early warning. (3) Human evaluation: label sample manually. (4) Prediction monitoring: distribution shifts. (5) A/B test: keep old model running on small traffic as control, compare to new model. Imperfect but better than flying blind for months."
+    },
+    {
+      "q": "How do you handle catastrophic failure vs gradual degradation?",
+      "a": "Different alerts and responses. Catastrophic (sudden drop to 0% accuracy): immediate rollback, page on-call, post-mortem. Gradual (slow decline over weeks): schedule retraining, investigate root cause, plan model refresh. Detection: rate-of-change threshold for catastrophic, cumulative deviation for gradual. Different playbooks for each."
+    }
+  ],
+  "sources": [
+    { "label": "Sculley et al. — Machine Learning: The High Interest Credit Card of Technical Debt", "url": "https://research.google/pubs/pub43146/" },
+    { "label": "Breck et al. — What's Your ML Test Score?", "url": "https://research.google/pubs/pub45742/" }
+  ]
+}

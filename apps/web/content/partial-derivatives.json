@@ -1,0 +1,83 @@
+{
+  "eli3": [
+    "Partial derivatives measure how a function changes when you vary one variable while holding others constant. For f(x,y), ∂f/∂x tells you the rate of change moving in the x-direction, keeping y fixed.",
+    "Think of a hiking trail on a mountain. The partial derivative with respect to x tells you the slope if you walk due east. With respect to y, it's the slope walking due north. Together they describe the local terrain.",
+    "The gradient collects all partial derivatives into a vector. It points in the direction of steepest ascent. Mixed partials (∂²f/∂x∂y) tell you how the slope in one direction changes as you move in another."
+  ],
+  "whenWhy": [
+    {
+      "title": "Computing gradients for optimization",
+      "body": "Each partial ∂f/∂xᵢ is a component of the gradient ∇f. Optimization algorithms need all partials to know which direction to step. Automatic differentiation computes these efficiently via backpropagation."
+    },
+    {
+      "title": "Sensitivity analysis and feature importance",
+      "body": "∂(prediction)/∂(feature) tells you how sensitive the model output is to each input feature. Large partial derivative = important feature. Used in explainable AI (saliency maps, integrated gradients)."
+    },
+    {
+      "title": "Hessian and curvature analysis",
+      "body": "Second partials form the Hessian matrix Hᵢⱼ = ∂²f/∂xᵢ∂xⱼ. Determines convexity (H positive semi-definite), critical point type (min, max, saddle), and convergence rate of optimization."
+    },
+    {
+      "title": "PDEs and physics",
+      "body": "Partial differential equations (heat equation, wave equation, Navier-Stokes) model how quantities vary in space and time. Each term involves partial derivatives with respect to different variables."
+    }
+  ],
+  "deepDiveIntro": [
+    "For f: ℝⁿ → ℝ, the partial derivative with respect to xᵢ is ∂f/∂xᵢ = lim_{h→0} [f(x₁,…,xᵢ+h,…,xₙ) - f(x)]/h. It's computed by treating all variables except xᵢ as constants and differentiating with respect to xᵢ.",
+    "Clairaut's theorem (Schwarz's theorem): if second partials are continuous, then ∂²f/∂xᵢ∂xⱼ = ∂²f/∂xⱼ∂xᵢ. The Hessian matrix is symmetric. Total derivative combines partials with differentials: df = Σᵢ (∂f/∂xᵢ)dxᵢ = ∇fᵀdx."
+  ],
+  "visualizationType": "partial-derivatives",
+  "deepDive": [
+    {
+      "heading": "Definition and Computation",
+      "body": "Partial derivative ∂f/∂xᵢ computed by holding other variables constant. Notation: f_{xᵢ}, ∂_{xᵢ}f, fᵢ. Geometrically, it's the slope of the tangent line in the xᵢ-direction (intersecting the surface with a plane holding other variables fixed).",
+      "formula": "∂f/∂xᵢ = lim_{h→0} (f(x+heᵢ) - f(x))/h"
+    },
+    {
+      "heading": "Gradient as Vector of Partials",
+      "body": "∇f = [∂f/∂x₁, …, ∂f/∂xₙ]ᵀ collects all first partials. Directional derivative D_vf = ∇fᵀv = Σ vᵢ(∂f/∂xᵢ). The gradient is orthogonal to level sets and points in direction of maximum increase.",
+      "formula": "∇f = [∂f/∂x₁, …, ∂f/∂xₙ]ᵀ, D_vf = Σᵢ vᵢ(∂f/∂xᵢ)"
+    },
+    {
+      "heading": "Higher-Order Partials",
+      "body": "Second partials: ∂²f/∂xᵢ² (pure) and ∂²f/∂xᵢ∂xⱼ (mixed). Hessian Hᵢⱼ = ∂²f/∂xᵢ∂xⱼ. When continuous, mixed partials commute (Clairaut's theorem). Higher-order partials used in Taylor expansions and optimization analysis.",
+      "formula": "∂²f/∂xᵢ∂xⱼ = ∂²f/∂xⱼ∂xᵢ (when continuous)"
+    },
+    {
+      "heading": "Total Derivative",
+      "body": "If x depends on t, total derivative df/dt accounts for all paths: df/dt = Σᵢ (∂f/∂xᵢ)(dxᵢ/dt). This is the chain rule. Differential form: df = Σᵢ (∂f/∂xᵢ)dxᵢ = ∇fᵀdx. Exact differential if f is continuously differentiable.",
+      "formula": "df/dt = Σᵢ (∂f/∂xᵢ)(dxᵢ/dt)"
+    },
+    {
+      "heading": "Implicit Differentiation",
+      "body": "For F(x,y) = 0 defining y implicitly as function of x, differentiate both sides: ∂F/∂x + (∂F/∂y)(dy/dx) = 0, so dy/dx = -(∂F/∂x)/(∂F/∂y). Extends to multiple variables via implicit function theorem."
+    }
+  ],
+  "youtubeLabel": "Partial Derivatives — Khan Academy",
+  "youtubeUrl": "https://www.youtube.com/embed/AXE8V1p82yE",
+  "takeaways": [
+    "Partial derivative varies one variable, holds others constant.",
+    "Gradient ∇f is vector of all first partials; points in direction of steepest ascent.",
+    "Mixed partials commute when continuous: ∂²f/∂x∂y = ∂²f/∂y∂x.",
+    "Total derivative df/dt = Σ (∂f/∂xᵢ)(dxᵢ/dt) via chain rule.",
+    "Implicit differentiation uses partials to find derivatives of implicitly defined functions."
+  ],
+  "edgeCases": [
+    {
+      "q": "When do mixed partials not commute?",
+      "a": "If second partials are not continuous, mixed partials may differ. Classic example: f(x,y) = xy(x²-y²)/(x²+y²) for (x,y)≠(0,0), f(0,0)=0. Then ∂²f/∂x∂y(0,0) = -1 but ∂²f/∂y∂x(0,0) = 1. Continuity of second partials guarantees equality (Clairaut's theorem)."
+    },
+    {
+      "q": "Can partial derivatives exist when the function isn't differentiable?",
+      "a": "Yes. Example: f(x,y) = |x| has partial ∂f/∂x at (0,y) undefined, but f(x,y) = |x| + |y| has both partials equal to 0 at (0,0) yet isn't differentiable there (corners in both directions). Existence of all partials ≠ differentiability."
+    },
+    {
+      "q": "What's the difference between ∂ and d?",
+      "a": "∂ indicates partial derivative (holding other variables constant). d indicates total derivative (accounting for all dependencies). For f(x(t),y(t)), ∂f/∂t doesn't make sense (f doesn't directly depend on t), but df/dt = ∂f/∂x · dx/dt + ∂f/∂y · dy/dt."
+    }
+  ],
+  "sources": [
+    { "label": "Stewart — Multivariable Calculus (8th ed.)", "url": "https://www.cengage.com/c/calculus-early-transcendentals-8e-stewart/" },
+    { "label": "3Blue1Brown — Partial Derivatives", "url": "https://www.3blue1brown.com/lessons/partial-derivatives" }
+  ]
+}

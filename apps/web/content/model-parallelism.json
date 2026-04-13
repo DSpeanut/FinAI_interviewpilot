@@ -1,0 +1,83 @@
+{
+  "eli3": [
+    "Model parallelism splits the model itself across multiple GPUs when the model is too large to fit on one. GPU 0 has layers 1-5, GPU 1 has layers 6-10, etc. Each GPU processes the full batch but only part of the model.",
+    "Forward pass: GPU0 computes layer 1, sends activations to GPU1, which computes layer 2, and so on. Backward pass: gradients flow backward through the chain. Only one GPU is active at a time per example.",
+    "Used when models exceed single GPU memory (e.g., GPT-3 175B parameters = 700GB FP32, far beyond 40GB A100). Essential for training the largest models, but less efficient than data parallelism due to pipeline bubbles."
+  ],
+  "whenWhy": [
+    {
+      "title": "Training giant language models",
+      "body": "GPT-3 (175B), PaLM (540B), LLaMA-65B don't fit on single GPU. Model parallelism across 8-64 GPUs required. Each GPU holds 1/N of layers. Combined with data parallelism (2D/3D parallelism) for scale."
+    },
+    {
+      "title": "Computer vision with huge inputs",
+      "body": "High-resolution image processing (medical imaging, satellite imagery). Input tensors large; split model across GPUs. Video models with many frames."
+    },
+    {
+      "title": "Recommendation systems with large embeddings",
+      "body": "Embedding tables with billions of items (YouTube, Netflix). Table sharded across GPUs. Each GPU holds embeddings for subset of items. Forward: gather embeddings from multiple GPUs."
+    },
+    {
+      "title": "Multi-modal models",
+      "body": "Models processing text, image, audio together (GPT-4V, Flamingo). Different modalities handled by different model parts on different GPUs. Specialized hardware per modality (TPU for text, GPU for vision)."
+    }
+  ],
+  "deepDiveIntro": [
+    "Model parallelism approaches: (1) Layer-wise: assign consecutive layers to GPUs (simple, poor utilization). (2) Tensor parallelism: split individual layers (matmul) across GPUs (Megatron-LM). Each GPU holds portion of weight matrix. AllGather/ReduceScatter for synchronization. (3) Pipeline parallelism: micro-batches keep multiple GPUs busy (GPipe, PipeDream).",
+    "Tensor parallelism (Megatron) for transformers: split attention heads and MLP across GPUs. Attention: each GPU handles subset of heads. MLP: split hidden dimension. Communication: AllGather after each layer. Works well within node (NVLink), limited across nodes."
+  ],
+  "visualizationType": "model-parallelism",
+  "deepDive": [
+    {
+      "heading": "Layer-wise Model Parallelism",
+      "body": "Assign consecutive layers to GPUs. GPU0: layers 0-3, GPU1: layers 4-7, etc. Forward: activations passed GPU→GPU. Backward: gradients passed backward. Only one GPU active at a time (pipeline bubble). Simple to implement but poor GPU utilization (N-1/N idle on average).",
+      "formula": "GPU utilization = 1/N (without pipelining), N = number of GPUs"
+    },
+    {
+      "heading": "Tensor Parallelism (Megatron)",
+      "body": "Split layers across GPUs. Transformer MLP: Y = GeLU(XA)B. Split A by column, B by row: each GPU computes portion. Attention: split heads across GPUs. AllGather synchronizes activations. Within-node (NVLink): efficient. Megatron-LM scales to 1000+ GPUs with tensor + pipeline + data parallelism (3D parallelism).",
+      "formula": "f = [f1, f2], A = [A1; A2], GeLU(X[A1;A2]) = [GeLU(XA1), GeLU(XA2)]"
+    },
+    {
+      "heading": "Pipeline Parallelism",
+      "body": "Layer-wise + micro-batching. Split batch into M micro-batches. While GPU1 processes micro-batch 1, GPU0 processes micro-batch 2 (concurrent). Bubble: pipeline fill and drain time. GPipe: forward all micro-batches, then backward (high memory). PipeDream: interleaved forward/backward (lower memory, complex).",
+      "formula": "Bubble fraction = (N-1)/(M+N-1), reduce by increasing M"
+    },
+    {
+      "heading": "Hybrid Parallelism",
+      "body": "Combine approaches for massive scale. Example: GPT-3 175B. Within node (8 A100s): tensor parallelism (8-way). Across nodes: pipeline parallelism (8-way) and data parallelism (12-way). Total: 8×8×12 = 768 GPUs. Each parallelism handles different constraints: tensor for memory, pipeline for scale, data for speed.",
+      "formula": "Total GPUs = tensor_parallel × pipeline_parallel × data_parallel"
+    },
+    {
+      "heading": "Activation Checkpointing",
+      "body": "Model parallelism memory limited by activations. Checkpointing: don't store all activations, recompute during backward. Trade compute for memory. Critical for large models. Selective: checkpoint every N layers. Full: store only inputs, recompute everything (extreme memory save, 30% compute overhead)."
+    }
+  ],
+  "youtubeLabel": "Megatron-LM — NVIDIA",
+  "youtubeUrl": "https://www.youtube.com/embed/tyK1KobP4tw",
+  "takeaways": [
+    "Model parallelism: split model across GPUs when model too large for one.",
+    "Layer-wise: simple, poor utilization. Tensor: split matrices (Megatron).",
+    "Pipeline: micro-batches for better GPU utilization.",
+    "Hybrid: tensor × pipeline × data for massive models (3D parallelism).",
+    "Activation checkpointing trades compute for memory."
+  ],
+  "edgeCases": [
+    {
+      "q": "When should I use model vs data parallelism?",
+      "a": "Data parallelism first if model fits on single GPU (simple, efficient). Model parallelism when model too large. In practice: both together. Tensor parallelism within node (fast NVLink), pipeline across nodes, data for scaling to hundreds of GPUs. FSDP (PyTorch) is data parallelism variant that shards model, often easier than explicit model parallelism."
+    },
+    {
+      "q": "What limits model parallelism scaling?",
+      "a": "Communication: tensor parallelism requires AllGather every layer (bandwidth bound). Pipeline has bubble overhead. Layer-wise has terrible utilization. Practical limit: tensor parallelism to ~8-16 GPUs (within node), pipeline to ~64 stages. Beyond that, diminishing returns. Modern systems use 3D parallelism (tensor + pipeline + data) to scale to 1000+ GPUs."
+    },
+    {
+      "q": "How do you debug model parallelism?",
+      "a": "Complex: multiple code paths, communication hangs, shape mismatches. Strategies: (1) Start with single GPU, verify correctness. (2) Add parallelism step by step (2 GPUs first). (3) Print shapes at every boundary. (4) Test with small model that fits on one GPU, compare results. (5) Use deterministic algorithms for reproducibility. (6) Profilers: PyTorch profiler with distributed view."
+    }
+  ],
+  "sources": [
+    { "label": "Shoeybi et al. — Megatron-LM: Training Multi-Billion Parameter Language Models", "url": "https://arxiv.org/abs/1909.08053" },
+    { "label": "Narayanan et al. — Efficient Large-Scale Language Model Training on GPU Clusters", "url": "https://arxiv.org/abs/2104.04473" }
+  ]
+}

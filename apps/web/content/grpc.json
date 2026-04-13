@@ -1,0 +1,82 @@
+{
+  "eli3": [
+    "gRPC is a high-performance RPC framework that uses Protocol Buffers for efficient serialization. Much faster than REST: binary format (vs JSON text), HTTP/2 multiplexing (vs HTTP/1.1), and strongly typed contracts.",
+    "Think of REST like sending a letter (readable by anyone, but slow and bulky), while gRPC is like a private courier (fast, compact, but both sides need to speak the same language). For ML serving where latency matters, gRPC shines.",
+    "Tradeoff: gRPC requires .proto definitions and has less browser support than REST. Best for internal microservices where you control both client and server, and performance is critical."
+  ],
+  "whenWhy": [
+    {
+      "title": "Low-latency inference",
+      "body": "High-frequency trading, real-time bidding (RTB), fraud detection need sub-millisecond overhead. gRPC reduces serialization time 5-10x vs JSON. HTTP/2 header compression and connection multiplexing reduce network latency. TensorFlow Serving, NVIDIA Triton default to gRPC."
+    },
+    {
+      "title": "High-throughput microservices",
+      "body": "Internal service-to-service communication at scale. Netflix, Uber use gRPC extensively. Binary format reduces bandwidth. Connection reuse reduces connection overhead. Flow control and streaming support efficient batch processing."
+    },
+    {
+      "title": "Streaming predictions",
+      "body": "Bidirectional streaming: client sends feature stream, server returns prediction stream. Useful for real-time video analysis, sensor data processing. gRPC supports client streaming, server streaming, and bidirectional streaming natively."
+    },
+    {
+      "title": "Strong type contracts",
+      "body": "Protocol Buffers enforce schema compatibility. Code generation in 10+ languages. Backward/forward compatibility rules safe evolution. Catch integration errors at compile time, not runtime. Clear API contracts between teams."
+    }
+  ],
+  "deepDiveIntro": [
+    "gRPC architecture: Define service in .proto file with message types and RPC methods. Protocol Buffer compiler generates client/server code in target languages. Communication over HTTP/2 with binary protobuf payloads. Supports unary (request-response), client streaming, server streaming, and bidirectional streaming patterns.",
+    "Performance vs REST: (1) Serialization: protobuf binary ~3-10x smaller and faster than JSON. (2) Transport: HTTP/2 multiplexing, compression, flow control. (3) Connection: persistent connections vs REST connection per request. Typical improvements: 5-10x lower latency, 3-5x higher throughput. Tradeoffs: requires proto definitions, debugging harder (binary), limited browser support (needs grpc-web proxy)."
+  ],
+  "visualizationType": "grpc",
+  "deepDive": [
+    {
+      "heading": "Protocol Buffers",
+      "body": "Schema definition language in .proto files. Strongly typed: int32, float, string, bool, enums, nested messages, repeated fields (lists). Backward compatibility: don't change field numbers, only add optional fields. Forward compatibility: unknown fields ignored. Code generation: protoc compiles to Python, Java, Go, C++, etc.",
+      "formula": "message PredictRequest { repeated float features = 1; string model_version = 2; }"
+    },
+    {
+      "heading": "Service Definition",
+      "body": "Define RPC methods in proto: rpc Predict(PredictRequest) returns (PredictResponse); Four types: Unary (single req/res), Client streaming (stream req, single res), Server streaming (single req, stream res), Bidirectional (both stream). For ML: typically unary for single predictions, client streaming for batch, bidirectional for real-time streams.",
+      "formula": "service ModelService { rpc Predict(PredictRequest) returns (PredictResponse); }"
+    },
+    {
+      "heading": "HTTP/2 Advantages",
+      "body": "Multiplexing: multiple requests share single connection (no head-of-line blocking). Header compression (HPACK): reduces overhead for repeated headers. Server push: server can send resources proactively (less used in ML). Flow control: prevents fast sender from overwhelming slow receiver. Binary framing: more efficient parsing than text-based HTTP/1.1.",
+      "formula": "HTTP/2: single TCP connection with multiple concurrent streams"
+    },
+    {
+      "heading": "Implementation Example",
+      "body": "Python server: class ModelServicer(ModelServiceServicer): def Predict(self, request, context): return PredictResponse(prediction=model.predict(request.features)). Thread pool for concurrent requests. Kubernetes deployment with headless service for client-side load balancing. Interceptors for auth, logging, metrics."
+    },
+    {
+      "heading": "Performance Tuning",
+      "body": "Connection management: channel pooling for high concurrency. Message size: keep under 4MB default, use streaming for large payloads. Compression: gzip or snappy for large messages. Load balancing: round-robin, least-request. Keepalive: detect dead connections. Batching: amortize overhead across multiple predictions."
+    }
+  ],
+  "youtubeLabel": "gRPC Explained — TechWorld with Nana",
+  "youtubeUrl": "https://www.youtube.com/embed/gnchfOojMk4",
+  "takeaways": [
+    "gRPC = high-performance RPC with Protocol Buffers over HTTP/2.",
+    "5-10x faster than REST: binary serialization, connection reuse, HTTP/2.",
+    "Define service in .proto, generate code in multiple languages.",
+    "Four streaming patterns: unary, client, server, bidirectional.",
+    "Best for internal microservices; limited browser support."
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you debug gRPC services?",
+      "a": "Harder than REST (binary vs readable JSON). Tools: (1) grpcurl: command-line tool like curl for gRPC. (2) BloomRPC: GUI client. (3) Envoy proxy with logging filters. (4) Enable gRPC reflection for service discovery. (5) Structured logging with request/response metadata (not full payload in production). (6) Distributed tracing (Jaeger, Zipkin) essential."
+    },
+    {
+      "q": "What about browser clients?",
+      "a": "Native gRPC not supported in browsers (requires HTTP/2 framing). Solutions: (1) gRPC-Web: JavaScript client library with proxy (Envoy, nginx) translating to gRPC. (2) REST gateway: grpc-gateway generates REST API from proto. (3) GraphQL federation: stitch gRPC services with GraphQL layer. Tradeoffs: gRPC-Web adds latency, gateway loses some efficiency."
+    },
+    {
+      "q": "When should I use REST instead of gRPC?",
+      "a": "Choose REST when: (1) Public APIs consumed by diverse clients (universal support). (2) Browser-based clients without proxy complexity. (3) Human debugging/readability important. (4) Simple request/response without streaming. (5) Existing REST infrastructure not worth migrating. Many teams use both: gRPC internal, REST external (or REST gateway)."
+    }
+  ],
+  "sources": [
+    { "label": "gRPC Documentation — grpc.io", "url": "https://grpc.io/docs/" },
+    { "label": "Google — Protocol Buffers", "url": "https://developers.google.com/protocol-buffers" }
+  ]
+}

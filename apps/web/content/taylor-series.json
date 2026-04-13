@@ -1,0 +1,82 @@
+{
+  "eli3": [
+    "Taylor series approximates functions using polynomials. Near a point, most functions look like a line (1st order), but Taylor adds curvature info (2nd, 3rd, etc.) for better approximations.",
+    "f(x) ≈ f(a) + f'(a)(x-a) + f''(a)(x-a)²/2! + … Each term uses higher derivatives to capture more function shape. The first two terms give the tangent line; adding the third captures curvature.",
+    "In ML, we use Taylor expansions to understand optimization: gradient is first-order, Hessian gives second-order (curvature) info. Newton's method uses 2nd-order Taylor approximation to find better steps."
+  ],
+  "whenWhy": [
+    {
+      "title": "Optimization analysis",
+      "body": "Second-order Taylor: f(x+Δx) ≈ f(x) + ∇f(x)ᵀΔx + ½ΔxᵀH(x)Δx. This quadratic approximation motivates Newton's method. Positive definite Hessian ensures local convexity; eigenvalues determine convergence rate of gradient descent."
+    },
+    {
+      "title": "Error analysis and approximation",
+      "body": "Truncating Taylor series gives approximations with known error bounds (Lagrange remainder). Used in numerical methods, finite difference approximations of derivatives, and analyzing algorithm convergence rates."
+    },
+    {
+      "title": "Physics and engineering",
+      "body": "Small oscillations approximated by Taylor expansion of potential energy near equilibrium. Leads to simple harmonic motion. Perturbation theory in quantum mechanics uses Taylor-like expansions."
+    },
+    {
+      "title": "Algorithm analysis",
+      "body": "Complexity of functions expressed via Taylor expansions. Generating functions use Taylor coefficients to count combinatorial objects. In probability, moment generating functions are related to Taylor series."
+    }
+  ],
+  "deepDiveIntro": [
+    "For a smooth function f, the Taylor series at point a is f(x) = Σₙ₌₀^∞ f⁽ⁿ⁾(a)(x-a)ⁿ/n!. The nth order Taylor polynomial keeps terms up to n. The remainder Rₙ(x) = f(x) - Pₙ(x) can be bounded using Lagrange or integral forms.",
+    "Multivariate Taylor: f(x) = f(a) + ∇f(a)ᵀ(x-a) + ½(x-a)ᵀH(a)(x-a) + … where H is the Hessian. This expansion is fundamental to optimization: first-order methods use linear approximation, second-order methods use quadratic. The radius of convergence depends on distance to nearest singularity in complex plane."
+  ],
+  "visualizationType": "taylor-series",
+  "deepDive": [
+    {
+      "heading": "Taylor Series Expansion",
+      "body": "For infinitely differentiable f near a: f(x) = Σₙ₌₀^∞ f⁽ⁿ⁾(a)(x-a)ⁿ/n!. If derivatives don't grow too fast, series converges. Analytic functions equal their Taylor series within radius of convergence. Examples: eˣ, sin(x), cos(x) have infinite radius.",
+      "formula": "f(x) = Σₙ₌₀^∞ (f⁽ⁿ⁾(a)/n!)(x-a)ⁿ"
+    },
+    {
+      "heading": "First and Second Order Approximations",
+      "body": "Linear (1st order): f(x) ≈ f(a) + f'(a)(x-a). Quadratic (2nd order): f(x) ≈ f(a) + f'(a)(x-a) + ½f''(a)(x-a)². Optimization uses these: gradient descent from linear, Newton's method from quadratic.",
+      "formula": "f(x+h) ≈ f(x) + ∇f(x)ᵀh + ½hᵀH(x)h"
+    },
+    {
+      "heading": "Remainder Terms",
+      "body": "Lagrange remainder: Rₙ(x) = f⁽ⁿ⁺¹⁾(ξ)(x-a)ⁿ⁺¹/(n+1)! for some ξ between a and x. Integral form: Rₙ(x) = ∫ₐˣ f⁽ⁿ⁺¹⁾(t)(x-t)ⁿ/n! dt. These bound approximation error and prove convergence."
+    },
+    {
+      "heading": "Multivariate Taylor Series",
+      "body": "f(x) = f(a) + ∇f(a)ᵀ(x-a) + ½(x-a)ᵀH(a)(x-a) + O(||x-a||³). Hessian Hᵢⱼ = ∂²f/∂xᵢ∂xⱼ. Third-order involves tensor of third derivatives. Key for analyzing critical points: H positive definite → local minimum.",
+      "formula": "f(x) = f(a) + Σᵢ ∂f/∂xᵢ (xᵢ-aᵢ) + ½Σᵢⱼ ∂²f/∂xᵢ∂xⱼ (xᵢ-aᵢ)(xⱼ-aⱼ) + …"
+    },
+    {
+      "heading": "Analytic Functions and Convergence",
+      "body": "A function is analytic if it equals its Taylor series in some neighborhood. Not all smooth functions are analytic (e.g., exp(-1/x²) for x≠0, 0 for x=0 has all derivatives 0 at 0, so Taylor series is 0, not the function). Real analytic implies complex analytic (holomorphic)."
+    }
+  ],
+  "youtubeLabel": "Taylor Series — 3Blue1Brown",
+  "youtubeUrl": "https://www.youtube.com/embed/3d6DsjIBzJ4",
+  "takeaways": [
+    "Taylor series: f(x) = Σ f⁽ⁿ⁾(a)(x-a)ⁿ/n! approximates with polynomials.",
+    "First order: tangent line. Second order: captures curvature via Hessian.",
+    "Remainder terms bound approximation error (Lagrange, integral forms).",
+    "Multivariate: f(x+h) ≈ f(x) + ∇fᵀh + ½hᵀHh.",
+    "Radius of convergence limited by nearest singularity."
+  ],
+  "edgeCases": [
+    {
+      "q": "What functions aren't analytic?",
+      "a": "Smooth (infinitely differentiable) but not analytic: bump functions (flat outside compact set), exp(-1/x²) at x=0. These have Taylor series equal to 0 at the point but function is not zero. Important in distribution theory and constructing test functions."
+    },
+    {
+      "q": "When does Taylor series diverge?",
+      "a": "If nearest singularity in complex plane is at distance R from a, radius of convergence is R. Example: 1/(1+x²) has singularities at ±i, so Taylor series at 0 converges only for |x|<1, despite function being smooth on all of ℝ."
+    },
+    {
+      "q": "How accurate is second-order approximation for optimization?",
+      "a": "Near a minimum with positive definite Hessian, quadratic approximation is excellent. This is why Newton's method converges quadratically near solution. Far from minimum or near saddles, higher-order terms matter and pure Newton can diverge or go to saddles."
+    }
+  ],
+  "sources": [
+    { "label": "Stewart — Calculus: Early Transcendentals (8th ed.), Ch. 11", "url": "https://www.cengage.com/c/calculus-early-transcendentals-8e-stewart/" },
+    { "label": "Apostol — Mathematical Analysis (2nd ed.)", "url": "https://www.pearson.com/en-us/subject-catalog/p/mathematical-analysis/P200000005792" }
+  ]
+}

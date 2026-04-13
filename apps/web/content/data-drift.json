@@ -1,0 +1,81 @@
+{
+  "eli3": [
+    "Data drift occurs when the input data distribution changes over time. Your model was trained on last year's customer behavior, but this year's customers are different. The model sees data it wasn't trained on.",
+    "Types: covariate shift (feature distribution changes), concept drift (relationship between features and target changes), and label shift (target distribution changes). Each requires different detection and mitigation.",
+    "Like a fish trained to recognize squares suddenly seeing triangles. The fish isn't wrong; the world changed. Detecting this drift early prevents model degradation before business metrics suffer."
+  ],
+  "whenWhy": [
+    {
+      "title": "Production model monitoring",
+      "body": "Models degrade as world changes. Customer preferences shift, competitors launch products, economic conditions change. Data drift detection triggers alerts for investigation or retraining. Prevents silent failures where model accuracy drops unnoticed."
+    },
+    {
+      "title": "Seasonal and trend detection",
+      "body": "Retail sees seasonal drift (holiday shopping vs summer). Finance sees trends (bull vs bear markets). Distinguishing expected seasonal variation from true drift avoids false alarms. Time-series drift detection handles temporal patterns."
+    },
+    {
+      "title": "A/B testing validation",
+      "body": "Ensure treatment and control groups have same feature distributions (no covariate shift). Detect selection bias in experiment assignment. Validate that observed effects are due to treatment, not distributional differences."
+    },
+    {
+      "title": "Compliance and fairness",
+      "body": "Monitor for demographic drift that could cause fairness issues. If user base shifts to different age group, ensure model still performs fairly. Regulatory requirement in finance and healthcare."
+    }
+  ],
+  "deepDiveIntro": [
+    "Drift types: (1) Covariate shift: P(X) changes but P(Y|X) same. Example: new customer demographic. (2) Concept drift: P(Y|X) changes. Example: fraudsters adapt to detection. (3) Label shift: P(Y) changes. Example: disease prevalence increases. (4) Feature drift: individual features change distribution.",
+    "Detection methods: Statistical tests (KS test, Chi-square, PSI) compare reference vs current distributions. Distance metrics (KL divergence, Wasserstein) measure distributional differences. Model-based: train classifier to distinguish reference vs current data (high accuracy = drift). Window-based: compare recent vs older windows. Univariate (per-feature) vs multivariate (joint distribution)."
+  ],
+  "visualizationType": "data-drift",
+  "deepDive": [
+    {
+      "heading": "Statistical Tests",
+      "body": "Kolmogorov-Smirnov (KS) test: non-parametric, compares empirical CDFs. Good for continuous features. Population Stability Index (PSI): finance standard, measures shift between distributions. Chi-square: categorical features. Anderson-Darling: sensitive to tails. All assume IID samples; time-correlated data needs care.",
+      "formula": "PSI = Σ (Aᵢ - Eᵢ) × ln(Aᵢ/Eᵢ), PSI < 0.1 stable, 0.1-0.25 moderate, >0.25 significant drift"
+    },
+    {
+      "heading": "Distance Metrics",
+      "body": "KL Divergence: information-theoretic measure of distribution difference. Asymmetric; use JS divergence for symmetry. Wasserstein (Earth Mover's): intuitive 'transport cost' between distributions. MMD (Maximum Mean Discrepancy): kernel-based, good for high dimensions. These detect shift magnitude but not statistical significance (need bootstrapping).",
+      "formula": "KL(P||Q) = ∫ p(x) log(p(x)/q(x)) dx"
+    },
+    {
+      "heading": "Model-Based Detection",
+      "body": "Train binary classifier to distinguish reference data (label 0) from current data (label 1). High accuracy indicates drift. Domain Classifier: simple model (logistic regression) on features. Black-box Shift Detection (BBSD): use model's softmax outputs as features. No assumptions about feature distributions. Can identify which features contribute to drift (feature importance)."
+    },
+    {
+      "heading": "Monitoring Implementation",
+      "body": "Reference dataset: training data or recent stable period. Sliding window: compare last hour vs previous hour, or last day vs previous week. Adaptive windows: change detection algorithms (CUSUM, Page-Hinkley) identify drift points automatically. Alerting: threshold-based (PSI > 0.2) or statistical (p-value < 0.05). Tools: Evidently AI, WhyLabs, Great Expectations, custom dashboards."
+    },
+    {
+      "heading": "Mitigation Strategies",
+      "body": "Retraining: schedule periodic or trigger on drift detection. Adaptation: online learning to adjust to drift incrementally. Feature selection: remove drifting features if not predictive. Ensemble: combine old and new models. Monitoring: track business metrics (conversion rate) as ultimate drift indicator."
+    }
+  ],
+  "youtubeLabel": "Data Drift — Evidently AI",
+  "youtubeUrl": "https://www.youtube.com/embed/3V_xhGAxLYU",
+  "takeaways": [
+    "Data drift = distribution change in P(X), P(Y), or P(Y|X).",
+    "Types: covariate (features), concept (relationship), label (target).",
+    "Detection: statistical tests (KS, PSI), distance metrics (KL, Wasserstein), model-based.",
+    "Monitor with sliding windows, alert on thresholds or statistical significance.",
+    "Mitigation: retraining, online learning, ensemble methods."
+  ],
+  "edgeCases": [
+    {
+      "q": "What's the difference between data drift and outliers?",
+      "a": "Outliers: rare individual points, can be ignored or filtered. Drift: systematic distribution shift affecting many points. Detection: outliers flagged per-sample, drift detected statistically across samples. Handling: outliers → anomaly detection, drift → model retraining. Can coexist: drift in specific subpopulation appears as cluster of 'outliers'."
+    },
+    {
+      "q": "How do you handle expected seasonality?",
+      "a": "Don't alert on expected patterns. Strategies: (1) Compare to same time last year/period (year-over-year). (2) Decompose time series: trend + seasonal + residual, monitor residual. (3) Use time-varying reference window (always compare to N days ago). (4) Seasonal adjustment: normalize by expected seasonal pattern before drift detection."
+    },
+    {
+      "q": "Can drift happen in embeddings?",
+      "a": "Yes, and harder to detect. Text embeddings (BERT, OpenAI) drift as language evolves (new slang, topics). Image embeddings drift with new visual trends. Detection: monitor embedding distributions (clustering quality, nearest neighbor distances), or monitor reconstruction error if using VAE. Retrain embedding model periodically (every few months for language)."
+    }
+  ],
+  "sources": [
+    { "label": "Gama et al. — A Survey on Concept Drift Adaptation", "url": "https://dl.acm.org/doi/10.1145/2523813" },
+    { "label": "Rabanser et al. — Failing Loudly: An Empirical Study of Methods for Detecting Dataset Shift", "url": "https://arxiv.org/abs/1810.11953" }
+  ]
+}

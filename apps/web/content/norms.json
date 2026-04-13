@@ -1,0 +1,82 @@
+{
+  "eli3": [
+    "A norm measures the 'size' or 'length' of a vector. The most common is Euclidean (L2): √(x² + y² + z²) — straight-line distance. L1 norm |x| + |y| + |z| is Manhattan distance (grid walking).",
+    "Think of norms as different ways to measure distance. L2 prefers many small values; L1 prefers sparsity (some zeros). L∞ (max norm) only cares about the largest component. Each is useful in different contexts.",
+    "Norms define 'balls' — regions of points within a certain distance. L2 balls are round, L1 balls are diamond-shaped, L∞ balls are squares. These shapes affect optimization and regularization."
+  ],
+  "whenWhy": [
+    {
+      "title": "Regularization in machine learning",
+      "body": "L2 regularization (Ridge) penalizes ||w||², encouraging small weights. L1 regularization (Lasso) penalizes ||w||₁, encouraging sparsity (feature selection). Elastic Net combines both."
+    },
+    {
+      "title": "Measuring prediction error",
+      "body": "MSE uses L2 norm of errors: ||y - ŷ||². MAE uses L1 norm: ||y - ŷ||₁. L2 is differentiable everywhere; L1 is more robust to outliers. Different norms give different loss landscapes."
+    },
+    {
+      "title": "Convergence and stopping criteria",
+      "body": "In iterative optimization (gradient descent, Newton's method), we check ||∇f|| < ε to detect convergence. The choice of norm affects when we stop. L∞ checks maximum component; L2 checks overall magnitude."
+    },
+    {
+      "title": "Matrix norms and condition numbers",
+      "body": "||A|| measures how much a matrix can stretch vectors. The condition number κ(A) = ||A|| ||A⁻¹|| measures sensitivity to numerical errors. Spectral norm (largest singular value) is common for matrices."
+    }
+  ],
+  "deepDiveIntro": [
+    "A norm on a vector space V is a function ||·||: V → ℝ satisfying: (1) ||v|| ≥ 0 with equality iff v = 0; (2) ||αv|| = |α| ||v|| (homogeneity); (3) ||v + w|| ≤ ||v|| + ||w|| (triangle inequality). Norms induce metrics: d(v,w) = ||v - w||.",
+    "The Lp norms for p ≥ 1 are defined as ||x||ₚ = (Σᵢ |xᵢ|ᵖ)^(1/p). Special cases: L1 (Manhattan), L2 (Euclidean), L∞ = maxᵢ |xᵢ| (limit as p → ∞). For matrices, induced (operator) norms are defined as ||A|| = max_{x≠0} ||Ax||/||x||."
+  ],
+  "visualizationType": "norms",
+  "deepDive": [
+    {
+      "heading": "Lp Norms",
+      "body": "For p ≥ 1: ||x||ₚ = (Σ |xᵢ|ᵖ)^(1/p). L2 is rotationally invariant and differentiable (except at 0). L1 promotes sparsity — the unit ball has corners on axes. As p → ∞, we get L∞ = max |xᵢ|. For 0 < p < 1, not true norms (violate triangle inequality) but still used for sparsity.",
+      "formula": "||x||ₚ = (Σᵢ₌₁ⁿ |xᵢ|ᵖ)^(1/p), ||x||∞ = maxᵢ |xᵢ|"
+    },
+    {
+      "heading": "Dual Norms",
+      "body": "The dual norm ||y||_* = max_{||x||≤1} yᵀx. L2 is self-dual. L1 and L∞ are dual: ||y||∞ is dual to ||x||₁. This appears in optimization duality, support vector machines, and the relationship between L1 regularization and L∞ constraints.",
+      "formula": "||y||_* = sup{yᵀx : ||x|| ≤ 1}"
+    },
+    {
+      "heading": "Matrix Norms",
+      "body": "Frobenius norm ||A||_F = √(Σ Aᵢⱼ²) = √(tr(AᵀA)) = ||σ||₂ (Euclidean norm of singular values). Spectral norm (operator 2-norm) ||A||₂ = σₘₐₓ (largest singular value). Nuclear norm ||A||_* = Σ σᵢ (sum of singular values), used for low-rank matrix recovery.",
+      "formula": "||A||_F = √(tr(AᵀA)), ||A||₂ = σₘₐₓ(A)"
+    },
+    {
+      "heading": "Unit Balls and Geometry",
+      "body": "The unit ball {x : ||x|| ≤ 1} has different shapes: L2 is round, L1 is a diamond (cross-polytope), L∞ is a square (hypercube). L1's corners align with axes, explaining why it promotes sparsity — the minimum L1 point touching a constraint plane tends to be at a corner (sparse)."
+    },
+    {
+      "heading": "Norm Equivalence",
+      "body": "In finite dimensions, all norms are equivalent: for any two norms ||·||_a, ||·||_b, there exist c, C > 0 such that c||x||_a ≤ ||x||_b ≤ C||x||_a. This means convergence in one norm implies convergence in all norms. However, the constants depend on dimension and can be large."
+    }
+  ],
+  "youtubeLabel": "Lp Norms — Khan Academy",
+  "youtubeUrl": "https://www.youtube.com/embed/5fL90ztD3YY",
+  "takeaways": [
+    "Norms measure vector 'size' satisfying positivity, homogeneity, triangle inequality.",
+    "L2 (Euclidean): rotationally invariant, differentiable. L1: promotes sparsity.",
+    "Matrix Frobenius norm = √(tr(AᵀA)). Spectral norm = largest singular value.",
+    "Dual norms appear in optimization duality; L1 and L∞ are dual.",
+    "All norms equivalent in finite dimensions, but constants matter in practice."
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does L1 promote sparsity but L2 doesn't?",
+      "a": "The L1 unit ball has sharp corners on the axes. When minimizing L1 subject to constraints, the solution tends to hit these corners (sparse). L2's round ball doesn't have corners — solutions are typically dense. Also, L1's gradient is constant magnitude, so small coefficients get pushed to zero."
+    },
+    {
+      "q": "What is the difference between Frobenius and spectral norms?",
+      "a": "Frobenius treats the matrix as a vector and takes L2 norm of all entries. Spectral norm measures maximum stretching factor: max ||Ax||/||x||. Frobenius ≥ spectral always. Frobenius is easier to differentiate; spectral captures worst-case behavior."
+    },
+    {
+      "q": "What happens with L0 'norm'?",
+      "a": "L0 counts nonzero entries. It's not a true norm (violates homogeneity: ||2x||₀ = ||x||₀). Minimizing L0 is NP-hard (combinatorial). L1 is the convex relaxation of L0, making sparse recovery tractable via convex optimization."
+    }
+  ],
+  "sources": [
+    { "label": "Boyd & Vandenberghe — Convex Optimization, Ch. 2", "url": "https://web.stanford.edu/~boyd/cvxbook/" },
+    { "label": "Horn & Johnson — Matrix Analysis", "url": "https://www.cambridge.org/core/books/matrix-analysis/" }
+  ]
+}

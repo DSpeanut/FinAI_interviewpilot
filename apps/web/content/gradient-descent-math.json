@@ -1,0 +1,83 @@
+{
+  "eli3": [
+    "Gradient descent is an iterative algorithm for finding the minimum of a function. At each step, you move in the direction opposite to the gradient (downhill). The gradient points uphill; negative gradient points downhill.",
+    "Think of it as a ball rolling down a hill. The steeper the slope, the faster it rolls. If the hill is convex (bowl-shaped), the ball eventually reaches the bottom. Step size (learning rate) controls how far the ball rolls each time.",
+    "The algorithm: start at x₀, then repeatedly update x_{k+1} = x_k - α∇f(x_k) where α is the learning rate. With appropriate α and convex f, this converges to the global minimum."
+  ],
+  "whenWhy": [
+    {
+      "title": "Training neural networks",
+      "body": "Stochastic gradient descent (SGD) and variants (Adam, RMSprop) train virtually all deep learning models. The loss function depends on millions of parameters; gradient descent scales to this high-dimensional optimization."
+    },
+    {
+      "title": "Logistic regression and linear models",
+      "body": "Maximum likelihood estimation for these models is convex. Gradient descent finds optimal weights. For large datasets, SGD is more efficient than closed-form solutions (e.g., normal equations for linear regression)."
+    },
+    {
+      "title": "Convex optimization problems",
+      "body": "Many ML problems are convex: SVMs (quadratic program), Lasso (convex with L1), Ridge (convex with L2). Gradient descent and accelerated variants (Nesterov, momentum) solve these efficiently with convergence guarantees."
+    },
+    {
+      "title": "Non-convex optimization",
+      "body": "Neural network loss landscapes are non-convex (many local minima, saddle points). Surprisingly, SGD often finds good solutions. Theory suggests most local minima are near global minima in high dimensions, and SGD has implicit regularization."
+    }
+  ],
+  "deepDiveIntro": [
+    "For minimizing f: ℝⁿ → ℝ, gradient descent iterates x_{k+1} = x_k - αₖ∇f(x_k) where αₖ > 0 is the step size (learning rate). For convex f with L-Lipschitz gradient, fixed step size α < 2/L gives convergence rate O(1/k). With strong convexity (parameter μ), rate is O((1-μ/L)ᵏ) — linear convergence.",
+    "Variants include: stochastic gradient descent (SGD) using random minibatch gradients; momentum (Polyak, Nesterov) accumulating velocity; adaptive methods (AdaGrad, RMSprop, Adam) adjusting per-parameter learning rates. Each trades off convergence speed, memory, and generalization."
+  ],
+  "visualizationType": "gradient-descent-math",
+  "deepDive": [
+    {
+      "heading": "Gradient Descent Update",
+      "body": "Basic iteration: x_{k+1} = x_k - α∇f(x_k). First-order approximation: f(x - α∇f) ≈ f(x) - α||∇f||², guaranteeing decrease for small α. Step size α critical: too small = slow convergence; too large = oscillation or divergence.",
+      "formula": "x_{k+1} = x_k - αₖ∇f(x_k)"
+    },
+    {
+      "heading": "Convergence Analysis",
+      "body": "For L-smooth convex f (||∇f(x) - ∇f(y)|| ≤ L||x-y||): f(xₖ) - f* ≤ ||x₀ - x*||²/(2αk) for α ≤ 1/L. For μ-strongly convex: ||xₖ - x*||² ≤ (1 - μ/L)ᵏ||x₀ - x*||². Condition number κ = L/μ determines convergence speed.",
+      "formula": "L-smooth: O(1/k), μ-strongly convex: O((1-1/κ)ᵏ)"
+    },
+    {
+      "heading": "Line Search",
+      "body": "Instead of fixed α, find step size satisfying Wolfe conditions: sufficient decrease (Armijo) and curvature condition. Methods: exact line search (minimize along direction), backtracking (start large, shrink until Armijo satisfied). Guarantees convergence without manual tuning.",
+      "formula": "Armijo: f(x + αp) ≤ f(x) + c₁α∇f(x)ᵀp"
+    },
+    {
+      "heading": "Momentum Methods",
+      "body": "Polyak momentum: v_{k+1} = βv_k + ∇f(x_k), x_{k+1} = x_k - αv_{k+1}. Accumulates velocity in consistent directions, damping oscillations. Nesterov accelerated gradient: look ahead before computing gradient. Improves rate to O(1/k²) for convex, O((1-√(μ/L))ᵏ) for strongly convex.",
+      "formula": "Nesterov: y_k = x_k + β(x_k - x_{k-1}), x_{k+1} = y_k - α∇f(y_k)"
+    },
+    {
+      "heading": "Stochastic Gradient Descent",
+      "body": "Instead of full gradient ∇f = (1/n)Σ∇fᵢ, use minibatch gradient (1/|B|)Σ_{i∈B}∇fᵢ. Much faster per iteration. Converges for convex f with decreasing step sizes αₖ = O(1/k) or αₖ = O(1/√k). In deep learning, SGD often generalizes better than full gradient methods (implicit regularization)."
+    }
+  ],
+  "youtubeLabel": "Gradient Descent — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/sDv4f4s2SB8",
+  "takeaways": [
+    "Gradient descent: x_{k+1} = x_k - α∇f(x_k). Move downhill.",
+    "Convergence: O(1/k) for convex, linear for strongly convex.",
+    "Condition number κ = L/μ determines convergence speed.",
+    "Momentum accumulates velocity; Nesterov accelerates to O(1/k²).",
+    "SGD uses minibatch gradients — faster per iteration, often better generalization."
+  ],
+  "edgeCases": [
+    {
+      "q": "What happens at saddle points?",
+      "a": "Gradient is zero at saddles, so GD stops (theoretically). In practice, numerical noise and SGD's stochasticity often push the optimizer off saddles. For degenerate saddles (some directions flat), GD can get stuck. Second-order methods or noise injection help."
+    },
+    {
+      "q": "How do I choose the learning rate?",
+      "a": "Theoretical: α < 2/L where L is Lipschitz constant of gradient. Practical: grid search, start large and decrease (step decay, cosine annealing), or use adaptive methods (Adam). Too large → divergence; too small → slow convergence."
+    },
+    {
+      "q": "Why does SGD generalize better than full gradient descent?",
+      "a": "Stochastic noise acts as implicit regularization. SGD finds wider minima which tend to generalize better than sharp minima found by exact gradient methods. The noise also helps escape sharp local minima and saddles."
+    }
+  ],
+  "sources": [
+    { "label": "Boyd & Vandenberghe — Convex Optimization, Ch. 9", "url": "https://web.stanford.edu/~boyd/cvxbook/" },
+    { "label": "Bottou et al. — Optimization Methods for Large-Scale ML", "url": "https://arxiv.org/abs/1606.04838" }
+  ]
+}

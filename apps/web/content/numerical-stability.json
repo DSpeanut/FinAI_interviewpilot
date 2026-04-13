@@ -1,0 +1,81 @@
+{
+  "eli3": [
+    "Numerical stability refers to whether errors (rounding, measurement, truncation) grow or stay controlled during computation. A stable algorithm gives nearly the right answer to nearly the right question.",
+    "Think of it like balancing a pole: unstable algorithms amplify small perturbations; stable ones dampen them. Gaussian elimination without pivoting can be unstable; with partial pivoting, it's usually stable.",
+    "Conditioning is a property of the problem; stability is a property of the algorithm. A well-conditioned problem has solutions that change only slightly with input perturbations. An ill-conditioned problem amplifies errors regardless of algorithm."
+  ],
+  "whenWhy": [
+    {
+      "title": "Solving linear systems",
+      "body": "Condition number κ(A) = ||A|| ||A⁻¹|| measures sensitivity. κ = 10⁶ means losing 6 digits of precision. Use QR or SVD for ill-conditioned systems instead of Gaussian elimination. Regularization (Ridge) improves conditioning."
+    },
+    {
+      "title": "Neural network training",
+      "body": "Vanishing/exploding gradients in deep networks (RNNs especially). Residual connections, batch normalization, careful initialization (Xavier, He) improve stability. Gradient clipping prevents explosion. Mixed precision requires careful scaling."
+    },
+    {
+      "title": "Recurrence relations and ODEs",
+      "body": "Some recurrences amplify errors exponentially. Computing e^x via Taylor series for large x is unstable; use exp(x) = exp(x/2)². ODE solvers choose step sizes to maintain stability (explicit vs implicit methods)."
+    },
+    {
+      "title": "Statistical algorithms",
+      "body": "Naive variance computation Σ(xᵢ - x̄)² can suffer catastrophic cancellation. Use Welford's online algorithm or two-pass method. Log-sum-exp for softmax. Log-determinants via Cholesky for positive definite matrices."
+    }
+  ],
+  "deepDiveIntro": [
+    "A problem is well-conditioned if small changes in input cause small changes in output. Condition number κ measures sensitivity: κ = sup ||Δoutput||/||output|| / ||Δinput||/||input||. Large κ means ill-conditioned. For Ax = b, κ(A) = ||A|| ||A⁻¹||. Solving with large κ loses log₁₀(κ) digits of precision.",
+    "An algorithm is stable if it produces the exact solution to a slightly perturbed problem (backward stability). Stable algorithms can solve well-conditioned problems accurately. For ill-conditioned problems, even stable algorithms may produce inaccurate results — the problem itself is sensitive."
+  ],
+  "visualizationType": "numerical-stability",
+  "deepDive": [
+    {
+      "heading": "Condition Number",
+      "body": "κ measures problem sensitivity. For f(x), κ = |xf'(x)/f(x)|. For Ax=b, κ(A) = ||A|| ||A⁻¹|| = σₘₐₓ/σₘᵢₙ (spectral condition number). κ = 1 is perfect; κ = ∞ is singular. Double precision has 16 digits; κ > 10¹⁶ is numerically singular.",
+      "formula": "κ(A) = ||A|| ||A⁻¹|| = σₘₐₓ/σₘᵢₙ (spectral)"
+    },
+    {
+      "heading": "Forward and Backward Stability",
+      "body": "Forward: computed result ≈ exact result (hard to achieve). Backward: computed result = exact result for slightly perturbed input. Backward stability is achievable and useful: if backward error is small and problem is well-conditioned, forward error is small.",
+      "formula": "Computed f(x) = f(x + δx) where ||δx||/||x|| is small"
+    },
+    {
+      "heading": "Gaussian Elimination and Pivoting",
+      "body": "Without pivoting: can be unstable (growth factor 2ⁿ). Partial pivoting (row swaps): usually stable in practice (growth ≤ 2ⁿ⁻¹ but rare). Complete pivoting: provably stable but expensive. LU with partial pivoting is standard (dgesv in LAPACK)."
+    },
+    {
+      "heading": "Avoiding Catastrophic Cancellation",
+      "body": "Quadratic formula: for ax² + bx + c = 0, use x = 2c/(-b ∓ √(b²-4ac)) when b is large. Variance: use Welford's algorithm or two-pass. Log-sum-exp: subtract max. These reformulations algebraically equivalent but numerically superior."
+    },
+    {
+      "heading": "Vanishing and Exploding Gradients",
+      "body": "In deep networks, repeated multiplication by weight matrices: Wⁿ for n layers. If eigenvalues > 1, explode; < 1, vanish. Spectral normalization (constrain σₘₐₓ(W)), orthogonal initialization, residual connections help. RNNs use LSTM/GRU gating to control gradient flow."
+    }
+  ],
+  "youtubeLabel": "Numerical Stability — MIT OCW",
+  "youtubeUrl": "https://www.youtube.com/embed/7Po3Id-v57s",
+  "takeaways": [
+    "Condition number κ measures problem sensitivity (not algorithm property).",
+    "Stability: does algorithm amplify errors? Backward stability is gold standard.",
+    "Ill-conditioned problems amplify errors regardless of algorithm.",
+    "Avoid catastrophic cancellation via algebraic reformulation.",
+    "In ML: vanishing/exploding gradients controlled by architecture, initialization, normalization."
+  ],
+  "edgeCases": [
+    {
+      "q": "Can a stable algorithm give wrong answers on an ill-conditioned problem?",
+      "a": "Yes, and this is expected. Backward stability means the answer is correct for slightly perturbed input. But for ill-conditioned problems, slight input perturbations cause large output changes. The problem is inherently sensitive, not the algorithm. Check condition number before blaming the algorithm."
+    },
+    {
+      "q": "What's the difference between accuracy and stability?",
+      "a": "Accuracy: how close computed is to true answer. Stability: does the algorithm control error growth. A stable algorithm can give inaccurate results on ill-conditioned problems. An unstable algorithm can give accurate results by luck on easy problems. Accuracy = stability + conditioning."
+    },
+    {
+      "q": "Why does batch normalization help training stability?",
+      "a": "Multiple effects: (1) Reduces internal covariate shift (distribution of layer inputs more stable). (2) Smooths optimization landscape (Lipschitz continuity). (3) Acts as implicit regularization. (4) Allows higher learning rates. (5) Makes gradients less sensitive to scale of parameters and initialization."
+    }
+  ],
+  "sources": [
+    { "label": "Trefethen & Bau — Numerical Linear Algebra", "url": "https://people.maths.ox.ac.uk/trefethen/text.html" },
+    { "label": "Higham — Accuracy and Stability of Numerical Algorithms (2nd ed.)", "url": "https://www.maths.manchester.ac.uk/~higham/asna/" }
+  ]
+}

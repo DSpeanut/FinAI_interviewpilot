@@ -1,0 +1,81 @@
+{
+  "eli3": [
+    "Edge deployment runs ML models directly on devices (phones, IoT, cameras) rather than in the cloud. Your phone's face unlock, voice recognition, and photo filters all use on-device ML.",
+    "Benefits: low latency (no network round-trip), privacy (data stays on device), works offline, and reduced bandwidth costs. Tradeoffs: limited compute/memory, battery consumption, and harder to update models.",
+    "Edge models are compressed and optimized: quantization (smaller numbers), pruning (remove weights), knowledge distillation (smaller student model learns from big teacher). TensorFlow Lite, Core ML, and ONNX Runtime are popular frameworks."
+  ],
+  "whenWhy": [
+    {
+      "title": "Real-time mobile applications",
+      "body": "iPhone Face ID: latency <100ms requires on-device inference. Snapchat filters: real-time AR needs 30+ FPS. Keyboard next-word prediction: <50ms per keystroke. Cloud latency would make these unusable."
+    },
+    {
+      "title": "Privacy-sensitive applications",
+      "body": "Health apps processing medical data, voice assistants always listening (wake word), personal photos analysis. Data never leaves device, complying with GDPR, HIPAA. Apple 'Privacy First' approach: Siri processes speech on-device."
+    },
+    {
+      "title": "IoT and industrial edge",
+      "body": "Factory predictive maintenance: sensors on equipment detect anomalies instantly. Autonomous vehicles: 10ms reaction time required, network unreliable. Smart cameras: process video locally, only send alerts. Reduces bandwidth and cloud costs."
+    },
+    {
+      "title": "Offline and low-connectivity scenarios",
+      "body": "Navigation in remote areas, language translation while traveling, field service apps. Edge deployment ensures functionality regardless of network availability. Critical for emergency services, military, aviation."
+    }
+  ],
+  "deepDiveIntro": [
+    "Edge constraints: compute (ARM CPUs, mobile GPUs, NPUs), memory (MB not GB), battery (inference consumes power), storage (app size limits). Optimization techniques: quantization (FP32→INT8, 4x smaller), pruning (remove 90% weights with minimal accuracy loss), knowledge distillation (train small model to mimic large), architecture search (MobileNet, EfficientNet designed for mobile).",
+    "Frameworks: TensorFlow Lite (TFLite): Google's solution, supports quantization, delegates for GPU/NPU. Core ML: Apple's ecosystem, optimized for Neural Engine. ONNX Runtime: cross-platform. PyTorch Mobile: growing support. Deployment: app bundle, OTA updates, federated learning for model updates."
+  ],
+  "visualizationType": "edge-deployment",
+  "deepDive": [
+    {
+      "heading": "Model Optimization Techniques",
+      "body": "Quantization: FP32 weights → INT8 (4x smaller, faster). Post-training quantization: calibrate on data. QAT (quantization-aware training): simulates quantization during training, better accuracy. Pruning: remove small weights, fine-tune to recover. Structured pruning removes whole neurons (hardware efficient). Distillation: large teacher trains small student via soft targets. NAS: search efficient architectures (MobileNet, EfficientNet).",
+      "formula": "Quantized model size ≈ 1/4 original, latency 2-4x faster"
+    },
+    {
+      "heading": "Edge Hardware Acceleration",
+      "body": "Mobile GPUs (Adreno, Mali) via OpenCL/Vulkan. NPUs (Neural Processing Units): Apple Neural Engine, Google Tensor, Qualcomm Hexagon. DSPs (Digital Signal Processors). TFLite delegates route ops to accelerators automatically. Speedup: 5-20x vs CPU. Constraints: limited op support (fallback to CPU if unsupported op)."
+    },
+    {
+      "heading": "TensorFlow Lite",
+      "body": "Converter: tf.lite.TFLiteConverter.from_saved_model(). Optimizations: default (dynamic range quantization), float16 (2x smaller), full integer (4x smaller). Delegates: GPUDelegate, NNAPIDelegate (Android NPU), CoreMLDelegate (iOS). Interpreter: load model, allocate tensors, invoke. C++ API for embedded. Python for prototyping.",
+      "formula": "tflite_model = converter.convert() → optimized for edge"
+    },
+    {
+      "heading": "Core ML",
+      "body": "Apple's framework: iOS, macOS, watchOS. Converter: coremltools converts TensorFlow/PyTorch/ONNX. ML Model format (.mlmodel). On-device compilation for specific hardware (CPU, GPU, Neural Engine). Prediction APIs: Swift/Objective-C. Privacy: encrypted models, Secure Enclave for sensitive data."
+    },
+    {
+      "heading": "Federated Learning",
+      "body": "Train models across decentralized devices without centralizing data. Devices compute gradients on local data, send only updates (not raw data) to server. Server aggregates updates (FedAvg), sends new model. Preserves privacy, enables personalization. Challenges: heterogeneous devices, intermittent connectivity, non-IID data distribution."
+    }
+  ],
+  "youtubeLabel": "TensorFlow Lite — TensorFlow",
+  "youtubeUrl": "https://www.youtube.com/embed/ZeD8RkXmTyU",
+  "takeaways": [
+    "Edge deployment = on-device inference for low latency, privacy, offline use.",
+    "Optimize via quantization (4x smaller), pruning, distillation, efficient architectures.",
+    "Frameworks: TensorFlow Lite (cross-platform), Core ML (Apple), ONNX Runtime.",
+    "Hardware acceleration: mobile GPUs, NPUs (Neural Engine, Hexagon).",
+    "Federated learning trains on edge without centralizing data."
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you update edge models?",
+      "a": "(1) App store update: bundle new model with app update (slow, days). (2) Over-the-air (OTA): download from server at runtime (faster, but bandwidth). (3) Federated learning: distributed training updates model without explicit download. (4) Modular updates: only download changed layers/weights (delta updates). Balance: freshness vs bandwidth, security (signed models), user consent."
+    },
+    {
+      "q": "What accuracy loss from quantization?",
+      "a": "Post-training INT8: 0.5-2% accuracy drop typically acceptable. QAT: <0.5% drop. Extreme quantization (INT4, binary): 5-20% drop, research area. Pruning 90%: 1-3% drop if fine-tuned. Always evaluate on representative dataset. Some models (Transformers) more sensitive; use FP16 instead of INT8 if needed."
+    },
+    {
+      "q": "When is edge not appropriate?",
+      "a": "Avoid edge when: (1) Model too large for device constraints (e.g., GPT-4). (2) Requires frequent updates (daily changing fraud patterns). (3) Needs global context only available in cloud. (4) Multi-modal fusion requiring multiple large models. (5) Battery constraints critical and inference heavy. Hybrid approaches: edge preprocessing + cloud inference."
+    }
+  ],
+  "sources": [
+    { "label": "TensorFlow Lite Documentation", "url": "https://www.tensorflow.org/lite" },
+    { "label": "Apple Core ML Documentation", "url": "https://developer.apple.com/documentation/coreml" }
+  ]
+}

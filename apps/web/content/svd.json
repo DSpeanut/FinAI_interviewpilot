@@ -1,0 +1,83 @@
+{
+  "eli3": [
+    "SVD decomposes any matrix into three simpler matrices: A = UΣVᵀ. Think of it as breaking any transformation into rotate → stretch → rotate. U and V are rotation matrices; Σ is a diagonal stretching matrix.",
+    "Every matrix, even non-square ones, has an SVD. The diagonal entries of Σ (singular values) tell you how much stretching happens along each principal direction. They're always non-negative and sorted from largest to smallest.",
+    "The columns of U are the output directions; columns of V are the input directions. Together they give you the best low-rank approximation of the matrix — just keep the top k singular values and drop the rest."
+  ],
+  "whenWhy": [
+    {
+      "title": "Dimensionality reduction and compression",
+      "body": "Keeping the top k singular values gives the best rank-k approximation of A (Eckart-Young-Mirsky theorem). Used in image compression, recommender systems (Netflix prize), and latent semantic analysis."
+    },
+    {
+      "title": "Solving ill-conditioned linear systems",
+      "body": "For Ax = b with noisy data, SVD reveals when the system is nearly singular (small singular values). Truncating small singular values (regularization) stabilizes the solution. This is Tikhonov regularization in disguise."
+    },
+    {
+      "title": "Principal Component Analysis",
+      "body": "For centered data matrix X, the right singular vectors V are the principal components. Σ²/(n-1) are the eigenvalues of the covariance matrix. SVD is numerically more stable than explicit eigendecomposition of XᵀX."
+    },
+    {
+      "title": "Matrix completion and collaborative filtering",
+      "body": "In recommender systems, we fill missing entries by assuming a low-rank structure. SVD approximations (with regularization) predict user ratings. Variants like Funk SVD and biased SVD won the Netflix prize."
+    }
+  ],
+  "deepDiveIntro": [
+    "Any matrix A ∈ ℝᵐˣⁿ can be factored as A = UΣVᵀ where U ∈ ℝᵐˣᵐ and V ∈ ℝⁿˣⁿ are orthogonal matrices (UᵀU = I, VᵀV = I), and Σ ∈ ℝᵐˣⁿ is diagonal with non-negative entries σ₁ ≥ σ₂ ≥ … ≥ σᵣ > 0 where r = rank(A).",
+    "The columns of U (left singular vectors) form an orthonormal basis for the column space and left null space. The columns of V (right singular vectors) form an orthonormal basis for the row space and null space. The singular values are the square roots of eigenvalues of AᵀA and AAᵀ."
+  ],
+  "visualizationType": "svd",
+  "deepDive": [
+    {
+      "heading": "Singular Value Decomposition",
+      "body": "A = UΣVᵀ. U contains eigenvectors of AAᵀ; V contains eigenvectors of AᵀA; Σ contains square roots of eigenvalues of both (same nonzero eigenvalues). The factorization exists for any matrix, even rectangular or rank-deficient.",
+      "formula": "A = UΣVᵀ, UᵀU = I, VᵀV = I, Σ = diag(σ₁,…,σᵣ)"
+    },
+    {
+      "heading": "Low-Rank Approximation",
+      "body": "The best rank-k approximation (in Frobenius or spectral norm) is Aₖ = UₖΣₖVₖᵀ keeping top k singular values. Error = σₖ₊₁. This is the Eckart-Young-Mirsky theorem. Compression ratio: store k(m+n+1) vs mn numbers.",
+      "formula": "Aₖ = Σᵢ₌₁ᵏ σᵢuᵢvᵢᵀ, ||A - Aₖ||₂ = σₖ₊₁"
+    },
+    {
+      "heading": "Pseudo-inverse",
+      "body": "The Moore-Penrose pseudo-inverse A⁺ = VΣ⁺Uᵀ where Σ⁺ inverts nonzero singular values. A⁺ gives the minimum-norm least-squares solution to Ax = b: x = A⁺b. Essential for underdetermined or overdetermined systems.",
+      "formula": "A⁺ = VΣ⁺Uᵀ, x = A⁺b minimizes ||Ax - b||² and ||x||²"
+    },
+    {
+      "heading": "Condition Number",
+      "body": "κ(A) = σₘₐₓ/σₘᵢₙ measures sensitivity of linear systems. Large κ means small errors in b cause large errors in x. In double precision, expect to lose log₁₀(κ) digits of accuracy. κ > 10¹⁶ is essentially singular.",
+      "formula": "κ(A) = σ₁/σᵣ, large κ ⟹ ill-conditioned"
+    },
+    {
+      "heading": "Computing SVD",
+      "body": "Algorithms: Golub-Kahan bidiagonalization followed by QR iteration or divide-and-conquer. Complexity is O(mn²) for m ≥ n. For large matrices, use randomized SVD (Halko et al.) which samples column space with random projections."
+    }
+  ],
+  "youtubeLabel": "SVD — MIT OpenCourseWare",
+  "youtubeUrl": "https://www.youtube.com/embed/cOUTpqlX-Xs",
+  "takeaways": [
+    "SVD = UΣVᵀ: rotate → stretch → rotate. Exists for any matrix.",
+    "Singular values σᵢ are square roots of eigenvalues of AᵀA.",
+    "Best rank-k approximation: keep top k singular values (Eckart-Young-Mirsky).",
+    "Pseudo-inverse A⁺ = VΣ⁺Uᵀ solves least squares problems.",
+    "Condition number κ = σₘₐₓ/σₘᵢₙ measures numerical stability."
+  ],
+  "edgeCases": [
+    {
+      "q": "What happens when singular values are zero?",
+      "a": "Zero singular values indicate rank deficiency. The matrix collapses some dimensions to zero. The pseudo-inverse inverts only nonzero singular values (setting 1/0 = 0 by convention), giving the minimum-norm solution in the row space."
+    },
+    {
+      "q": "Why is SVD preferred over eigendecomposition for PCA?",
+      "a": "Computing XᵀX explicitly squares the condition number, amplifying numerical errors. SVD of X directly is stable. Also, SVD works when n < p (more features than samples), where XᵀX is singular."
+    },
+    {
+      "q": "When should I use truncated SVD vs full SVD?",
+      "a": "Truncated SVD (computing only top k components) is O(mnk) vs O(mn²) for full SVD. Use truncated when you only need a low-rank approximation or when storage is limited. Randomized methods work well for this."
+    }
+  ],
+  "sources": [
+    { "label": "Strang — Introduction to Linear Algebra (6th ed.), Ch. 7", "url": "https://math.mit.edu/~gs/linearalgebra/" },
+    { "label": "Golub & Van Loan — Matrix Computations (4th ed.)", "url": "https://www.cs.cornell.edu/cv/ResearchPDF/Matrix Computations.pdf" }
+  ]
+}

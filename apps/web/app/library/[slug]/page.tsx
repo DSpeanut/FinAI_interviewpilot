@@ -1,10 +1,20 @@
 import Link from "next/link"
 import { WikiSidebar } from "@/components/layout/sidebar"
 import { mockEntries, difficultyColors } from "@/lib/mock-data"
-import type { WikiEntryContent, Source, PromptExample } from "@/lib/mock-data"
+import type { WikiEntryContent, Source, PromptExample, CodeSnapshot } from "@/lib/mock-data"
 import { loadEntryContent } from "@/lib/content"
 import { cn } from "@/lib/utils"
-import { ArrowLeft, PlayCircle, ExternalLink, Zap, Lightbulb, Brain, Target, AlertTriangle, BookOpen, Terminal } from "lucide-react"
+import { ArrowLeft, PlayCircle, ExternalLink, Zap, Lightbulb, Brain, Target, AlertTriangle, BookOpen, Terminal, Code2 } from "lucide-react"
+import { CodeSnapshotBlock } from "@/components/wiki/code-snapshot"
+import {
+  AgentLoopViz, ToolUseViz, FunctionCallingViz, ReActViz, PlanExecuteViz,
+  ShortTermMemoryViz, LongTermMemoryViz, EpisodicSemanticViz, MemoryArchitecturesViz,
+  LangChainViz, LlamaIndexViz, CrewAIViz, AutoGenViz, ClaudeAgentSDKViz,
+  RagPipelineViz, RagChunkingViz, VectorSearchViz, RerankingViz, RagEvalViz,
+  MCPViz, APIDesignAIViz, StructuredOutputsViz, JSONModeViz, ToolCallingPatternsViz,
+  LLMTracingViz, LLMLoggingViz, LLMEvalViz, RegressionTestingViz,
+  IOFilteringViz, ContentModerationViz, PromptInjectionViz, RedTeamingViz,
+} from "@/components/wiki/ai-eng-vizzes"
 
 export default async function EntryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -102,6 +112,13 @@ function EntryContent({ content }: { content: WikiEntryContent }) {
       {content.promptExample && (
         <Section icon={<Terminal className="h-4 w-4 text-violet-500" />} title="Prompt Example">
           <PromptExampleBlock example={content.promptExample} />
+        </Section>
+      )}
+
+      {/* Code Snapshot */}
+      {content.codeSnapshot && (
+        <Section icon={<Code2 className="h-4 w-4 text-sky-500" />} title="Code Snapshot">
+          <CodeSnapshotBlock snapshot={content.codeSnapshot} />
         </Section>
       )}
 
@@ -285,6 +302,39 @@ function Visualization({ type }: { type: string }) {
   if (type === "gbm-paths") return <GBMPathsViz />
   if (type === "factor-returns") return <FactorReturnsViz />
   if (type === "equity-multiples") return <EquityMultiplesViz />
+  // ── AI Engineering ────────────────────────────────────────────────────────
+  if (type === "agent-loop-viz") return <AgentLoopViz />
+  if (type === "tool-use-viz") return <ToolUseViz />
+  if (type === "function-calling-viz") return <FunctionCallingViz />
+  if (type === "react-pattern-viz") return <ReActViz />
+  if (type === "plan-execute-viz") return <PlanExecuteViz />
+  if (type === "short-term-memory-viz") return <ShortTermMemoryViz />
+  if (type === "long-term-memory-viz") return <LongTermMemoryViz />
+  if (type === "episodic-semantic-viz") return <EpisodicSemanticViz />
+  if (type === "memory-architectures-viz") return <MemoryArchitecturesViz />
+  if (type === "langchain-viz") return <LangChainViz />
+  if (type === "llamaindex-viz") return <LlamaIndexViz />
+  if (type === "crewai-viz") return <CrewAIViz />
+  if (type === "autogen-viz") return <AutoGenViz />
+  if (type === "claude-agent-sdk-viz") return <ClaudeAgentSDKViz />
+  if (type === "rag-pipeline-viz") return <RagPipelineViz />
+  if (type === "rag-chunking-viz") return <RagChunkingViz />
+  if (type === "vector-search-viz") return <VectorSearchViz />
+  if (type === "reranking-viz") return <RerankingViz />
+  if (type === "rag-eval-viz") return <RagEvalViz />
+  if (type === "mcp-viz") return <MCPViz />
+  if (type === "api-design-ai-viz") return <APIDesignAIViz />
+  if (type === "structured-outputs-viz") return <StructuredOutputsViz />
+  if (type === "json-mode-viz") return <JSONModeViz />
+  if (type === "tool-calling-patterns-viz") return <ToolCallingPatternsViz />
+  if (type === "llm-tracing-viz") return <LLMTracingViz />
+  if (type === "llm-logging-viz") return <LLMLoggingViz />
+  if (type === "llm-eval-viz") return <LLMEvalViz />
+  if (type === "regression-testing-viz") return <RegressionTestingViz />
+  if (type === "io-filtering-viz") return <IOFilteringViz />
+  if (type === "content-moderation-viz") return <ContentModerationViz />
+  if (type === "prompt-injection-viz") return <PromptInjectionViz />
+  if (type === "red-teaming-viz") return <RedTeamingViz />
   return null
 }
 

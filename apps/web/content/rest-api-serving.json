@@ -1,0 +1,83 @@
+{
+  "eli3": [
+    "REST API serving exposes ML models via HTTP endpoints, just like any web service. Client sends a POST request with input data, server returns predictions in JSON. Simple, universal, and easy to integrate.",
+    "Think of it as a restaurant: you (client) order a dish (prediction request), the kitchen (model) prepares it, and you receive the meal (response). REST is the standard way to order and receive.",
+    "Tradeoffs: HTTP overhead adds latency (tens to hundreds of milliseconds), but benefits are huge — language-agnostic, firewall-friendly, well-understood by developers, and easy to load balance and cache."
+  ],
+  "whenWhy": [
+    {
+      "title": "Web and mobile applications",
+      "body": "Most common pattern. Mobile app sends user context to /predict endpoint, receives recommendation or classification. Works with any HTTP client. Flask, FastAPI, and Express popular for wrapping models in REST APIs."
+    },
+    {
+      "title": "Microservices architecture",
+      "body": "ML model as one service in a larger system. Other services call it via REST. Loose coupling, independent scaling, language flexibility. Kubernetes ingress routes requests, services discover each other via DNS."
+    },
+    {
+      "title": "Third-party API integrations",
+      "body": "Exposing predictions to external customers or partners. REST is universally understood. Authentication via API keys, OAuth. Rate limiting prevents abuse. Documentation via OpenAPI/Swagger."
+    },
+    {
+      "title": "Proof of concept and prototyping",
+      "body": "Fastest way to deploy a model for testing. Wrap sklearn/TensorFlow/PyTorch model in Flask app, deploy to Heroku/EC2. Validate business value before investing in optimized serving infrastructure."
+    }
+  ],
+  "deepDiveIntro": [
+    "REST API design for ML: (1) Endpoint: POST /predict or /v1/models/{model}/predict. (2) Request format: JSON with input features or raw data. (3) Response format: predictions, confidence scores, model version, request_id for tracing. (4) Headers: Content-Type, Authorization, X-Request-ID. (5) Error handling: proper HTTP status codes (400 for bad input, 500 for model error), structured error messages.",
+    "Implementation frameworks: Python (FastAPI, Flask, Django REST), Go (Gin, Echo), Java (Spring Boot, Dropwizard). FastAPI popular for ML: async support, automatic OpenAPI docs, pydantic validation. Containerize with Docker, orchestrate with Kubernetes. Horizontal scaling via replica sets and load balancers."
+  ],
+  "visualizationType": "rest-api-serving",
+  "deepDive": [
+    {
+      "heading": "API Design Patterns",
+      "body": "Single prediction: POST /predict with {features: [...]}. Batch prediction: POST /predict_batch with {instances: [[...], [...]]}. Model versioning: /v1/predict, /v2/predict for A/B testing. Health check: GET /health returns model status, readiness. Metrics: GET /metrics for Prometheus scraping.",
+      "formula": "POST /v1/models/{model_name}/predict → {predictions: [...], model_version: \"1.2.3\"}"
+    },
+    {
+      "heading": "Request/Response Schema",
+      "body": "Request: {instances: [...], context: {...}}. Response: {predictions: [...], confidence: [...], model_version: \"x.y.z\", request_id: \"uuid\"}. Structured errors: {error: {code: \"INVALID_INPUT\", message: \"...\"}}. Content negotiation: application/json default, application/protobuf for efficiency.",
+      "formula": "JSON Schema or OpenAPI for contract validation"
+    },
+    {
+      "heading": "Performance Considerations",
+      "body": "HTTP overhead: connection setup, headers, JSON serialization. Typical latency: 10-100ms network + 5-50ms model inference. Batching reduces per-request overhead. Keep-alive connections reduce connection setup. Async frameworks (FastAPI, Node.js) handle concurrent requests efficiently. Load balancing: round-robin, least-connections.",
+      "formula": "Total latency = network_latency + deserialization + inference + serialization"
+    },
+    {
+      "heading": "Security Best Practices",
+      "body": "Authentication: API keys (simple), OAuth 2.0/JWT (enterprise), mTLS (high security). Authorization: scope-based (predict:read, predict:write). Rate limiting: token bucket algorithm, per-client quotas. Input validation: schema validation, size limits, sanitize inputs. HTTPS/TLS in transit. Secrets management: don't hardcode keys, use vaults.",
+      "formula": "Defense in depth: auth + rate limiting + validation + encryption"
+    },
+    {
+      "heading": "Deployment Patterns",
+      "body": "Containerization: Docker images with model artifacts. Kubernetes: deployments, services, ingress controllers. Serverless: AWS Lambda, Cloud Functions for variable traffic (cold start tradeoff). Edge deployment: Cloudflare Workers, Lambda@Edge for global low latency. Auto-scaling: HPA on CPU/memory, custom metrics on queue depth/latency."
+    }
+  ],
+  "youtubeLabel": "Deploying ML Models with FastAPI — CodeEmporium",
+  "youtubeUrl": "https://www.youtube.com/embed/1zMQBeAgkDw",
+  "takeaways": [
+    "REST API = HTTP-based model serving, universal and easy to integrate.",
+    "FastAPI popular for Python: async, auto-docs, pydantic validation.",
+    "Design: versioned endpoints, clear schemas, health checks, proper errors.",
+    "Performance: batch requests, keep-alive, async frameworks, load balancing.",
+    "Security: auth, rate limiting, input validation, HTTPS, secrets management."
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle large payloads?",
+      "a": "Options: (1) Limit request size (nginx/client_max_body_size, 10MB typical). (2) Streaming: accept chunked encoding for large batches. (3) Reference passing: client uploads to S3, sends URI in request, server reads from S3. (4) Compression: accept gzip Content-Encoding. (5) Asynchronous: return job ID immediately, process in background, client polls or uses webhooks."
+    },
+    {
+      "q": "What's the max throughput for REST serving?",
+      "a": "Depends on model inference time. If model takes 10ms, single instance handles ~100 req/s (with overhead). Scale horizontally: 10 replicas = 1000 req/s. Network I/O often bottleneck before compute — use efficient serialization (protobuf, msgpack), connection pooling, and sufficient load balancer capacity. Benchmark with realistic payloads."
+    },
+    {
+      "q": "How do you version REST APIs for ML?",
+      "a": "Strategies: (1) URL path /v1/predict, /v2/predict — clear but requires client changes. (2) Header Accept: application/vnd.myapi.v1+json — more flexible. (3) Query parameter ?version=2 — simple. For ML specifically: model_version in request body for same-endpoint A/B, endpoint versioning for breaking changes. Deprecation: announce, maintain parallel, sunset with warnings."
+    }
+  ],
+  "sources": [
+    { "label": "Huyen — Designing Machine Learning Systems, Ch. 7", "url": "https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/" },
+    { "label": "Google Cloud — Best Practices for ML Serving", "url": "https://cloud.google.com/architecture/ml-ops-best-practices" }
+  ]
+}

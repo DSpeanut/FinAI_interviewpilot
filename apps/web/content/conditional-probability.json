@@ -1,0 +1,84 @@
+{
+  "eli3": [
+    "Conditional probability is the probability of A given that B has occurred: P(A|B). It updates our beliefs based on new information. If B happened, we're in a smaller, more specific world.",
+    "Formula: P(A|B) = P(A and B) / P(B). We restrict to outcomes where B occurred, then ask what fraction also have A. The sample space shrinks from Ω to B.",
+    "Conditional probability is the foundation of Bayesian inference, medical testing (what's the chance of disease given positive test?), and sequential decision making (updating beliefs as we observe data)."
+  ],
+  "whenWhy": [
+    {
+      "title": "Bayesian inference and updating",
+      "body": "Start with prior P(θ), observe data D, compute posterior P(θ|D) ∝ P(D|θ)P(θ). All Bayesian statistics is built on conditional probability. Enables principled belief updating."
+    },
+    {
+      "title": "Medical testing and diagnosis",
+      "body": "Positive test result: P(Disease|Positive) = P(Positive|Disease)P(Disease)/P(Positive). Even with accurate tests, if disease is rare, most positives are false positives. Conditional probability prevents base rate fallacy."
+    },
+    {
+      "title": "Markov chains and sequential models",
+      "body": "Markov property: future state depends only on current state, not full history. P(X_{t+1}|X_t, X_{t-1},…) = P(X_{t+1}|X_t). Conditional independence simplifies modeling of sequences (NLP, time series, reinforcement learning)."
+    },
+    {
+      "title": "A/B testing and causal inference",
+      "body": "Condition on treatment assignment to estimate causal effects. P(Outcome|Treatment) vs P(Outcome|Control). Randomization ensures conditioning is valid; observational studies require adjusting for confounders."
+    }
+  ],
+  "deepDiveIntro": [
+    "For events A, B with P(B) > 0, the conditional probability of A given B is P(A|B) = P(A ∩ B)/P(B). This defines a new probability measure on the restricted space where B occurred. Intuitively, we 'zoom in' to outcomes consistent with B.",
+    "Independence means P(A ∩ B) = P(A)P(B), equivalently P(A|B) = P(A) — knowing B doesn't change A's probability. Conditional independence generalizes: P(A ∩ B|C) = P(A|C)P(B|C). Chain rule: P(A₁ ∩ … ∩ Aₙ) = P(A₁)P(A₂|A₁)P(A₃|A₁∩A₂)…"
+  ],
+  "visualizationType": "conditional-probability",
+  "deepDive": [
+    {
+      "heading": "Definition and Intuition",
+      "body": "P(A|B) = P(A ∩ B)/P(B) for P(B) > 0. Geometrically: shrink sample space to B, measure A's share. If A and B are independent, P(A|B) = P(A). Conditioning always increases some probabilities and decreases others relative to unconditional.",
+      "formula": "P(A|B) = P(A ∩ B)/P(B), P(B) > 0"
+    },
+    {
+      "heading": "Law of Total Probability",
+      "body": "If {Bᵢ} partitions Ω: P(A) = Σᵢ P(A|Bᵢ)P(Bᵢ). Allows computing unconditional probability by conditioning on cases. Essential when direct computation of P(A) is hard but conditional probabilities are known. Bayes' theorem inverts this.",
+      "formula": "P(A) = Σᵢ P(A|Bᵢ)P(Bᵢ)"
+    },
+    {
+      "heading": "Chain Rule (Product Rule)",
+      "body": "P(A ∩ B) = P(A|B)P(B) = P(B|A)P(A). For multiple events: P(A₁ ∩ … ∩ Aₙ) = P(A₁)P(A₂|A₁)P(A₃|A₁∩A₂)…P(Aₙ|A₁∩…∩Aₙ₋₁). Factorizes joint distributions into conditionals — basis for probabilistic graphical models.",
+      "formula": "P(A₁∩…∩Aₙ) = Πᵢ P(Aᵢ|A₁∩…∩Aᵢ₋₁)"
+    },
+    {
+      "heading": "Independence and Conditional Independence",
+      "body": "A ⟂ B: P(A ∩ B) = P(A)P(B). A ⟂ B | C: P(A ∩ B|C) = P(A|C)P(B|C). Conditional independence doesn't imply unconditional independence, and vice versa. Key structure in Bayesian networks, Markov random fields, and latent variable models.",
+      "formula": "A ⟂ B|C ⟺ P(A,B|C) = P(A|C)P(B|C)"
+    },
+    {
+      "heading": "Bayes' Theorem",
+      "body": "P(A|B) = P(B|A)P(A)/P(B). Inverts conditioning: from P(effect|cause) to P(cause|effect). Prior P(A) updated by likelihood P(B|A) to give posterior P(A|B). Denominator P(B) = Σ P(B|Aᵢ)P(Aᵢ) normalizes.",
+      "formula": "P(A|B) = P(B|A)P(A)/P(B) = P(B|A)P(A)/Σᵢ P(B|Aᵢ)P(Aᵢ)"
+    }
+  ],
+  "youtubeLabel": "Conditional Probability — Khan Academy",
+  "youtubeUrl": "https://www.youtube.com/embed/8kojXNRvUSE",
+  "takeaways": [
+    "P(A|B) = P(A ∩ B)/P(B): probability of A given B occurred.",
+    "Chain rule: P(A₁∩…∩Aₙ) = P(A₁)P(A₂|A₁)P(A₃|A₁∩A₂)…",
+    "Independence: P(A|B) = P(A); conditional independence given C.",
+    "Law of total probability: P(A) = Σ P(A|Bᵢ)P(Bᵢ).",
+    "Bayes' theorem: P(A|B) = P(B|A)P(A)/P(B)."
+  ],
+  "edgeCases": [
+    {
+      "q": "What if P(B) = 0?",
+      "a": "Conditional probability P(A|B) is undefined when P(B) = 0. For continuous random variables, we use limits: P(A|X=x) requires conditioning on X ∈ [x-ε, x+ε] and taking ε→0, leading to conditional density functions."
+    },
+    {
+      "q": "Can events be independent but conditionally dependent?",
+      "a": "Yes. Example: A = coin 1 heads, B = coin 2 heads — independent. But given C = 'total heads = 1', A and B are dependent: if A occurred, B definitely didn't. Conversely, events can be dependent but conditionally independent given a third variable (explaining away)."
+    },
+    {
+      "q": "What's Simpson's paradox?",
+      "a": "A trend appears in several groups of data but disappears or reverses when groups are combined. Arises from conditioning on confounding variables. Example: Treatment appears effective in both subgroups but harmful overall due to different baseline risks."
+    }
+  ],
+  "sources": [
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 1", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" },
+    { "label": "Kolmogorov — Foundations of the Theory of Probability", "url": "https://doi.org/10.1007/978-3-662-02855-7" }
+  ]
+}

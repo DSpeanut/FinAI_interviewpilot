@@ -1,0 +1,83 @@
+{
+  "eli3": [
+    "Online learning updates models continuously as new data arrives, rather than training from scratch on fixed datasets. Like a student learning throughout the semester instead of cramming before the exam.",
+    "Traditional batch training: collect data, train model, deploy. Online learning: model updates with each new example or mini-batch. Enables adaptation to changing patterns (concept drift) and immediate use of fresh data.",
+    "Tradeoffs: faster adaptation but risk of catastrophic forgetting (losing old knowledge), sensitivity to noisy data, and harder to debug. Common in ad click prediction, recommendation systems, and streaming analytics."
+  ],
+  "whenWhy": [
+    {
+      "title": "Ad click prediction",
+      "body": "Google Ads, Facebook Ads use online learning. Billions of impressions daily, patterns change constantly (new ads, users, trends). Models must adapt immediately to remain effective. SGD naturally suited for online updates."
+    },
+    {
+      "title": "Recommendation systems",
+      "body": "User preferences evolve; new items appear continuously. Online learning adjusts recommendations based on recent interactions. Cold start problem partially addressed by rapid learning from first few interactions."
+    },
+    {
+      "title": "Fraud detection",
+      "body": "Fraud patterns change as attackers adapt. Online learning detects new attack vectors quickly. However, risk of poisoning attacks — fraudsters feed misleading examples to corrupt model. Need robust online algorithms."
+    },
+    {
+      "title": "IoT and sensor networks",
+      "body": "Continuous streams from sensors. Online learning enables real-time anomaly detection, predictive maintenance, and adaptive control. Edge devices with limited compute benefit from lightweight online updates."
+    }
+  ],
+  "deepDiveIntro": [
+    "Online learning processes examples sequentially, updating model parameters after each observation (or mini-batch). Formally: at time t, observe xₜ, predict ŷₜ, observe true yₜ, suffer loss L(yₜ, ŷₜ), update model θₜ₊₁ = f(θₜ, xₜ, yₜ). Contrast with batch: accumulate {(xᵢ, yᵢ)}ᵢ₌₁ⁿ, then optimize.",
+    "Algorithms: Stochastic Gradient Descent (most common): θ ← θ - η∇L(θ; xₜ, yₜ). Passive-Aggressive: update only when mistake occurs, minimally. Follow-The-Regularized-Leader (FTRL): maintains per-coordinate learning rates, popular in ad systems (Google's approach). Multi-armed bandits for exploration-exploitation tradeoff."
+  ],
+  "visualizationType": "online-learning",
+  "deepDive": [
+    {
+      "heading": "Stochastic Gradient Descent (SGD)",
+      "body": "Update after each example: θ ← θ - η∇L(θ; xᵢ, yᵢ). Natural online algorithm. Learning rate η critical: too large = unstable; too small = slow adaptation. Decay schedules: ηₜ = η₀/(1 + λt) or ηₜ = η₀/√t. Momentum less common in pure online setting; mini-batch SGD (tens to hundreds of examples) often used instead.",
+      "formula": "θₜ₊₁ = θₜ - ηₜ ∇L(θₜ; xₜ, yₜ)"
+    },
+    {
+      "heading": "Concept Drift Adaptation",
+      "body": "Data distribution changes over time: P(X,Y) changes. Types: sudden (policy change), gradual (trend), seasonal (cyclical), recurring (patterns return). Solutions: (1) Decay old data: weighted loss L = Σ wₜ Lₜ with wₜ decreasing. (2) Change detection: monitor error rate, retrain when drift detected. (3) Ensemble methods: combine models trained on different windows.",
+      "formula": "Pₜ(X,Y) ≠ Pₜ₊₁(X,Y) — distribution non-stationary"
+    },
+    {
+      "heading": "Catastrophic Forgetting",
+      "body": "Model loses performance on old tasks/data when learning new ones. Critical in continual learning. Mitigations: (1) Elastic Weight Consolidation (EWC): penalize changes to important parameters. (2) Memory replay: buffer old examples, mix with new. (3) Regularization: constrain updates to prevent large deviations. (4) Modular architectures: separate networks per task with limited crosstalk.",
+      "formula": "EWC loss: L(θ) = L_new(θ) + λ Σᵢ Fᵢ(θᵢ - θ*ᵢ)²"
+    },
+    {
+      "heading": "Follow-The-Regularized-Leader (FTRL)",
+      "body": "Google's choice for ad prediction. Per-coordinate learning rates: features that appear rarely get larger updates. Handles sparse, high-dimensional data well. Regularization: L1 for sparsity (feature selection), L2 for stability. Proximal updates for non-smooth regularizers.",
+      "formula": "θₜ₊₁ = argmin_θ { ηₜ g₁:ₜ · θ + ψ(θ) + (1/2)Σ σₛ||θ - θₛ||² }"
+    },
+    {
+      "heading": "Bandit Algorithms",
+      "body": "Online learning with exploration: choose action (e.g., show ad), observe reward (click). Must balance exploiting known good actions vs exploring uncertain ones. Thompson Sampling, Upper Confidence Bound (UCB), EXP3. Applications: A/B testing, personalized recommendations, dynamic pricing."
+    }
+  ],
+  "youtubeLabel": "Online Learning — Google AI",
+  "youtubeUrl": "https://www.youtube.com/embed/zH-I7dQ1PXI",
+  "takeaways": [
+    "Online learning: update model continuously as data arrives.",
+    "SGD is natural online algorithm; FTRL popular for sparse data.",
+    "Adapts to concept drift but suffers catastrophic forgetting.",
+    "Learning rate decay and change detection handle non-stationarity.",
+    "Bandits handle exploration-exploitation in online settings."
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you prevent online learning from going wrong?",
+      "a": "Safeguards: (1) Outlier detection: don't update on anomalous examples. (2) Gradient clipping: limit update magnitude. (3) Validation holdout: evaluate on held-out set, stop updates if performance degrades. (4) Shadow mode: deploy but don't serve predictions until validated. (5) Rollback: keep previous model version, revert if issues detected."
+    },
+    {
+      "q": "Can deep learning models be trained online?",
+      "a": "Challenging. Neural networks suffer catastrophic forgetting severely. Approaches: (1) Experience replay: maintain buffer of past examples, interleave with new data. (2) Progressive networks: freeze old layers, add new ones for new tasks. (3) Regularization: EWC, online EWC, synaptic intelligence. (4) Meta-learning: learn to learn quickly from few examples. Most production deep learning still uses periodic retraining rather than true online updates."
+    },
+    {
+      "q": "What's the difference between online and incremental learning?",
+      "a": "Online: one pass through data, update per example, no storage of past data. Incremental: mini-batches, may store some recent data, multiple passes allowed. Continual learning: sequence of distinct tasks, must remember old tasks. All related but different constraints: online is strictest (no storage, single pass), continual learning focuses on task boundaries and memory."
+    }
+  ],
+  "sources": [
+    { "label": "Cesa-Bianchi & Lugosi — Prediction, Learning, and Games", "url": "https://www.cambridge.org/core/books/prediction-learning-and-games/" },
+    { "label": "McMahan et al. — Ad Click Prediction: A View from the Trenches", "url": "https://research.google/pubs/pub41159/" }
+  ]
+}

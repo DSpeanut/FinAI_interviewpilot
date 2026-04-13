@@ -1,0 +1,82 @@
+{
+  "eli3": [
+    "A feature store is a centralized repository for storing, sharing, and serving ML features. Think of it as a 'data warehouse' specifically designed for ML — features are computed once, stored, and reused across multiple models.",
+    "Without feature stores, each team recomputes the same features differently, leading to inconsistencies between training and serving (training-serving skew). Feature stores ensure the same transformation logic applies in both contexts.",
+    "They have two storage tiers: offline (for batch training — data warehouses like BigQuery, Snowflake) and online (for real-time serving — low-latency stores like Redis, DynamoDB). Features are versioned, documented, and monitored."
+  ],
+  "whenWhy": [
+    {
+      "title": "Preventing training-serving skew",
+      "body": "Biggest value: ensure features computed the same way during training (batch) and inference (real-time). Same code, same logic, different storage backends. Eliminates subtle bugs where offline model performs well but online fails."
+    },
+    {
+      "title": "Feature reuse across teams",
+      "body": "Data scientist A builds 'customer_lifetime_value' feature. Without feature store, data scientist B rebuilds it slightly differently. Feature store makes features discoverable and reusable. Reduces duplicate work, ensures consistency."
+    },
+    {
+      "title": "Real-time ML systems",
+      "body": "Online feature store (sub-10ms lookups) enables real-time personalization, fraud detection, recommendations. Pre-computed batch features served instantly; real-time features computed on-demand and cached."
+    },
+    {
+      "title": "Feature versioning and governance",
+      "body": "Track feature lineage, owners, data quality metrics. If data source changes, know which features and models are affected. GDPR compliance: track PII usage, manage consent, handle deletion requests."
+    }
+  ],
+  "deepDiveIntro": [
+    "Feature store architecture: (1) Transformation layer: compute features from raw data (batch: Spark, SQL; streaming: Flink, Kafka Streams). (2) Offline store: historical feature values for training (columnar storage: BigQuery, Snowflake, Parquet on S3). (3) Online store: latest feature values for serving (key-value: Redis, DynamoDB, Cassandra). (4) Feature registry: metadata, documentation, lineage. (5) Serving API: retrieve features for training or inference.",
+    "Key capabilities: point-in-time correctness (features as of specific timestamp, no data leakage), online-offline consistency (same code paths), feature sharing (catalog and discovery), monitoring (drift, quality), and governance (access control, PII handling)."
+  ],
+  "visualizationType": "feature-store",
+  "deepDive": [
+    {
+      "heading": "Offline Store (Batch)",
+      "body": "Stores historical feature values for training. Columnar format (Parquet, ORC) for analytics. Time-series: each row has (entity_id, feature_name, value, timestamp). Enables point-in-time correct joins: get feature values as of prediction time. Tools: BigQuery, Snowflake, Databricks Delta Lake, Hive. Scale: petabytes, batch queries.",
+      "formula": "Training set: SELECT * FROM features WHERE timestamp ≤ prediction_time"
+    },
+    {
+      "heading": "Online Store (Real-time)",
+      "body": "Low-latency (sub-10ms) lookups for serving. Key-value storage keyed by entity_id. Stores only latest values (or short history). Updated by streaming pipelines or batch backfill. Tools: Redis, DynamoDB, Cassandra, Aerospike. Scale: millions of keys, high QPS. Challenge: keep synchronized with offline store (eventual consistency).",
+      "formula": "GET features[entity_id] → returns {feature1: value1, ...} in <10ms"
+    },
+    {
+      "heading": "Point-in-Time Correctness",
+      "body": "Critical for training: features must be computed as of prediction time, not using future data. Example: predict churn on Jan 1; can only use data from Jan 1 or earlier. Feature store enforces this by versioning by timestamp. Prevents data leakage that makes offline metrics unrealistically good but production fails.",
+      "formula": "Feature(t) = f(data ≤ t), not f(all data)"
+    },
+    {
+      "heading": "Feature Registry and Catalog",
+      "body": "Central metadata repository: feature definitions, ownership, lineage (upstream data sources), monitoring (drift statistics), quality (missing value rates). Discovery: search for features by name, tag, owner. Documentation: description, expected distributions, usage examples. Governance: PII tags, access controls, approval workflows."
+    },
+    {
+      "heading": "Popular Feature Store Platforms",
+      "body": "Feast: open-source, Kubernetes-native, integrates with Spark/BigQuery/Redis. Tecton: managed, enterprise-focused, strong streaming support. SageMaker Feature Store: AWS-native, online/offline tiers. Vertex AI Feature Store: Google Cloud. Databricks Feature Store: Unity Catalog integration. Hopsworks: open-source, real-time focus. Each has tradeoffs in hosting (managed vs self-hosted), streaming support, and ecosystem integration."
+    }
+  ],
+  "youtubeLabel": "Feature Stores — Feast",
+  "youtubeUrl": "https://www.youtube.com/embed/RLVzJ9P1ezh8",
+  "takeaways": [
+    "Feature store = centralized repository for ML features with offline (training) and online (serving) tiers.",
+    "Prevents training-serving skew via shared transformation code.",
+    "Point-in-time correctness ensures no data leakage in training.",
+    "Feature registry enables discovery, reuse, and governance.",
+    "Options: Feast (open-source), Tecton (managed), cloud-native (SageMaker, Vertex AI)."
+  ],
+  "edgeCases": [
+    {
+      "q": "What happens if online and offline stores get out of sync?",
+      "a": "Causes training-serving skew. Detection: monitor distribution differences (PSI, KL divergence). Mitigation: (1) Dual writes: write to both stores in same transaction. (2) Stream to online, batch reconcile to offline. (3) Monitoring alerts when drift exceeds threshold. (4) Periodic backfills to align stores. Eventually consistent systems need careful handling."
+    },
+    {
+      "q": "How do you handle features that can't be pre-computed?",
+      "a": "On-demand features computed at request time: (1) Real-time aggregations (sum of last 5 minutes) computed by stream processor. (2) Request-time transformations (parse user agent string) done in API layer. (3) Model prediction as feature (ensemble). These go through same transformation code but skip storage. Feature store orchestrates retrieval: some from cache, some computed fresh."
+    },
+    {
+      "q": "When is a feature store overkill?",
+      "a": "Small teams (< 3 data scientists), single model, batch inference only — may not need full feature store. Overhead: infrastructure, maintenance, learning curve. Alternatives: shared SQL database, dbt for transformations, good documentation. Feature stores become valuable with: multiple models using same features, real-time inference requirements, multiple teams, need for strong governance."
+    }
+  ],
+  "sources": [
+    { "label": "Huyen — Designing Machine Learning Systems, Ch. 6", "url": "https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/" },
+    { "label": "Feature Stores for ML — feast.dev", "url": "https://docs.feast.dev/" }
+  ]
+}

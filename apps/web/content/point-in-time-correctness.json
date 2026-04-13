@@ -1,0 +1,82 @@
+{
+  "eli3": [
+    "Point-in-time correctness means using feature values as they existed at prediction time, not as they are now. If you're predicting churn for January 1st, you can't use data from January 2nd — that would be cheating (data leakage).",
+    "Example: A customer's 'total purchases' feature. For a prediction made on Jan 1, use purchases up to Jan 1. For a prediction on Feb 1, use purchases up to Feb 1. Same feature name, different values depending on when you ask.",
+    "This is critical for training: if you accidentally use future data, your model looks amazing offline but fails in production. Feature stores handle this by timestamping all values and supporting time-travel queries."
+  ],
+  "whenWhy": [
+    {
+      "title": "Training set generation",
+      "body": "Building training data requires features as of each historical prediction point. Without point-in-time correctness, models learn from future information. Feature stores provide time-travel queries to get correct feature values for any timestamp."
+    },
+    {
+      "title": "Backtesting and simulation",
+      "body": "Evaluate strategy performance historically. Must use only information available at each point in time. Point-in-time correct features enable accurate backtests that reflect realistic performance."
+    },
+    {
+      "title": "Regulatory compliance",
+      "body": "Financial regulations often require proving decisions were made based on available information only. Audit trails showing point-in-time feature values demonstrate compliance and support model explainability."
+    },
+    {
+      "title": "A/B testing and experiment analysis",
+      "body": "Analyze experiment results using features as of experiment time, not current features which may have changed. Ensures fair comparison between treatment and control groups based on information they actually had."
+    }
+  ],
+  "deepDiveIntro": [
+    "Point-in-time correctness requires tracking feature values over time, not just current values. Schema: (entity_id, feature_name, value, timestamp, event_timestamp). Event_timestamp = when event occurred; timestamp = when feature computed. For training at time T, query: SELECT value FROM features WHERE entity_id = X AND timestamp ≤ T ORDER BY timestamp DESC LIMIT 1.",
+    "Challenges: (1) Temporal joins are expensive — scanning time-series data. (2) Multiple features may have different timestamps — need alignment. (3) Late-arriving data requires backfilling. (4) Storage grows with history retention. Solutions: time-indexed tables, delta lakes with time travel, specialized feature store query engines."
+  ],
+  "visualizationType": "point-in-time-correctness",
+  "deepDive": [
+    {
+      "heading": "Temporal Data Model",
+      "body": "Features stored as time series: (entity_id, feature_name, value, timestamp). For any prediction time t, retrieve latest value with timestamp ≤ t. As-of join: join prediction table with feature table on entity_id where feature.timestamp ≤ prediction.timestamp. SQL: LATERAL join or window functions (ROW_NUMBER() OVER PARTITION BY entity_id ORDER BY timestamp DESC).",
+      "formula": "Feature(entity, t) = value where timestamp = max{s ≤ t : feature(entity, s) exists}"
+    },
+    {
+      "heading": "As-Of Join Implementation",
+      "body": "Efficient implementation crucial for large datasets. Strategies: (1) Sort-merge join on (entity_id, timestamp). (2) Index on (entity_id, timestamp) for fast lookups. (3) Approximate: nearest timestamp ≤ t. (4) Specialized storage: kudu, delta lake time travel, BigQuery AS OF SYSTEM TIME. Complexity: O(N log N) for sort, O(N) for merge.",
+      "formula": "ASOF JOIN: match each prediction with latest feature value before prediction time"
+    },
+    {
+      "heading": "Event Time vs Processing Time",
+      "body": "Event time = when event actually occurred. Processing time = when system processed it. Can differ due to delays (mobile offline, network issues). Point-in-time correctness requires event time. Late arrivals: events arriving after prediction time. Handling: (1) Watermarks — wait for late data. (2) Corrections — issue updates when late data arrives. (3) Reprocess — backfill corrected features.",
+      "formula": "Use event_timestamp for point-in-time, not processing_timestamp"
+    },
+    {
+      "heading": "Backfilling and Corrections",
+      "body": "When data arrives late or errors discovered, must backfill historical features. Update offline store with corrected values. May require retraining models if significant. Challenge: online store has been serving potentially wrong values. Mitigation: versioning — feature_v2 with corrected logic, gradually migrate models."
+    },
+    {
+      "heading": "Storage and Performance",
+      "body": "Time-series storage expensive: O(entities × features × history_length). Compression: delta encoding, dictionary encoding for categorical features. Retention policies: keep full history for compliance, sampled history for training. Partitioning: by date for efficient pruning. Materialized views: pre-compute common as-of time snapshots."
+    }
+  ],
+  "youtubeLabel": "Point-in-Time Correctness — Tecton",
+  "youtubeUrl": "https://www.youtube.com/embed/sF20dzhHF6s",
+  "takeaways": [
+    "Point-in-time correctness: use feature values as of prediction time, not current values.",
+    "Prevents data leakage that causes inflated offline metrics but production failures.",
+    "Requires time-series storage with (entity, feature, value, timestamp).",
+    "As-of joins match predictions with latest feature value before prediction time.",
+    "Distinguish event time (when occurred) from processing time (when system saw it)."
+  ],
+  "edgeCases": [
+    {
+      "q": "What if there's no feature value before prediction time?",
+      "a": "Options: (1) Null/impute — use default value or statistical imputation. (2) Carry forward — use last known value (valid if slowly changing). (3) Lookback window — if no value in last N days, feature is null. (4) Exclude sample — drop from training if critical features missing. Choice depends on feature semantics and model requirements. Document behavior in feature definition."
+    },
+    {
+      "q": "How do you handle features with different granularities?",
+      "a": "Daily features + hourly features + real-time features all used together. Strategy: align to coarsest granularity or prediction time. Feature store handles separate lookups: get daily as-of yesterday, hourly as-of last hour, real-time current. Join by prediction timestamp. Watch for timezone issues — standardize on UTC."
+    },
+    {
+      "q": "What's the performance cost of point-in-time queries?",
+      "a": "Significant vs simple key-value lookups. Without optimization: O(history_length) per query. With indexing: O(log history_length) or O(1) if using specialized structures (skip lists, tiered storage). Tradeoff: storage space vs query speed. Materialize snapshots at common granularities (daily, hourly) for fast lookup, fall back to full scan for arbitrary times."
+    }
+  ],
+  "sources": [
+    { "label": "Huyen — Designing Machine Learning Systems, Ch. 6", "url": "https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/" },
+    { "label": "Feature Store Guide — point-in-time correctness", "url": "https://www.tecton.ai/blog/point-in-time-correctness/" }
+  ]
+}

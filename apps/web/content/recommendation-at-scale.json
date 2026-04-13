@@ -1,0 +1,80 @@
+{
+  "eli3": [
+    "Recommendation systems power Netflix, Spotify, Amazon, and TikTok — suggesting content or products users will enjoy. The goal: show the right item to the right user at the right time.",
+    "Two main approaches: collaborative filtering (users who bought X also bought Y) and content-based (if you like action movies, here's another). Modern systems combine both with deep learning.",
+    "At scale: Netflix has 200M users, 10k+ titles. Real-time personalization with sub-100ms latency while training on terabytes of interaction data daily."
+  ],
+  "whenWhy": [
+    {
+      "title": "Streaming media",
+      "body": "Netflix, Spotify, YouTube: recommend what to watch/listen next. Increase engagement (hours watched), retention (reduce churn), and discovery (long-tail content). 80% of Netflix watches come from recommendations."
+    },
+    {
+      "title": "E-commerce",
+      "body": "Amazon, Alibaba: 'Customers who bought X also bought Y', 'Recommended for you'. Increase basket size, cross-sell, upsell. Personalize homepage, emails, notifications. Direct revenue impact."
+    },
+    {
+      "title": "Social media",
+      "body": "TikTok, Instagram, LinkedIn: feed ranking. Balance engagement (clicks, likes) with diversity, freshness, and creator fairness. Real-time learning from interactions (dwell time > clicks)."
+    },
+    {
+      "title": "Content platforms",
+      "body": "Medium, Reddit, Pinterest: surface relevant content. Balance personalization with exploration (new topics). Editorial curation + algorithmic ranking. Community norms and safety filtering."
+    }
+  ],
+  "deepDiveIntro": [
+    "Recommendation pipeline: (1) Candidate generation: from millions of items to hundreds. Matrix factorization, two-tower neural networks, approximate nearest neighbors (ANN). (2) Ranking: score candidates with heavy model. Deep neural networks with user/item features, context. (3) Re-ranking: diversity, freshness, business rules, exploration."
+    "Algorithms: Collaborative filtering (user-item interactions matrix, SVD, ALS). Content-based (item features, TF-IDF, embeddings). Deep learning (two-tower, transformer-based sequential models). Reinforcement learning (bandits for exploration)."
+  ],
+  "visualizationType": "recommendation-scale",
+  "deepDive": [
+    {
+      "heading": "Candidate Generation",
+      "body": "Reduce millions to hundreds efficiently. Matrix factorization: latent factors for users/items. Two-tower: separate neural networks for user and item, dot product for similarity. ANN: index item embeddings, find nearest neighbors to user vector. FAISS (Facebook), ScaNN (Google), HNSW for fast search.",
+      "formula": "score(u,i) = embedding_u · embedding_i (cosine similarity)"
+    },
+    {
+      "heading": "Deep Learning Ranking",
+      "body": "Wide & Deep: memorization (crossed features) + generalization (embeddings). DCN (Deep Cross Network): explicit feature crossing. DIN (Deep Interest Network): attention over user history. Transformer-based: model sequential interactions (SASRec, BERT4Rec). Features: user demographics, item categories, context (time, device), user history."
+    },
+    {
+      "heading": "Real-Time Personalization",
+      "body": "Session-based recommendations: update within session based on actions. Online learning: model updates immediately from interactions. Feature freshness: items in cart, current browsing. Latency constraints: candidate generation cached, ranking real-time. A/B testing: measure CTR, conversion, session length, diversity."
+    },
+    {
+      "heading": "Exploration vs Exploitation",
+      "body": "Exploitation: recommend items predicted to get highest engagement. Exploration: recommend new/unpopular items to learn preferences. Too much exploitation: filter bubble, boredom. Too much exploration: poor experience. Solutions: ε-greedy, Thompson Sampling, LinUCB bandit algorithms. Multi-armed bandits balance dynamically."
+    },
+    {
+      "heading": "Scaling Challenges",
+      "body": "Precompute: candidate generation offline, store embeddings. Feature store: low-latency access to user/item features. Model serving: TensorFlow Serving, Triton for GPU inference. Fanout: fan out to all candidates in parallel. Caching: popular queries cached. Cold start: content-based for new items, popularity for new users."
+    }
+  ],
+  "youtubeLabel": "Netflix Recommendation System — RecSys",
+  "youtubeUrl": "https://www.youtube.com/embed/M5rRJnlO0Kk",
+  "takeaways": [
+    "Two-stage: candidate generation (fast) → ranking (accurate).",
+    "Collaborative filtering + content-based + deep learning combined.",
+    "Real-time: session-based updates, feature freshness, low latency.",
+    "Explore-exploit: bandit algorithms balance learning and engagement.",
+    "Scale: precomputation, ANN, feature stores, caching."
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle the cold start problem?",
+      "a": "New users: use onboarding (genre preferences), demographic similarity, popular items. New items: content-based features (category, tags), explore-exploit (show to get feedback), author/channel history. Cold start bandit: allocate exploration budget to new items. Hybrid: blend collaborative and content-based signals."
+    },
+    {
+      "q": "What about filter bubbles and diversity?",
+      "a": "Problem: users only see similar content, miss discovery. Solutions: (1) MMR (Maximal Marginal Relevance): diversity-aware re-ranking. (2) Category constraints: ensure mix of genres. (3) Exploration slots: dedicated positions for diverse items. (4) Serendipity metrics: measure unexpectedness of recommendations. (5) User control: 'Not interested', 'Why this?' transparency."
+    },
+    {
+      "q": "How do you measure recommendation success?",
+      "a": "Online metrics: CTR, conversion rate, session length, retention, revenue. Offline metrics: precision@k, recall@k, NDCG, MAP, diversity, coverage. Correlation between offline and online metrics often weak. A/B testing essential. Long-term: cohort retention, lifetime value. Engagement ≠ satisfaction: high CTR on clickbait hurts long-term."
+    }
+  ],
+  "sources": [
+    { "label": "Zhang et al. — Deep Learning based Recommender System: A Survey", "url": "https://arxiv.org/abs/1707.07435" },
+    { "label": "Netflix Technology Blog — Recommendations", "url": "https://netflixtechblog.com/tagged/recommendations" }
+  ]
+}

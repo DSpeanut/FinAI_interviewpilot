@@ -1,0 +1,83 @@
+{
+  "eli3": [
+    "Continuous distributions describe uncountable outcomes: height, weight, time, temperature. Instead of P(X = x), we use probability density functions (PDF) where P(a ≤ X ≤ b) is the area under the curve between a and b.",
+    "Key distributions: Normal/Gaussian (bell curve, central to statistics), Exponential (waiting times, memoryless), Uniform (equal probability over range), Beta (probabilities, bounded [0,1]), Gamma (positive, flexible shapes).",
+    "The total area under the PDF equals 1. Individual points have probability 0; only intervals have positive probability. The cumulative distribution function (CDF) gives P(X ≤ x) as area from -∞ to x."
+  ],
+  "whenWhy": [
+    {
+      "title": "Normal distribution and Central Limit Theorem",
+      "body": "Sums of many small independent effects tend to Normal (CLT). Measurement errors, heights, test scores often approximately Normal. Linear regression assumes Normal errors. Kalman filters use Normal distributions for state estimation."
+    },
+    {
+      "title": "Bayesian inference with Beta and Gamma",
+      "body": "Beta distribution models probabilities (conjugate to Binomial). Gamma models positive values (conjugate to Poisson). Dirichlet generalizes Beta to multiple categories. Used extensively in Bayesian ML and A/B testing."
+    },
+    {
+      "title": "Survival analysis and reliability",
+      "body": "Exponential: constant hazard rate (memoryless). Weibull: flexible hazard (increasing, decreasing, or constant). Used in reliability engineering, medical survival analysis, customer churn prediction."
+    },
+    {
+      "title": "Generative models and VAEs",
+      "body": "Variational autoencoders use Normal distributions for latent spaces. Normalizing flows transform simple distributions (Normal) to complex ones via invertible mappings. Diffusion models gradually add/remove Gaussian noise."
+    }
+  ],
+  "deepDiveIntro": [
+    "A continuous random variable X has probability density function f(x) ≥ 0 with ∫_{-∞}^{∞} f(x)dx = 1. P(a ≤ X ≤ b) = ∫_a^b f(x)dx. CDF F(x) = P(X ≤ x) = ∫_{-∞}^x f(t)dt, and f(x) = F'(x) where differentiable. Expectation E[X] = ∫ x f(x)dx. Variance Var(X) = E[(X-μ)²] = ∫ (x-μ)² f(x)dx. Key distributions: Normal (bell-shaped, CLT), Exponential (memoryless waiting times), Gamma (flexible positive support), Beta ([0,1] support, conjugate prior).",
+    "Transformations: if Y = g(X) with g monotonic, f_Y(y) = f_X(g⁻¹(y)) |d/dy g⁻¹(y)|. This change-of-variables formula accounts for how g stretches or compresses space."
+  ],
+  "visualizationType": "distributions-continuous",
+  "deepDive": [
+    {
+      "heading": "Normal (Gaussian) Distribution",
+      "body": "X ~ N(μ, σ²). PDF: f(x) = (1/√(2πσ²)) exp(-(x-μ)²/(2σ²)). Symmetric, bell-shaped. 68-95-99.7 rule: P(|X-μ| < kσ) ≈ 0.68, 0.95, 0.997 for k=1,2,3. Linear combinations of Normals are Normal. Central Limit Theorem foundation.",
+      "formula": "f(x) = (1/√(2πσ²)) exp(-(x-μ)²/(2σ²))"
+    },
+    {
+      "heading": "Exponential Distribution",
+      "body": "Models waiting times with constant hazard rate λ. Memoryless: P(X > s+t | X > s) = P(X > t). PDF: f(x) = λe^(-λx) for x ≥ 0. E[X] = 1/λ, Var = 1/λ². Related to Poisson: inter-arrival times in Poisson process are Exponential.",
+      "formula": "f(x) = λe^(-λx), x ≥ 0; F(x) = 1 - e^(-λx)"
+    },
+    {
+      "heading": "Gamma Distribution",
+      "body": "Flexible positive distribution. Shape α, rate β (or scale θ=1/β). Includes Exponential (α=1) and Chi-squared (α=k/2, β=1/2). PDF: f(x) = (β^α/Γ(α)) x^(α-1) e^(-βx). Used for waiting times, rainfall, Bayesian precision priors.",
+      "formula": "f(x) = (β^α/Γ(α)) x^(α-1) e^(-βx), x > 0"
+    },
+    {
+      "heading": "Beta Distribution",
+      "body": "Supported on [0,1], models probabilities and proportions. Parameters α, β > 0. PDF: f(x) ∝ x^(α-1)(1-x)^(β-1). Mean = α/(α+β). Conjugate prior for Binomial. Uniform when α=β=1. U-shaped when α,β < 1 (bimodal).",
+      "formula": "f(x) = x^(α-1)(1-x)^(β-1)/B(α,β), x ∈ [0,1]"
+    },
+    {
+      "heading": "Log-Normal Distribution",
+      "body": "If log(X) ~ Normal, then X ~ Log-Normal. X > 0, right-skewed. Models income, stock prices, particle sizes. Multiplicative central limit theorem: product of many positive i.i.d. variables tends to Log-Normal."
+    }
+  ],
+  "youtubeLabel": "Continuous Distributions — Khan Academy",
+  "youtubeUrl": "https://www.youtube.com/embed/cQjX-Sc8PjI",
+  "takeaways": [
+    "PDF f(x): P(a ≤ X ≤ b) = area under f from a to b.",
+    "Normal: bell curve, symmetric, foundation of CLT.",
+    "Exponential: memoryless waiting times, P(X>s+t|X>s)=P(X>t).",
+    "Gamma: flexible positive distribution; Exponential and Chi-squared are special cases.",
+    "Beta: [0,1] support, models probabilities, conjugate to Binomial."
+  ],
+  "edgeCases": [
+    {
+      "q": "Can continuous random variables take any real value?",
+      "a": "Theoretically yes, but specific distributions have restricted support: Exponential and Gamma are x > 0; Beta is x ∈ [0,1]; Normal is all ℝ. Probability is 0 outside the support. In practice, numerical precision limits the range."
+    },
+    {
+      "q": "Why is P(X = x) = 0 for continuous variables?",
+      "a": "Probability is area under PDF. A single point has zero width, hence zero area. This is why we use PDF (density, not probability) and compute probabilities over intervals. CDF F(x) = P(X ≤ x) is well-defined and continuous."
+    },
+    {
+      "q": "When should I use Gamma vs Log-Normal?",
+      "a": "Both model positive, right-skewed data. Gamma is more flexible with shape parameter and has conjugate priors. Log-Normal arises naturally from multiplicative processes (products of variables) and is appropriate when log-transformed data is Normal. In practice, often similar fits; choose based on theoretical justification or model fit."
+    }
+  ],
+  "sources": [
+    { "label": "Casella & Berger — Statistical Inference (2nd ed.), Ch. 3", "url": "https://www.cengage.com/c/statistical-inference-2e-casella" },
+    { "label": "Forbes et al. — Statistical Distributions (4th ed.)", "url": "https://www.wiley.com/en-us/Statistical+Distributions" }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "eli3": [
+    "Lambda architecture is a hybrid design that combines batch and stream processing to get the best of both worlds. The batch layer processes all historical data for accuracy; the speed layer processes recent data in real-time for low latency.",
+    "Results from both layers merge in the serving layer. Batch gives accurate but stale results; speed gives approximate but fresh results. Over time, batch results replace speed results as they become available.",
+    "The downside is complexity — you maintain two separate codebases with different frameworks. That's why Kappa architecture (pure streaming with reprocessing) is gaining popularity as an alternative."
+  ],
+  "whenWhy": [
+    {
+      "title": "Real-time analytics dashboards",
+      "body": "User wants immediate view of today's metrics (speed layer) plus accurate historical comparison (batch layer). Merged results show both real-time trends and reliable historical context. Used in operational dashboards, monitoring systems."
+    },
+    {
+      "title": "Recommendation systems with freshness",
+      "body": "Batch layer pre-computes recommendations from historical behavior. Speed layer adjusts for real-time context (current session, trending items). Serving layer merges: base recommendations + real-time adjustments. Ensures both relevance and freshness."
+    },
+    {
+      "title": "Complex event processing",
+      "body": "Fraud detection uses batch models trained on full history and real-time rules for immediate threats. Serving layer combines scores. If batch model says 'low risk' but real-time rules detect anomaly, flag for review."
+    },
+    {
+      "title": "When accuracy cannot be sacrificed",
+      "body": "Some computations (exact counts, complex aggregations) are hard to do incrementally in streaming. Batch layer provides ground truth; speed layer provides best-effort interim results. Financial reporting, billing systems."
+    }
+  ],
+  "deepDiveIntro": [
+    "Lambda architecture, introduced by Nathan Marz, has three layers: (1) Batch layer: manages master dataset (immutable, append-only) and precomputes batch views using full recomputation; (2) Speed layer: processes recent data only, compensating for high latency of batch layer. Uses incremental algorithms and approximations; (3) Serving layer: indexes and exposes batch views, merges with real-time views for queries.",
+    "Key insight: batch = full dataset, accurate, slow; speed = recent data only, approximate, fast. Complexity cost: duplicate logic in different frameworks (e.g., Spark for batch, Storm for streaming). Reconciliation logic in serving layer. Kappa architecture (proposed by Jay Kreps) simplifies to single streaming layer with ability to reprocess historical data when needed."
+  ],
+  "visualizationType": "lambda-architecture",
+  "deepDive": [
+    {
+      "heading": "Batch Layer",
+      "body": "Stores immutable master dataset (all raw data ever collected). Precomputes batch views using full recomputation. Views are deterministic functions of all data. Can recompute entire history if logic changes. Tools: HDFS/S3 for storage, Spark/Hadoop for processing. Output: precomputed views (e.g., daily aggregations) stored in serving layer.",
+      "formula": "Batch view = f(master_dataset), recomputed periodically"
+    },
+    {
+      "heading": "Speed Layer",
+      "body": "Processes only data not yet processed by batch layer (recent hours). Incremental updates to compensate for batch latency. Uses approximate algorithms: HyperLogLog for cardinality, Count-Min Sketch for frequency, T-Digest for percentiles. Lower latency (seconds to minutes) but approximate. Output: real-time views.",
+      "formula": "Speed view = g(new_data, previous_speed_view), updated continuously"
+    },
+    {
+      "heading": "Serving Layer",
+      "body": "Merges batch and speed views to answer queries. For a given query time T: if batch view covers T, use it (accurate); else use speed view (approximate). Indexes for fast lookups. Tools: Cassandra, Elasticsearch, Redis. Query complexity hidden from users — they see unified view.",
+      "formula": "Result(T) = BatchView(T) if available else SpeedView(T)"
+    },
+    {
+      "heading": "Complexity Challenges",
+      "body": "Dual codebase: batch logic (e.g., Spark SQL) and streaming logic (e.g., Flink) must produce equivalent results. Hard to maintain consistency. Debugging: errors could be in batch, speed, or merge logic. Operational overhead: monitor two systems. Testing: need integration tests verifying both layers produce compatible results."
+    },
+    {
+      "heading": "Kappa Architecture Alternative",
+      "body": "Jay Kreps' proposal: single streaming pipeline handles both real-time and historical processing. To reprocess: replay events from log-compacted Kafka topic through streaming job. Simpler: one codebase, one framework. Requirements: immutable event log (Kafka), ability to replay from beginning, idempotent processing. Most modern systems favor Kappa over Lambda when possible."
+    }
+  ],
+  "youtubeLabel": "Lambda Architecture — Nathan Marz",
+  "youtubeUrl": "https://www.youtube.com/embed/fB2lz1EQhG8",
+  "takeaways": [
+    "Lambda: batch layer (accurate, slow) + speed layer (approximate, fast) + serving layer (merge).",
+    "Batch processes full history; speed processes only recent data.",
+    "Complexity cost: maintain two codebases with different frameworks.",
+    "Kappa architecture: pure streaming with replay capability, simpler alternative.",
+    "Choose Lambda when exact historical recomputation is critical and hard in streaming."
+  ],
+  "edgeCases": [
+    {
+      "q": "When is Lambda still preferred over Kappa?",
+      "a": "(1) When recomputation is prohibitively expensive in streaming (e.g., complex joins over years of data). (2) When batch and streaming need fundamentally different algorithms (some operations hard to incrementalize). (3) When organization has mature batch infrastructure but immature streaming. (4) When exact correctness is more important than operational simplicity (financial reporting)."
+    },
+    {
+      "q": "How do you handle schema evolution in Lambda?",
+      "a": "Challenging because batch and speed may see different schemas. Strategies: (1) Schema registry (Confluent Schema Registry) enforces compatibility. (2) Strong backward compatibility: new fields optional, don't rename/remove old fields. (3) Versioned views: different table names for different schema versions. (4) Migration pipelines: transform old data to new schema during reprocessing."
+    },
+    {
+      "q": "What happens if batch and speed disagree significantly?",
+      "a": "Indicates bug or fundamental algorithmic difference. Should set alerts on merge ratio: (batch_result - speed_result) / batch_result. If > threshold, investigate. Common causes: different filtering logic, different window definitions, timezone issues. Add integration tests comparing batch and speed on same input data to catch discrepancies early."
+    }
+  ],
+  "sources": [
+    { "label": "Marz & Warren — Big Data: Principles and Best Practices", "url": "https://www.manning.com/books/big-data" },
+    { "label": "Kreps — Questioning the Lambda Architecture", "url": "https://www.oreilly.com/radar/questioning-the-lambda-architecture/" }
+  ]
+}

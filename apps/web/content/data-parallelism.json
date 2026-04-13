@@ -1,0 +1,82 @@
+{
+  "eli3": [
+    "Data parallelism splits the training data across multiple GPUs, with each GPU having a complete copy of the model. After processing their local batch, GPUs synchronize gradients to ensure all model copies stay identical.",
+    "Think of it like multiple students reading different chapters of the same textbook, then discussing what they learned so everyone has the same understanding. The 'discussion' is gradient synchronization via AllReduce.",
+    "Most common distributed training approach because it's simple and effective. Works when model fits on single GPU (billions of parameters) but dataset is huge or you want faster training."
+  ],
+  "whenWhy": [
+    {
+      "title": "Large-scale image classification",
+      "body": "Training ResNet, EfficientNet on ImageNet (14M images) or larger. Single GPU batch size 128; 8 GPUs effective batch 1024. Linear speedup with good scaling. DistributedDataParallel (DDP) standard in PyTorch."
+    },
+    {
+      "title": "Language model pretraining",
+      "body": "BERT, GPT-2 size models fit on single GPU with gradient accumulation. Data parallelism across 16-256 GPUs processes massive text corpora. Each GPU processes different documents, synchronizes gradients every step."
+    },
+    {
+      "title": "Faster training convergence",
+      "body": "Large effective batch sizes enable larger learning rates (linear scaling rule). Train in hours instead of days. Critical for research iteration and production deadlines."
+    },
+    {
+      "title": "Multi-node training",
+      "body": "Scale beyond one machine's GPU count. AWS p3.16xlarge has 8 V100s; for 64 GPUs use 8 instances. Data parallelism works across nodes with InfiniBand or fast Ethernet."
+    }
+  ],
+  "deepDiveIntro": [
+    "Data parallelism algorithm: (1) Each GPU has identical model replica. (2) DataLoader shards batch across GPUs (batch_size_total = batch_size_per_gpu × num_gpus). (3) Forward pass: compute loss independently. (4) Backward pass: compute gradients. (5) AllReduce: sum gradients across all GPUs. (6) Optimizer step: update model (same on all GPUs).",
+    "Synchronization: AllReduce operation (ring algorithm is O(1) per GPU). NCCL (NVIDIA Collective Communications Library) optimized for GPU. Communication cost grows with model size and GPU count. Overlap: communicate during backward pass to hide latency. Large batch training requires learning rate warmup and linear scaling."
+  ],
+  "visualizationType": "data-parallelism",
+  "deepDive": [
+    {
+      "heading": "Algorithm Details",
+      "body": "Initialize: same model weights on all GPUs (broadcast from rank 0). Forward: local_batch → model → loss. Backward: loss.backward() → local gradients. AllReduce: gradients summed/averaged across GPUs. Step: optimizer.step() → all models updated identically. Next iteration: repeat. Loop continues until convergence.",
+      "formula": "θ_new = θ_old - η × (1/N) Σᵢ∇L(θ; batchᵢ) where N = num GPUs"
+    },
+    {
+      "heading": "AllReduce Operation",
+      "body": "Collective operation: all GPUs contribute gradients, all receive result. Ring algorithm: each GPU sends to neighbor in ring, O(data_size × 2(N-1)/N) per GPU bandwidth. Tree algorithm: better for small N. NCCL library optimized for NVIDIA GPUs. Bandwidth: NVLink (600 GB/s) within node, InfiniBand (200 Gbps) across nodes.",
+      "formula": "AllReduce time ≈ 2×data_size/bandwidth for ring algorithm"
+    },
+    {
+      "heading": "PyTorch DistributedDataParallel",
+      "body": "Recommended over DataParallel (single-process multi-thread). DDP: multi-process, one per GPU, no GIL contention. Gradient bucketing: group small gradients for efficient AllReduce. Overlap: communication during backward (autograd hook triggers AllReduce as soon as bucket ready). Static graph optimization (torch.compile) further improves performance.",
+      "formula": "model = DistributedDataParallel(model, device_ids=[local_rank])"
+    },
+    {
+      "heading": "Large Batch Training",
+      "body": "Linear scaling rule: if batch size × k, learning rate × k (up to point). Warmup: start small LR, ramp up to target (prevents early divergence). LARS/LAMB optimizers: layer-wise adaptive rates for large batches (batch size 32k+). Gradual batch size increase during training."
+    },
+    {
+      "heading": "Synchronization Variants",
+      "body": "Synchronous: wait for all GPUs every step (deterministic, common). Asynchronous: no waiting, each GPU updates when ready (stale gradients, faster but non-deterministic, rarely used). Local SGD: infrequent synchronization (every K steps), reduces communication at cost of accuracy."
+    }
+  ],
+  "youtubeLabel": "Data Parallelism — PyTorch",
+  "youtubeUrl": "https://www.youtube.com/embed/6pefA4E83Pg",
+  "takeaways": [
+    "Data parallelism = replicate model, shard data, sync gradients via AllReduce.",
+    "Most common approach; works when model fits on single GPU.",
+    "AllReduce is bottleneck; ring algorithm and NCCL optimize it.",
+    "PyTorch DDP: multi-process, gradient bucketing, communication overlap.",
+    "Large batch training requires LR scaling and warmup."
+  ],
+  "edgeCases": [
+    {
+      "q": "What if one GPU is slower (straggler)?",
+      "a": "Synchronous training limited by slowest GPU. Causes: thermal throttling, bad hardware, other jobs on node. Solutions: (1) Detect and replace node. (2) Elastic training (continue with N-1 GPUs). (3) Gradient compression (reduce communication time). (4) Overlap communication heavily to hide latency. (5) Ensure homogeneous hardware and isolated resources."
+    },
+    {
+      "q": "How large can the effective batch size be?",
+      "a": "Limited by generalization: extremely large batches converge to sharp minima with worse generalization. Empirical limit: ~8k for ImageNet, varies by problem. Solutions: (1) LARS/LAMB optimizers. (2) Gradual warmup. (3) Batch size increases during training. (4) Regularization increase with batch size. (5) If still problematic, use gradient accumulation (larger effective batch without larger actual batch)."
+    },
+    {
+      "q": "Does data parallelism work with batch normalization?",
+      "a": "Yes but nuanced. BatchNorm statistics (mean, variance) computed per-GPU by default (different from single-GPU). Solutions: (1) SyncBatchNorm: all GPUs contribute to statistics (standard for DDP). (2) GroupNorm, LayerNorm: not batch-dependent, no issue. (3) Keep BatchNorm but increase batch size per GPU (memory allowing). PyTorch: model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)."
+    }
+  ],
+  "sources": [
+    { "label": "Goyal et al. — Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour", "url": "https://arxiv.org/abs/1706.02677" },
+    { "label": "PyTorch DistributedDataParallel Documentation", "url": "https://pytorch.org/tutorials/intermediate/ddp_tutorial.html" }
+  ]
+}

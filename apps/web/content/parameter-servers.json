@@ -1,0 +1,80 @@
+{
+  "eli3": [
+    "Parameter servers (PS) is an architecture for distributed training where separate machines store and manage model parameters, while worker machines compute gradients. Like a central repository that workers read from and write to.",
+    "Workers fetch parameters, compute gradients on local data, send gradients to PS, which updates parameters. PS can be sharded (different PS machines hold different parameters) for scale.",
+  "  "Prior approach for large-scale training (Google DistBelief, MXNet, early TensorFlow). Being replaced by AllReduce-based data parallelism (Horovod, DDP) for most cases, but PS still useful for specific scenarios like large-scale recommendation systems."
+  ]
+  "whenWhy": [
+    {
+      "title": "Large-scale recommendation systems",
+      "body": "Embedding tables with billions of items (sparse features). Each worker processes user, touches small subset of embeddings. PS architecture natural: workers get needed embeddings, compute, push updates. TensorFlow ReplicatedStrategy with PS."
+    },
+    {
+      "title": "Asynchronous training",
+      "body": "Workers don't wait for each other. Each worker reads current parameters, computes, pushes gradients whenever ready. High throughput but stale gradients. Downpour SGD: asynchronous variant for non-convex optimization."
+    },
+    {
+      "title": "Sparse models",
+      "body": "Models where each example touches small fraction of parameters (recommendation, NLP with large vocabularies). PS serves only needed parameters, efficient. Dense models (CNNs) where all parameters used every example prefer AllReduce."
+    },
+    {
+      "title": "Heterogeneous environments",
+      "body": "Workers with different speeds (spot instances, different hardware). Asynchronous PS handles stragglers naturally (fast workers don't wait). Synchronous AllReduce blocked by slowest worker."
+    }
+  ],
+  "deepDiveIntro": [
+    "PS architecture: Parameter servers store model parameters (weights, embeddings). Workers request parameters (often subset), compute gradients, send updates. PS applies updates (SGD, Adam). Can be synchronous (workers wait, PS aggregates) or asynchronous (workers independent, PS handles concurrent updates).",
+    "Sharding: parameters partitioned across multiple PS machines. Worker talks to relevant PS for each parameter. Fault tolerance: replicate parameters across PS, checkpoint. Concurrency control: locks or atomic operations for async updates. Bandwidth: high communication between workers and PS (network bottleneck)."
+  ],
+  "visualizationType": "parameter-servers",
+  "deepDive": [
+    {
+      "heading": "Architecture",
+      "body": "PS nodes: store parameters in memory (or SSD for large models). Worker nodes: fetch parameters, compute on local batch, push gradients. Coordinator: manages cluster (optional). Communication: pull (get parameters), push (send gradients). Sharding: hash(parameter_name) % num_ps to distribute load.",
+      "formula": "PS_shard = hash(param_id) mod num_PS"
+    },
+    {
+      "heading": "Synchronous vs Asynchronous",
+      "body": "Synchronous: barrier at each step. Workers wait for all, PS aggregates gradients, updates, broadcast. Deterministic, like AllReduce but with PS. Asynchronous: no barriers. Workers read params, compute, push updates independently. Higher throughput, stale gradients (parameters changed during computation). Momentum correction, gradient compression help."
+    },
+    {
+      "heading": "Large-Scale Recommendation",
+      "body": "Embedding tables: billions of rows (items/users), each high-dimensional (64-256). Sparse lookups: each example needs few embeddings. PS serves embeddings on-demand. Workers cache hot embeddings. Updates: only touched embeddings updated. Efficient for extreme sparsity. TensorFlow ParameterServerStrategy, MXNet PS."
+    },
+    {
+      "heading": "Optimizations",
+      "body": "Communication: gradient compression (1-bit quantization), sparse gradients (only send non-zero updates). Caching: workers cache frequently used parameters. Replication: hot parameters replicated on multiple PS for load balancing. Checkpoints: periodic snapshot for fault tolerance. Consistency models: bounded staleness (async but limited delay)."
+    },
+    {
+      "heading": "Modern Alternatives",
+      "body": "AllReduce: most deep learning now uses Ring-AllReduce (Horovod, NCCL). More efficient for dense models. FSDP: shards parameters like PS but with AllReduce communication. Hybrid: PS for embeddings (sparse), AllReduce for dense network. TensorFlow 2 default: MultiWorkerMirroredStrategy (AllReduce) over ParameterServerStrategy."
+    }
+  ],
+  "youtubeLabel": "Parameter Servers — Stanford CS217",
+  "youtubeUrl": "https://www.youtube.com/embed/3V_fKWJRfx8",
+  "takeaways": [
+    "PS: separate machines store parameters, workers compute gradients.",
+    "Good for sparse models (recommendation) and asynchronous training.",
+    "Synchronous: barrier each step; Asynchronous: no barriers, stale gradients.",
+    "Being replaced by AllReduce for dense models (CNNs, transformers).",
+    "Modern: AllReduce + FSDP for most; PS for specific sparse workloads."
+  ],
+  "edgeCases": [
+    {
+      "q": "When is PS better than AllReduce?",
+      "a": "(1) Extreme sparsity: each example uses <<1% of parameters (recommendation embeddings). AllReduce wastes bandwidth sending all parameters. (2) Model too large for GPU: PS can use CPU memory or disk. (3) Heterogeneous workers: async PS handles variable speeds. (4) Large-scale CPU training. For dense GPU training (most CV, NLP), AllReduce is faster and simpler."
+    },
+    {
+      "q": "How do you handle hot parameters in PS?",
+      "a": "Popular embeddings (e.g., 'Facebook', 'Google') accessed by all workers. Single PS node becomes bottleneck. Solutions: (1) Replication: copy hot params to multiple PS, workers load-balanced. (2) Caching: workers keep local cache of hot params. (3) Parameter sharding by access frequency. (4) Asynchronous: reduces contention but increases staleness."
+    },
+    {
+      "q": "What about PS fault tolerance?",
+      "a": "PS is single point of failure (unlike AllReduce where workers are identical). Mitigation: (1) Replication: each parameter on k PS nodes. (2) Checkpoints: save to persistent storage (S3, HDFS). (3) Elastic training: replace failed PS, restore from replica. (4) Raft/Paxos consensus for PS cluster. Adds complexity that AllReduce avoids."
+    }
+  ],
+  "sources": [
+    { "label": "Li et al. — Scaling Distributed Machine Learning with the Parameter Server", "url": "https://www.cs.cmu.edu/~muli/file/parameter_server_osdi14.pdf" },
+    { "label": "Dean et al. — Large Scale Distributed Deep Networks", "url": "https://research.google/pubs/pub40565/" }
+  ]
+}

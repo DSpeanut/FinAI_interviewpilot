@@ -1,0 +1,83 @@
+{
+  "eli3": [
+    "An ML pipeline is like a factory assembly line: raw data comes in one end, gets processed through multiple stages (cleaning, feature engineering, training, evaluation), and a trained model comes out the other end.",
+    "The pipeline has distinct phases: data collection, data validation, transformation, model training, model validation, and deployment. Each stage feeds into the next, with feedback loops for monitoring and retraining when performance degrades.",
+    "Unlike traditional software, ML pipelines are probabilistic and data-dependent. The same code can produce different models with different data, making versioning, reproducibility, and testing critical challenges."
+  ],
+  "whenWhy": [
+    {
+      "title": "Production ML systems",
+      "body": "Any ML model serving real users needs a pipeline. Companies like Netflix, Uber, and Google run thousands of pipelines daily for recommendations, pricing, and search. Pipelines enable automation, scalability, and reliability."
+    },
+    {
+      "title": "Reproducibility and experimentation",
+      "body": "Pipelines version data, code, and models together. Data scientists can reproduce experiments, compare model versions, and understand what changed. Essential for regulated industries (finance, healthcare) and debugging."
+    },
+    {
+      "title": "Continuous training and deployment",
+      "body": "Pipelines enable automated retraining when new data arrives or performance degrades. CI/CD for ML automates testing, validation, and safe rollout. Reduces time from experiment to production from months to days."
+    },
+    {
+      "title": "Collaboration across teams",
+      "body": "Data engineers own ingestion, ML engineers own training, DevOps owns deployment. Clear pipeline stages define interfaces and responsibilities. Feature stores and model registries act as shared contracts between teams."
+    }
+  ],
+  "deepDiveIntro": [
+    "A production ML pipeline typically includes: (1) Data ingestion and validation — ensuring quality and schema consistency; (2) Feature engineering — transforming raw data into model inputs; (3) Training — fitting models on prepared data; (4) Evaluation — validating on held-out data; (5) Model validation — ensuring production readiness; (6) Deployment — serving predictions; (7) Monitoring — tracking performance and data drift; (8) Retraining — updating models with new data.",
+    "Pipeline orchestration tools (Airflow, Kubeflow, Metaflow) manage dependencies, scheduling, and retries. Data versioning (DVC) tracks datasets. Model registries (MLflow) version artifacts. Together they enable reproducible, scalable ML systems."
+  ],
+  "visualizationType": "ml-pipeline",
+  "deepDive": [
+    {
+      "heading": "Pipeline Components",
+      "body": "Data ingestion: batch (Spark, BigQuery) or streaming (Kafka, Flink). Validation: Great Expectations, TensorFlow Data Validation (TFDV). Feature engineering: batch (pandas, Spark) or online (Flink, Redis). Training: distributed (Horovod, Ray Train) or single-node. Evaluation: holdout sets, cross-validation, A/B tests. Deployment: batch (scheduled jobs), real-time (APIs), or embedded (mobile/edge).",
+      "formula": "Pipeline: Data → Validation → Features → Train → Evaluate → Validate → Deploy → Monitor → Retrain"
+    },
+    {
+      "heading": "Data Validation and Schema",
+      "body": "Schema defines expected data types, ranges, and distributions. Validation catches training-serving skew, data drift, and anomalies. TFDV computes statistics and infers schemas. Great Expectations defines expectations (e.g., 'column X should have mean between 0 and 1'). Invalid data triggers alerts or pipeline failures.",
+      "formula": "P(data passes validation) = ∏ P(expectationᵢ satisfied)"
+    },
+    {
+      "heading": "Training-Serving Skew",
+      "body": "Discrepancy between data processing at training and inference time. Causes: (1) different code paths, (2) different data sources, (3) temporal leakage. Solution: shared transformation code, feature stores for consistent online/offline features, and careful test set design to prevent leakage.",
+      "formula": "Skew = E[loss(inference)] - E[loss(training)] due to distribution mismatch"
+    },
+    {
+      "heading": "Pipeline Orchestration",
+      "body": "Directed Acyclic Graph (DAG) of tasks with dependencies. Apache Airflow: mature, Python-based, good for batch. Kubeflow Pipelines: Kubernetes-native, integrates with ML workflows. Metaflow: Netflix-born, handles complexity elegantly. Prefect: modern Airflow alternative. Key features: retry logic, parallel execution, resource management, observability.",
+      "formula": "DAG G = (V, E) where V = tasks, E = dependencies"
+    },
+    {
+      "heading": "Reproducibility",
+      "body": "Deterministic pipelines: version data (DVC), code (git), dependencies (Docker, requirements.txt), and random seeds. Containerization (Docker) ensures consistent environments. Experiment tracking (MLflow, Weights & Biases) logs hyperparameters, metrics, and artifacts. Reproducibility enables debugging, auditing, and collaboration."
+    }
+  ],
+  "youtubeLabel": "ML Pipelines — Google Cloud",
+  "youtubeUrl": "https://www.youtube.com/embed/d7L1aHoAPC8",
+  "takeaways": [
+    "ML pipeline = sequence of stages from data to deployed model.",
+    "Key stages: ingestion, validation, features, training, evaluation, deployment, monitoring, retraining.",
+    "Training-serving skew is a major source of production failures.",
+    "Orchestration tools manage DAGs, retries, and resource allocation.",
+    "Reproducibility requires versioning data, code, dependencies, and environments."
+  ],
+  "edgeCases": [
+    {
+      "q": "What happens when data validation fails in production?",
+      "a": "Options: (1) Stop pipeline and alert — safest but interrupts service; (2) Skip validation — dangerous, may serve bad predictions; (3) Fallback to previous model — safer but may be stale; (4) Use default/imputed values — depends on use case. Best practice: fail fast in training, have degradation strategies for inference."
+    },
+    {
+      "q": "How do you handle temporal data in pipelines?",
+      "a": "Critical for time-series and causal inference. Never use future data to predict past (data leakage). Use sliding windows for training. Point-in-time correctness: features must be computed as of prediction time, not data arrival time. Feature stores handle this by versioning features by timestamp."
+    },
+    {
+      "q": "What's the difference between batch and streaming pipelines?",
+      "a": "Batch: process data in chunks on schedule (hourly, daily). Higher latency, easier to debug, simpler failure recovery. Streaming: process events as they arrive (milliseconds latency). More complex (windowing, watermarking, state management), harder to debug, requires stream processing frameworks (Flink, Spark Streaming). Hybrid: Lambda or Kappa architectures."
+    }
+  ],
+  "sources": [
+    { "label": "Huyen — Designing Machine Learning Systems, Ch. 3-4", "url": "https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/" },
+    { "label": "Google — ML Test Score: Rules for ML Engineering", "url": "https://research.google/pubs/pub45742/" }
+  ]
+}

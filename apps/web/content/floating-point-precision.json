@@ -1,0 +1,81 @@
+{
+  "eli3": [
+    "Computers can't represent all real numbers exactly — they use floating-point with limited precision (usually 64 bits: 1 sign, 11 exponent, 52 mantissa). This leads to rounding errors in calculations.",
+    "Think of it like scientific notation: 6.022 × 10²³. The mantissa (6.022) has limited digits, so numbers get rounded. Small differences can be lost (catastrophic cancellation), and some operations accumulate error.",
+    "Understanding floating-point is crucial because seemingly simple computations (0.1 + 0.2 ≠ 0.3 in binary!) can fail, and algorithms that work in exact arithmetic may fail numerically."
+  ],
+  "whenWhy": [
+    {
+      "title": "Financial calculations",
+      "body": "Decimal arithmetic critical for currency. Binary floating-point can't exactly represent 0.1. Use decimal types (Python's decimal, Java BigDecimal) or integer cents. Rounding modes and precision matter for compliance."
+    },
+    {
+      "title": "Machine learning optimization",
+      "body": "Mixed precision training (FP16) speeds up deep learning but requires careful handling (loss scaling, master weights in FP32). Gradients can underflow in FP16. Numerical stability affects convergence."
+    },
+    {
+      "title": "Scientific computing",
+      "body": "Accumulated rounding errors in long simulations (weather, molecular dynamics). Error analysis determines if results are trustworthy. Condition number and algorithm stability are as important as precision."
+    },
+    {
+      "title": "Comparing floating-point numbers",
+      "body": "Never test equality (a == b). Use relative tolerance: |a-b| ≤ ε|b| or absolute tolerance for near-zero. Python's math.isclose(), numpy.allclose() implement proper comparison."
+    }
+  ],
+  "deepDiveIntro": [
+    "IEEE 754 standard defines floating-point formats. Double precision (FP64): 1 sign bit, 11 exponent bits (bias 1023), 52 mantissa bits (plus implicit leading 1). Machine epsilon ε = 2⁻⁵² ≈ 2.22×10⁻¹⁶ is the gap between 1 and next representable number. Relative error of any operation ≤ ε/2 (round-to-nearest).",
+    "Single precision (FP32): 32 bits, ε ≈ 1.19×10⁻⁷. Half precision (FP16): 16 bits, ε ≈ 9.77×10⁻⁴. Special values: ±0, ±∞, NaN (Not a Number). Subnormal numbers fill the gap near zero, but with gradual precision loss."
+  ],
+  "visualizationType": "floating-point-precision",
+  "deepDive": [
+    {
+      "heading": "IEEE 754 Format",
+      "body": "Value = (-1)^s × 1.mantissa × 2^(exponent-bias). Normal numbers have implicit leading 1. Exponent all zeros: subnormals (gradual underflow). Exponent all ones: ±∞ or NaN. Range: double precision ≈ ±10^±308, smallest normal ≈ 2.2×10⁻³⁰⁸, smallest subnormal ≈ 5×10⁻³²⁴.",
+      "formula": "x = (-1)^s × (1 + Σ mᵢ2⁻ⁱ) × 2^(e-1023)"
+    },
+    {
+      "heading": "Machine Epsilon and ULP",
+      "body": "Machine epsilon ε = distance from 1.0 to next representable number. Half ULP (Unit in Last Place) bounds rounding error. For double: ε ≈ 2.22×10⁻¹⁶. Relative error of representation ≤ ε/2. Gap between floats grows with magnitude: spacing is ~ε×|x|.",
+      "formula": "ε = 2⁻⁵² ≈ 2.22×10⁻¹⁶ (double), ε = 2⁻²³ ≈ 1.19×10⁻⁷ (single)"
+    },
+    {
+      "heading": "Catastrophic Cancellation",
+      "body": "Subtracting nearly equal numbers loses significant digits. If x ≈ y, then x - y has large relative error even if x, y are accurate. Example: x = 1.0000001, y = 1.0000000. Difference 10⁻⁷ loses 7 digits of precision. Common in variance computation, quadratic formula."
+    },
+    {
+      "heading": "Overflow and Underflow",
+      "body": "Overflow: |result| > max float → ±∞. Underflow: |result| < min normal → subnormal or zero. In ML, softmax exp(zᵢ) can overflow; subtract max(z) first. Log-sum-exp trick: log Σ exp(xᵢ) = max(x) + log Σ exp(xᵢ - max(x))."
+    },
+    {
+      "heading": "Decimal vs Binary Floating Point",
+      "body": "Binary can't exactly represent 0.1, 0.2, 0.01 (repeating fractions). Decimal floating-point (IEEE 754-2008) or integer representation (cents) preferred for money. COBOL, SQL use decimal. Python decimal module; Java BigDecimal."
+    }
+  ],
+  "youtubeLabel": "Floating Point Numbers — Computerphile",
+  "youtubeUrl": "https://www.youtube.com/embed/PZRI1IfStY0",
+  "takeaways": [
+    "IEEE 754: sign, exponent, mantissa. Double: 64 bits, ε ≈ 2.22×10⁻¹⁶.",
+    "Rounding errors: 0.1 + 0.2 ≠ 0.3 in binary.",
+    "Catastrophic cancellation: subtracting similar numbers loses precision.",
+    "Never compare floats with ==; use tolerance.",
+    "Overflow/underflow: use log-sum-exp trick, scaling for stability."
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does 0.1 + 0.2 ≠ 0.3 in Python?",
+      "a": "0.1 in binary is infinite repeating (like 1/3 in decimal). With 52 bits, it's approximated. The small error accumulates in addition. Printing rounds to 12 digits hiding the issue; repr shows full precision: 0.30000000000000004. Use decimal or round() for display."
+    },
+    {
+      "q": "What is the difference between NaN and Infinity?",
+      "a": "Infinity results from overflow (e.g., 1.0/0.0). Comparisons work: x < ∞ is True for finite x. NaN (Not a Number) results from invalid operations (0/0, ∞-∞, √-1). NaN ≠ NaN (only value not equal to itself). Propagates through calculations."
+    },
+    {
+      "q": "How does mixed precision training work?",
+      "a": "Forward/backward in FP16 for speed, master weights in FP32 for precision. Loss scaling prevents gradient underflow (multiply loss, divide gradients). Some operations (BatchNorm, large reductions) stay in FP32. Tensor Cores on GPUs accelerate FP16 matrix multiply."
+    }
+  ],
+  "sources": [
+    { "label": "Goldberg — What Every Computer Scientist Should Know About Floating-Point Arithmetic", "url": "https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html" },
+    { "label": "IEEE 754-2019 Standard for Floating-Point Arithmetic", "url": "https://ieeexplore.ieee.org/document/8766229" }
+  ]
+}

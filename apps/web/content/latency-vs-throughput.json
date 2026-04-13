@@ -1,0 +1,83 @@
+{
+  "eli3": [
+    "Latency is the time for one request (e.g., 50ms). Throughput is requests per second (e.g., 10,000/sec). They're related but optimizing for one can hurt the other.",
+    "Think of a coffee shop: Latency = time to make your coffee. Throughput = coffees per hour. One barista (low throughput) gives you coffee fast (low latency). Many baristas (high throughput) means waiting in line (higher latency).",
+    "In ML serving: batching increases throughput but adds latency. Parallel processing helps both but requires resources. Understanding this tradeoff is crucial for meeting service level objectives (SLOs)."
+  ],
+  "whenWhy": [
+    {
+      "title": "Real-time user-facing applications",
+      "body": "Search, recommendations, ad ranking need low latency (<100ms) to not hurt user experience. Batch size limited by latency budget. May sacrifice some throughput for consistent low latency. P99 latency matters more than mean."
+    },
+    {
+      "title": "High-throughput offline inference",
+      "body": "Batch scoring millions of records overnight. Latency doesn't matter (hours acceptable). Maximize throughput to reduce cost and time. Use maximum batch sizes, aggressive resource packing."
+    },
+    {
+      "title": "Cost optimization at scale",
+      "body": "Cloud costs proportional to instance-hours. Higher throughput = fewer instances needed. Find sweet spot on latency-throughput curve. Autoscaling policies based on throughput demand while respecting latency SLOs."
+    },
+    {
+      "title": "Capacity planning and load testing",
+      "body": "Latency curves reveal system limits. 'Knee' of curve = maximum throughput before latency explodes. Load test to find capacity. Plan for peak traffic + headroom."
+    }
+  ],
+  "deepDiveIntro": [
+    "Latency components: network (RTT, serialization), queuing (waiting for GPU/CPU), inference (model compute), postprocessing. Throughput = 1 / (average time per request). For concurrent requests: throughput increases with parallelism until resource saturation.",
+    "Tradeoff mechanisms: (1) Batching: higher batch size → higher throughput, higher latency. (2) Parallelism: more workers → higher throughput, similar latency until contention. (3) Resource allocation: bigger GPUs → higher throughput, same latency. (4) Caching: bypasses compute → lower latency, higher throughput. Profile with load testing (Locust, k6, custom)."
+  ],
+  "visualizationType": "latency-throughput",
+  "deepDive": [
+    {
+      "heading": "Latency Components",
+      "body": "Total = network (request/response transit) + serialization (JSON/protobuf encode/decode) + queueing (waiting for available worker) + inference (actual model compute) + postprocessing (formatting response). Each optimizable: compression reduces network, efficient formats reduce serialization, dynamic batching affects queueing, optimized model reduces inference.",
+      "formula": "Latency = T_network + T_serialize + T_queue + T_inference + T_postprocess"
+    },
+    {
+      "heading": "Throughput Measurement",
+      "body": "Requests per second (RPS/QPS) at given latency SLO. Saturation: throughput plateaus as resources maxed. Linear scaling: add replicas, throughput increases linearly. Sublinear: overhead of coordination. Profile with increasing load until latency degrades. Peak throughput = max RPS while P99 latency < threshold.",
+      "formula": "Throughput = 1 / E[time per request] × parallelism"
+    },
+    {
+      "heading": "The Latency-Throughput Curve",
+      "body": "Plot latency (y) vs throughput (x). Three regions: (1) Low load: latency flat (baseline), throughput increases linearly. (2) Moderate load: latency gradually increases (queueing), throughput still scaling. (3) Saturation: latency spikes (queue explosion), throughput flat or drops (overhead). Operate in region 2, before the knee.",
+      "formula": "Little's Law: L = λW (avg items in system = arrival rate × avg time in system)"
+    },
+    {
+      "heading": "Optimization Strategies",
+      "body": "For latency: model optimization (quantization, pruning), caching, smaller batch sizes, edge deployment, async preprocessing. For throughput: dynamic batching, larger instances, data parallelism, request coalescing. For both: efficient serialization (protobuf), connection pooling, autoscaling, GPU utilization.",
+      "formula": "Latency × Throughput = concurrency (Little's Law)"
+    },
+    {
+      "heading": "Service Level Objectives",
+      "body": "Define SLOs: P50 (median), P99 (tail), P99.9. Different use cases: user-facing (<100ms P99), internal services (<500ms P99), batch (<1hr acceptable). Error budgets: acceptable rate of SLO violations. Alert on burn rate. Latency histograms better than averages for SLIs."
+    }
+  ],
+  "youtubeLabel": "Latency vs Throughput — System Design",
+  "youtubeUrl": "https://www.youtube.com/embed/3N6GqZpX3zE",
+  "takeaways": [
+    "Latency = time per request; Throughput = requests per second.",
+    "Tradeoff: batching increases throughput but adds latency.",
+    "Latency curve: flat → gradual increase → spike at saturation.",
+    "Little's Law: L = λW (concurrency = rate × time).",
+    "Define SLOs (P50, P99) and optimize based on requirements."
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does P99 latency matter more than average?",
+      "a": "User experience: tail latency affects perceived performance. If 1% of requests take 5 seconds in 100ms average system, those users have terrible experience. Web performance research: users notice delays >100ms, abandon at >1s. Cascading failures: slow requests hold resources, causing queue buildup affecting other requests. Optimize tail via: request hedging (issue to multiple replicas, use first), tied requests (cancel others), graceful degradation."
+    },
+    {
+      "q": "How do you measure true inference latency?",
+      "a": "Client-side measurement includes network. Server-side measurement excludes network. For optimization: profile server components separately. Tools: NVIDIA Nsight (GPU), PyTorch profiler, TensorFlow Profiler. Break down: data transfer (CPU→GPU), kernel launch, actual compute, sync. Often data transfer dominates for small models; compute dominates for large models."
+    },
+    {
+      "q": "What's head-of-line blocking?",
+      "a": "One slow request delays subsequent requests in FIFO queue. In HTTP/1.1, one connection blocked. In HTTP/2, stream multiplexing helps but application-level queueing still exists. Solutions: (1) Multiple queues per priority class. (2) Cancel slow requests (timeouts). (3) Load shed (drop requests when overloaded). (4) Fair queuing: each client gets fair share, not FIFO globally."
+    }
+  ],
+  "sources": [
+    { "label": "Google SRE Book — Service Level Objectives", "url": "https://sre.google/sre-book/service-level-objectives/" },
+    { "label": "NVIDIA Deep Learning Performance Guide", "url": "https://docs.nvidia.com/deeplearning/performance/index.html" }
+  ]
+}

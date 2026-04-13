@@ -1,0 +1,80 @@
+{
+  "eli3": [
+    "Fraud detection systems identify and block fraudulent transactions in real-time. Credit cards, insurance claims, account takeovers — catching fraud fast saves billions and protects customers.",
+    "Unique challenges: extreme class imbalance (0.1% fraud vs 99.9% legitimate), adversarial attackers constantly adapting, and high cost of false positives (declining valid transactions angers customers).",
+    "Architecture: real-time scoring (<50ms) for transaction approval, with feedback loop from investigator decisions improving models. Must balance fraud loss vs customer friction."
+  ],
+  "whenWhy": [
+    {
+      "title": "Payment fraud",
+      "body": "Credit/debit card transactions: detect stolen cards, card-not-present fraud, merchant fraud. Real-time authorization (approve/decline in <100ms). 3D Secure step-up authentication for suspicious transactions. Global card fraud losses: ~$30B annually."
+    },
+    {
+      "title": "Insurance fraud",
+      "body": "Claims fraud: staged accidents, inflated damages, fake injuries. Predict at claim submission, investigate high-risk. Save insurers billions in payouts. Identify fraud rings via network analysis."
+    },
+    {
+      "title": "Identity and account takeover",
+      "body": "Detect suspicious login attempts, account creation fraud, synthetic identities. Behavioral biometrics (typing patterns, mouse movements) for continuous authentication. Prevent account takeover before damage done."
+    },
+    {
+      "title": "Anti-money laundering (AML)",
+      "body": "Detect structuring (smurfing), layering, integration in money laundering. Monitor transactions over time (not just single event). Suspicious Activity Reports (SARs) to regulators. Compliance requirement for banks."
+    }
+  ],
+  "deepDiveIntro": [
+    "Fraud detection ML: (1) Features: transaction amount, merchant category, location, time, velocity (transactions per hour), device fingerprint, behavioral biometrics. (2) Models: gradient boosting (XGBoost, LightGBM) popular for tabular data, neural networks for sequences, graph neural networks for networks. (3) Real-time: feature store for low-latency lookups, model serving with <50ms latency. (4) Review queues: medium-risk transactions to human investigators."
+    "Adversarial aspect: fraudsters adapt to detection. Model performance degrades as attackers learn. Solutions: continuous retraining, online learning, model ensembles, feature obfuscation (don't leak detection logic)."
+  ],
+  "visualizationType": "fraud-detection",
+  "deepDive": [
+    {
+      "heading": "Handling Class Imbalance",
+      "body": "Fraud rate 0.01-1%. Standard accuracy misleading (99% accuracy by predicting all legitimate). Solutions: (1) Sampling: SMOTE, undersampling majority. (2) Class weights: higher weight for fraud class. (3) Threshold tuning: optimize for F1, precision-recall, not accuracy. (4) Cost-sensitive learning: weight by business cost (false positive vs false negative costs).",
+      "formula": "Cost = FP_cost × FP + FN_cost × FN"
+    },
+    {
+      "heading": "Feature Engineering",
+      "body": "Velocity: transaction count/amount in last hour/day (rapid fire = suspicious). Sequence: time since last transaction, location distance (impossible travel). Device: fingerprint, new device flag. Behavioral: typing speed, swipe patterns (biometrics). Network: connected users, shared attributes (device, address). Aggregations: merchant category spending patterns."
+    },
+    {
+      "heading": "Model Architecture",
+      "body": "GBDT (XGBoost/LightGBM): strong baseline for tabular fraud features. Handles missing values, non-linear interactions. Neural networks: autoencoders for anomaly detection (reconstruction error), RNNs for transaction sequences. Graph: GNNs for fraud rings (connected fraudulent accounts). Ensemble: combine models for robustness."
+    },
+    {
+      "heading": "Real-Time Scoring",
+      "body": "Latency budget: <50ms for authorization decision. Feature store: pre-computed aggregations, sub-10ms lookup. Model serving: lightweight models (LightGBM) or distilled neural nets. Rules engine: hard-coded business rules first (fast path), ML for complex cases. Fallback: if model fails, default to rules (don't block payments)."
+    },
+    {
+      "heading": "Adversarial Adaptation",
+      "body": "Fraudsters test system, learn thresholds, adapt behavior. Countermeasures: (1) Model rotation: deploy new models frequently, don't reveal which is active. (2) Online learning: adapt immediately to new patterns. (3) Feature randomization: different features per transaction. (4) Honeypots: fake data to catch attackers. (5) Continuous monitoring: track fraud rate, model drift, adversarial patterns."
+    }
+  ],
+  "youtubeLabel": "Fraud Detection ML — Kaggle",
+  "youtubeUrl": "https://www.youtube.com/embed/0SCwRt3XaE0",
+  "takeaways": [
+    "Extreme class imbalance: use sampling, class weights, cost-sensitive learning.",
+    "Real-time: <50ms scoring with feature stores and lightweight models.",
+    "Features: velocity, sequences, device fingerprints, behavioral biometrics.",
+    "Adversarial: fraudsters adapt, require continuous retraining and online learning.",
+    "Balance: fraud loss vs false positive customer friction."
+  ],
+  "edgeCases": [
+    {
+      "q": "What about false positives blocking legitimate customers?",
+      "a": "High business cost: angry customers, abandoned transactions, lost revenue. Mitigation: (1) Confidence thresholds: only auto-decline high-confidence fraud. (2) Step-up authentication: 3D Secure, SMS code for medium risk (friction but not decline). (3) Graduated response: soft decline (ask to retry) vs hard decline. (4) Customer communication: explain why, easy appeal process. (5) Monitor false positive rate as key metric."
+    },
+    {
+      "q": "How do you handle concept drift in fraud?",
+      "a": "Severe: fraudsters constantly innovate. Solutions: (1) Online learning: adapt model daily/hourly. (2) Ensemble: combine recent and old models. (3) Feature drift monitoring: alert when patterns change. (4) Champion/challenger: test new models continuously. (5) Feedback loop: investigator labels improve model quickly. (6) Behavioral features (harder to spoof) more stable than static features."
+    },
+    {
+      "q": "What about organized fraud rings?",
+      "a": "Individual transaction may look legitimate, but network reveals fraud. Solutions: (1) Graph analysis: shared devices, addresses, IP subnets. (2) GNNs: learn embeddings based on connections. (3) Community detection: identify clusters of related accounts. (4) Link analysis: visualize connections for investigators. (5) Collective inference: classify accounts jointly, not independently."
+    }
+  ],
+  "sources": [
+    { "label": "Phua et al. — A Comprehensive Survey of Data Mining-based Fraud Detection Research", "url": "https://arxiv.org/abs/1009.6119" },
+    { "label": "Bolton & Hand — Statistical Fraud Detection: A Review", "url": "https://doi.org/10.1214/ss/1042727940" }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "eli3": [
+    "The Central Limit Theorem is one of statistics' most powerful results: averages of many random variables tend toward a Normal distribution, regardless of the original distribution. Flip a biased coin many times, sum the results — the distribution of sums becomes bell-shaped.",
+    "More precisely: if X₁, X₂, … are i.i.d. with mean μ and variance σ², then √n(X̄ₙ - μ) → N(0, σ²). The √n scaling is crucial — without it, the variance would shrink to zero; with it, we get a stable non-degenerate limit.",
+    "This explains why Normal distributions appear everywhere: measurement errors, heights, test scores, stock returns (approximately). It's the foundation of confidence intervals, hypothesis testing, and much of classical statistics."
+  ],
+  "whenWhy": [
+    {
+      "title": "Confidence intervals and hypothesis testing",
+      "body": "CLT justifies using Normal approximations for sample means. 95% CI: X̄ ± 1.96σ/√n. Z-tests and t-tests rely on Normality of sample means. A/B testing statistics use Normal approximation for proportions."
+    },
+    {
+      "title": "Statistical estimation and inference",
+      "body": "Maximum likelihood estimators are asymptotically Normal (under regularity conditions). This enables Wald tests, profile likelihood intervals, and large-sample inference in complex models."
+    },
+    {
+      "title": "Error analysis and quality control",
+      "body": "Manufacturing tolerances assume Normal distribution of errors (sum of many small independent errors). Six Sigma methodology assumes Normal. Control charts use CLT-based limits."
+    },
+    {
+      "title": "Finance and risk modeling",
+      "body": "Returns are often modeled as Normal (though heavy tails exist). Portfolio theory assumes multivariate Normal. Option pricing (Black-Scholes) assumes log-returns are Normal (so prices are Log-Normal)."
+    }
+  ],
+  "deepDiveIntro": [
+    "Classical CLT: Let X₁, X₂, … be i.i.d. with E[X₁] = μ and Var(X₁) = σ² < ∞. Define Sₙ = Σᵢ₌₁ⁿ Xᵢ and X̄ₙ = Sₙ/n. Then (Sₙ - nμ)/(σ√n) = √n(X̄ₙ - μ)/σ →ᵈ Z ~ N(0,1) as n → ∞. Convergence is in distribution (weak convergence): CDFs converge pointwise.",
+    "The Lindeberg-Lévy CLT is the basic i.i.d. version. Extensions: Lindeberg-Feller for independent but not identically distributed (with Lindeberg condition), Lyapunov CLP (sufficient condition), multivariate CLT for random vectors, and functional CLT (Donsker's theorem) for stochastic processes."
+  ],
+  "visualizationType": "central-limit-theorem",
+  "deepDive": [
+    {
+      "heading": "Classical CLT Statement",
+      "body": "For i.i.d. Xᵢ with mean μ, variance σ²: standardized sum Zₙ = (Sₙ - nμ)/(σ√n) →ᵈ N(0,1). Equivalently: √n(X̄ₙ - μ) →ᵈ N(0, σ²). The factor √n 'blows up' the vanishing error to reveal the limiting Normal shape.",
+      "formula": "(Sₙ - nμ)/(σ√n) →ᵈ N(0,1), √n(X̄ₙ - μ) →ᵈ N(0, σ²)"
+    },
+    {
+      "heading": "Characteristic Function Proof",
+      "body": "Proof uses characteristic functions (Fourier transforms of distributions). φ_{Zₙ}(t) = [φ((t/σ√n)) exp(-iμt/σ√n)]ⁿ. Taylor expansion: φ(h) ≈ 1 + iμh - (σ²+μ²)h²/2. After standardization, φ_{Zₙ}(t) → exp(-t²/2), the characteristic function of N(0,1). Lévy's continuity theorem gives convergence."
+    },
+    {
+      "heading": "Berry-Esseen Theorem",
+      "body": "CLT is asymptotic; Berry-Esseen gives finite-sample bound on approximation error. For i.i.d. with finite third moment ρ = E|X₁-μ|³: sup_x |P(Zₙ ≤ x) - Φ(x)| ≤ Cρ/(σ³√n) where C ≈ 0.4748. Error decreases as O(1/√n).",
+      "formula": "sup_x |Fₙ(x) - Φ(x)| ≤ C·E|X₁-μ|³/(σ³√n)"
+    },
+    {
+      "heading": "Lindeberg-Feller CLT",
+      "body": "Generalizes to independent but not identically distributed. Lindeberg condition: for all ε > 0, (1/sₙ²) Σᵢ E[Xᵢ² 1_{|Xᵢ|>εsₙ}] → 0 where sₙ² = Σ σᵢ². Ensures no single variable dominates. Lyapunov condition (stronger but easier to check): Σ E|Xᵢ|³/sₙ³ → 0.",
+      "formula": "(1/sₙ²) Σᵢ₌₁ⁿ E[Xᵢ² 1_{|Xᵢ|>εsₙ}] → 0 (Lindeberg)"
+    },
+    {
+      "heading": "Multivariate and Functional CLT",
+      "body": "Multivariate: √n(X̄ₙ - μ) →ᵈ N(0, Σ) for covariance matrix Σ. Donsker's functional CLT: standardized partial sum process converges to Brownian motion. Foundation for stochastic calculus, asymptotic statistics, and empirical process theory."
+    }
+  ],
+  "youtubeLabel": "Central Limit Theorem — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/YAlJCEDH2uY",
+  "takeaways": [
+    "CLT: √n(X̄ₙ - μ) → N(0, σ²). Sample means become Normal.",
+    "Holds for i.i.d. with finite variance. Extensions exist for non-i.i.d.",
+    "Berry-Esseen: error bound O(1/√n) with constant depending on skewness.",
+    "Foundation of classical statistics: confidence intervals, hypothesis tests.",
+    "Multivariate CLT for vectors; Functional CLT (Donsker) for processes."
+  ],
+  "edgeCases": [
+    {
+      "q": "When does CLT fail?",
+      "a": "(1) Infinite variance: stable distributions (e.g., Cauchy) converge to other stable limits, not Normal. (2) Strong dependence: long-range dependent processes have different scaling (n^H instead of √n, H > 1/2). (3) No Lindeberg condition: one variable dominates (e.g., power law with infinite variance)."
+    },
+    {
+      "q": "How large must n be for CLT to apply?",
+      "a": "Rule of thumb: n ≥ 30 for 'reasonable' distributions. But depends on skewness and tails: symmetric distributions converge faster; highly skewed or heavy-tailed need larger n. Berry-Esseen gives explicit bounds. For proportions: np ≥ 10 and n(1-p) ≥ 10 for Normal approximation."
+    },
+    {
+      "q": "What's the difference between CLT and Law of Large Numbers?",
+      "a": "LLN: X̄ₙ → μ (converges to a constant). CLT: √n(X̄ₙ - μ) → Normal (converges to a distribution). LLN says where; CLT says how fast and with what distribution. Together: X̄ₙ ≈ N(μ, σ²/n) for large n."
+    }
+  ],
+  "sources": [
+    { "label": "Durrett — Probability: Theory and Examples (5th ed.), Ch. 3", "url": "https://services.math.duke.edu/~rtd/PTE/" },
+    { "label": "van der Vaart — Asymptotic Statistics, Ch. 2-3", "url": "https://www.cambridge.org/core/books/asymptotic-statistics/" }
+  ]
+}

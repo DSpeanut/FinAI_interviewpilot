@@ -1,0 +1,80 @@
+{
+  "eli3": [
+    "Concept drift is when the relationship between inputs and outputs changes. Your fraud model learned that purchases at 3 AM are suspicious, but now fraudsters moved to business hours. The pattern changed.",
+    "Types: sudden (abrupt change like new competitor), gradual (slow trend), incremental (step changes), and recurring (seasonal patterns that return). Each needs different adaptation strategies.",
+    "Harder to detect than data drift because you need ground truth labels, which arrive delayed. By the time you know accuracy dropped, damage may be done. Use proxy metrics and monitoring systems."
+  ],
+  "whenWhy": [
+    {
+      "title": "Adversarial environments",
+      "body": "Fraudsters, hackers, spammers adapt to your defenses. Security models face constant concept drift as attackers evolve. Credit risk models degrade during economic crises as default patterns change."
+    },
+    {
+      "title": "Changing user behavior",
+      "body": "E-commerce recommendation: user preferences shift with trends, seasons, life events. Search ranking: query intent changes over time ('apple' fruit vs company vs music). News classification: topics and language evolve."
+    },
+    {
+      "title": "System and policy changes",
+      "body": "Pricing model: new competitor enters, price elasticity changes. Medical diagnosis: new treatments change symptom-disease relationships. Credit scoring: regulatory changes alter approval criteria."
+    },
+    {
+      "title": "Product evolution",
+      "body": "App updates change user flows. New features introduce new usage patterns. Churn prediction must adapt to product changes. Failure to adapt = irrelevant predictions."
+    }
+  ],
+  "deepDiveIntro": [
+    "Concept drift formal definition: P(Y|X) changes over time. Contrast with covariate shift (P(X) changes but P(Y|X) constant). More dangerous because model's learned relationship becomes invalid. Detection requires labels (can't detect from inputs alone).",
+    "Types: Sudden (abrupt at time t), Gradual (slow transition from old to new concept), Incremental (small changes accumulate), Recurring (seasonal, cycles back). Real drift (true relationship changes) vs virtual drift (sampling change). Adaptation: online learning, ensemble methods, drift detectors triggering retraining."
+  ],
+  "visualizationType": "concept-drift",
+  "deepDive": [
+    {
+      "heading": "Drift Patterns",
+      "body": "Sudden: abrupt change at specific time (new fraud MO, product launch). Gradual: slow transition (demographic shift over years). Incremental: stepwise changes (policy updates). Recurring: seasonal (holiday shopping), cyclical (economic cycles). Understanding pattern informs adaptation strategy.",
+      "formula": "Sudden: P(Y|X,t<t₀) ≠ P(Y|X,t≥t₀). Gradual: P(Y|X,t) = (1-α(t))P₀ + α(t)P₁"
+    },
+    {
+      "heading": "Detection Methods",
+      "body": "Accuracy monitoring: track performance metrics over time (needs labels, delayed). Window-based: compare recent error rate vs older window. Statistical: Page-Hinkley test, CUSUM for change detection in error stream. Drift detection methods: ADWIN (Adaptive Windowing), DDM (Drift Detection Method), EDDM (Early DDM)."
+    },
+    {
+      "heading": "Adaptation Strategies",
+      "body": "Periodic retraining: schedule-based (weekly, monthly). Trigger-based: retrain on drift detection. Online learning: adapt model continuously. Ensemble: combine old and new models (weighted by performance). Instance selection: weight recent data higher. Contextual: detect and model contexts separately."
+    },
+    {
+      "heading": "Delayed Labels Problem",
+      "body": "Ground truth arrives late (fraud confirmed weeks later, loan defaults in months). Can't detect drift immediately. Solutions: (1) Proxy metrics: upstream events correlated with target. (2) Prediction monitoring: distribution of predictions changes. (3) Feature drift as early warning. (4) Human-in-the-loop: manual checks on sample."
+    },
+    {
+      "heading": "Evaluation in Non-Stationary Environments",
+      "body": "Prequential (predict-then-evaluate): test on recent data, train on older. Interleaved test-then-train: one sample at a time. Rolling window validation: evaluate on fixed-size recent window. Compare methods by average performance over time, not single number."
+    }
+  ],
+  "youtubeLabel": "Concept Drift — Machine Learning Street Talk",
+  "youtubeUrl": "https://www.youtube.com/embed/3V_xhGAxLYU",
+  "takeaways": [
+    "Concept drift = P(Y|X) changes; more serious than data drift.",
+    "Types: sudden, gradual, incremental, recurring/seasonal.",
+    "Detection delayed because requires ground truth labels.",
+    "Adaptation: periodic retraining, online learning, ensemble.",
+    "Use proxy metrics and feature drift as early warnings."
+  ],
+  "edgeCases": [
+    {
+      "q": "How is concept drift different from model degradation?",
+      "a": "Concept drift is cause (relationship changed), degradation is symptom (accuracy dropped). Degradation can also come from data drift, software bugs, infrastructure issues. Distinguish by: (1) Feature drift high + accuracy down → likely concept drift. (2) No feature drift + accuracy down → software issue. (3) Specific subpopulation bad → sampling bias. Root cause analysis needed."
+    },
+    {
+      "q": "Can you predict drift before it happens?",
+      "a": "Partially. Leading indicators: (1) Upstream data drift (features predictive of target drift first). (2) External signals: competitor actions, news, economic indicators. (3) Seasonal calendars (predictable recurring drift). (4) System change logs (product updates). Hard to predict sudden/unforeseen drift. Best strategy: fast detection and adaptation."
+    },
+    {
+      "q": "What about reversible drift?",
+      "a": "Recurring drift (seasonal): summer/winter patterns, day/night cycles. Solutions: (1) Context-aware models: include time features, learn separate patterns per context. (2) Ensemble of specialists: one model per season/context. (3) Instance weighting: upweight data from same context in history. (4) Caching: store models for each context, switch between them."
+    }
+  ],
+  "sources": [
+    { "label": "Gama et al. — A Survey on Concept Drift Adaptation", "url": "https://dl.acm.org/doi/10.1145/2523813" },
+    { "label": "Moreno-Torres et al. — A Unifying View on Dataset Shift in Classification", "url": "https://www.sciencedirect.com/science/article/abs/pii/S0031320311002901" }
+  ]
+}
