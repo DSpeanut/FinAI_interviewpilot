@@ -1,4 +1,5 @@
 {
+  "visualizationType": "agent-loop-flow",
   "eli3": [
     "An AI agent is a program that can take actions in the world, not just answer questions. The agent loop is the repeating cycle it follows: look at the situation, decide what to do, do it, then look again. It keeps going until the task is done or it gives up.",
     "Think of it like a chef following a recipe: read the next step (observe), figure out which tool to grab (think), grab the pan and turn the heat on (act), then read the next step again. The loop repeats until the dish is finished.",
@@ -19,8 +20,8 @@
     }
   ],
   "deepDiveIntro": [
-    "The canonical agent loop formalisation comes from ReAct (Yao et al. 2022): at each step t, the agent produces a Thought (natural-language reasoning trace) and an Action (tool call or final answer). The environment executes the action and returns an Observation. The sequence (Thought, Action, Observation) is appended to the prompt and the LLM is called again. This repeats until the agent emits a Finish action with the final answer.",
-    "Modern agent frameworks (LangChain AgentExecutor, LlamaIndex AgentRunner, Anthropic's agent loop) implement this pattern with a maximum iteration limit and early-stopping when the LLM emits a terminal action. The loop is synchronous in simple agents and asynchronous/parallel in multi-agent systems where multiple sub-agents run concurrently."
+    "The agent loop is the fundamental execution model for autonomous AI agents: a repeating cycle in which the agent observes its current state, reasons about what to do next, and takes an action — then observes the result and repeats. This Observe-Think-Act cycle is what distinguishes a reactive agent from a single-shot LLM call. Every major agent framework (LangChain, LlamaIndex, Autogen, Anthropic's agent SDK) is built around this loop, even when the surface API varies significantly.",
+    "The canonical formalisation comes from ReAct (Yao et al. 2022): at each step t, the agent produces a Thought (natural-language reasoning trace) and an Action (tool call or final answer). The environment executes the action and returns an Observation. The sequence (Thought, Action, Observation) is appended to the prompt and the LLM is called again. Modern frameworks implement this with a maximum iteration limit and early-stopping when the LLM emits a terminal action. In asynchronous multi-agent systems, multiple sub-loops can run concurrently, each sharing results through a shared memory or message-passing layer. [1]"
   ],
   "deepDive": [
     {
@@ -34,6 +35,10 @@
     {
       "heading": "Loop Termination and Safety",
       "body": "Without termination guards, agents can loop indefinitely (hallucinated tool calls, circular reasoning, tool always returning errors). Production safeguards: max_iterations (hard cap, typically 10–25 for single agents), wall-clock timeout, budget limits (max LLM API cost per task), semantic stopping (detect repeated identical actions — a sign of a stuck loop), and human-in-the-loop checkpoints for high-stakes actions (file deletion, sending emails, financial transactions). [2]"
+    },
+    {
+      "heading": "Termination Conditions and Loop Safety",
+      "body": "A well-designed agent loop must define explicit termination conditions beyond the happy path of a final answer. Production systems enforce multiple independent safety layers: a hard max_iterations cap (typically 10–25) as the last resort, a wall-clock or per-task budget timeout, and semantic cycle detection that inspects the last N (Thought, Action) pairs for repetition — a reliable signal that the agent is stuck. Per-tool error budgets add another layer: if the same tool returns consecutive errors, the loop surfaces a structured failure to the caller rather than burning iterations on futile retries. Human-in-the-loop checkpoints are inserted before irreversible actions (file writes, financial transactions, email sends), requiring explicit approval before the loop continues. These guards belong in the framework layer — never rely solely on the LLM to decide when to stop, as this is a known failure mode under adversarial inputs or prompt injection attacks. [2]"
     }
   ],
   "takeaways": [

@@ -1,4 +1,5 @@
 {
+  "visualizationType": "context-window-viz",
   "eli3": [
     "Short-term memory in AI agents is what the agent can 'hold in mind' right now — it's the current conversation history and recent observations that fit inside the LLM's context window. Like human working memory, it's fast to access but limited in size.",
     "Every time the agent runs, it reads from its short-term memory (the context window) to decide what to do. When the conversation gets too long, older messages fall off — like forgetting the beginning of a long conversation when you're focused on the current topic.",
@@ -19,8 +20,8 @@
     }
   ],
   "deepDiveIntro": [
-    "In Transformer-based LLMs, the context window is the physical substrate of short-term memory: all tokens within the window are jointly attended over. Memory capacity is therefore measured in tokens. GPT-4 Turbo: 128k tokens (~96k words). Claude 3.5 Sonnet: 200k tokens (~150k words). Gemini 1.5 Pro: 1M tokens. Despite large windows, performance degrades on tasks requiring precise recall of content in the middle of very long contexts (the 'lost in the middle' phenomenon, Liu et al. 2023).",
-    "Active short-term memory management strategies: (1) summarisation — periodically summarise older turns and replace them with a compressed representation; (2) sliding window — keep only the last N messages; (3) selective retention — identify and keep only the most relevant observations; (4) message compression — compress verbose tool outputs (e.g., a 1000-word web page) to a 50-word summary before storing. The goal: maximise information density within the token budget."
+    "In LLM-based agents, the context window is the physical substrate of short-term memory: every token the model attends over during a forward pass constitutes its entire working memory. All reasoning, tool output accumulation, and multi-turn conversation history must fit within this fixed-size window. Capacity is measured in tokens — GPT-4 Turbo supports 128k tokens (~96k words), Claude 3.5 Sonnet 200k tokens (~150k words), and Gemini 1.5 Pro up to 1M tokens. Despite large windows, performance degrades when relevant content is positioned in the middle of very long contexts — the 'lost in the middle' phenomenon (Liu et al. 2023) — making raw window size an incomplete solution to the short-term memory problem.",
+    "Active token budget management is therefore a first-class engineering concern. A practical 128k-token budget is consumed by: system prompt (1–3k), tool definitions (~1–2k per tool), accumulated conversation history (grows with every turn), tool outputs (can be large), and reserved response space (~2k). In a 10-turn session with 5 tool calls returning verbose payloads, 40–80k tokens can be consumed before any summarisation is applied. The principal management strategies are: (1) summarisation — replace older turns with a compressed digest; (2) sliding window — retain only the last N messages; (3) selective retention — keep only the highest-priority observations; and (4) output compression — truncate or summarise verbose tool responses before injecting them. The goal is to maximise information density within the available budget."
   ],
   "deepDive": [
     {
@@ -34,6 +35,10 @@
     {
       "heading": "Lost-in-the-Middle Degradation",
       "body": "Liu et al. (2023) showed that LLM performance on multi-document QA degrades significantly when the relevant document is in the middle of a long context — models attend much more strongly to the beginning and end of the context. For short-term memory management: put the most recently observed and most critical information at the end of the context (recency bias of LLMs) and keep the system prompt / task description at the beginning. Avoid burying critical facts in the middle of long tool outputs. Truncate tool outputs to the most relevant sections rather than injecting full, raw outputs. [2]"
+    },
+    {
+      "heading": "Sliding Window and Summarisation Strategies",
+      "body": "The two dominant approaches to bounded-context management are sliding window and hierarchical summarisation, each with distinct trade-offs. A sliding window drops the oldest N messages when the token budget is exceeded — simple to implement but causes hard information loss: any fact established early in the conversation is silently discarded. Hierarchical summarisation addresses this by replacing dropped messages with a structured digest before removing them: a prompt extracts key decisions, facts, and open questions into a compact representation (typically 100–300 tokens), preserving semantic content at the cost of verbatim fidelity. Hybrid strategies combine both: maintain a rolling summary of all sessions older than a threshold and a verbatim sliding window for the most recent K turns. This mirrors human episodic memory — detailed for recent events, gist-level for older ones. The critical engineering choice is the trigger threshold (70–80% of the token budget is typical) and the summary format (structured JSON bullets outperform prose for downstream retrieval). [1][2]"
     }
   ],
   "takeaways": [

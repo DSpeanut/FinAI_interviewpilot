@@ -1,4 +1,5 @@
 {
+  "visualizationType": "long-term-memory-flow",
   "eli3": [
     "Long-term memory for AI agents is stored outside the model — in a database, a file, or a vector store — and can be retrieved across multiple sessions. Unlike short-term memory (the context window, which disappears when the session ends), long-term memory persists forever until explicitly deleted.",
     "Imagine an assistant who, after your first conversation, writes down key facts about you in a notebook: your name, your preferences, past tasks you've done together. Next time you talk, they read the notebook first. That notebook is long-term memory.",
@@ -19,8 +20,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Long-term memory for AI agents is typically implemented as an external storage system with semantic retrieval. The most common architecture: a vector database stores text memories as dense embeddings. At the start of each session, the current query/context is embedded and a similarity search retrieves the top-k most relevant memories. These are injected into the system prompt or early context. At the end of a session, new information is extracted from the conversation and stored as new memory entries.",
-    "The memory lifecycle has four phases: (1) Capture — extract memorable information from the session (explicit instructions: 'Remember that...'; implicit extraction: LLM identifies important facts from conversation); (2) Consolidation — deduplicate, resolve conflicts, and compress; (3) Retrieval — semantic search at session start; (4) Forgetting — memories can decay, be explicitly deleted, or be superseded by newer memories. MemGPT (Packer et al. 2023) introduced a formal architecture for managing all four phases."
+    "Long-term memory for LLM agents is implemented entirely outside the model itself — LLMs are stateless functions that produce no side effects beyond their output tokens. Persistence requires an external storage system: typically a vector database (Pinecone, Weaviate, pgvector) that stores memories as dense embeddings, enabling semantic retrieval. At session start, the agent embeds the current query and issues a cosine similarity search to retrieve the top-k most relevant memories, which are then injected into the system prompt or early context. At session end, new information is extracted from the conversation and written back to the store as new memory entries. This retrieval-augmented pattern decouples memory capacity from context window size — the store can hold millions of memories while only the most relevant handful enter any given context.",
+    "The memory lifecycle has four distinct phases: (1) Capture — extract memorable information from the session, either explicitly ('Remember that...') or implicitly via LLM-based extraction; (2) Consolidation — deduplicate, resolve conflicts between old and new facts, and compress redundant entries; (3) Retrieval — semantic similarity search at session start to surface relevant memories; (4) Forgetting — memories decay by age, are explicitly deleted, or are superseded by newer, higher-confidence entries. This lifecycle mirrors the human memory system and was formalised in the MemGPT architecture (Packer et al. 2023), which treats the agent as an operating system managing its own virtual memory across main context and a backing store."
   ],
   "deepDive": [
     {
@@ -34,6 +35,10 @@
     {
       "heading": "MemGPT and the Virtual Context Architecture",
       "body": "MemGPT (Packer et al. 2023) models long-term memory as a hierarchical memory system inspired by OS virtual memory: 'main context' (in-context, fast, limited) and 'external storage' (out-of-context, slow, unlimited). The agent has explicit tools: recall_memory(query) to retrieve from external storage, save_memory(fact) to write to external storage. The agent manages its own memory — deciding what to save and when to retrieve — as part of the agent loop. This self-directed memory management allows the agent to maintain coherence across conversations far longer than the context window. [2]"
+    },
+    {
+      "heading": "Memory Consolidation and Forgetting Strategies",
+      "body": "Unbounded memory growth degrades retrieval precision: a store with 100k entries returns noisier top-k results than one with 1k curated entries. Three forgetting strategies counteract this: (1) Time-based decay — assign each memory an expiry or a decaying relevance score; memories not retrieved in the last 90 days are demoted to cold storage or deleted; (2) Supersession — when a new memory contradicts a stored one (detected via embedding similarity + semantic conflict check), mark the old entry as superseded rather than deleting it, preserving an audit trail; (3) Reflection-based consolidation — periodically prompt the LLM to review clusters of related memories and merge them into a single, higher-confidence canonical fact, discarding the individual entries. This mirrors human memory consolidation during sleep. The result is a memory store that remains compact, consistent, and high-precision over long agent lifetimes. Combine with a changelog so superseded memories can be recovered if needed. [1][2]"
     }
   ],
   "takeaways": [

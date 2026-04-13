@@ -1,4 +1,5 @@
 {
+  "visualizationType": "tool-use-flow",
   "eli3": [
     "Language models are trained on text and can only output text. Tool use gives them superpowers: the ability to actually do things — run code, search the web, look up a database, send an email. The model decides when to use a tool and what inputs to give it, just like deciding which app to open on your phone.",
     "The model doesn't run the tool itself — it says 'please call calculator(2+2)' and the framework does it, then shows the model the result '4'. The model uses that result to continue its answer. This way, the model can handle tasks it couldn't do with text alone.",
@@ -19,8 +20,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Tool use in LLMs was formalised by Toolformer (Schick et al. 2023): the model is trained to insert API calls inline in its generation, replacing the call with the returned value before continuing generation. This showed that LLMs could learn when and how to use tools from a relatively small amount of self-supervised training data. Modern approaches (OpenAI function calling, Anthropic tool use) move the tool call detection out of the generation stream and into a structured output format.",
-    "Contemporary tool-use APIs use a JSON schema to define available tools. The LLM is given the tool schemas in its context and emits structured JSON when it decides to call a tool. The framework parses the JSON, validates it against the schema, executes the tool, and returns the result as a new message. This separation of tool description (JSON schema), invocation (structured JSON output), and execution (framework layer) enables type-safe, validated tool calling."
+    "Tool use is the mechanism by which an LLM reaches beyond its static training data to interact with external systems — retrieving live information, executing code, and taking real-world actions. Rather than generating a final text answer in a single forward pass, a tool-use-enabled model can pause its generation, emit a structured tool invocation, receive the result, and then continue generating with the new information incorporated. This transforms the LLM from a knowledge lookup system into an active computational agent capable of multi-step reasoning grounded in real data.",
+    "Tool use in LLMs was formalised by Toolformer (Schick et al. 2023): the model is trained to insert API calls inline in its generation, replacing the call with the returned value before continuing generation. This showed that LLMs could learn when and how to use tools from a relatively small amount of self-supervised training data. Modern approaches (OpenAI function calling, Anthropic tool use) move the tool call detection out of the generation stream and into a structured output format — the LLM emits a JSON object specifying the tool name and arguments, the framework validates and executes it, and the result is injected back as a structured message. This separation of description (JSON schema), invocation (structured output), and execution (framework layer) enables type-safe, validated tool calling at scale. [1]"
   ],
   "deepDive": [
     {
@@ -34,6 +35,10 @@
     {
       "heading": "Tool Result Injection and Context Management",
       "body": "Tool results are injected back into the conversation as a 'tool' role message (Anthropic) or function role message (OpenAI). The message includes the tool call ID (to match response to request), the tool name, and the result (string). For large tool outputs (e.g., a 50-page document), the result must be truncated or summarised before injection — injecting raw large results causes context overflow and degrades LLM performance. Strategies: (1) truncate to first N tokens; (2) extract a structured summary; (3) store in a vector DB and retrieve relevant chunks. [2]"
+    },
+    {
+      "heading": "Tool Error Handling and Retry Strategies",
+      "body": "Tool failures are inevitable in production: APIs go down, rate limits are hit, queries return empty results, and the LLM occasionally generates invalid argument values. The correct pattern is to always return errors as tool result messages — never raise uncaught exceptions that crash the agent loop. Error messages should be informative and actionable: 'Invalid date format: expected YYYY-MM-DD, received 04/12/2026' gives the LLM enough context to self-correct on the next call. Implement a per-tool retry budget (typically 2–3 attempts) tracked by the framework, not the LLM. Distinguish retryable errors (network timeout, rate limit) from terminal errors (invalid credentials, resource not found) and handle them differently. For retryable errors, exponential backoff with jitter prevents thundering-herd problems. After the retry budget is exhausted, surface a structured failure to the caller with the full error context, enabling human-in-the-loop recovery or graceful degradation. [1]"
     }
   ],
   "takeaways": [

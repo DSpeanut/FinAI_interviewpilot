@@ -1,4 +1,5 @@
 {
+  "visualizationType": "plan-execute-flow",
   "eli3": [
     "Plan-and-Execute is an agent pattern that separates thinking from doing. First, a 'planner' model reads the task and creates a step-by-step plan: Step 1: search for X, Step 2: calculate Y from the results, Step 3: summarise. Then an 'executor' carries out each step, one at a time.",
     "This is different from the ReAct pattern, where the agent thinks and acts one step at a time as it goes. Plan-and-Execute creates the whole plan first, then executes it. The advantage: you can show the user the plan before running it, and each executor step is a simpler, focused task.",
@@ -19,8 +20,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Plan-and-Execute (Wang et al. 2023) was introduced as an improvement over ReAct for long-horizon tasks. On benchmarks requiring many steps, Plan-and-Execute reduced the number of LLM calls while maintaining or improving task success rates. The planner uses chain-of-thought or structured output to generate a plan; the executor uses a smaller, faster model for each step. The paper demonstrated that using GPT-3.5 as the executor with GPT-4 as the planner achieved near-GPT-4 quality at significantly lower cost.",
-    "LangChain's PlanAndExecute agent (later refactored into LangGraph) implements this pattern. The planner outputs a list of steps (each with a description and expected output); the executor processes them sequentially, updating the step list with results. A replanning module checks after each step whether the plan needs updating based on the observation."
+    "Plan-and-Execute is an agent architecture that decouples the high-level reasoning needed to decompose a complex task from the lower-level execution needed to complete each sub-task. A dedicated planner LLM — typically a large, high-capability model — receives the user's goal and generates a structured sequence of steps, each with a defined scope and expected output. A separate executor LLM (often a smaller, faster, cheaper model) then processes each step in turn, equipped with the relevant tools. This division of labour is the key insight: planning requires broad world knowledge and multi-step foresight, while execution requires focused, tool-grounded reasoning — these two demands can be served by different models at different cost points.",
+    "Plan-and-Execute (Wang et al. 2023) was introduced as an improvement over ReAct for long-horizon tasks. On benchmarks requiring many steps, Plan-and-Execute reduced the number of LLM calls while maintaining or improving task success rates. The planner uses chain-of-thought or structured output to generate a plan; the executor uses a smaller, faster model for each step. The paper demonstrated that using GPT-3.5 as the executor with GPT-4 as the planner achieved near-GPT-4 quality at significantly lower cost. LangChain's PlanAndExecute agent (later refactored into LangGraph) implements this pattern — the planner outputs a list of steps each with a description and expected output, and a replanning module checks after each step whether the plan needs updating based on the observation. [1]"
   ],
   "deepDive": [
     {
@@ -34,6 +35,10 @@
     {
       "heading": "Plan-and-Execute vs ReAct: When to Use Which",
       "body": "Use Plan-and-Execute when: task has many steps (>5), task structure is predictable, you need human approval before execution, different steps benefit from different models/agents, context window management is a concern. Use ReAct when: task is exploratory (you don't know the steps upfront), intermediate results frequently change the plan, task has few steps (< 5), low latency is required (no round-trip to a planner). Hybrid: start with Plan-and-Execute, switch to ReAct within each executor step if that step requires iterative exploration. [1]"
+    },
+    {
+      "heading": "Dynamic Replanning and Error Recovery",
+      "body": "The primary weakness of Plan-and-Execute is plan staleness: the initial plan is a hypothesis about how the task should unfold, and real-world observations frequently violate those assumptions. A robust implementation includes a replanner component that is invoked after each executor step. The replanner receives the original task, the full plan, the completed steps with their observations, and the remaining steps — and decides whether to proceed, modify remaining steps, or generate an entirely new plan. Triggering conditions for replanning include: an executor step returning an error, an observation that contradicts a prior assumption, or a step result that reveals new sub-tasks not anticipated in the original plan. Hard replanning (full plan regeneration) is expensive but ensures coherence; soft replanning (patch only the next N steps) is cheaper and sufficient for minor deviations. To prevent replanning loops, apply a replan budget (typically 2–3 replan cycles per task) and fall back to surfacing an error to the user if the budget is exhausted. [1]"
     }
   ],
   "takeaways": [

@@ -1,4 +1,5 @@
 {
+  "visualizationType": "react-loop-flow",
   "eli3": [
     "ReAct stands for Reasoning + Acting. It's a pattern where an AI agent doesn't just act — it thinks out loud first. Before doing anything, it writes down what it's thinking ('I need to find the population of France, let me search for it'), then takes an action (search), then reads the result, then thinks again.",
     "This thinking-before-acting makes agents much more reliable. Without the reasoning step, agents often call the wrong tool or use the wrong arguments. The written thought helps the model stay on track, catch its own mistakes, and plan ahead.",
@@ -19,8 +20,8 @@
     }
   ],
   "deepDiveIntro": [
-    "ReAct (Yao et al. 2022, ICLR 2023) was evaluated on HotpotQA (multi-hop QA), FEVER (fact verification), ALFWorld (embodied agent tasks), and WebShop (interactive web browsing). On HotpotQA, ReAct outperformed chain-of-thought (no actions) by 6.4% and act-only (no reasoning) by 8.2%, demonstrating that the combination of reasoning + acting is strictly better than either alone. The key finding: reasoning traces allow the model to update its plan based on observations, while acting provides grounding that prevents reasoning errors from compounding.",
-    "In practice, ReAct is implemented by structuring the LLM prompt as a sequence of Thought: / Action: / Observation: blocks. Modern function-calling APIs make this more elegant: the LLM's text output serves as the reasoning trace, and the function call serves as the action. The framework appends the function result as an observation message. This is the default pattern in LangChain's AgentExecutor and Anthropic's agent examples."
+    "ReAct (Reasoning + Acting) is an agent prompting and execution pattern in which the LLM interleaves explicit natural-language reasoning traces (Thought) with discrete tool invocations (Action) and incorporates the results of those invocations (Observation) before generating the next reasoning step. This cycle — Thought → Action → Observation → Thought → ... — allows the model to dynamically update its plan based on evidence gathered at runtime, rather than committing to a full reasoning chain from training knowledge alone. The result is an agent that is simultaneously more transparent (reasoning is explicit and logged) and more accurate (conclusions are grounded in retrieved facts).",
+    "ReAct (Yao et al. 2022, ICLR 2023) was evaluated on HotpotQA (multi-hop QA), FEVER (fact verification), ALFWorld (embodied agent tasks), and WebShop (interactive web browsing). On HotpotQA, ReAct outperformed chain-of-thought (no actions) by 6.4% and act-only (no reasoning) by 8.2%, demonstrating that the combination of reasoning + acting is strictly better than either alone. The key finding: reasoning traces allow the model to update its plan based on observations, while acting provides grounding that prevents reasoning errors from compounding. In practice, ReAct is implemented by structuring the prompt as a sequence of Thought / Action / Observation blocks; modern function-calling APIs make this more elegant — the LLM's text output serves as the reasoning trace, and the function call serves as the action, with the framework appending the function result as an observation message. [1]"
   ],
   "deepDive": [
     {
@@ -34,6 +35,10 @@
     {
       "heading": "Self-Correction via Observation",
       "body": "A key ReAct capability: observing a surprising or incorrect result triggers replanning. Example: Thought: 'I'll search for the CEO of OpenAI' → Action: search('OpenAI CEO') → Observation: 'Sam Altman resigned in November 2023 but was reinstated days later.' → Thought: 'The search result mentions a CEO change. I should verify the current status.' The observation updated the agent's belief state. This feedback loop is impossible in CoT (no observations) and unreliable in Act-Only (no reasoning to interpret observations). The reasoning trace documents the belief update, making the agent's chain of conclusions auditable. [1]"
+    },
+    {
+      "heading": "ReAct vs Plan-and-Execute: When to Use Each",
+      "body": "ReAct is a reactive, online pattern: the agent plans and acts one step at a time, revising its approach after every observation. This adaptability is its primary strength — when intermediate results are unpredictable or when the task structure is not known upfront, ReAct handles surprises naturally. However, it incurs a separate LLM call per reasoning step, and the context grows linearly, making it expensive for long tasks. Plan-and-Execute (Wang et al. 2023) separates an upfront planning phase from a focused execution phase, reducing total LLM calls and enabling human approval before irreversible actions. Choose ReAct when tasks are exploratory, short-horizon (fewer than 5–6 steps), or when intermediate results frequently change the plan. Choose Plan-and-Execute when the task structure is known, the number of steps is large, or you need a human-readable plan to review before execution. Hybrid architectures are common: Plan-and-Execute for the outer loop, ReAct for individual complex execution steps that require iterative tool use. [1]"
     }
   ],
   "takeaways": [

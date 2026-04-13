@@ -1,4 +1,5 @@
 {
+  "visualizationType": "langchain-chain-viz",
   "eli3": [
     "LangChain is a Python and JavaScript library that gives you pre-built building blocks for LLM applications: document loaders, text splitters, vector stores, prompt templates, chains, and agents. Instead of writing everything from scratch, you snap these blocks together.",
     "Think of it like LEGO for LLM apps. Loading a PDF, splitting it into chunks, embedding it, storing in a vector database, and answering questions over it would take days to build manually. LangChain gives you pre-built pieces for each step that plug together in a few lines of code.",
@@ -19,8 +20,8 @@
     }
   ],
   "deepDiveIntro": [
-    "LangChain was released in October 2022 (Harrison Chase). By 2024 it was the most starred LLM framework on GitHub. The original design used 'Chains' — composable sequences of LLM calls and utilities. In 2023-2024, LangChain shifted focus to LCEL (LangChain Expression Language) for composability and LangGraph for stateful agents. LangSmith (the observability platform) is the commercial product. LangChain the framework is open source under MIT license.",
-    "Architecture: LangChain Core defines the base abstractions (Runnable protocol — the universal interface for any composable component). LangChain Community contains third-party integrations. LangChain (the main package) contains first-party implementations. LangGraph is a separate package for graph-based agents. This split allows using LangChain Core's interfaces without the full dependency tree."
+    "LangChain is a composable LLM application framework released in October 2022 by Harrison Chase. It defines the Runnable protocol — a universal interface that any component must implement — exposing .invoke(), .stream(), and .batch() methods. Every LangChain component (prompt templates, LLM wrappers, output parsers, retrievers, tools) is a Runnable, making them interchangeable and composable. LangChain Expression Language (LCEL) formalises this composability using Python's | operator: chain = prompt | llm | output_parser. Each | call wraps the left and right Runnables into a RunnableSequence that forwards inputs and outputs automatically, with built-in streaming, batching, and async support without any extra code. [1]",
+    "LangChain's package structure reflects its maturity: LangChain Core defines the Runnable protocol and base abstractions; LangChain Community houses third-party integrations (vector stores, document loaders, LLM wrappers) contributed by the open-source community; the main langchain package provides first-party chain implementations. LangGraph, shipped as a separate package, extends the framework from linear chains to cyclic state machines suited to agentic workflows. LangSmith, the commercial observability layer, provides tracing and evaluation for production deployments. This layered architecture allows projects to depend only on Core for minimal footprint or pull in the full ecosystem for rapid prototyping. [1]"
   ],
   "deepDive": [
     {
@@ -34,6 +35,10 @@
     {
       "heading": "When Not to Use LangChain",
       "body": "LangChain adds abstraction overhead that is unnecessary for simple use cases: a single LLM call that doesn't need memory, tools, or retrieval is better done directly with the provider SDK (fewer dependencies, less magic, easier debugging). LangChain critics cite: (1) frequent breaking changes (v0.1 → v0.2 → v0.3 introduced significant API churn); (2) over-abstraction making it hard to understand what's happening under the hood; (3) large dependency tree. For production systems, many teams use LangChain for prototyping and then implement the critical path directly against provider SDKs. Use LangChain when the ecosystem integrations (document loaders, vector store connectors) save significant time; use the provider SDK directly for latency-sensitive paths. [1]"
+    },
+    {
+      "heading": "LangGraph: Stateful Agent Workflows",
+      "body": "LangGraph's production agent pattern centres on three constructs working together: a typed State dataclass (using Python's TypedDict or dataclass), a StateGraph builder that registers nodes and edges, and a compiled graph (graph.compile(checkpointer=...)) that handles execution. Nodes are pure Python functions — easily unit-tested in isolation. Edges can be unconditional (always route to the same next node) or conditional (inspect state and return the name of the next node). Sub-graphs allow encapsulating a complete workflow as a single node inside a parent graph, enabling hierarchical agent composition. LangGraph's persistence layer (checkpointers backed by SQLite, Redis, or Postgres) serialises the entire state dictionary after every node, enabling agents to resume mid-run after failures, support human review of intermediate outputs, and implement time-travel debugging by rewinding to any prior checkpoint. This persistence model is LangGraph's primary differentiator over simpler agent loops. [1]"
     }
   ],
   "takeaways": [
