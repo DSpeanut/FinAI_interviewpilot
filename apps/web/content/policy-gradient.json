@@ -1,0 +1,69 @@
+{
+  "visualizationType": "chart",
+  "codeSnapshot": {
+    "label": "policy_gradient.py",
+    "code": "import torch\nimport torch.nn as nn\nimport torch.optim as optim\nimport gymnasium as gym\nimport numpy as np\n\n# ── 1. Policy network: maps state → action probabilities ──\nclass PolicyNet(nn.Module):\n    def __init__(self, n_obs, n_actions):\n        super().__init__()\n        self.net = nn.Sequential(\n            nn.Linear(n_obs, 128),\n            nn.ReLU(),\n            nn.Linear(128, n_actions),\n        )\n\n    def forward(self, x):\n        return torch.softmax(self.net(x), dim=-1)  # discrete action probs\n\n# ── 2. REINFORCE (vanilla policy gradient) ──\nenv = gym.make('CartPole-v1')\nn_obs = env.observation_space.shape[0]     # 4\nn_actions = env.action_space.n             # 2\n\npolicy = PolicyNet(n_obs, n_actions)\noptimizer = optim.Adam(policy.parameters(), lr=1e-3)\ngamma = 0.99\n\nfor episode in range(1000):\n    states, actions, rewards = [], [], []\n    s, _ = env.reset()\n    done = False\n    while not done:\n        s_t = torch.FloatTensor(s)\n        probs = policy(s_t)\n        dist = torch.distributions.Categorical(probs)\n        a = dist.sample()                    # sample from policy\n        s, r, terminated, truncated, _ = env.step(a.item())\n        done = terminated or truncated\n        states.append(s_t)\n        actions.append(a)\n        rewards.append(r)\n\n    # Compute discounted returns G_t = Σ_{k≥t} γ^{k-t} R_k\n    G = []\n    g = 0\n    for r in reversed(rewards):\n        g = r + gamma * g\n        G.insert(0, g)\n    G = torch.tensor(G, dtype=torch.float32)\n    G = (G - G.mean()) / (G.std() + 1e-8)   # baseline: normalise returns\n\n    # REINFORCE loss: -E[log π(a|s) · G_t]\n    log_probs = torch.stack([\n        torch.log(policy(s)[a]) for s, a in zip(states, actions)\n    ])\n    loss = -(log_probs * G).mean()\n\n    optimizer.zero_grad()\n    loss.backward()\n    optimizer.step()\n\n    if episode % 100 == 0:\n        print(f'Episode {episode}: return={sum(rewards):.1f}')\n\n# ── 3. Continuous action space: Gaussian policy ──\n# For continuous actions (e.g., robot joint torques)\n# Output: mean μ(s;θ) and log_std (learned or fixed)\n# Action ~ N(μ(s;θ), σ²)\n# log_prob = -½[(a-μ)²/σ² + log(2πσ²)]\nclass GaussianPolicyNet(nn.Module):\n    def __init__(self, n_obs, n_actions):\n        super().__init__()\n        self.fc = nn.Sequential(nn.Linear(n_obs, 128), nn.ReLU())\n        self.mean = nn.Linear(128, n_actions)\n        self.log_std = nn.Parameter(torch.zeros(n_actions))\n\n    def forward(self, x):\n        h = self.fc(x)\n        mean = self.mean(h)\n        std = torch.exp(self.log_std)\n        dist = torch.distributions.Normal(mean, std)\n        a = dist.sample()\n        log_prob = dist.log_prob(a).sum(-1)\n        return a, log_prob"
+  },
+  "eli3": [
+    "Policy Gradient methods directly optimize the policy π(a|s;θ) — a neural network that outputs action probabilities. Instead of learning a value function first (like Q-learning), they adjust the policy parameters θ to make good actions more probable and bad actions less probable. The gradient of expected return with respect to θ tells us how to update the network.",
+    "The REINFORCE algorithm is the simplest policy gradient: run an episode, collect all rewards, compute the return G_t at each timestep (total future reward), then update the policy to increase the log-probability of actions that led to high returns and decrease it for low-return actions. The key formula is: ∇J(θ) = E[∇ log π(a|s;θ) · G_t].",
+    "Policy gradient methods shine when the action space is continuous — robot joint torques, fluid dynamics control. Q-learning requires a discrete action space (to take argmax over actions). Policy gradient methods output a distribution over actions (Gaussian for continuous), which naturally handles continuous action spaces. This makes them the foundation of all modern continuous control: PPO, SAC, DDPG, TD3."
+  ],
+  "whenWhy": [
+    {
+      "title": "Continuous action spaces",
+      "body": "Q-learning requires argmax over all actions, which is only tractable for discrete action sets. Policy gradient methods output a distribution over actions — for continuous actions, a Gaussian policy π(a|s;θ) = N(μ_θ(s), σ²) with learned mean and variance. The action is sampled from this distribution. This is the standard approach for continuous control (robotics, locomotion, autonomous driving) where actions are joint torques or steering angles."
+    },
+    {
+      "title": "Stochastic policies and exploration",
+      "body": "Policy gradient methods naturally maintain stochastic policies during training, which provides built-in exploration — the agent doesn't need a separate ε-greedy mechanism. The entropy of the policy π (often added as a bonus: J(θ) + β·H(π)) can be tuned to balance exploration (high entropy = diverse actions) vs exploitation (low entropy = confident actions). This is more principled than ε-greedy and scales better to high-dimensional action spaces."
+    },
+    {
+      "title": "End-to-end differentiable decision-making",
+      "body": "Policy gradient algorithms can be combined with any differentiable reward signal and trained end-to-end. This includes: training language model policies with RLHF (Reinforcement Learning from Human Feedback), where the policy is a transformer outputting token probabilities; training image captioning policies with CIDEr reward; fine-tuning code generation models with pass@k as reward. The policy gradient theorem applies directly to these non-standard settings."
+    }
+  ],
+  "deepDiveIntro": [
+    "Policy Gradient Theorem (Williams, 1992; Sutton et al., 2000): for a parameterized policy π(a|s;θ), the gradient of the expected return J(θ) = E_π[Σ γᵗ R_t] with respect to θ is: ∇_θ J(θ) = E_π[Σ_t ∇_θ log π(A_t|S_t;θ) · Q^π(S_t,A_t)]. The REINFORCE estimator replaces Q^π(S_t, A_t) with the actual return G_t (Monte Carlo estimate): ∇_θ J(θ) ≈ (1/T) Σ_t ∇_θ log π(A_t|S_t;θ) · G_t. This is an unbiased estimate of the true gradient. Log-probability trick: ∇_θ π(a|s;θ) = π(a|s;θ) · ∇_θ log π(a|s;θ). This allows gradient computation via log probabilities (numerically stable, direct in PyTorch via dist.log_prob()). [1]",
+    "Variance reduction via baseline: the REINFORCE gradient has high variance because G_t can vary widely across episodes. A baseline b(s) that doesn't depend on action reduces variance without introducing bias: ∇_θ J(θ) = E_π[Σ_t ∇_θ log π(A_t|S_t;θ) · (G_t − b(S_t))]. Optimal baseline: b*(s) = E[G_t | S_t=s] = V^π(s) — the state value function. (G_t − V^π(s)) is the advantage A^π(s,a) = Q^π(s,a) − V^π(s): how much better this action is than the average action. Learning a critic V^π(s) to provide the baseline turns REINFORCE into Actor-Critic. [1]"
+  ],
+  "deepDive": [
+    {
+      "heading": "Policy Gradient Theorem and REINFORCE",
+      "body": "The policy gradient theorem provides the exact gradient formula: ∇J(θ) = E_π[∇ log π(A|S;θ) · Q^π(S,A)]. Williams (1992) coined REINFORCE: use Monte Carlo returns G_t as an estimate of Q^π(S_t, A_t). Algorithm: (1) Run episode under π_θ, collect (s_t, a_t, r_t). (2) Compute G_t = Σ_{k≥t} γ^{k−t} r_k. (3) Compute loss L = −Σ_t log π(a_t|s_t;θ) · G_t. (4) Backward + gradient step. The score function ∇ log π(a|s;θ) is the direction in parameter space that increases the probability of action a in state s. Multiplying by G_t means: if G_t > 0 (good episode), reinforce those actions; if G_t < 0 (bad episode), suppress them. [1]",
+      "formula": "∇_θ J(θ) = E_π[∇_θ log π(A|S;θ) · G_t]   [REINFORCE, no baseline]"
+    },
+    {
+      "heading": "Baseline and Advantage Estimation",
+      "body": "Without a baseline, REINFORCE has high gradient variance — G_t depends on the entire episode trajectory and can be very large or small depending on luck. A baseline b(S_t) subtracted from G_t does not introduce bias (can be shown by the fact that E[∇ log π(a|s;θ) · b(s)] = 0 for any b(s) not depending on a). Common baselines: (1) Constant baseline: b = mean(G_t) over the episode — simple, effective. (2) State-value baseline: b(s) = V^π(s) — leads to the advantage A^π(s,a) = G_t − V^π(s_t). (3) Normalised returns: (G_t − mean) / std — practical default in many implementations. The advantage A^π(s,a) = Q^π(s,a) − V^π(s) is the core quantity used by Actor-Critic, PPO, and A3C. [1]"
+    },
+    {
+      "heading": "REINFORCE vs Actor-Critic vs PPO",
+      "body": "REINFORCE (Monte Carlo PG): unbiased gradient, very high variance (full-episode returns), sample inefficient. No critic needed. Actor-Critic (TD PG): replace G_t with a bootstrapped advantage estimate A_t = r_t + γV(s_{t+1}) − V(s_t). Lower variance (TD error vs MC return), slight bias due to bootstrapping. Learns a critic V(s;w) alongside the policy. A2C/A3C (synchronous/asynchronous actor-critic): parallelise data collection across multiple workers, combine their gradients. PPO (Proximal Policy Optimization, Schulman et al., 2017): clips the policy update to prevent large changes: L_CLIP = E[min(r_t(θ)Â_t, clip(r_t(θ), 1−ε, 1+ε)Â_t)], where r_t(θ) = π(a|s;θ)/π_old(a|s). The clip prevents the updated policy from deviating too far from the old policy — prevents destructive updates. PPO is the dominant on-policy RL algorithm as of 2024 for both continuous control and RLHF. [2]",
+      "formula": "PPO clip: L = E[min(r_t(θ)Â, clip(r_t(θ), 1−ε, 1+ε)Â)],  r_t=π_new/π_old"
+    }
+  ],
+  "youtubeLabel": "Policy Gradient Methods — David Silver RL Lecture 7",
+  "youtubeUrl": "https://www.youtube.com/embed/KHZVXao4qXs",
+  "takeaways": [
+    "∇J(θ) = E[∇ log π(a|s;θ) · G_t]. Update: increase log-prob of actions that led to high returns. [1]",
+    "Baseline b(s) = V^π(s) reduces variance without bias. Advantage A = G_t − V^π(s) is the core quantity. [1]",
+    "Actor-Critic: bootstrapped advantage (lower variance); policy (actor) + value function (critic) trained jointly. [1]",
+    "PPO: clips policy update ratio r_t(θ) to [1−ε, 1+ε]. Standard for on-policy RL and RLHF. [2]",
+    "Continuous actions: Gaussian policy N(μ_θ(s), σ²). Policy gradient applies directly — no argmax needed. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does REINFORCE have high variance, and how does the Actor-Critic baseline reduce it without adding bias?",
+      "a": "G_t = Σ_{k≥t} γ^{k−t} r_k accumulates rewards over the full episode trajectory from time t onward. Even with a fixed policy, G_t varies significantly across episodes due to stochasticity in transitions and rewards — variance grows with episode length. Adding baseline b(S_t) subtracted from G_t: the bias of the estimator changes by E[∇ log π(a|s;θ) · b(s)] = b(s) · Σ_a ∇_θ π(a|s;θ) = b(s) · ∇_θ [Σ_a π(a|s;θ)] = b(s) · ∇_θ [1] = 0. The expectation of the score function ∇ log π over all actions is zero (policy sums to 1), so subtracting any baseline leaves the expected gradient unchanged. But it reduces variance: if G_t and b(S_t) are correlated (a good state leads to both high G_t and high V^π(s_t)), subtracting them cancels much of the variance."
+    },
+    {
+      "q": "What is the difference between on-policy (REINFORCE, PPO) and off-policy (Q-learning, SAC) policy gradient methods?",
+      "a": "On-policy methods (REINFORCE, PPO, A3C): use data generated by the current policy π_θ to estimate the gradient. Must discard data after each policy update — cannot reuse old experience. This makes them sample-inefficient but stable and straightforward to analyze. Off-policy methods (Q-learning, SAC, DDPG): use data from any policy (stored in a replay buffer) to update the current policy. Data efficiency is much higher — each transition can be reused many times. SAC (Soft Actor-Critic, Haarnoja et al., 2018) is the leading off-policy policy gradient algorithm: it combines maximum entropy RL (adds entropy bonus H(π) to the objective) with off-policy actor-critic updates. SAC typically converges 10–100x faster than PPO on continuous control benchmarks, but PPO is simpler, more stable, and dominates RLHF applications (ChatGPT, Gemini) due to its stability with large neural network policies."
+    }
+  ],
+  "sources": [
+    { "label": "Sutton, R.S. & Barto, A.G. — Reinforcement Learning: An Introduction, 2nd Ed., MIT Press, 2018", "url": "http://incompleteideas.net/book/the-book-2nd.html" },
+    { "label": "Schulman, J. et al. — Proximal Policy Optimization Algorithms, arXiv:1707.06347, 2017", "url": "https://arxiv.org/abs/1707.06347" }
+  ]
+}

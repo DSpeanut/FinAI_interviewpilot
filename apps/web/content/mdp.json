@@ -1,0 +1,68 @@
+{
+  "visualizationType": "network-diagram",
+  "codeSnapshot": {
+    "label": "mdp.py",
+    "code": "import numpy as np\n\n# ── 1. Define an MDP ──\n# States: 0=A, 1=B, 2=C (terminal)\n# Actions: 0=left, 1=right\n# Rewards: received on transition\n# Transition: P[s, a, s'] = probability of going to s' from s with action a\n\nn_states = 3\nn_actions = 2\ngamma = 0.9   # discount factor\n\n# Transition probabilities P(s'|s,a)\nP = np.zeros((n_states, n_actions, n_states))\nP[0, 0, 0] = 1.0    # from A, left → stay in A\nP[0, 1, 1] = 1.0    # from A, right → go to B\nP[1, 0, 0] = 1.0    # from B, left → go to A\nP[1, 1, 2] = 1.0    # from B, right → go to C (terminal)\nP[2, :, 2] = 1.0    # terminal state loops\n\n# Rewards R(s, a)\nR = np.array([\n    [-1, 0],    # from A: left=-1, right=0\n    [0,  10],   # from B: left=0, right=10\n    [0,  0],    # terminal: 0\n])\n\n# ── 2. Value Iteration ──\nV = np.zeros(n_states)\nfor _ in range(1000):\n    V_new = np.zeros(n_states)\n    for s in range(n_states - 1):   # skip terminal\n        Q_values = [\n            sum(P[s, a, s_next] * (R[s, a] + gamma * V[s_next])\n                for s_next in range(n_states))\n            for a in range(n_actions)\n        ]\n        V_new[s] = max(Q_values)\n    if np.max(np.abs(V_new - V)) < 1e-6:\n        break\n    V = V_new\n\nprint('Optimal value function V*:', V.round(3))\n\n# ── 3. Extract optimal policy ──\npolicy = np.zeros(n_states, dtype=int)\nfor s in range(n_states - 1):\n    Q_values = [\n        sum(P[s, a, s_next] * (R[s, a] + gamma * V[s_next])\n            for s_next in range(n_states))\n        for a in range(n_actions)\n    ]\n    policy[s] = np.argmax(Q_values)\n\nprint('Optimal policy π*:', policy)   # 0=left, 1=right\n\n# ── 4. Policy Evaluation (for a fixed policy π) ──\npi = np.array([1, 1, 0])   # always go right\nV_pi = np.zeros(n_states)\nfor _ in range(1000):\n    V_pi_new = np.array([\n        sum(P[s, pi[s], s_next] * (R[s, pi[s]] + gamma * V_pi[s_next])\n            for s_next in range(n_states))\n        for s in range(n_states)\n    ])\n    if np.max(np.abs(V_pi_new - V_pi)) < 1e-6:\n        break\n    V_pi = V_pi_new\nprint('Value under always-right policy:', V_pi.round(3))"
+  },
+  "eli3": [
+    "A Markov Decision Process (MDP) is the mathematical framework that describes how an agent makes decisions in an environment. The world is described by states (where you are), actions (what you can do), rewards (what you get), and transitions (what happens after each action). The 'Markov' property means the future depends only on the current state, not on how you got there.",
+    "The agent's goal is to find an optimal policy — a rule mapping every state to the best action — that maximises the total future reward, discounted by a factor γ (so near-term rewards count more than distant ones). The value function V(s) tells you: 'if you follow the optimal policy starting from state s, how much total reward should you expect?'",
+    "Value Iteration is one way to compute the optimal value function: start with V(s)=0 everywhere, then repeatedly update V(s) = max_a [R(s,a) + γ · Σ P(s'|s,a) · V(s')] until convergence. This is guaranteed to find the optimal solution because the Bellman optimality equation has a unique fixed point. Policy Iteration (alternating between policy evaluation and policy improvement) is an alternative that often converges in fewer iterations."
+  ],
+  "whenWhy": [
+    {
+      "title": "Sequential decision-making under uncertainty",
+      "body": "MDPs model any problem where an agent takes a sequence of actions, receives rewards, and the environment state changes stochastically in response. Applications: robot navigation (state = position, action = move direction), game playing (state = board position, action = move), inventory management (state = stock level, action = reorder quantity), clinical treatment planning (state = patient condition, action = treatment). Whenever decisions have delayed consequences — the right action now might lead to a better state later — MDPs are the right framework."
+    },
+    {
+      "title": "Foundation for all of Reinforcement Learning",
+      "body": "Every major RL algorithm — Q-learning, SARSA, Policy Gradient, Actor-Critic, PPO, DQN — is solving an MDP (or a Partially Observable MDP). Understanding MDPs is prerequisite to understanding any RL algorithm. The Bellman equations (optimality and expectation versions) appear in the derivation of every RL update rule. If you can formulate your problem as an MDP, you can immediately apply the entire RL toolkit."
+    },
+    {
+      "title": "Planning when the model is known",
+      "body": "When the transition probabilities P(s'|s,a) and rewards R(s,a) are known (model-based setting), MDP planning algorithms (Value Iteration, Policy Iteration) directly compute the optimal policy without any trial-and-error learning. This is used in: operations research (supply chain optimization, routing), classical game AI (chess endgame tablebases), and any domain where a simulator of the environment is available. Model-free RL (Q-learning, policy gradient) is used when P and R are unknown and must be estimated through experience."
+    }
+  ],
+  "deepDiveIntro": [
+    "Formal MDP definition: ⟨S, A, P, R, γ⟩ where S = state space, A = action space, P(s'|s,a) = transition probability, R(s,a) = expected immediate reward, γ ∈ [0,1) = discount factor. Markov property: P(s_{t+1}|s_t, a_t, s_{t-1}, a_{t-1}, ...) = P(s_{t+1}|s_t, a_t). Policy π: S → A (deterministic) or π: S × A → [0,1] (stochastic). State-value function V^π(s) = E_π[Σ_{t≥0} γᵗ R_{t+1} | S_0=s]. Action-value function Q^π(s,a) = E_π[Σ_{t≥0} γᵗ R_{t+1} | S_0=s, A_0=a]. Bellman expectation equation: V^π(s) = Σ_a π(a|s)[R(s,a) + γ Σ_{s'} P(s'|s,a)V^π(s')]. [1]",
+    "Bellman optimality equation: V*(s) = max_a [R(s,a) + γ Σ_{s'} P(s'|s,a)V*(s')]. Q*(s,a) = R(s,a) + γ Σ_{s'} P(s'|s,a) max_{a'} Q*(s',a'). The optimal policy: π*(s) = argmax_a Q*(s,a). Value Iteration convergence: the Bellman operator T is a γ-contraction mapping in the sup-norm; applying it repeatedly converges to V* at rate γᵏ. Policy Iteration: policy evaluation (solve V^π via linear system) + policy improvement (set π'(s) = argmax_a Q^π(s,a)). Policy Iteration converges in finite steps for finite MDPs; Value Iteration converges asymptotically. [2]"
+  ],
+  "deepDive": [
+    {
+      "heading": "Bellman Equations",
+      "body": "The Bellman expectation equation decomposes the value of a state into the immediate reward plus the discounted value of the successor state: V^π(s) = Σ_a π(a|s)[R(s,a) + γ Σ_{s'} P(s'|s,a)V^π(s')]. This is a linear system in V^π — for a policy π, it can be solved exactly: V^π = (I − γP^π)⁻¹ r^π, where P^π is the transition matrix under π and r^π is the reward vector. The Bellman optimality equation replaces the expectation over π with a maximum: V*(s) = max_a [R(s,a) + γ Σ_{s'} P(s'|s,a)V*(s')]. This is a non-linear system — no closed form, but solvable by Value Iteration (repeated application of the Bellman operator T). [1]",
+      "formula": "V*(s) = max_a [R(s,a) + γ Σ_{s'} P(s'|s,a) V*(s')]"
+    },
+    {
+      "heading": "Value Iteration vs Policy Iteration",
+      "body": "Value Iteration: start V(s) = 0. Repeat: V(s) ← max_a [R(s,a) + γ Σ_{s'} P(s'|s,a)V(s')] for all s. Convergence guaranteed; error after k iterations ≤ γᵏ/(1−γ) · max_s |V(s)|. Each iteration: O(|S|²|A|). Policy Iteration: start with arbitrary π. Repeat: (1) evaluate π by solving (I−γP^π)V^π = r^π (O(|S|³) matrix solve or O(|S|²|A|) iterative); (2) improve π: π'(s) = argmax_a [R(s,a) + γ Σ_{s'} P(s'|s,a)V^π(s')]. Policy Iteration usually converges in <20 iterations for tabular MDPs (much faster than VI) but each iteration is more expensive. In practice: Value Iteration is simpler to implement; Policy Iteration converges in fewer sweeps for problems with small action spaces. [2]"
+    },
+    {
+      "heading": "Discount Factor γ and Return",
+      "body": "The discount factor γ ∈ [0,1) ensures the return G_t = Σ_{k≥0} γᵏ R_{t+k+1} is finite (bounded by R_max / (1−γ)). Interpretation: γ close to 1 means the agent cares about distant future rewards (long-horizon planning). γ close to 0 means greedy (only immediate reward matters). γ is also a mathematical convenience: it ensures the Bellman operator is a contraction (convergence guarantee). Without discounting (γ=1), Value Iteration may not converge for infinite-horizon MDPs (only guaranteed for episodic/finite-horizon settings). In practice: γ=0.99 is common for continuous control; γ=0.99–0.999 for long-horizon games; γ=0.9 for short-horizon problems. [1]"
+    }
+  ],
+  "youtubeLabel": "Markov Decision Processes — David Silver RL Lecture 2",
+  "youtubeUrl": "https://www.youtube.com/embed/lfHX2hHRMVQ",
+  "takeaways": [
+    "MDP = ⟨S, A, P, R, γ⟩. Markov property: future depends only on current state, not history. [1]",
+    "Bellman optimality: V*(s) = max_a [R(s,a) + γ Σ_{s'} P(s'|s,a) V*(s')]. Unique solution. [1]",
+    "Value Iteration: apply Bellman operator until convergence (γ-contraction → guaranteed). [2]",
+    "Policy Iteration: evaluate policy (linear solve) + improve policy. Fewer iterations, costlier each step. [2]",
+    "γ near 1 = long-horizon planner. γ near 0 = greedy. γ<1 ensures finite returns. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "What happens when the state space is too large for tabular Value Iteration?",
+      "a": "Tabular Value Iteration stores V(s) for every state — infeasible when |S| is exponentially large (e.g., all possible board positions in Go: ~10¹⁷⁰). Solutions: (1) Function approximation: parameterize V^π(s) ≈ V̂(s; θ) (linear features, neural network). This leads to approximate DP and eventually Deep RL (DQN). (2) Model-free RL (Q-learning, TD learning): instead of knowing P, estimate Q*(s,a) from experience — no need to store the full model. (3) Monte Carlo Tree Search (MCTS): plan forward from the current state using rollouts, focusing computation on reachable states rather than the entire state space. AlphaGo combines MCTS with neural network value/policy approximation to handle Go's massive state space."
+    },
+    {
+      "q": "What is a Partially Observable MDP (POMDP) and why is it harder?",
+      "a": "In a POMDP, the agent cannot directly observe the true state — it receives an observation o that is a noisy function of the true state. The agent must maintain a belief state b(s) = P(S_t=s | o_1,...,o_t, a_1,...,a_{t-1}) — a probability distribution over states. The belief state is the 'state' for decision-making, but the belief space is infinite (continuous probability simplex over |S| states). Optimal POMDP planning is PSPACE-complete. Practical approaches: (1) Point-based value iteration (PBVI): approximate the value function over a subset of belief points. (2) Deep RL with memory: use LSTM or attention to encode history implicitly — the hidden state approximates the belief state. (3) Particle filters for belief tracking + RL on top. POMDPs model real-world problems: robot localization (noisy sensors), medical diagnosis (incomplete information), autonomous driving (occluded objects)."
+    }
+  ],
+  "sources": [
+    { "label": "Sutton, R.S. & Barto, A.G. — Reinforcement Learning: An Introduction, 2nd Ed., MIT Press, 2018", "url": "http://incompleteideas.net/book/the-book-2nd.html" },
+    { "label": "Puterman, M.L. — Markov Decision Processes: Discrete Stochastic Dynamic Programming, Wiley, 1994", "url": "https://doi.org/10.1002/9780470316887" }
+  ]
+}

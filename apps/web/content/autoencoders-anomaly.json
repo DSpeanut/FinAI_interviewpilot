@@ -1,0 +1,68 @@
+{
+  "visualizationType": "network-diagram",
+  "codeSnapshot": {
+    "label": "autoencoder_anomaly.py",
+    "code": "import torch\nimport torch.nn as nn\nimport numpy as np\nfrom sklearn.preprocessing import StandardScaler\n\n# ── 1. Autoencoder architecture ──\nclass AnomalyAutoencoder(nn.Module):\n    def __init__(self, input_dim: int, latent_dim: int):\n        super().__init__()\n        self.encoder = nn.Sequential(\n            nn.Linear(input_dim, 64),\n            nn.ReLU(),\n            nn.Linear(64, 32),\n            nn.ReLU(),\n            nn.Linear(32, latent_dim),\n        )\n        self.decoder = nn.Sequential(\n            nn.Linear(latent_dim, 32),\n            nn.ReLU(),\n            nn.Linear(32, 64),\n            nn.ReLU(),\n            nn.Linear(64, input_dim),\n        )\n\n    def forward(self, x):\n        z = self.encoder(x)\n        return self.decoder(z)\n\n    def reconstruction_error(self, x):\n        with torch.no_grad():\n            x_hat = self.forward(x)\n        return ((x - x_hat) ** 2).mean(dim=1)  # per-sample MSE\n\n# ── 2. Training on normal data only ──\nscaler = StandardScaler()\nX_train_norm = torch.tensor(scaler.fit_transform(X_train_normal), dtype=torch.float32)\nX_test = torch.tensor(scaler.transform(X_test_all), dtype=torch.float32)\n\nmodel = AnomalyAutoencoder(input_dim=X_train_normal.shape[1], latent_dim=8)\noptimizer = torch.optim.Adam(model.parameters(), lr=1e-3)\nloss_fn = nn.MSELoss()\n\nfor epoch in range(50):\n    model.train()\n    x_hat = model(X_train_norm)\n    loss = loss_fn(x_hat, X_train_norm)\n    optimizer.zero_grad()\n    loss.backward()\n    optimizer.step()\n    if epoch % 10 == 0:\n        print(f'Epoch {epoch}: loss={loss.item():.4f}')\n\n# ── 3. Anomaly detection via reconstruction error ──\nmodel.eval()\nerrors = model.reconstruction_error(X_test).numpy()\n\n# Set threshold: e.g., 95th percentile of training reconstruction errors\ntrain_errors = model.reconstruction_error(X_train_norm).numpy()\nthreshold = np.percentile(train_errors, 95)\nprint(f'Threshold (95th pct): {threshold:.4f}')\n\ny_pred = (errors > threshold).astype(int)   # 1 = anomaly\nprint(f'Anomalies detected: {y_pred.sum()}')"
+  },
+  "eli3": [
+    "An autoencoder is a neural network that learns to compress data into a small representation (encode) and then reconstruct it back (decode). When trained only on normal examples, it becomes very good at reconstructing normal data but poor at reconstructing anomalies — because it has never seen anomalies and doesn't know how to reconstruct them.",
+    "The anomaly score is the reconstruction error: how different is the output from the input? Normal data reconstructs with low error. Anomalous data reconstructs with high error. This makes the autoencoder a natural anomaly detector: train on normal, flag high-error instances at test time.",
+    "Autoencoders are especially powerful for high-dimensional anomaly detection — images, time series, text embeddings — where classical methods like LOF and One-Class SVM break down. A model trained on normal X-ray images will have high reconstruction error for images with tumours, even though it never saw tumours during training."
+  ],
+  "whenWhy": [
+    {
+      "title": "High-dimensional anomaly detection (images, signals)",
+      "body": "For image anomaly detection (manufacturing defects, medical imaging), autoencoders are the standard approach. A convolutional autoencoder trained on normal product images reconstructs normal textures and shapes well but fails on scratches, cracks, or foreign objects. Reconstruction error maps (pixel-wise MSE between input and output) can even localize where in the image the anomaly is — useful for quality control."
+    },
+    {
+      "title": "Sequence and time-series anomaly detection",
+      "body": "LSTM autoencoders model normal sequential patterns (network traffic, sensor readings, ECG signals). The encoder compresses the normal temporal pattern; the decoder reconstructs it. A sequence that deviates from learned normal patterns produces high reconstruction error. The error can be computed per time step to pinpoint exactly when in the sequence the anomaly occurs."
+    },
+    {
+      "title": "Learning complex normal distributions",
+      "body": "One-Class SVM assumes the normal class can be described by a compact kernel-space boundary. For data with complex, multi-modal normal distributions (multiple legitimate user behaviour patterns), this assumption breaks down. Deep autoencoders can represent complex distributions implicitly through the latent space — all normal patterns map to regions of low reconstruction error, while anomalies map to regions of high error regardless of which normal pattern they violate."
+    }
+  ],
+  "deepDiveIntro": [
+    "An autoencoder consists of: encoder f: X → Z (compresses input x to latent code z ∈ ℝᵈ, d << input_dim), and decoder g: Z → X̂ (reconstructs x̂ from z). Trained by minimizing reconstruction loss L(x, x̂) = ‖x − g(f(x))‖² over the training set (normal class only). The bottleneck forces the network to learn compact representations of the normal data — only features important for reconstruction are retained in the latent space. Anomalies, which are structurally different from training data, are poorly represented in the learned latent space, resulting in high reconstruction error. [1]",
+    "The key assumption: anomalies lie outside the manifold of normal data. If anomalies are similar to normal data in all low-level features but differ in high-level patterns (hard for the autoencoder to capture), reconstruction error may be low even for anomalies. Variational autoencoders (VAEs) provide a probabilistic alternative: anomaly score = negative ELBO = reconstruction error + KL divergence from N(0,I). VAE reconstruction error is smoother and the latent space is more structured, reducing the risk of anomalies accidentally mapping to low-error regions. [2]"
+  ],
+  "deepDive": [
+    {
+      "heading": "Bottleneck Dimension and Underfitting vs Overfitting",
+      "body": "The latent dimension d controls the compression ratio. Too small d (aggressive compression): the encoder cannot represent even normal patterns accurately → high reconstruction error for both normal and anomalous samples → poor discrimination. Too large d: the autoencoder can represent anomalies as well as normal data (it has enough capacity) → low reconstruction error for anomalies → misses anomalies. Optimal d: compresses enough to force learning the normal manifold, but not so much that normal data cannot be reconstructed accurately. Heuristic: start with d = input_dim / 8 to input_dim / 4 and validate on a held-out normal set (reconstruction error should be low) and a few known anomalies (error should be higher). [1]"
+    },
+    {
+      "heading": "Threshold Setting",
+      "body": "Reconstruction error is a continuous score — converting to binary anomaly labels requires a threshold. Methods: (1) Percentile of training reconstruction errors: threshold = percentile_p(train_errors). p=95 flags ~5% of training data as anomalies; p=99 flags ~1%. Choose p based on expected contamination rate. (2) If some labelled anomalies are available: ROC curve on anomaly scores, choose threshold maximising F1 or satisfying precision/recall requirements. (3) Extreme value theory: fit a Generalised Pareto Distribution to the tail of training reconstruction errors; use a tail probability threshold. This is the most principled approach for non-Gaussian error distributions. [2]"
+    },
+    {
+      "heading": "Variational Autoencoder (VAE) for Anomaly Detection",
+      "body": "VAE anomaly score: −ELBO(x) = E[−log p(x|z)] + KL(q(z|x) ‖ N(0,I)). The reconstruction term penalizes poor reconstruction; the KL term penalizes latent representations that deviate from a standard normal prior. A normal data point with a typical latent representation contributes low KL; an anomaly that maps to an unusual z contributes high KL. This prevents the 'anomaly sneaking through' problem: if an anomaly happens to produce low reconstruction error but an unusual latent code, the KL term flags it. An-VAE: Schlegl et al. (2017) AnoGAN and Kingma & Welling (2013) VAE foundations. [2]",
+      "formula": "Anomaly score = −ELBO = reconstruction error + KL(q(z|x) ‖ N(0,I))"
+    }
+  ],
+  "youtubeLabel": "Autoencoders for Anomaly Detection — Sentdex",
+  "youtubeUrl": "https://www.youtube.com/embed/2K3ScZp1dXQ",
+  "takeaways": [
+    "Train autoencoder on normal data only. Anomaly score = reconstruction error ‖x − g(f(x))‖². High error → anomaly. [1]",
+    "Bottleneck latent dim d: too small → can't reconstruct normal. Too large → reconstructs anomalies too. Tune d on validation set. [1]",
+    "Threshold: percentile of training errors (domain-agnostic) or ROC-optimal on partial labels. [2]",
+    "VAE anomaly score = reconstruction error + KL divergence. More robust — catches anomalies with unusual latent codes even if reconstruction error is low. [2]",
+    "Best for high-dimensional inputs (images, signals, text embeddings). For tabular data, prefer Isolation Forest or One-Class SVM. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why might an autoencoder fail to detect anomalies that 'look like' normal data in patches?",
+      "a": "Autoencoders operating on local patches (e.g., a convolutional AE on image patches) may reconstruct an anomaly correctly if the anomalous region (a crack, a tumour) is smaller than the receptive field and surrounded by normal texture. The normal surrounding context dominates and the AE reconstructs the normal surroundings well, even if the anomalous centre is wrong. Solutions: (1) Attention-based autoencoders that focus on fine-grained local patterns. (2) Memory-augmented autoencoders (MemAE by Gong et al., 2019): the latent space is discretised into a memory of normal prototypes — anomalies must be reconstructed from the nearest normal prototype, guaranteeing high reconstruction error. (3) Multi-scale autoencoders with skip connections at different resolutions."
+    },
+    {
+      "q": "How does autoencoder anomaly detection differ from outlier detection using a VAE's prior probability?",
+      "a": "Standard AE: anomaly score = reconstruction error only. Limitation: if an anomaly maps to a low-reconstruction-error region of the latent space (the AE can reconstruct it well), it's missed. VAE with prior: anomaly score = −log p(x) ≈ reconstruction error + KL(q(z|x)‖N(0,I)). The KL term penalizes anomalies whose latent representation is unusual (far from the standard normal prior). An alternative: use the VAE's marginal likelihood log p(x) = log ∫p(x|z)p(z)dz, estimated via importance sampling — but this is computationally expensive. Practical approximation: use the ELBO as a lower bound. For implementation, use PyTorch's Distributions or a VAE library like pythae."
+    }
+  ],
+  "sources": [
+    { "label": "Kingma, D.P. & Welling, M. — Auto-Encoding Variational Bayes, arXiv:1312.6114", "url": "https://arxiv.org/abs/1312.6114" },
+    { "label": "Chandola, V., Banerjee, A. & Kumar, V. — Anomaly Detection: A Survey, ACM CSUR 41(3), 2009", "url": "https://doi.org/10.1145/1541880.1541882" }
+  ]
+}

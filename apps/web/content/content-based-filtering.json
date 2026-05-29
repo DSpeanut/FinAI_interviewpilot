@@ -1,0 +1,68 @@
+{
+  "visualizationType": "chart",
+  "codeSnapshot": {
+    "label": "content_based_filtering.py",
+    "code": "import numpy as np\nfrom sklearn.feature_extraction.text import TfidfVectorizer\nfrom sklearn.metrics.pairwise import cosine_similarity\nfrom sklearn.preprocessing import StandardScaler\n\n# ── 1. Text-based content similarity (TF-IDF) ──\n# Item descriptions: movies with genres/overviews\nitem_descriptions = [\n    \"Action thriller spy adventure government conspiracy\",\n    \"Romantic comedy love story wedding New York\",\n    \"Science fiction space exploration alien contact\",\n    \"Historical drama World War II resistance fighter\",\n    \"Action adventure spy thriller international\",\n]\n\ntfidf = TfidfVectorizer(stop_words='english', max_features=500)\nitem_tfidf = tfidf.fit_transform(item_descriptions)   # (n_items, vocab_size)\n\n# Item-item cosine similarity from content features\nitem_sim = cosine_similarity(item_tfidf)   # (n_items, n_items)\nprint('Item similarity matrix:\\n', item_sim.round(2))\n\n# ── 2. User profile = weighted average of liked item vectors ──\n# User liked items 0 and 4 (spy/action movies)\nliked_items = [0, 4]\nuser_profile = np.asarray(item_tfidf[liked_items].mean(axis=0))  # (1, vocab_size)\n\n# Score all items by dot product with user profile\nscores = cosine_similarity(user_profile, item_tfidf)[0]\nrecommended = np.argsort(scores)[::-1]\nprint('Recommended items (ranked):', recommended)\n\n# ── 3. Hybrid: combine content and CF scores ──\ncf_scores  = np.array([0.8, 0.2, 0.5, 0.1, 0.9])   # from collaborative filter\ncb_scores  = scores\n\n# Weighted linear combination\nalpha = 0.6   # weight for collaborative filtering\nhybrid_scores = alpha * cf_scores + (1 - alpha) * cb_scores\nprint('Hybrid recommended:', np.argsort(hybrid_scores)[::-1])\n\n# ── 4. Structured features (non-text) ──\n# Genre one-hot + year + runtime\nitem_features = np.array([\n    [1, 0, 0, 2023, 120],   # Action\n    [0, 1, 0, 2022, 95],    # Comedy\n    [0, 0, 1, 2021, 130],   # SciFi\n    [1, 0, 0, 1942, 110],   # Action/War\n])\n\nscaler = StandardScaler()\nitem_features_scaled = scaler.fit_transform(item_features)\nitem_sim_struct = cosine_similarity(item_features_scaled)"
+  },
+  "eli3": [
+    "Content-Based Filtering recommends items similar to what you've already liked, based on the items' actual features — genres, descriptions, attributes. If you loved three spy thrillers, it finds other items with similar genre tags and keywords and suggests those. It looks at the item itself, not at what other people liked.",
+    "The algorithm builds a 'user profile' — a vector summarising the features of items you've engaged with. For movies, this might be the average TF-IDF vector of the descriptions of your watched movies. Then it scores all unseen items by how similar their feature vector is to your profile. High cosine similarity → good match.",
+    "Content-based filtering solves CF's cold-start problem for new items: a brand-new movie with no views can still be recommended immediately because its genre/description is available. It also provides interpretable recommendations — 'because you liked X (spy thriller), we recommend Y (also spy thriller).' The downside: it can't discover cross-genre preferences or surprise the user with unexpected recommendations."
+  ],
+  "whenWhy": [
+    {
+      "title": "New item cold-start (no interactions yet)",
+      "body": "A new article, product, or song with zero interaction history cannot be recommended by collaborative filtering — it appears in no user's neighbourhood. Content-based filtering can recommend it immediately using its metadata: description, genre, author, category, brand. This is why news recommendation systems (Google News, Flipboard) rely heavily on content features — articles are published continuously and need to appear in recommendations before they accumulate any views."
+    },
+    {
+      "title": "Niche interest recommendation",
+      "body": "CF requires enough users with similar tastes to generate meaningful neighbourhoods. For niche interests (rare academic topics, regional music), there may not be enough overlap with other users. Content-based filtering works even with a single user in isolation — it only needs the user's own history and item features. It's the default approach for specialized recommendation applications (academic paper recommendation, patent search, legal document retrieval)."
+    },
+    {
+      "title": "Interpretable and auditable recommendations",
+      "body": "Regulatory and user-trust requirements increasingly demand that recommendations be explainable. 'We recommended this because it shares genre X and director Y with items you previously liked' is a concrete, auditable explanation derived directly from item features. CF-based explanations ('users similar to you liked this') are harder to audit. In domains like loan recommendations or job matching, where algorithmic transparency is legally required, content-based models are preferred."
+    }
+  ],
+  "deepDiveIntro": [
+    "User profile construction: given interaction history (items with ratings or binary engagement), the user profile p_u ∈ ℝᵈ is computed as a weighted average of item feature vectors: p_u = Σᵢ r_{u,i}·f_i / Σᵢ r_{u,i}, where f_i ∈ ℝᵈ is the feature vector of item i and r_{u,i} is the rating (or 1 for implicit feedback). For text content (descriptions, tags), TF-IDF vectorization is standard: TF-IDF(t,d) = TF(t,d) · log(N / DF(t)), where TF(t,d) = term frequency in document d, DF(t) = number of documents containing term t, N = total documents. Recommendation score: score(u,i) = cos(p_u, f_i) = (p_u · f_i) / (‖p_u‖·‖f_i‖). [1]",
+    "For structured features (genres, numerical attributes), normalise and concatenate into a feature vector. Cosine similarity is scale-independent, but Euclidean distance is sensitive to scale — StandardScaler or MinMaxScaler must be applied before Euclidean-distance-based retrieval. Pazzani & Billsus (2007) survey shows: for text-heavy items (documents, articles), TF-IDF + cosine is a strong baseline. For mixed feature types (text + structured attributes), learned embeddings (via neural collaborative filtering or two-tower models) outperform hand-crafted TF-IDF representations by 15–20% NDCG. [2]"
+  ],
+  "deepDive": [
+    {
+      "heading": "TF-IDF for Item Representation",
+      "body": "TF-IDF captures the relative importance of terms to a document within a corpus. TF(t,d): how often term t appears in document d (raw count or log-normalised). IDF(t): log(N/DF(t)) — rare terms (high IDF) are more discriminative than common terms (low IDF, e.g., 'the', 'a'). The resulting TF-IDF vector represents each item as a point in vocabulary-dimensional space. Cosine similarity between two items' TF-IDF vectors is scale-invariant — a 50-word description and a 500-word description can be compared fairly. Limitation: TF-IDF captures keyword overlap, not semantic similarity. 'Automobile' and 'car' score 0 similarity despite being synonyms. Dense embeddings (Doc2Vec, BERT sentence embeddings, OpenAI ada-002) capture semantic similarity and outperform TF-IDF for content-based recommendation on text. [1]",
+      "formula": "TF-IDF(t,d) = TF(t,d) · log(N / DF(t)),   score(u,i) = cos(p_u, f_i)"
+    },
+    {
+      "heading": "Profile Drift and Recency Weighting",
+      "body": "A user's profile computed as a simple average over all history gives equal weight to interactions from 3 years ago and yesterday. User tastes evolve — someone who liked action movies in 2020 might prefer drama in 2024. Solutions: (1) Exponential time decay: r_{u,i,t} = r_{u,i} · exp(−λ(T−t)), where T is current time and λ controls recency sensitivity. (2) Sliding window: use only the last k interactions for profile construction. (3) Cluster-based profiles: cluster a user's interaction history (k-means on item vectors) to detect multiple taste facets; recommend from the user's most recently active cluster. Netflix uses a combination: session-based (recent context) and long-term interest profiles. [2]"
+    },
+    {
+      "heading": "Limitations: Filter Bubble and Diversity",
+      "body": "Content-based filtering creates a 'filter bubble': recommendations converge on items very similar to past interactions, reducing diversity and preventing discovery. A user who read 10 articles on Python never sees articles on Go or Rust that they might enjoy. Mitigations: (1) Diversity-aware ranking: add a diversity penalty to the scoring function — penalize items too similar to items already in the recommendation list (MMR: Maximal Marginal Relevance). (2) Exploration budget: reserve 10–20% of recommendation slots for items outside the user's content similarity range. (3) Hybrid systems: blend content-based scores with collaborative filtering scores to import cross-domain discoveries from similar users. [1]"
+    }
+  ],
+  "youtubeLabel": "Content-Based Filtering — Recommender Systems (Google Developers)",
+  "youtubeUrl": "https://www.youtube.com/embed/2uxXPzm-7FY",
+  "takeaways": [
+    "User profile p_u = weighted average of liked item feature vectors. Recommendation score = cos(p_u, f_i). [1]",
+    "TF-IDF: best for text items. Dense embeddings (BERT, ada-002): better semantic coverage. [1]",
+    "Solves new-item cold start — items can be recommended immediately using metadata alone. [2]",
+    "Filter bubble risk: all recommendations cluster near past interests. Use MMR or exploration budget for diversity. [1]",
+    "Recency weighting: exponential decay or sliding window on interaction history prevents stale profiles. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do you handle items with sparse or inconsistent metadata?",
+      "a": "Sparse metadata (some items have full descriptions, others only a title) creates unequal feature vectors — the TF-IDF vector for a short-titled item has almost all zeros and will spuriously match many items via cosine similarity. Mitigations: (1) Fill missing fields with category-level defaults (genre average, brand description). (2) Use entity embeddings trained on the item catalogue — the embedding model generalizes from content that is available. (3) For entirely metadata-free items, fall back to popularity-based or CF-based recommendations until enough interaction data accumulates. (4) Multi-task learning: train a model to predict both item features AND user interactions simultaneously — this shares signal between the two tasks and handles sparse inputs better."
+    },
+    {
+      "q": "When should you use TF-IDF vs dense embeddings (e.g., BERT) for item representation?",
+      "a": "TF-IDF: fast, interpretable, no GPU required, works well when items are short descriptions with domain-specific vocabulary (product titles, paper abstracts). Brittle: misses synonyms, ignores word order. BERT/sentence-transformers: captures semantic similarity, handles paraphrase and synonymy, requires GPU for encoding the full catalogue (can be done offline), produces 384–768 dimensional vectors (much smaller than TF-IDF vocabulary size). Use TF-IDF when: catalogue is large (>1M items), items have consistent terminology, interpretability matters. Use BERT-family embeddings when: semantic matching is important (diverse language styles, user queries vs item descriptions), quality matters over speed, and offline encoding is feasible. Practical threshold: for >500k items, TF-IDF + approximate nearest neighbour retrieval is faster and often comparable in offline NDCG evaluation."
+    }
+  ],
+  "sources": [
+    { "label": "Pazzani, M.J. & Billsus, D. — Content-Based Recommendation Systems, The Adaptive Web, LNCS 4321, 2007", "url": "https://doi.org/10.1007/978-3-540-72079-9_10" },
+    { "label": "Ricci, F., Rokach, L. & Shapira, B. (eds.) — Recommender Systems Handbook, 2nd Ed., Springer, 2015", "url": "https://doi.org/10.1007/978-1-4899-7637-6" }
+  ]
+}

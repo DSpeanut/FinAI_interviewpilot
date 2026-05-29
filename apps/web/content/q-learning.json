@@ -1,0 +1,69 @@
+{
+  "visualizationType": "chart",
+  "codeSnapshot": {
+    "label": "q_learning.py",
+    "code": "import numpy as np\nimport gymnasium as gym\n\n# ── 1. Tabular Q-Learning (FrozenLake) ──\nenv = gym.make('FrozenLake-v1', is_slippery=True)\nn_states  = env.observation_space.n    # 16\nn_actions = env.action_space.n         # 4\n\nQ = np.zeros((n_states, n_actions))   # initialise Q-table\n\nlr      = 0.8     # learning rate α\ngamma   = 0.99    # discount factor\nepsilon = 1.0     # exploration rate (ε-greedy)\n\nfor episode in range(10000):\n    s, _ = env.reset()\n    done = False\n    while not done:\n        # ε-greedy action selection\n        if np.random.rand() < epsilon:\n            a = env.action_space.sample()   # explore\n        else:\n            a = np.argmax(Q[s])             # exploit\n\n        s_next, r, terminated, truncated, _ = env.step(a)\n        done = terminated or truncated\n\n        # Q-learning update (off-policy TD(0))\n        # Q(s,a) ← Q(s,a) + α[r + γ max_{a'} Q(s',a') − Q(s,a)]\n        Q[s, a] += lr * (r + gamma * np.max(Q[s_next]) - Q[s, a])\n        s = s_next\n\n    # Decay ε\n    epsilon = max(0.01, epsilon * 0.999)\n\nprint('Trained Q-table:\\n', Q.round(2))\nprint('Optimal policy:', np.argmax(Q, axis=1))   # 0=L, 1=D, 2=R, 3=U\n\n# ── 2. SARSA (on-policy TD) ──\n# SARSA uses the actually-taken next action a' instead of max_a Q(s',a')\n# Q(s,a) ← Q(s,a) + α[r + γ Q(s', a') − Q(s,a)]\nQ_sarsa = np.zeros((n_states, n_actions))\nfor episode in range(10000):\n    s, _ = env.reset()\n    a = env.action_space.sample() if np.random.rand() < epsilon else np.argmax(Q_sarsa[s])\n    done = False\n    while not done:\n        s_next, r, terminated, truncated, _ = env.step(a)\n        done = terminated or truncated\n        a_next = env.action_space.sample() if np.random.rand() < epsilon else np.argmax(Q_sarsa[s_next])\n        # SARSA update: uses a_next (the action that WILL be taken)\n        Q_sarsa[s, a] += lr * (r + gamma * Q_sarsa[s_next, a_next] - Q_sarsa[s, a])\n        s, a = s_next, a_next\n\n# ── 3. DQN overview (function approximation) ──\n# Q(s,a) parameterized by neural network θ\n# Loss: E[(r + γ max_{a'} Q(s', a'; θ⁻) − Q(s, a; θ))²]\n# θ⁻: target network (slow-moving copy of θ, updated every C steps)\n# Experience replay: store (s,a,r,s') in buffer D, sample random minibatch\n# Avoids correlation between consecutive updates"
+  },
+  "eli3": [
+    "Q-Learning teaches an agent to make optimal decisions by learning a Q-table: a table where Q(s, a) = the expected total future reward of taking action a in state s and then acting optimally afterward. The agent explores the environment, takes actions, observes rewards, and updates the Q-table based on what it learns — no model of the environment needed.",
+    "The core update rule is: Q(s,a) ← Q(s,a) + α [r + γ·max_a' Q(s',a') − Q(s,a)]. In plain English: your current estimate of Q(s,a) should be updated toward the actual reward received r plus the best future value from the next state s'. The α (learning rate) controls how fast you update, and γ (discount) controls how much you care about the future.",
+    "Q-Learning is off-policy: it updates Q using the best possible next action (max_a'), even if the agent actually took a different action (due to exploration). This makes it more sample-efficient for learning the optimal policy, but less safe in risky environments. SARSA is the on-policy counterpart: it updates using the action that was actually taken — more conservative, safer in practice."
+  ],
+  "whenWhy": [
+    {
+      "title": "Model-free control with discrete action spaces",
+      "body": "Q-Learning is the algorithm of choice when the environment dynamics (P, R) are unknown and must be learned through interaction. It works directly with any environment that produces (state, action, reward, next_state) tuples. Discrete action spaces are required for tabular Q-learning — the Q-table has one entry per (state, action) pair. Applications: game AI (Atari, board games), navigation with discrete moves, scheduling with discrete choices."
+    },
+    {
+      "title": "Off-policy learning (learning from others' experience)",
+      "body": "Q-Learning is off-policy: the update target uses max_a' Q(s',a') regardless of what the behaviour policy actually did. This means the agent can learn the optimal policy from a replay buffer of experiences collected by any policy — including older versions of itself, human demonstrations, or a different exploration policy. This is the key property that enables DQN's experience replay: old experiences can be reused to improve the Q-network, dramatically increasing sample efficiency."
+    },
+    {
+      "title": "Foundation for Deep Q-Network (DQN)",
+      "body": "When states are high-dimensional (e.g., pixel images), a tabular Q-table is infeasible. DQN (Mnih et al., 2015) replaces the table with a neural network Q(s,a;θ). The update rule is identical to Q-learning, but with a neural network target and two stabilization tricks: experience replay (sample random mini-batches from a buffer to break temporal correlation) and a target network (a slow-moving copy θ⁻ used for the update target, updated every C steps). DQN achieved human-level performance on 49 Atari games — the paper that launched Deep RL."
+    }
+  ],
+  "deepDiveIntro": [
+    "Q-Learning (Watkins, 1989; Watkins & Dayan, 1992): a model-free, off-policy, TD(0) algorithm. Update rule: Q(S_t, A_t) ← Q(S_t, A_t) + α[R_{t+1} + γ max_{a} Q(S_{t+1}, a) − Q(S_t, A_t)]. The term R_{t+1} + γ max_a Q(S_{t+1}, a) is the TD target — a one-step bootstrap estimate of the true Q value. The difference [TD target − Q(S_t, A_t)] is the TD error δ_t. Watkins & Dayan (1992) proved convergence to Q* for tabular Q-learning under conditions: all state-action pairs visited infinitely often, learning rate α satisfying Σα = ∞ and Σα² < ∞ (e.g., α_t = 1/t). [1]",
+    "SARSA (State-Action-Reward-State-Action): on-policy TD. Update: Q(S_t,A_t) ← Q(S_t,A_t) + α[R_{t+1} + γQ(S_{t+1}, A_{t+1}) − Q(S_t,A_t)]. Key difference: A_{t+1} is the actual next action taken by the behaviour policy (ε-greedy), not the greedy best action. SARSA converges to the optimal ε-greedy policy (not Q*), which is safer in cliff-walking environments: SARSA avoids walking near the cliff edge (risky under ε-greedy) while Q-learning learns the optimal policy (near the cliff edge) but suffers more falls during training. [1]"
+  ],
+  "deepDive": [
+    {
+      "heading": "TD Error and Bootstrapping",
+      "body": "The TD error δ_t = R_{t+1} + γ max_a Q(S_{t+1},a) − Q(S_t,A_t) has two components: R_{t+1} is the observed immediate reward (real signal); γ max_a Q(S_{t+1},a) is a bootstrapped estimate of future value (using the current Q-estimate, not the true value). Bootstrapping is powerful: we don't need to run the full episode to get a return estimate — we use the current value estimate as a proxy. This makes Q-learning online and incremental. Compare with Monte Carlo methods: G_t = Σ γᵏ R_{t+k+1} — uses the actual return from a full episode. Monte Carlo is unbiased but high variance; TD is biased (bootstrap estimate) but lower variance. TD(λ) interpolates between them via eligibility traces. [1]",
+      "formula": "Q(S,A) ← Q(S,A) + α[R + γ max_{a'} Q(S',a') − Q(S,A)]"
+    },
+    {
+      "heading": "ε-Greedy Exploration and Exploration-Exploitation Tradeoff",
+      "body": "The agent must balance: exploitation (take the greedy action with highest Q estimate) vs exploration (try actions with uncertain Q to gather information). ε-greedy: with probability ε, take a random action; with probability 1−ε, take the greedy action. ε decay schedule: start at ε=1 (fully random) and decay to ε_min=0.01 over training. Alternatives: (1) UCB (Upper Confidence Bound): a = argmax_a [Q(s,a) + c·√(ln t / N(s,a))], where N(s,a) is visit count — optimistic exploration guided by uncertainty. (2) Boltzmann (softmax) exploration: P(a|s) ∝ exp(Q(s,a)/τ), temperature τ controls exploration. (3) Intrinsic motivation: add a bonus reward for visiting novel states (count-based or curiosity-based). [2]"
+    },
+    {
+      "heading": "DQN: Q-Learning with Neural Networks",
+      "body": "DQN (Mnih et al., 2015) scales Q-learning to high-dimensional state spaces via two innovations: (1) Experience replay: store transitions (s,a,r,s') in a replay buffer D of size N; sample random minibatches to train — breaks temporal correlations that destabilize training. (2) Target network: maintain a separate network Q(s,a;θ⁻) with parameters θ⁻ updated every C steps from θ. The loss is: L(θ) = E_{(s,a,r,s')~D}[(r + γ max_{a'} Q(s',a';θ⁻) − Q(s,a;θ))²]. Without the target network, the bootstrap target moves as θ updates, creating oscillations or divergence. Double DQN (van Hasselt et al., 2016): use the online network to select the best action, the target network to evaluate it — reduces overestimation bias in Q-learning targets. [2]",
+      "formula": "DQN loss: E[(r + γ max_{a'} Q(s',a';θ⁻) − Q(s,a;θ))²]"
+    }
+  ],
+  "youtubeLabel": "Q-Learning — David Silver RL Lecture 5",
+  "youtubeUrl": "https://www.youtube.com/embed/0g4j2k_Ggc4",
+  "takeaways": [
+    "Q(S,A) ← Q(S,A) + α[R + γ max_a' Q(S',a') − Q(S,A)]. Off-policy — updates toward greedy best action. [1]",
+    "SARSA: same but uses actual next action A_{t+1}. On-policy, safer in risky environments. [1]",
+    "ε-greedy: explore with prob ε, exploit with 1−ε. Decay ε to shift from exploration to exploitation. [2]",
+    "DQN: experience replay + target network enable Q-learning with neural function approximation. [2]",
+    "Convergence (tabular): requires all (s,a) visited infinitely often, decaying α satisfying Robbins-Monro. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does Q-learning sometimes fail with function approximation (deadly triad)?",
+      "a": "The 'deadly triad' (Sutton & Barto, Ch. 11): combining (1) function approximation, (2) bootstrapping (TD updates), and (3) off-policy training can cause divergence. Q-learning is off-policy + bootstraps — with a linear or neural function approximator, the Q-estimates can diverge rather than converge to Q*. DQN stabilizes training with target networks and experience replay, but divergence can still occur. Solutions: (1) Target networks: slow down the moving target. (2) Gradient clipping: clip TD error δ to [−1, 1]. (3) Distributional RL (C51): model the full return distribution, not just the mean. (4) On-policy methods (SARSA, A3C, PPO): avoid the off-policy problem entirely by only training on data generated by the current policy."
+    },
+    {
+      "q": "What is the overestimation bias in Q-learning, and how does Double DQN fix it?",
+      "a": "In Q-learning, the target uses max_a Q(s',a;θ⁻). If Q estimates have any noise, taking the max over noisy estimates introduces positive bias — the max of noisy estimates is systematically higher than the true maximum. This overestimation accumulates through bootstrapping, leading to overly optimistic Q values and suboptimal policies. Double DQN (van Hasselt et al., 2016): decouple action selection and action evaluation. Action selection: a* = argmax_a Q(s',a;θ) (use online network to choose best action). Action evaluation: use target network Q(s',a*;θ⁻) to evaluate the chosen action. By using two separate networks, the max bias is reduced — one network's overestimation is not correlated with the other's. Double DQN improves median game score over vanilla DQN on the Atari benchmark."
+    }
+  ],
+  "sources": [
+    { "label": "Sutton, R.S. & Barto, A.G. — Reinforcement Learning: An Introduction, 2nd Ed., MIT Press, 2018", "url": "http://incompleteideas.net/book/the-book-2nd.html" },
+    { "label": "Mnih, V. et al. — Human-level Control through Deep Reinforcement Learning, Nature 518, 2015", "url": "https://doi.org/10.1038/nature14236" }
+  ]
+}

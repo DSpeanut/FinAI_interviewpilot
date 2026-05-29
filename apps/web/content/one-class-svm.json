@@ -1,0 +1,68 @@
+{
+  "visualizationType": "chart",
+  "codeSnapshot": {
+    "label": "one_class_svm.py",
+    "code": "import numpy as np\nfrom sklearn.svm import OneClassSVM\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.model_selection import cross_val_predict\n\nX_train = df_normal[features].values     # only normal class during training\nX_test  = df_test[features].values       # mix of normal and anomalous\n\n# ── 1. One-Class SVM ──\n# kernel='rbf' (default): Gaussian kernel for non-linear boundary\n# nu: upper bound on fraction of training errors AND\n#     lower bound on fraction of support vectors\n# gamma: RBF kernel bandwidth (1/2σ²)\npipeline = Pipeline([\n    ('scaler', StandardScaler()),  # CRITICAL: OCSVM is sensitive to scale\n    ('ocsvm', OneClassSVM(\n        kernel='rbf',\n        nu=0.05,          # expect ~5% anomalies in training set\n        gamma='scale',    # gamma = 1 / (n_features * X.var())\n    ))\n])\n\npipeline.fit(X_train)\n\n# predict: +1 = normal (inlier), -1 = anomaly (outlier)\ny_pred_test = pipeline.predict(X_test)\nscores_test = pipeline.decision_function(X_test)  # signed distance to hyperplane\n# positive score = inside boundary (normal); negative = outside (anomaly)\n\nprint(f'Anomalies detected: {(y_pred_test == -1).sum()}')\n\n# ── 2. SGD-based approximation (large datasets) ──\nfrom sklearn.linear_model import SGDOneClassSVM\n# Much faster for large n; approximates the kernel OCSVM\nsgd_ocsvm = SGDOneClassSVM(nu=0.05, max_iter=1000, random_state=42)\n# Requires a kernel approximation (Nyström or RBF sampler) first\nfrom sklearn.kernel_approximation import Nystroem\npipeline_sgd = Pipeline([\n    ('scaler', StandardScaler()),\n    ('nystroem', Nystroem(kernel='rbf', n_components=300, random_state=42)),\n    ('sgd_ocsvm', SGDOneClassSVM(nu=0.05, random_state=42))\n])\npipeline_sgd.fit(X_train)\n\n# ── 3. Tuning nu via anomaly rate estimate ──\n# If you know ~5% of test data is anomalous: set nu=0.05\n# nu > true anomaly rate → many false positives\n# nu < true anomaly rate → many false negatives\nfor nu in [0.01, 0.05, 0.10, 0.20]:\n    ocsvm = OneClassSVM(kernel='rbf', nu=nu, gamma='scale')\n    preds = Pipeline([('scaler', StandardScaler()), ('ocsvm', ocsvm)]).fit_predict(X_train)\n    print(f'nu={nu}: {(preds==-1).sum()} training points flagged')"
+  },
+  "eli3": [
+    "One-Class SVM learns a tight boundary around normal data, then flags anything outside that boundary as anomalous. During training it sees only normal examples — there are no anomaly labels needed. It asks: 'what's the smallest region in feature space that contains most of the normal data?' Anything that falls outside that region at test time is an anomaly.",
+    "It's the anomaly-detection adaptation of the classic SVM. The regular SVM draws a boundary between two classes; the One-Class SVM draws a boundary around one class (the normal class) and treats the outside as the other 'class' — the anomaly region. An RBF kernel lets the boundary be a complex shape, not just a hyperplane.",
+    "The key parameter is nu (ν): it controls how tight the boundary is. ν = 0.05 means at most 5% of training points are allowed to be outside the boundary (support vectors or margin violations). Setting ν too low → a very tight boundary → many false positives. Setting ν too high → a loose boundary → many false negatives."
+  ],
+  "whenWhy": [
+    {
+      "title": "When only normal data is available for training",
+      "body": "In many real applications, you have thousands of normal examples but very few (or zero) confirmed anomalies. One-Class SVM, Isolation Forest, and autoencoders are all designed for this setting — they train only on the normal class. One-Class SVM is best when: the normal class has a compact, well-defined distribution in feature space; the data is low-to-medium dimensional (<100 features); and computational resources allow kernel SVM training."
+    },
+    {
+      "title": "Anomaly detection with non-linear decision boundaries",
+      "body": "If normal data has a complex, non-convex shape in feature space (e.g., a ring of normal values, or multiple clusters), the RBF kernel One-Class SVM can learn this boundary directly. Gaussian-based methods (EllipticEnvelope) assume elliptical normal distributions; Isolation Forest uses rectangular isolation regions. The RBF One-Class SVM is more flexible but requires careful kernel bandwidth (gamma) tuning."
+    },
+    {
+      "title": "Novelty detection: distinguish normal vs new classes",
+      "body": "Unlike contamination-based methods (Isolation Forest, LOF), One-Class SVM can be set to assume zero anomalies in training data (novelty=True in sklearn) and used strictly for novelty detection: flagging new types of data not seen during training. This is the right framing for: detecting new product categories in a recommendation system, new attack patterns in network security, or new failure modes in manufacturing."
+  ]
+  },
+  "deepDiveIntro": [
+    "Schölkopf et al. (2001) introduced the One-Class SVM. The primal optimization problem: find a hyperplane in kernel feature space ϕ(x) ∈ F such that most training points are on one side, and the margin from the origin is maximized. Primal: min_{w,ξ,ρ} (1/2)‖w‖² − ρ + (1/νn)Σᵢ ξᵢ, s.t. ⟨w,ϕ(xᵢ)⟩ ≥ ρ − ξᵢ, ξᵢ ≥ 0. The dual involves only kernel evaluations K(xᵢ, xⱼ) = ⟨ϕ(xᵢ), ϕ(xⱼ)⟩, enabling non-linear boundaries via the kernel trick. Decision function: f(x) = sgn(Σᵢ αᵢ K(xᵢ, x) − ρ). Points with f(x) ≥ 0 are inliers; f(x) < 0 are anomalies. [1]",
+    "The ν parameter has dual interpretation: (1) it is an upper bound on the fraction of training examples that may be outside the boundary (margin violations), and (2) it is a lower bound on the fraction of training examples that are support vectors. This provides a useful practical guide: set ν ≈ expected contamination rate. For the RBF kernel, gamma controls the width: large gamma → tight boundary around each training point (overfitting); small gamma → smooth, loose boundary. [2]"
+  ],
+  "deepDive": [
+    {
+      "heading": "Primal and Dual Formulation",
+      "body": "Primal: minimize (1/2)‖w‖² − ρ + (1/νn)Σᵢξᵢ subject to ⟨w,ϕ(xᵢ)⟩ ≥ ρ−ξᵢ, ξᵢ ≥ 0. The term −ρ maximizes the margin from the origin; (1/νn)Σξᵢ penalizes points inside the origin (violations). Dual: maximize −(1/2)Σᵢⱼ αᵢαⱼK(xᵢ,xⱼ) subject to 0 ≤ αᵢ ≤ 1/(νn), Σᵢαᵢ = 1. Decision function: f(x) = Σᵢ αᵢK(xᵢ,x) − ρ. Support vectors: training points with αᵢ > 0. Points on the boundary: f(xᵢ) = 0. ν exactly controls the fraction of points that become support vectors: for ν=0.05, exactly 5% of training points are on the boundary or inside it. [1]",
+      "formula": "min w,ξ,ρ: ½‖w‖² − ρ + (1/νn)Σᵢξᵢ,   s.t. ⟨w,ϕ(xᵢ)⟩ ≥ ρ−ξᵢ, ξᵢ≥0"
+    },
+    {
+      "heading": "Kernel Choice and Gamma Tuning",
+      "body": "RBF kernel: K(x,x') = exp(−γ‖x−x'‖²). gamma controls the kernel bandwidth. gamma='scale': γ = 1/(n_features × Var(X)) — the sklearn default, generally good. gamma='auto': γ = 1/n_features. Manual gamma: small γ → broad kernel → smooth boundary, may miss local anomalies. Large γ → tight kernel → boundary closely follows training points, prone to overfitting. Tuning: use a small validation set of known anomalies to select gamma and nu via grid search. Without labels, use the silhouette score or visual inspection of decision boundaries. [2]"
+    },
+    {
+      "heading": "One-Class SVM vs Isolation Forest vs LOF",
+      "body": "One-Class SVM: learns a explicit boundary in kernel space. Accurate for compact, well-separated normal distributions. Slow on large n (O(n²) kernel matrix). Sensitive to scale, gamma, nu. Isolation Forest: path-length-based, no boundary learning. Scales to millions of points. Robust to high dimensionality. Less accurate on non-standard distributions. LOF: density-based, detects local anomalies that global methods miss. O(n²) at training. Fails in very high dimensions. Practical rule: start with Isolation Forest for large datasets; use One-Class SVM when the normal class is compact and well-defined; use LOF when anomalies are contextual (appear in low-density regions of dense clusters). [1]"
+    }
+  ],
+  "youtubeLabel": "One-Class SVM — scikit-learn Novelty Detection",
+  "youtubeUrl": "https://www.youtube.com/embed/qUv8BprKFXQ",
+  "takeaways": [
+    "One-Class SVM: finds smallest region in kernel feature space containing most normal training points. Everything outside = anomaly. [1]",
+    "ν: upper bound on training errors AND lower bound on support vector fraction. Set ν ≈ expected contamination rate. [1]",
+    "RBF kernel: gamma controls smoothness. gamma='scale' (sklearn default) is a good starting point. [2]",
+    "Must StandardScale features before OCSVM — highly sensitive to feature magnitudes (kernel distances are affected by scale). [2]",
+    "SGDOneClassSVM + Nystroem: scalable approximation for large n. Use when standard OCSVM is too slow. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why does One-Class SVM require feature scaling, unlike Isolation Forest?",
+      "a": "Isolation Forest uses random splits on individual features — it compares feature values only within the same feature, so relative scale across features doesn't matter. One-Class SVM uses the RBF kernel K(x,x') = exp(−γ‖x−x'‖²), where ‖x−x'‖² is the squared Euclidean distance across all features. If one feature has range [0, 10000] and another has range [0, 1], the first feature dominates the distance computation — the kernel effectively ignores the second feature. StandardScaler (or RobustScaler) ensures all features contribute equally to the kernel distance. This is the single most important preprocessing step for OCSVM."
+    },
+    {
+      "q": "How do you choose between One-Class SVM and an autoencoder for anomaly detection?",
+      "a": "One-Class SVM: strong theoretical guarantees (convex optimization, global optimum), interpretable nu parameter, works well for low-to-medium dimensional tabular data (<100 features), fast inference (linear in n_support_vectors). Autoencoder: scales to very high dimensional input (images, text), learns hierarchical representations automatically, reconstruction error as anomaly score is intuitive. For tabular data: prefer OCSVM or Isolation Forest — autoencoders overfit easily on small tabular datasets and require more hyperparameter tuning. For image/video/signal anomaly detection: autoencoders or VAEs are the default. For very large tabular datasets: prefer Isolation Forest (faster training and inference than OCSVM)."
+    }
+  ],
+  "sources": [
+    { "label": "Schölkopf, B. et al. — Estimating the Support of a High-Dimensional Distribution, Neural Computation 13(7), 2001", "url": "https://doi.org/10.1162/089976601750264965" },
+    { "label": "sklearn Documentation — Novelty and Outlier Detection", "url": "https://scikit-learn.org/stable/modules/outlier_detection.html" }
+  ]
+}

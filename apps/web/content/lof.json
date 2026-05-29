@@ -1,0 +1,68 @@
+{
+  "visualizationType": "chart",
+  "codeSnapshot": {
+    "label": "local_outlier_factor.py",
+    "code": "import numpy as np\nfrom sklearn.neighbors import LocalOutlierFactor\nfrom sklearn.preprocessing import StandardScaler\n\nX = df[features].values\n\n# ── 1. LOF for outlier detection (no predict on new data) ──\nlof = LocalOutlierFactor(\n    n_neighbors=20,       # k: neighbourhood size\n    algorithm='auto',     # 'ball_tree', 'kd_tree', or 'brute'\n    metric='euclidean',\n    contamination=0.05,   # threshold for binary labels\n    novelty=False         # False = outlier detection (fit_predict only)\n)\nlabels = lof.fit_predict(X)      # -1 = outlier, +1 = inlier\nlof_scores = -lof.negative_outlier_factor_   # negate: higher = more anomalous\nprint(f'Outliers: {(labels == -1).sum()}')\n\n# ── 2. LOF for novelty detection (can predict on new X) ──\nlof_novelty = LocalOutlierFactor(\n    n_neighbors=20,\n    novelty=True,         # fit once, predict on new data\n    contamination=0.05\n)\nlof_novelty.fit(X_train)         # fit on training data (normal only)\nlabels_new = lof_novelty.predict(X_test)\nscores_new  = lof_novelty.decision_function(X_test)\n\n# ── 3. Choosing k (n_neighbors) ──\n# k too small → noisy LOF scores (sensitive to local density fluctuations)\n# k too large → loses local sensitivity (misses local anomalies)\n# Rule of thumb: k in [10, 50], cross-validate on labelled subset\n# MinPts recommendation from Breunig et al.: k >= cluster_min_size\nfor k in [5, 10, 20, 50]:\n    lof_k = LocalOutlierFactor(n_neighbors=k, contamination=0.05)\n    preds = lof_k.fit_predict(X)\n    print(f'k={k}: {(preds==-1).sum()} outliers')\n\n# ── 4. Scale before LOF (distance-based) ──\nfrom sklearn.pipeline import Pipeline\npipeline = Pipeline([\n    ('scaler', StandardScaler()),\n    ('lof', LocalOutlierFactor(n_neighbors=20, contamination=0.05, novelty=True))\n])\npipeline.fit(X_train)\npredictions = pipeline.predict(X_test)"
+  },
+  "eli3": [
+    "Local Outlier Factor (LOF) detects anomalies by comparing how densely packed a point's neighbourhood is versus its neighbours' neighbourhoods. A point is anomalous if it sits in a sparse region surrounded by dense clusters — it's an isolated point near a crowd. A point in the middle of a sparse cluster is NOT anomalous — it's normal for its neighbourhood.",
+    "This local perspective is what sets LOF apart: it can detect anomalies that are only anomalous in context. Imagine a transaction of $50 — completely normal in a general population. But if it appears among transactions that average $0.50, it's a local anomaly. Isolation Forest and One-Class SVM would miss this because they make global assessments.",
+    "The LOF score is a ratio: how much lower is this point's local density compared to its neighbours' average local density? A LOF score ≈ 1 means 'similar density to neighbours, probably normal'. LOF >> 1 (e.g., 5, 10) means 'much lower density than neighbours, likely an outlier'. The higher the LOF score, the more anomalous the point."
+  ],
+  "whenWhy": [
+    {
+      "title": "Contextual and local anomalies",
+      "body": "LOF excels at detecting contextual anomalies — points that are unusual only relative to their local neighbourhood. Example: a sales figure of $1,000 is anomalous in the context of a store that typically sells $5 items, but normal in a high-end boutique. Global methods (Isolation Forest, One-Class SVM) cannot distinguish these cases because they measure anomalousness globally. LOF computes density relative to k nearest neighbours, capturing local context."
+    },
+    {
+      "title": "Datasets with clusters of varying density",
+      "body": "Many real-world datasets have regions of different densities: dense urban clusters and sparse rural data, high-frequency transactions mixed with rare but legitimate large transactions. Isolation Forest assigns high anomaly scores to all sparse-region points, regardless of whether they are anomalous within their own neighbourhood. LOF correctly treats sparse-region points as normal if their neighbours are equally sparse."
+    },
+    {
+      "title": "Exploratory anomaly analysis",
+      "body": "LOF scores are interpretable: a LOF score of 3.5 for a specific point means its local density is 3.5× lower than its neighbours' average — a concrete statement about relative density. This is easier to communicate to domain experts than Isolation Forest's path-length-based score. LOF also provides a natural ranking: sort by LOF score to prioritize which anomalies to investigate first."
+    }
+  ],
+  "deepDiveIntro": [
+    "Breunig, Kriegel, Ng & Sander (2000) introduced LOF. Definitions: reach-dist_k(A, B) = max(k-dist(B), dist(A,B)) where k-dist(B) is the distance to B's k-th nearest neighbour. This smooths distance estimates for points within the k-neighbourhood. Local reachability density: lrd_k(A) = 1 / (Σ_{B ∈ N_k(A)} reach-dist_k(A,B) / |N_k(A)|), where N_k(A) is the set of k nearest neighbours of A. LOF_k(A) = (Σ_{B ∈ N_k(A)} lrd_k(B) / lrd_k(A)) / |N_k(A)|. LOF_k(A) ≈ 1: A has similar density to neighbours (normal). LOF_k(A) >> 1: A is in a much lower density region than its neighbours (outlier). [1]",
+    "Time complexity: O(n²) for naive k-NN; O(n log n) with ball tree / kd-tree for low-dimensional data. For high-dimensional data (d > 20), ball trees offer little speedup — brute force is often comparable. Memory: stores the full n×n distance matrix or k-NN graph (O(nk) if sparse). Unlike Isolation Forest, LOF does not have sub-linear scaling — it's impractical for n > 100,000 without approximate nearest neighbours (FAISS, Annoy). [2]"
+  ],
+  "deepDive": [
+    {
+      "heading": "LOF Score Derivation",
+      "body": "Step 1: for each point A, compute k-nearest neighbours N_k(A) and the k-distance k-dist(A). Step 2: reachability distance reach-dist_k(A,B) = max(k-dist(B), dist(A,B)). This prevents numerical instability when A and B are very close (avoids dividing by tiny distances). Step 3: local reachability density lrd_k(A) = |N_k(A)| / Σ_{B∈N_k(A)} reach-dist_k(A,B) — inverse average reachability distance to k-neighbours (higher density = lower average reach distance). Step 4: LOF_k(A) = mean_{B∈N_k(A)} [lrd_k(B) / lrd_k(A)]. If all neighbours have similar lrd, LOF ≈ 1. If A's lrd << neighbours' lrd, LOF >> 1 → anomaly. [1]",
+      "formula": "LOF_k(A) = (1/|N_k(A)|) · Σ_{B∈N_k(A)} [lrd_k(B) / lrd_k(A)]"
+    },
+    {
+      "heading": "Choosing k (n_neighbors)",
+      "body": "k controls the locality of the density estimate. Small k: very local — captures fine-grained local structure but noisy (sensitive to individual point positions). Large k: smoother — more global perspective, misses local anomalies. Breunig et al. suggest: k should be at least as large as the minimum cluster size you expect (so that all members of a legitimate cluster are in each other's neighbourhood). k in [10, 50] is a common practical range. If the dataset has clusters of size ~20, use k=20. For mixed-density data, there's no single optimal k — running LOF for multiple k values and aggregating scores (averaging LOF scores across k=5,10,20,50) is more robust than a single k. [1]"
+    },
+    {
+      "heading": "LOF vs Isolation Forest vs One-Class SVM",
+      "body": "LOF: density-based, local perspective, detects contextual anomalies. O(n²) training (or O(n log n) with ball tree). Fails in very high dimensions (curse of dimensionality on k-NN). Best for: low-to-medium dimensional data (<20 features) with varying density clusters. Isolation Forest: tree-based, global perspective, excellent scalability (O(n·t·log ψ)), robust to high dimensions. Best for: large-scale, high-dimensional tabular data. One-Class SVM: boundary-based in kernel space, compact boundary. Best for: well-defined compact normal class, medium-dimensional data. Common practice: run all three, compare anomaly score rankings, investigate points consistently flagged by multiple methods. [2]"
+    }
+  ],
+  "youtubeLabel": "Local Outlier Factor (LOF) — ritvikmath",
+  "youtubeUrl": "https://www.youtube.com/embed/4qBxiCFR0HM",
+  "takeaways": [
+    "LOF_k(A) = mean ratio of neighbours' lrd to A's lrd. LOF ≈ 1 = normal; LOF >> 1 = local outlier. [1]",
+    "Detects contextual anomalies: points sparse relative to their neighbourhood, even if globally not extreme. [1]",
+    "k (n_neighbors): set ≥ expected minimum cluster size. Aggregate across multiple k values for robustness. [1]",
+    "O(n²) naive; O(n log n) with ball tree (low-dim only). Not scalable to n > 100k without ANN. [2]",
+    "Must scale features — LOF is distance-based (Euclidean by default). Large-magnitude features dominate. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Can LOF detect global anomalies (not just local ones)?",
+      "a": "Yes — if a point is globally anomalous (e.g., wildly out of range on multiple features), it will also be a local anomaly relative to its k nearest neighbours (which may be far away). LOF handles both local and global anomalies correctly, but the magnitude of LOF scores for global anomalies can be extremely high (LOF = 100+), making it hard to set a single meaningful threshold. Isolation Forest assigns a bounded score ∈ (0,1) regardless of degree of anomalousness, which is easier to threshold. For data with both local and global anomalies, a combination of LOF (for local) and Isolation Forest (for global) anomaly scores is more robust than either alone."
+    },
+    {
+      "q": "How does LOF behave on high-dimensional data?",
+      "a": "In high dimensions (d > 20), the curse of dimensionality causes all pairwise distances to converge — the ratio of max to min distance approaches 1. This makes k-NN density estimates unreliable: every point appears equally 'far' from all others, so lrd differences collapse and LOF scores approach 1 for all points. Mitigations: (1) Reduce dimensionality first (PCA to d ≤ 20) before computing LOF. (2) Use a subset of the most relevant features (feature selection). (3) Switch to Isolation Forest, which is unaffected by dimensionality (it uses random single-feature splits). (4) HDBSCAN's GLOSH outlier scores use a similar density concept but with more robust high-dimensional handling via mutual reachability distance."
+    }
+  ],
+  "sources": [
+    { "label": "Breunig, M.M. et al. — LOF: Identifying Density-Based Local Outliers, ACM SIGMOD 2000", "url": "https://doi.org/10.1145/342009.335388" },
+    { "label": "Aggarwal, C.C. — Outlier Analysis, 2nd Ed., Ch. 4 (Springer, 2017)", "url": "https://link.springer.com/book/10.1007/978-3-319-47578-3" }
+  ]
+}

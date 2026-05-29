@@ -1,0 +1,68 @@
+{
+  "visualizationType": "chart",
+  "codeSnapshot": {
+    "label": "collaborative_filtering.py",
+    "code": "import numpy as np\nfrom scipy.sparse import csr_matrix\nfrom sklearn.metrics.pairwise import cosine_similarity\n\n# ── 1. User-based Collaborative Filtering ──\n# R: user-item rating matrix (n_users × n_items), 0 = unrated\nR = np.array([\n    [5, 3, 0, 1],\n    [4, 0, 4, 1],\n    [1, 1, 0, 5],\n    [0, 0, 5, 4],\n    [0, 0, 4, 4],\n])\n\n# Mean-centre each user's ratings to remove rating scale bias\nR_mean = np.true_divide(R.sum(1), (R != 0).sum(1))  # per-user mean\nR_centred = R.copy().astype(float)\nfor u in range(R.shape[0]):\n    mask = R[u] != 0\n    R_centred[u, mask] -= R_mean[u]\n\n# Cosine similarity between users (on rated items only via centred matrix)\nuser_sim = cosine_similarity(R_centred)  # (n_users, n_users)\n\n# Predict rating for user u, item i: weighted average of similar users\ndef predict_user_cf(u, i, R, user_sim, k=3):\n    sim_u = user_sim[u].copy()\n    sim_u[u] = 0           # exclude self\n    # Only use users who rated item i\n    rated_mask = R[:, i] != 0\n    sim_u[~rated_mask] = 0\n    top_k = np.argsort(sim_u)[-k:]\n    num = sum(user_sim[u, v] * (R[v, i] - R_mean[v]) for v in top_k)\n    den = sum(abs(user_sim[u, v]) for v in top_k) + 1e-9\n    return R_mean[u] + num / den\n\nprint(predict_user_cf(u=0, i=2, R=R, user_sim=user_sim))  # predict user 0, item 2\n\n# ── 2. Item-based CF (more scalable — item similarity matrix is stable) ──\nitem_sim = cosine_similarity(R_centred.T)  # (n_items, n_items)\n\ndef predict_item_cf(u, i, R, item_sim, k=3):\n    rated_by_u = np.where(R[u] != 0)[0]\n    sims = item_sim[i, rated_by_u]\n    top_k_idx = np.argsort(sims)[-k:]\n    top_k_items = rated_by_u[top_k_idx]\n    num = sum(item_sim[i, j] * R[u, j] for j in top_k_items)\n    den = sum(abs(item_sim[i, j]) for j in top_k_items) + 1e-9\n    return num / den\n\n# ── 3. ALS Matrix Factorization (implicit feedback) — via implicit library ──\n# pip install implicit\nimport implicit\nfrom scipy.sparse import csr_matrix\n\n# Confidence matrix C = 1 + α * R (where R = interaction counts)\nalpha = 40\nconfidence = csr_matrix(1 + alpha * R)\n\nmodel = implicit.als.AlternatingLeastSquares(factors=50, regularization=0.1, iterations=20)\nmodel.fit(confidence.T)  # implicit expects (item, user)\n\n# Recommend items for user 0\nids, scores = model.recommend(userid=0, user_items=confidence[0], N=5, filter_already_liked_items=True)\nprint('Recommended items:', ids)"
+  },
+  "eli3": [
+    "Collaborative Filtering (CF) recommends items based on what similar users liked — 'people like you also enjoyed X.' It finds patterns in a user-item matrix of ratings or interactions: if user A and user B rated the same movies similarly, and A loved a movie B hasn't seen, recommend it to B. No item content is needed — only the collective behaviour of the user population.",
+    "There are two flavours: user-based CF (find similar users, borrow their preferences) and item-based CF (find items similar to what you've liked before, recommend similar ones). Item-based CF is more scalable for large platforms — item similarity changes slowly compared to user similarity, so it can be pre-computed.",
+    "Memory-based CF (computing raw similarity) struggles with sparse matrices — most users rate only a handful of items out of thousands. Model-based CF (matrix factorization: SVD, ALS, BPR) solves this by learning dense latent factor vectors for users and items that generalize across unobserved interactions."
+  ],
+  "whenWhy": [
+    {
+      "title": "Cold-start-free recommendations for established users",
+      "body": "CF works best when users have interaction history — purchases, views, ratings, clicks. Once a user has at least 5–10 interactions, CF can identify similar users or items and generate useful recommendations. For established platforms (Netflix, Spotify, Amazon) with millions of users and dense interaction histories, CF is the backbone of the recommendation pipeline."
+    },
+    {
+      "title": "No item metadata required",
+      "body": "CF is purely behavioural — it doesn't need item descriptions, genres, or features. This makes it applicable wherever metadata is absent, noisy, or proprietary. A playlist recommendation system can leverage listening patterns without needing song tags. A B2B product recommendation system can leverage purchase histories without product descriptions."
+    },
+    {
+      "title": "Discovering cross-domain preferences",
+      "body": "CF surfaces non-obvious connections — 'people who bought this technical book also bought this notebook brand.' These emergent cross-category associations are impossible with content-based filtering (which looks only at item similarity) and are the primary source of recommendation surprise and serendipity that drives user engagement."
+    }
+  ],
+  "deepDiveIntro": [
+    "Memory-based CF: user-based prediction r̂_{u,i} = r̄_u + (Σ_{v∈N} sim(u,v)·(r_{v,i} − r̄_v)) / Σ_{v∈N} |sim(u,v)|. Similarity functions: Pearson correlation (standard for explicit ratings, accounts for rating scale bias), cosine similarity (for implicit feedback or sparse matrices), Jaccard (for binary interaction data). Item-based CF: r̂_{u,i} = Σ_{j∈N(i)∩R_u} sim(i,j)·r_{u,j} / Σ_{j} |sim(i,j)|. Item-based CF is preferred over user-based in production: item similarity matrices are stable (items don't change behaviour), smaller (n_items << n_users at scale), and can be pre-computed offline. [1]",
+    "Model-based CF via SVD: decompose the rating matrix R ≈ U·Σ·Vᵀ where U ∈ ℝ^{n_users × k}, V ∈ ℝ^{n_items × k}, k = latent factors. For implicit feedback (clicks, views), Hu, Koren & Volinsky (2008) ALS with confidence weights is standard: minimize Σ_{u,i} c_{u,i}(p_{u,i} − uᵢᵀvⱼ)² + λ(‖U‖² + ‖V‖²), where c_{u,i} = 1 + α·r_{u,i} is the confidence in the preference p_{u,i} ∈ {0,1}. ALS alternates between optimizing user factors (closed-form with all items fixed) and item factors (closed-form with all users fixed). [2]"
+  ],
+  "deepDive": [
+    {
+      "heading": "Pearson Correlation vs Cosine Similarity",
+      "body": "Pearson correlation: sim(u,v) = Σ_{i∈I_uv} (r_{u,i}−r̄_u)(r_{v,i}−r̄_v) / (σ_u·σ_v), where I_uv = co-rated items. Pearson accounts for rating bias: a user who rates everything 4–5 and a user who rates everything 1–2 can still have high Pearson correlation if their relative rankings agree. Cosine: sim(u,v) = r_u·r_v / (‖r_u‖·‖r_v‖). Cosine doesn't correct for bias — mean-centring the rating vectors before computing cosine ('adjusted cosine') is equivalent to Pearson and is preferred. For implicit feedback (binary: viewed/not viewed), Jaccard index |I_u ∩ I_v| / |I_u ∪ I_v| is used. [1]"
+    },
+    {
+      "heading": "ALS for Implicit Feedback",
+      "body": "Explicit ratings (1–5 stars) are easy to model. Implicit feedback (views, clicks, purchase counts) has no natural scale: 0 could mean 'not interested' OR 'not yet seen.' Hu, Koren & Volinsky (2008): define preference p_{u,i} = 1 if r_{u,i} > 0 (interacted), 0 otherwise; define confidence c_{u,i} = 1 + α·r_{u,i} (higher interaction count → more confident). ALS loss: Σ_{u,i} c_{u,i}(p_{u,i} − xᵤᵀyᵢ)² + λ(Σ_u‖x_u‖² + Σ_i‖y_i‖²). Key: the sum runs over ALL (u,i) pairs (not just observed), because unobserved = negative signal with low confidence. User update: x_u = (YᵀC_uY + λI)⁻¹Yᵀc_up_u, closed form. The implicit library (BenFredrickson) implements this efficiently with Cython. [2]",
+      "formula": "x_u = (YᵀC_uY + λI)⁻¹Yᵀc_up_u   [ALS user update, closed form]"
+    },
+    {
+      "heading": "Scalability and the Netflix Prize Legacy",
+      "body": "Memory-based CF: O(n_users · n_items) similarity computation — intractable for Netflix scale (hundreds of millions of users). Solutions: (1) Approximate nearest neighbours (ANN) for finding similar users/items — FAISS, HNSW for vector similarity search. (2) Item-based CF: pre-compute item-item similarity offline; online scoring is O(k) per user. (3) Model-based CF (ALS, BPR): training is O(n_interactions · k²); inference is O(n_items · k) via vector dot product — fast enough for real-time re-ranking. The Netflix Prize (2006–2009) demonstrated that model ensembles combining CF with content features ('blending') outperformed pure CF — leading to today's hybrid architectures. [1]"
+    }
+  ],
+  "youtubeLabel": "Collaborative Filtering — Recommender Systems (Google)",
+  "youtubeUrl": "https://www.youtube.com/embed/h9gpufJFF-0",
+  "takeaways": [
+    "User-based CF: predict r̂_{u,i} from weighted average of similar users' ratings. Pearson/adjusted cosine similarity. [1]",
+    "Item-based CF: more scalable (stable item-item similarity, pre-computable). Preferred over user-based in production. [1]",
+    "ALS (implicit feedback): confidence c_{u,i} = 1+α·r_{u,i}; closed-form user/item updates. All (u,i) pairs in the loss. [2]",
+    "Cold-start problem: CF fails for new users/items with no interactions. Hybrid with content-based features mitigates. [1]",
+    "For large-scale: ANN search (FAISS/HNSW) for user-user or item-item similarity; ALS for factorization. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How does CF handle the cold-start problem for new users or items?",
+      "a": "Cold-start is CF's main weakness: a new user with no interactions has no similarity to other users; a new item with no ratings appears in no one's neighbourhood. Mitigations: (1) New user: prompt for initial ratings on popular 'anchor' items during onboarding — even 5 ratings enable CF. (2) New item: use content-based filtering until sufficient interactions accumulate, then blend with CF (hybrid approach). (3) Bayesian average: initialize new item ratings at the global mean rather than 0, so the item appears in some recommendations immediately. (4) Warm-start: for matrix factorization, initialize new user/item vectors using the average of existing factors for items they've interacted with or content features."
+    },
+    {
+      "q": "Why does user-based CF degrade on large platforms while item-based CF remains practical?",
+      "a": "At Netflix scale (200M+ users), the user-user similarity matrix is 200M × 200M — computationally infeasible to compute or store. The item-item similarity matrix is n_items × n_items (e.g., 10,000 × 10,000 for a movie catalogue), which is small and stable. Item similarity doesn't change as fast as user preferences — it can be recomputed daily or weekly. At recommendation time, given a user's watch history (a few hundred items), find the K most similar items to each watched item and aggregate scores — all matrix lookups, no new similarity computation. This is why Amazon's 2003 item-based CF paper 'Amazon.com Recommendations' became a production standard."
+    }
+  ],
+  "sources": [
+    { "label": "Koren, Y., Bell, R. & Volinsky, C. — Matrix Factorization Techniques for Recommender Systems, IEEE Computer 42(8), 2009", "url": "https://doi.org/10.1109/MC.2009.263" },
+    { "label": "Hu, Y., Koren, Y. & Volinsky, C. — Collaborative Filtering for Implicit Feedback Datasets, IEEE ICDM 2008", "url": "https://doi.org/10.1109/ICDM.2008.22" }
+  ]
+}

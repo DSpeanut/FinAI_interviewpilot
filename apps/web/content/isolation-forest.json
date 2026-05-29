@@ -1,0 +1,68 @@
+{
+  "visualizationType": "chart",
+  "codeSnapshot": {
+    "label": "isolation_forest.py",
+    "code": "import numpy as np\nimport pandas as pd\nfrom sklearn.ensemble import IsolationForest\nfrom sklearn.preprocessing import StandardScaler\nimport matplotlib.pyplot as plt\n\nX = df[['feature_1', 'feature_2', 'feature_3']].values\n\n# ── 1. Basic Isolation Forest ──\nclf = IsolationForest(\n    n_estimators=100,     # number of trees\n    max_samples='auto',   # subsample size ψ (default: min(256, n))\n    contamination=0.05,   # expected fraction of outliers\n    max_features=1.0,     # fraction of features per tree\n    random_state=42\n)\nclf.fit(X)\n\n# predict: -1 = anomaly, +1 = normal\nlabels = clf.predict(X)\nscores = clf.score_samples(X)   # raw anomaly score (lower = more anomalous)\nprint(f'Anomalies: {(labels == -1).sum()} / {len(X)}')\n\n# ── 2. Anomaly score → ranked outlier list ──\ndf['anomaly_score'] = -scores   # negate so higher = more anomalous\ndf['is_anomaly'] = labels == -1\ntop_anomalies = df.sort_values('anomaly_score', ascending=False).head(20)\n\n# ── 3. Tune contamination via domain knowledge or label ──\nfor contamination in [0.01, 0.05, 0.10]:\n    clf = IsolationForest(n_estimators=100, contamination=contamination, random_state=42)\n    clf.fit(X)\n    preds = clf.predict(X)\n    print(f'contamination={contamination}: {(preds==-1).sum()} flagged')\n\n# ── 4. Visualize decision boundary (2D) ──\nxx, yy = np.meshgrid(\n    np.linspace(X[:, 0].min()-1, X[:, 0].max()+1, 200),\n    np.linspace(X[:, 1].min()-1, X[:, 1].max()+1, 200)\n)\nZ = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])\nZ = Z.reshape(xx.shape)\nplt.contourf(xx, yy, Z, cmap=plt.cm.YlOrRd)\nplt.scatter(X[:, 0], X[:, 1], c=labels, cmap='bwr', s=10, alpha=0.5)\nplt.title('Isolation Forest Decision Boundary')\nplt.show()"
+  },
+  "eli3": [
+    "Isolation Forest detects outliers by asking: 'how easy is it to isolate this point from all the others?' It builds many random decision trees, and for each point it measures how many splits are needed to separate it from the rest. Outliers are unusual — they're easy to isolate and need very few splits. Normal points are densely packed with their neighbours and require many splits to isolate.",
+    "The key insight is counter-intuitive: instead of building a model of what 'normal' looks like (like most anomaly detectors do), Isolation Forest directly measures abnormality by isolation difficulty. It's much faster than distance-based methods and works well in high dimensions because it doesn't need to compute any distances.",
+    "You set a contamination parameter — your estimate of what fraction of the data is anomalous (e.g., 0.05 for 5% fraud rate). This sets the threshold on isolation scores. Isolation Forest is one of the few anomaly detection algorithms that scales to millions of data points and dozens of features without performance degradation."
+  ],
+  "whenWhy": [
+    {
+      "title": "Unsupervised anomaly detection without labels",
+      "body": "In most real-world anomaly detection scenarios (fraud, network intrusion, manufacturing defects), labelled anomalies are rare or non-existent. Isolation Forest is fully unsupervised — it learns only from the normal data distribution and flags deviations. This makes it the default first-try algorithm for tabular anomaly detection. It handles mixed numeric features directly without feature scaling (though scaling can help)."
+    },
+    {
+      "title": "High-dimensional feature spaces",
+      "body": "Distance-based methods (k-NN, LOF) degrade in high dimensions — the curse of dimensionality makes all pairwise distances converge to the same value. Isolation Forest avoids distance computation entirely: it uses random splits on random features. Performance is largely unaffected by dimensionality up to ~100 features. For very high dimensions (1000+), combining Isolation Forest with PCA-based dimensionality reduction is common."
+    },
+    {
+      "title": "Large-scale real-time scoring",
+      "body": "Isolation Forest's anomaly score for a new point is computed by traversing 100 pre-built trees — O(log n) per tree, O(t·log ψ) total where t is the number of trees and ψ is the subsample size (default 256). This gives sub-millisecond inference per point, making it suitable for real-time fraud scoring at transaction time after offline training."
+    }
+  ],
+  "deepDiveIntro": [
+    "Liu, Ting & Zhou (2008) introduced Isolation Forest. Algorithm: build t isolation trees, each constructed on a random subsample of ψ points. For each tree: (1) randomly select a feature q and a split value p in [min(q), max(q)]; (2) partition points into left (q < p) and right (q ≥ p) subtrees; (3) recurse until every point is isolated (leaf) or tree height limit is reached. Anomaly score for point x: s(x, n) = 2^{−E[h(x)] / c(n)}, where h(x) is the average path length across t trees, n is the training set size, and c(n) = 2·H(n−1) − 2(n−1)/n is the average path length of an unsuccessful search in a binary search tree (the normalisation constant). s ∈ (0, 1]: s ≈ 1 → anomaly; s ≈ 0.5 → normal; s ≈ 0 → clearly normal. [1]",
+    "The algorithm exploits the property that anomalies are few and different: they partition away from the rest of the data using fewer random splits. Normal points cluster together and require deeper trees to isolate. The expected path length E[h(x)] is small for anomalies and large for normal points. The subsampling (ψ << n) is intentional: smaller subsamples highlight the isolation property and reduce computation. Liu et al. showed ψ = 256 is sufficient regardless of dataset size — larger subsamples don't improve performance. [2]"
+  ],
+  "deepDive": [
+    {
+      "heading": "Anomaly Score Formula",
+      "body": "s(x, n) = 2^{−E[h(x)]/c(n)}, where c(n) = 2·H(n−1) − 2(n−1)/n and H is the harmonic number. Interpretation: c(n) is the expected path length for a random point in a dataset of size n — it normalises the score so that s=0.5 corresponds to the average isolation difficulty. s → 1: h(x) << c(n) → the point isolates in very few splits → anomaly. s → 0.5: h(x) ≈ c(n) → average → ambiguous. s → 0: h(x) >> c(n) → many splits needed → clearly normal. sklearn's score_samples() returns the raw (unnormalised, negated) score; anomaly_score = −score_samples. [1]",
+      "formula": "s(x,n) = 2^{−E[h(x)] / c(n)},   c(n) = 2H(n−1) − 2(n−1)/n"
+    },
+    {
+      "heading": "Hyperparameters and Tuning",
+      "body": "n_estimators (t): number of trees. Performance stabilises at t=100; more trees reduce variance but slow inference. max_samples (ψ): subsample size. Liu et al. recommend 256 — increasing beyond this rarely helps. contamination: threshold for binary classification. In sklearn, contamination sets the decision_function threshold: the top contamination fraction of anomaly scores are labelled −1. Tuning: if you have some labelled anomalies, tune contamination to maximise precision/recall on those labels. Otherwise, use domain knowledge (expected fraud rate, defect rate). max_features: fraction of features randomly selected per split. Default 1.0 (all features). Reducing to 0.5–0.7 can reduce masking effects in high-dimensional data. [1]"
+    },
+    {
+      "heading": "Limitations and Extended Isolation Forest",
+      "body": "Limitation: standard Isolation Forest is biased toward axis-aligned anomalies. It assigns high anomaly scores to points far from the centre of the data on any single axis — not necessarily points that are unusual in the joint space. This creates 'ghost' anomalies at the periphery of dense clusters. Extended Isolation Forest (Hariri et al., 2019) addresses this by using random hyperplanes (not axis-aligned splits) — it cuts the feature space at random angles, correctly evaluating anomalousness in the joint distribution. Available in the eif package. [2]"
+    }
+  ],
+  "youtubeLabel": "Isolation Forest Explained — StatQuest",
+  "youtubeUrl": "https://www.youtube.com/embed/TP6s7RKFH9A",
+  "takeaways": [
+    "Isolation Forest measures anomalousness by path length to isolation in random trees. Short path → anomaly. [1]",
+    "s(x,n) = 2^{−E[h(x)]/c(n)}: s→1 = anomaly, s→0.5 = normal average, s→0 = clearly normal. [1]",
+    "ψ=256 subsampling is sufficient regardless of dataset size — a key efficiency insight. [2]",
+    "No distance computation → scales to high dimensions and millions of points without degradation. [1]",
+    "Extended Isolation Forest (eif): uses random hyperplanes instead of axis-aligned splits — corrects bias against non-axis-aligned anomalies. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How does Isolation Forest handle clustered anomalies (masking effect)?",
+      "a": "Masking: if anomalies appear in a cluster together, they are harder to isolate from each other — their mutual density makes them look 'normal' relative to the cluster. Standard Isolation Forest underscores clustered anomalies. Solutions: (1) Extended Isolation Forest with random hyperplane splits reduces masking. (2) Run multiple rounds of Isolation Forest, removing flagged anomalies and rerunning — each round exposes previously masked anomalies. (3) Use HDBSCAN to detect density-based clusters and investigate very small clusters separately. (4) Ensure ψ (subsample size) is small enough relative to the anomaly cluster size — if ψ >> cluster_size, the anomalies are sampled together and appear dense."
+    },
+    {
+      "q": "How do you evaluate Isolation Forest when you have no labels?",
+      "a": "Without labels, evaluation requires proxy metrics or human review. Options: (1) Manual review: present top-N anomalies ranked by score to domain experts — precision at N (fraction of top-N that are genuine anomalies). (2) Inject synthetic anomalies: add known anomalies to the test set (random samples from far outside the training distribution) and measure recall. (3) AUROC on partially-labelled data: even with 1% labels, compute AUROC on labelled examples using anomaly scores as the classifier score. (4) Stability across random seeds: a robust anomaly detector consistently flags the same points regardless of random seed — high variance in which points are flagged suggests the boundary is near the noise threshold."
+    }
+  ],
+  "sources": [
+    { "label": "Liu, F.T., Ting, K.M. & Zhou, Z-H. — Isolation Forest, IEEE ICDM 2008", "url": "https://doi.org/10.1109/ICDM.2008.17" },
+    { "label": "Hariri, S., Kind, M.C. & Brunner, R.J. — Extended Isolation Forest, IEEE TNNLS 2021", "url": "https://arxiv.org/abs/1811.02141" }
+  ]
+}

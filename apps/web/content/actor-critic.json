@@ -1,0 +1,69 @@
+{
+  "visualizationType": "network-diagram",
+  "codeSnapshot": {
+    "label": "actor_critic.py",
+    "code": "import torch\nimport torch.nn as nn\nimport torch.optim as optim\nimport gymnasium as gym\nimport numpy as np\n\n# ── 1. Combined Actor-Critic network ──\nclass ActorCritic(nn.Module):\n    def __init__(self, n_obs, n_actions):\n        super().__init__()\n        self.shared = nn.Sequential(\n            nn.Linear(n_obs, 128),\n            nn.ReLU(),\n        )\n        self.actor  = nn.Linear(128, n_actions)   # policy head\n        self.critic = nn.Linear(128, 1)           # value head\n\n    def forward(self, x):\n        h = self.shared(x)\n        probs = torch.softmax(self.actor(h), dim=-1)\n        value = self.critic(h).squeeze(-1)\n        return probs, value\n\n# ── 2. A2C (Advantage Actor-Critic) training loop ──\nenv = gym.make('CartPole-v1')\nmodel = ActorCritic(n_obs=4, n_actions=2)\noptimizer = optim.Adam(model.parameters(), lr=3e-4)\ngamma = 0.99\nentropy_coef = 0.01   # encourages exploration\nvalue_coef   = 0.5    # scales critic loss\n\nfor episode in range(2000):\n    states, actions, rewards, values, log_probs = [], [], [], [], []\n    s, _ = env.reset()\n    done = False\n    while not done:\n        s_t = torch.FloatTensor(s)\n        probs, v = model(s_t)\n        dist = torch.distributions.Categorical(probs)\n        a = dist.sample()\n        log_p = dist.log_prob(a)\n        s, r, terminated, truncated, _ = env.step(a.item())\n        done = terminated or truncated\n        states.append(s_t); actions.append(a)\n        rewards.append(r);  values.append(v)\n        log_probs.append(log_p)\n\n    # Compute discounted returns and advantages\n    G = 0\n    returns = []\n    for r in reversed(rewards):\n        G = r + gamma * G\n        returns.insert(0, G)\n    returns = torch.tensor(returns, dtype=torch.float32)\n    values_t = torch.stack(values)\n\n    # Advantage: A = G_t − V(s_t)\n    advantages = returns - values_t.detach()\n    advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)\n\n    log_probs_t = torch.stack(log_probs)\n    entropy = -(probs * torch.log(probs + 1e-8)).sum(-1).mean()\n\n    # Actor loss: -E[log π(a|s) · A]\n    # Critic loss: MSE(V(s), G)\n    actor_loss  = -(log_probs_t * advantages).mean()\n    critic_loss = value_coef * (returns - values_t).pow(2).mean()\n    loss = actor_loss + critic_loss - entropy_coef * entropy\n\n    optimizer.zero_grad()\n    loss.backward()\n    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.5)\n    optimizer.step()\n\n    if episode % 200 == 0:\n        print(f'Episode {episode}: return={sum(rewards):.1f}')\n\n# ── 3. A3C extension (parallel workers) ──\n# Each worker maintains its own environment + local copy of model\n# Workers compute gradients and push to global model\n# Global model broadcasts updated weights back to workers\n# Implemented via multiprocessing + shared memory (torch.multiprocessing)\n# Or use Ray RLlib's A3C implementation for production"
+  },
+  "eli3": [
+    "Actor-Critic combines two neural networks: the actor (the policy — decides what action to take) and the critic (the value function — estimates how good the current state is). The actor uses the critic's evaluation to improve — instead of waiting for the full episode return like REINFORCE, it gets immediate feedback after every step.",
+    "The key idea is the advantage: A(s,a) = Q(s,a) − V(s) = how much better this specific action is compared to the average action in this state. The actor tries to increase the probability of actions with positive advantage and decrease those with negative advantage. The critic is trained to accurately predict the state value V(s) so that the advantage estimate is good.",
+    "A2C runs a single actor; A3C (Asynchronous Advantage Actor-Critic) runs many actors in parallel on separate environment copies, each computing gradients and pushing them to a shared global network. This massive parallelism decorrelates the training data and speeds up wall-clock training time significantly — the key innovation that made deep RL practical for large-scale problems."
+  ],
+  "whenWhy": [
+    {
+      "title": "Lower variance than REINFORCE with lower bias than pure value methods",
+      "body": "REINFORCE (pure policy gradient) uses full episode returns G_t — unbiased but very high variance. Q-learning (pure value method) is sample-efficient but limited to discrete actions. Actor-Critic occupies the middle ground: the TD advantage estimate A_t = r_t + γV(s_{t+1}) − V(s_t) has lower variance than Monte Carlo returns (only spans one step) and lower bias than a pure value method (still includes the direct policy gradient). This makes Actor-Critic the dominant framework for practical RL."
+  },
+    {
+      "title": "Continuous control with dense rewards",
+      "body": "Actor-Critic is the backbone of leading continuous control algorithms: A2C for simple tasks, PPO for complex on-policy tasks (robotics, RLHF), SAC (entropy-regularized off-policy actor-critic) for sample efficiency. For MuJoCo physics simulation benchmarks (Ant, HalfCheetah, Humanoid) — the standard continuous control benchmark suite — PPO and SAC are the state of the art. SAC adds maximum entropy regularization: the actor maximises reward + entropy, producing naturally exploratory policies."
+    },
+    {
+      "title": "RLHF and large language model alignment",
+      "body": "RLHF (Reinforcement Learning from Human Feedback) uses PPO (an Actor-Critic algorithm) to fine-tune language models: the actor is the LLM policy π_θ (maps prompt → token sequence), the critic is a value model V_φ (maps prompt+partial_response → expected reward). The reward model R_ψ (trained on human preference pairs) acts as a sparse reward function. PPO's clipping mechanism prevents the LLM from deviating too far from the original supervised fine-tuned policy, maintaining coherent language while improving reward. This is the core technique behind InstructGPT, ChatGPT, and Claude."
+    }
+  ],
+  "deepDiveIntro": [
+    "Actor-Critic framework: parameterize policy π(a|s;θ) (actor) and state-value V(s;w) (critic). Policy gradient with baseline: ∇_θ J(θ) = E_π[∇_θ log π(A_t|S_t;θ) · δ_t], where δ_t = R_{t+1} + γV(S_{t+1};w) − V(S_t;w) is the TD error (one-step advantage estimate). Critic update: w ← w + β · δ_t · ∇_w V(S_t;w). Konda & Tsitsiklis (2000) proved that two-timescale Actor-Critic converges to a local optimum when the critic is updated faster than the actor (different learning rates: β >> α). [1]",
+    "A3C (Mnih et al., 2016): asynchronous actor-critic with n-step returns. n-step advantage: A_t^n = Σ_{k=0}^{n-1} γᵏ R_{t+k+1} + γⁿ V(S_{t+n};w) − V(S_t;w). Larger n → lower bias (more actual rewards used), higher variance (longer trajectory). n=5 or 10 is typical. Asynchronous workers: each worker maintains its own environment, runs episodes, computes gradients, pushes gradients to global shared network, pulls updated weights. No experience replay needed — parallel workers naturally decorrelate training data. A2C (synchronous): wait for all workers to finish, average gradients. More deterministic than A3C, usually preferred in practice. [2]"
+  ],
+  "deepDive": [
+    {
+      "heading": "TD Error as Advantage Estimate",
+      "body": "The one-step TD error δ_t = R_{t+1} + γV(S_{t+1};w) − V(S_t;w) serves as an advantage estimate A(S_t, A_t) ≈ Q(S_t,A_t) − V(S_t). Proof sketch: Q^π(s,a) = R(s,a) + γ E[V^π(S_{t+1})|S_t=s, A_t=a] ≈ R_{t+1} + γV(S_{t+1};w) (one-step estimate). So δ_t ≈ Q^π(S_t,A_t) − V^π(S_t). The policy gradient update: ∇_θ J ≈ E[∇_θ log π(A|S;θ) · δ_t]. This is a biased estimate (because V is approximated and uses bootstrapping), but much lower variance than the Monte Carlo advantage (G_t − V(s_t)). Generalized Advantage Estimation (GAE, Schulman et al., 2016): λ-weighted average of n-step advantages — trades off bias vs variance via λ ∈ [0,1]. λ=1 → Monte Carlo (high var, low bias); λ=0 → one-step TD (low var, high bias). [1]",
+      "formula": "δ_t = R_{t+1} + γV(S_{t+1};w) − V(S_t;w)   [TD error = one-step advantage]"
+    },
+    {
+      "heading": "A2C and Entropy Regularization",
+      "body": "A2C total loss: L = L_actor + c_v · L_critic − c_e · H(π). L_actor = −E[log π(a|s;θ) · A_t]: maximize expected advantage-weighted log probability. L_critic = E[(V(s;w) − G_t)²]: minimize value prediction error. Entropy bonus −H(π): H(π(·|s;θ)) = −Σ_a π(a|s;θ) log π(a|s;θ). Maximizing entropy encourages exploration — prevents premature convergence to a suboptimal deterministic policy. c_e typically 0.01–0.1; c_v typically 0.5. Gradient clipping (max_norm=0.5) is essential — prevents excessively large updates that destabilize training, particularly important with shared actor-critic networks where actor and critic gradients can conflict. [2]"
+    },
+    {
+      "heading": "PPO: Clipped Actor-Critic",
+      "body": "PPO (Proximal Policy Optimization, Schulman et al., 2017) extends actor-critic with a clip constraint on the policy update. Let r_t(θ) = π(a_t|s_t;θ) / π(a_t|s_t;θ_old) be the probability ratio. PPO-Clip objective: L_CLIP = E[min(r_t(θ)·Â_t, clip(r_t(θ), 1−ε, 1+ε)·Â_t)]. The clip prevents r_t from moving far from 1 — if the policy tries to move too far (r_t >> 1+ε or r_t << 1−ε), the gradient is zeroed. This keeps consecutive policies close together (proximal), preventing catastrophically large policy updates. ε typically 0.1–0.2. PPO is easier to tune than TRPO (Trust Region PO), nearly as stable, and widely used in production RL and RLHF. [2]",
+      "formula": "L_CLIP = E[min(r_t(θ)·Â_t, clip(r_t(θ), 1−ε, 1+ε)·Â_t)]"
+    }
+  ],
+  "youtubeLabel": "Actor-Critic Methods — David Silver RL Lecture 7 (cont.)",
+  "youtubeUrl": "https://www.youtube.com/embed/QIUxPv5PJOY",
+  "takeaways": [
+    "TD error δ_t = R_{t+1} + γV(S_{t+1}) − V(S_t) estimates advantage A(s,a). Lower variance than MC. [1]",
+    "A2C: actor loss = −E[log π · A], critic loss = MSE(V, G), entropy bonus for exploration. [2]",
+    "A3C: parallel async workers → decorrelated training data without replay buffer. [2]",
+    "GAE (λ): λ ∈ [0,1] trades off bias (λ=0) vs variance (λ=1) in advantage estimation. [1]",
+    "PPO: clips policy ratio r_t(θ) to [1−ε, 1+ε] — prevents catastrophic updates. Standard for RLHF. [2]"
+  ],
+  "edgeCases": [
+    {
+      "q": "Why do actor and critic need different learning rates, and what happens if they are the same?",
+      "a": "Two-timescale convergence (Konda & Tsitsiklis, 2000): actor-critic converges to a local optimum when the critic is updated on a faster timescale than the actor. Intuition: the actor's policy gradient is only meaningful if the critic provides a good advantage estimate. If the actor updates faster than the critic can track, the advantage estimates are stale and misleading — the actor will make large updates based on inaccurate gradients. Practically: a critic learning rate 3–10× larger than the actor's is common. In shared-network implementations (A2C), separate gradient scaling via value_coef (c_v=0.5 in the loss) serves a similar role — it implicitly down-scales the critic's contribution to the shared gradient, allowing the actor to dominate the shared layer updates."
+    },
+    {
+      "q": "How does Soft Actor-Critic (SAC) differ from A2C/PPO?",
+      "a": "SAC (Haarnoja et al., 2018): off-policy actor-critic with maximum entropy regularization. Key differences from PPO/A2C: (1) Off-policy: uses a replay buffer; data from old policies is reused (much more sample-efficient). (2) Maximum entropy objective: maximize E[Σ γᵗ(R_t + α H(π(·|s_t)))]; the agent is rewarded for being uncertain/exploratory. (3) Twin critics: SAC uses two Q-networks Q_1 and Q_2 and takes the minimum Q estimate — reduces overestimation bias (analogous to Double DQN but for continuous actions). (4) Automatic temperature: the entropy coefficient α is tuned automatically to maintain a target entropy. SAC converges 10–100× faster than PPO on MuJoCo benchmarks. PPO is preferred for RLHF (on-policy, more stable with large LLM policies); SAC is preferred for sample-efficient continuous control (robotics, real-world RL where environment interactions are expensive)."
+    }
+  ],
+  "sources": [
+    { "label": "Sutton, R.S. & Barto, A.G. — Reinforcement Learning: An Introduction, 2nd Ed., MIT Press, 2018", "url": "http://incompleteideas.net/book/the-book-2nd.html" },
+    { "label": "Mnih, V. et al. — Asynchronous Methods for Deep Reinforcement Learning (A3C), ICML 2016", "url": "https://arxiv.org/abs/1602.01783" }
+  ]
+}

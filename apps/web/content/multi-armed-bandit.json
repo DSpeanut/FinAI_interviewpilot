@@ -1,0 +1,69 @@
+{
+  "visualizationType": "chart",
+  "codeSnapshot": {
+    "label": "multi_armed_bandit.py",
+    "code": "import numpy as np\n\n# ── 1. Bandit environment ──\nclass BernoulliBandit:\n    def __init__(self, true_probs):\n        self.true_probs = np.array(true_probs)   # true reward prob per arm\n        self.n_arms = len(true_probs)\n        self.best_arm = np.argmax(true_probs)\n\n    def pull(self, arm: int) -> float:\n        return float(np.random.rand() < self.true_probs[arm])\n\n# ── 2. ε-Greedy ──\ndef epsilon_greedy(bandit, n_steps=1000, epsilon=0.1):\n    Q = np.zeros(bandit.n_arms)   # estimated values\n    N = np.zeros(bandit.n_arms)   # pull counts\n    rewards = []\n    for _ in range(n_steps):\n        a = np.random.randint(bandit.n_arms) if np.random.rand() < epsilon else np.argmax(Q)\n        r = bandit.pull(a)\n        N[a] += 1\n        Q[a] += (r - Q[a]) / N[a]   # incremental mean update\n        rewards.append(r)\n    return np.array(rewards)\n\n# ── 3. UCB1 (Upper Confidence Bound) ──\ndef ucb1(bandit, n_steps=1000):\n    Q = np.zeros(bandit.n_arms)\n    N = np.ones(bandit.n_arms)    # pull each arm once first\n    for a in range(bandit.n_arms):\n        bandit.pull(a)             # warm-up\n    rewards = []\n    for t in range(bandit.n_arms + 1, n_steps + 1):\n        # UCB = estimated value + exploration bonus\n        ucb = Q + np.sqrt(2 * np.log(t) / N)\n        a = np.argmax(ucb)\n        r = bandit.pull(a)\n        N[a] += 1\n        Q[a] += (r - Q[a]) / N[a]\n        rewards.append(r)\n    return np.array(rewards)\n\n# ── 4. Thompson Sampling (Bayesian) ──\ndef thompson_sampling(bandit, n_steps=1000):\n    alpha = np.ones(bandit.n_arms)   # successes + 1\n    beta  = np.ones(bandit.n_arms)   # failures + 1\n    rewards = []\n    for _ in range(n_steps):\n        # Sample from Beta posterior for each arm\n        samples = np.random.beta(alpha, beta)\n        a = np.argmax(samples)\n        r = bandit.pull(a)\n        if r == 1:\n            alpha[a] += 1\n        else:\n            beta[a] += 1\n        rewards.append(r)\n    return np.array(rewards)\n\n# ── 5. Compare algorithms ──\nnp.random.seed(42)\nbandit = BernoulliBandit(true_probs=[0.2, 0.5, 0.8, 0.4])\n\nfor name, fn in [('ε-greedy', epsilon_greedy), ('UCB1', ucb1), ('Thompson', thompson_sampling)]:\n    r = fn(bandit, n_steps=1000)\n    regret = np.cumsum(bandit.true_probs[bandit.best_arm] - bandit.true_probs[[0]*1000])\n    print(f'{name}: total reward={r.sum():.1f}, avg={r.mean():.3f}')"
+  },
+  "eli3": [
+    "The Multi-Armed Bandit (MAB) problem is the purest form of the exploration-exploitation tradeoff: you have k slot machines ('arms'), each with an unknown reward probability. You must decide which arms to pull to maximise total reward. You can only learn by pulling — every pull of a suboptimal arm is a wasted opportunity, but exploration is needed to find the best arm.",
+    "Regret measures how much reward you missed by not always pulling the best arm: regret = T·μ* − Σ_{t=1}^T r_t. Good algorithms minimise total regret. ε-greedy: with probability ε, pull a random arm (explore); otherwise pull the best-known arm (exploit). UCB (Upper Confidence Bound): pull the arm with the highest upper confidence bound = estimated value + uncertainty bonus. Thompson Sampling: maintain a Bayesian posterior for each arm, sample from each, pull the arm with the highest sample.",
+    "MAB is simpler than a full MDP because there's no state — each pull is independent. But it captures the essential tension between learning (trying new options) and earning (sticking with what works). In practice, MAB algorithms power A/B testing, ad selection, clinical trial adaptive allocation, and online hyperparameter tuning."
+  ],
+  "whenWhy": [
+    {
+      "title": "A/B testing with adaptive allocation",
+      "body": "Traditional A/B testing allocates equal traffic to all variants for the full experiment duration — wasteful if one variant is clearly better early on. MAB algorithms (Thompson Sampling, UCB) allocate more traffic to better-performing variants as evidence accumulates, reducing the total regret (wasted conversions on suboptimal variants). Google's GrowthBook, Optimizely, and Airbnb's Experimentation platform all support Bayesian adaptive experiments based on Thompson Sampling."
+    },
+    {
+      "title": "Online ad selection and recommender cold-start",
+      "body": "Ad placement is a classic MAB problem: for each ad slot, select which ad to show (arm) based on click-through rate estimates that update with every impression. Contextual bandits extend the MAB framework by incorporating features of the user and context — LinUCB and contextual Thompson Sampling are standard for personalised ad targeting. For new items in recommendation systems (cold-start), a bandit policy explores across new items while leveraging content features as context."
+    },
+    {
+      "title": "Clinical trial adaptive allocation",
+      "body": "In clinical trials, equal randomization wastes participants on clearly inferior treatments as evidence accumulates. Adaptive allocation via MAB (especially Thompson Sampling with Beta/Dirichlet priors over response rates) allocates more patients to better-performing treatments, reducing exposure to inferior arms. The RECOVERY trial (COVID-19 treatments) and Bertsimas et al.'s adaptive trials use bandit-inspired designs. Thompson Sampling satisfies Bayesian optimality properties and naturally balances exploration vs exploitation based on posterior uncertainty."
+    }
+  ],
+  "deepDiveIntro": [
+    "Regret: cumulative regret after T rounds = Σ_{t=1}^T [μ* − μ_{a_t}], where μ* = max_k μ_k. Expected regret = Σ_k Δ_k · E[N_k(T)], where Δ_k = μ* − μ_k and N_k(T) = number of pulls of arm k. Lai & Robbins (1985) lower bound: any consistent algorithm must incur regret ≥ Σ_{k: Δ_k>0} (Δ_k ln T) / KL(μ_k ‖ μ*) — logarithmic in T is optimal. UCB1 (Auer et al., 2002) achieves the Lai-Robbins bound asymptotically: pull arm k = argmax_k [Q_k + √(2 ln t / N_k)]. The exploration bonus √(2 ln t / N_k) shrinks as N_k grows (diminishing exploration) and grows as t increases (global exploration pressure). [1]",
+    "Thompson Sampling (Thompson, 1933): maintain a prior distribution over μ_k, update posterior after each pull, sample from each posterior, pull the arm with the highest sample. For Bernoulli rewards: Beta(α_k, β_k) prior, updated as Beta(α_k+r, β_k+1−r) after reward r ∈ {0,1}. Russo et al. (2018) prove Thompson Sampling achieves the Lai-Robbins bound and often outperforms UCB empirically. Chapelle & Li (2011) demonstrate Thompson Sampling's practical superiority over UCB1 on display advertising data. [2]"
+  ],
+  "deepDive": [
+    {
+      "heading": "UCB1: Optimism in the Face of Uncertainty",
+      "body": "UCB1 principle: always act optimistically — pick the arm that could plausibly be the best, accounting for uncertainty. UCB_k(t) = Q_k + c·√(ln t / N_k). Q_k = empirical mean reward of arm k. c·√(ln t / N_k) = upper confidence bound on μ_k, derived from Hoeffding's inequality: P(|Q_k − μ_k| > ε) ≤ 2exp(−2N_kε²). Setting the confidence width to ensure this bound holds with high probability gives the √(ln t / N_k) term. Properties: (1) Under-explored arms have small N_k → large UCB → will eventually be selected. (2) As N_k grows, UCB shrinks → reduces exploration of known arms. (3) O(ln T) regret bound. Limitation: UCB1 does not use prior knowledge — all arms start equal. [1]",
+      "formula": "UCB_k(t) = Q_k + c·√(ln t / N_k),   c = √2 gives regret ≤ O(ln T)"
+    },
+    {
+      "heading": "Thompson Sampling: Bayesian Exploration",
+      "body": "Thompson Sampling (TS) is a Bayesian algorithm: model the unknown arm reward μ_k with a prior P(μ_k). After n_k pulls: posterior P(μ_k | data). At each round: (1) sample θ_k ~ P(μ_k | data) for each arm; (2) pull arm k* = argmax_k θ_k. The key intuition: with probability equal to the posterior probability that arm k is optimal, arm k is sampled and pulled. Naturally balances exploration and exploitation: uncertain arms (wide posteriors) are pulled frequently; confident best arms are pulled most. For Bernoulli bandit: Beta prior → Beta posterior (conjugate). For Gaussian rewards: Normal-Inverse-Gamma conjugate or moment-matching. For contextual bandits: Bayesian linear regression or Bayesian neural network as the reward model. [2]"
+    },
+    {
+      "heading": "Contextual Bandits and LinUCB",
+      "body": "Contextual bandit: at each round, observe context x_t ∈ ℝᵈ (user features, time, device) before choosing arm. Arm k's reward μ_k(x_t) = x_tᵀθ_k + noise, where θ_k is an unknown parameter vector. LinUCB (Li et al., 2010): UCB over the linear model estimate. For each arm k, maintain A_k = Σ x_t x_tᵀ + λI and b_k = Σ x_t r_t (regularised regression). Estimate: θ̂_k = A_k⁻¹ b_k. UCB for arm k: x_tᵀθ̂_k + α√(x_tᵀA_k⁻¹x_t). The second term is the uncertainty of the linear prediction — higher for context directions not well-represented in training. Select arm k* = argmax_k [x_tᵀθ̂_k + α√(x_tᵀA_k⁻¹x_t)]. LinUCB powers news article recommendation at Yahoo and ad targeting at Microsoft. [1]",
+      "formula": "LinUCB: a* = argmax_k [x_tᵀθ̂_k + α·√(x_tᵀA_k⁻¹x_t)]"
+    }
+  ],
+  "youtubeLabel": "Multi-Armed Bandits & Exploration — Stanford CS234 Lecture 2",
+  "youtubeUrl": "https://www.youtube.com/embed/FgmMK6RPU1c",
+  "takeaways": [
+    "Regret = Σ_t [μ* − μ_{a_t}]. Lai-Robbins lower bound: O(ln T) regret is optimal for consistent algorithms. [1]",
+    "UCB1: pull arm with highest Q_k + c√(ln t / N_k). Optimism under uncertainty. O(ln T) regret. [1]",
+    "Thompson Sampling: sample from posterior, pull arm with highest sample. Achieves Lai-Robbins bound, often best empirically. [2]",
+    "ε-greedy: simpler but O(T^{⅔}) regret — worse than UCB/TS. Good for non-stationary rewards with ε decay. [1]",
+    "Contextual bandits (LinUCB): extends MAB with per-round feature vector x_t for personalised selection. [1]"
+  ],
+  "edgeCases": [
+    {
+      "q": "How do bandit algorithms handle non-stationary reward distributions (arms whose true probabilities change over time)?",
+      "a": "Standard UCB1 and Thompson Sampling assume stationary rewards — the true arm probabilities μ_k are fixed. In practice, ad CTRs, user preferences, and product popularity change over time. Solutions: (1) Sliding window UCB: maintain Q_k and N_k over only the last τ observations — old data is discarded, recent data dominates. (2) Discounted UCB: weight older observations by γᵏ (exponential decay) — gives more weight to recent rewards. (3) Restart Thompson Sampling: periodically reset priors to uninformative Beta(1,1). (4) Change-point detection: detect when a distribution shift occurs (via CUSUM or Page-Hinkley test) and reset the arm's statistics. Non-stationary bandits require a fundamental trade-off: shorter memory → adapts faster but is noisier; longer memory → more stable but slower to adapt."
+    },
+    {
+      "q": "What is the difference between a multi-armed bandit and a full reinforcement learning problem?",
+      "a": "MAB: no state — at each round, the agent picks an arm and receives a reward, independent of previous rounds. No state transitions, no Markov chain. The only challenge is estimating μ_k and managing exploration. Full MDP/RL: states transition based on actions — the reward at step t+1 depends on what was done at t, which depends on the state. Policy must account for delayed consequences, state evolution, and multi-step planning. MAB is the special case of an MDP with a single state (or, equivalently, an episodic MDP where every episode consists of a single step). Contextual bandits add context (equivalent to having states), but there are still no state transitions — the next context x_{t+1} is independent of the action taken at t. Full RL is needed when: actions change the state, and the state affects future rewards (e.g., robot navigation, game playing, inventory management)."
+    }
+  ],
+  "sources": [
+    { "label": "Auer, P., Cesa-Bianchi, N. & Fischer, P. — Finite-time Analysis of the Multiarmed Bandit Problem, Machine Learning 47, 2002", "url": "https://doi.org/10.1023/A:1013689704352" },
+    { "label": "Russo, D. et al. — A Tutorial on Thompson Sampling, Foundations and Trends in Machine Learning 11(1), 2018", "url": "https://arxiv.org/abs/1707.02038" }
+  ]
+}
