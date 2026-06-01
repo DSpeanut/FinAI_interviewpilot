@@ -2,7 +2,8 @@ name: Morning Digest
 
 on:
   schedule:
-    - cron: "0 8 * * *"    # 9am BST (UTC+1) / 8am GMT (UTC+0)
+    - cron: "0 7 * * *"    # 8am BST (UTC+1) / 7am GMT (UTC+0)
+    - cron: "0 17 * * *"   # 6pm BST (UTC+1) / 5pm GMT (UTC+0)
   workflow_dispatch:         # manual trigger for testing
 
 jobs:
@@ -32,10 +33,10 @@ jobs:
           TWILIO_WHATSAPP_TO: ${{ secrets.TWILIO_WHATSAPP_TO }}
         run: python apps/digest/run.py
 
-      - name: Commit updated state
+      - name: Commit updated state and history
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add apps/digest/state.json
+          git add apps/digest/state.json apps/digest/data/history.jsonl
           git diff --cached --quiet || git commit -m "chore: update digest state [skip ci]"
           git push
