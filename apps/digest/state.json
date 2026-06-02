@@ -1,6 +1,8 @@
 {
   "recent": [
     "dqn",
-    "reranking-systems"
+    "reranking-systems",
+    "mdp",
+    "isolation-forest"
   ]
 }
