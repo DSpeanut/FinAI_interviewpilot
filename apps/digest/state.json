@@ -5,6 +5,8 @@
     "mdp",
     "isolation-forest",
     "cvar",
-    "yield-curve"
+    "yield-curve",
+    "eigenvalues-eigenvectors",
+    "rmse-metric"
   ]
 }
