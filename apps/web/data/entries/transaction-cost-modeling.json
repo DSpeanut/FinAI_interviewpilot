@@ -54,7 +54,8 @@
     },
     {
       "heading": "Pre-Trade Cost Estimation for Portfolio Optimisation",
-      "body": "In portfolio optimisation, transaction costs must be incorporated before the trade, not measured after. Pre-trade cost model: for each potential trade (Δw_i): cost_i = half_spread_i + market_impact_i = (s_i/2) × |Δw_i × portfolio_value| + η × σ_i × √(|Δw_i × portfolio_value| / ADV_i × price_i). Feed into optimiser: cost-aware objective: max E[r] - (λ/2) σ²_p - Σ_i cost_i(Δw_i). The cost function is convex (sum of convex functions) — the optimiser naturally trades off signal vs. cost. Adaptive alpha decay: high-turnover signals (momentum, short-term reversal) have higher urgency to trade (alpha decays fast); adjust the α parameter in the IS execution model accordingly. Portfolio-level cost estimation: sum trade costs across all positions; compare to expected gross alpha; if net alpha < 0, reduce trade size or widen thresholds. The 'five-factor model of costs': spread, impact, timing, opportunity, risk premium for urgency. [2]"
+      "body": "Transaction costs must be estimated before trading and incorporated into the portfolio optimisation objective. A pre-trade cost model adds half the bid-ask spread plus a market impact term proportional to volatility times the square root of the trade fraction of average daily volume. Feeding this into the optimiser produces a cost-aware objective that naturally limits turnover: the optimisation trades off expected return against both risk and the sum of estimated trading costs. For high-turnover signals, alpha decays rapidly so urgency is higher. If net alpha drops below zero after accounting for costs, the threshold for trading should be widened. [2]",
+      "formula": "cost_i = s_i/2 · |Δw_i| + η · σ_i · √(|Δw_i| / (ADV_i · P_i)),    max E[r] − (λ/2)σ² − Σ cost_i(Δw_i)"
     },
     {
       "heading": "High-Frequency Transaction Costs and Microstructure",

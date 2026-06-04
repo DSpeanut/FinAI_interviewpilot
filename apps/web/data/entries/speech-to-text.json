@@ -25,7 +25,8 @@
   "deepDive": [
     {
       "heading": "CTC vs Attention Decoder",
-      "body": "CTC (Graves et al. 2006): at each time frame t, predict P(token | audio_t). Output includes a blank token (−). Decoding: collapse consecutive duplicates and remove blanks. L(y|x) = Σ_{π:B(π)=y} P(π|x), summed over all valid alignments. CTC assumes frame-level independence — no language model. Advantage: fast decoding, streaming-compatible, simple. Attention decoder (Whisper, ESPnet): decoder autoregressively generates text with attention to all encoder frames — better language modeling. Advantage: higher quality, handles long-range dependencies. Hybrid (CTC + attention): train with both losses, use CTC for prefix scoring in beam search. [1]"
+      "body": "CTC predicts a token distribution at each time frame, including a blank token, and then collapses consecutive duplicates and removes blanks to produce the final transcript. The loss sums over all alignment paths that yield the correct target sequence. CTC assumes frame-level independence — it does not use a language model — which makes it fast, streaming-compatible, and simple. An attention decoder, used in models like Whisper, autoregressively generates text while attending to all encoder frames, achieving higher quality through better language modeling. A hybrid approach trains with both losses and uses CTC for prefix scoring during beam search. [1]",
+      "formula": "L(y|x) = Σ_{π: B(π)=y} P(π|x)"
     },
     {
       "heading": "Whisper Architecture and Training",
