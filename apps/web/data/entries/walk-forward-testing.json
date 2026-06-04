@@ -50,7 +50,8 @@
   "deepDive": [
     {
       "heading": "Purged and Embargoed Cross-Validation",
-      "body": "Standard walk-forward uses a hard train/test split: train on [0, T₁], test on [T₁, T₂], advance. Lopez de Prado introduced two refinements: (1) Purging: if the training labels use forward returns (e.g., the label at time t is the 20-day forward return), then observations near the train/test boundary overlap: the label for t = T₁ - 5 days includes returns up to T₁ + 15 days — these labels are contaminated by test-period data. Solution: purge training observations whose label period overlaps with the test period; (2) Embargo: even after purging, features might have serial correlation — a strong signal in the training period might just persist due to autocorrelation into the test period. Add an embargo gap of H periods after the training period: ignore data in [T₁, T₁ + H] entirely. Embargo length H should equal the signal autocorrelation horizon (e.g., 60 days for a momentum signal with 60-day half-life). These safeguards reduce test-set contamination to near zero. [1]"
+      "body": "Standard walk-forward uses a hard train-test split and advances the window forward. Lopez de Prado introduced two refinements. First, purging: when training labels use forward returns, observations near the boundary have overlapping information with the test set because the label horizon extends across the split. Those boundary observations are removed to avoid contamination. Second, embargoing: even after purging, serial correlation in features can cause leakage, so an additional gap of observations is removed between the training and test periods. These safeguards reduce test-set contamination to near zero. [1]",
+      "formula": "train on [0, T₁ − purge],   test on [T₁ + embargo, T₂]"
     },
     {
       "heading": "Combinatorial Purged Cross-Validation (CPCV)",

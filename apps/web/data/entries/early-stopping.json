@@ -38,7 +38,8 @@
     },
     {
       "heading": "Early Stopping vs Regularisation",
-      "body": "Goodfellow et al. show: for a linear model trained with gradient descent from w=0, stopping at step T is equivalent to Ridge regression with effective λ ≈ 1/(2ηT) (where η is the learning rate). The earlier you stop, the stronger the regularisation. This duality provides a theoretical justification: early stopping implicitly constrains the model similarly to L2 regularisation. For non-linear models, the equivalence is approximate but the intuition holds — stopping early limits how far the model can travel from its initialisation. [2]"
+      "body": "Goodfellow et al. show that for a linear model trained with gradient descent from zero, stopping at a given step is equivalent to Ridge regression with an effective regularisation strength that grows as the learning rate decreases or the number of steps shrinks. Stopping earlier imposes stronger regularisation. This duality provides a theoretical justification: early stopping implicitly constrains the model similarly to L2 regularisation. For non-linear models the equivalence is approximate, but the intuition holds — stopping early limits how far the model can travel from its initialisation. [2]",
+      "formula": "early stop at step T ≈ Ridge with λ ≈ 1/(2ηT)"
     },
     {
       "heading": "Overfitting vs Underfitting Diagnosis",
