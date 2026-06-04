@@ -11,6 +11,8 @@
     "drawdown",
     "perplexity-eval",
     "k-nearest-neighbors",
-    "map-estimation"
+    "map-estimation",
+    "bleu",
+    "speech-to-text"
   ]
 }
