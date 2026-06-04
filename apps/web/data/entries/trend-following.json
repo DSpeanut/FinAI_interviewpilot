@@ -45,7 +45,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Standard time-series momentum signal: r^{(k)}_t = (P_t - P_{t-k}) / P_{t-k}. Volatility-scaled position: w_t = sign(r^{(k)}_t) × (σ_target / σ_t), where σ_t is the trailing volatility estimate (e.g., 60-day exponentially weighted). Net leverage: Σ|w_i| typically 3-10× in futures programs (futures are highly leveraged instruments). Multi-market trend portfolio: trade N uncorrelated markets; portfolio volatility ≈ σ_target × √N / √N = σ_target (each market contributes independently). This diversification allows higher gross leverage with controlled portfolio risk. Capacity: trend following in liquid futures is extremely high-capacity (hundreds of billions possible) — no market impact issues in major futures markets."
+    "Standard time-series momentum signal: r^{(k)}_t = (P_t - P_{t-k}) / P_{t-k}. Volatility-scaled position: w_t = sign(r^{(k)}_t) × (σ_target / σ_t), where σ_t is the trailing volatility estimate (e.g., 60-day exponentially weighted). Net leverage: Σ|w_i| typically 3-10× in futures programs (futures are highly leveraged instruments). Multi-market trend portfolio: trade N uncorrelated markets; portfolio volatility ≈ σ_target × √N / √N = σ_target (each market contributes independently). This diversification allows higher gross leverage with controlled portfolio risk. Capacity: trend following in liquid futures is extremely high-capacity (hundreds of billions possible) — no market impact issues in major futures markets.",
+    "formula: r^(k)_t = (P_t − P_{t−k})/P_{t−k},  w_t = sign(r^(k)_t) × σ_target/σ_t"
   ],
   "deepDive": [
     {

@@ -45,7 +45,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Standard cross-sectional momentum signal: r_{t-12, t-1} (12-month return, skip most recent month). Risk-adjusted momentum: r_{t-12, t-1} / σ (divide by volatility to get a per-unit-risk signal). Volatility-scaled momentum has better risk-adjusted performance and lower crash risk. Factor construction: WML (Winners Minus Losers) = average return of top 30% B/M-ranked stocks minus bottom 30%, rebalanced monthly. Historical US WML premium: ~7-9%/year gross (significantly higher than value or size), but with high transaction costs and crash risk. Net momentum premium after costs in institutional portfolios: ~3-4%/year."
+    "Standard cross-sectional momentum signal: r_{t-12, t-1} (12-month return, skip most recent month). Risk-adjusted momentum: r_{t-12, t-1} / sigma (divide by volatility to get a per-unit-risk signal). Volatility-scaled momentum has better risk-adjusted performance and lower crash risk. Factor construction: WML (Winners Minus Losers) = average return of top 30% B/M-ranked stocks minus bottom 30%, rebalanced monthly. Historical US WML premium: ~7-9%/year gross (significantly higher than value or size), but with high transaction costs and crash risk. Net momentum premium after costs in institutional portfolios: ~3-4%/year.",
+    "formula: r_{t−12,t−1}  (12−1 month momentum)"
   ],
   "deepDive": [
     {

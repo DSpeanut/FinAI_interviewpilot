@@ -46,8 +46,9 @@
     }
   ],
   "deepDiveIntro": [
-    "Three-factor model: E[R_i] - r_f = β_i × (E[R_m] - r_f) + s_i × E[SMB] + h_i × E[HML]. SMB (Small Minus Big) = return of small-cap stocks minus large-cap stocks. HML (High Minus Low) = return of high book-to-market stocks minus low book-to-market stocks. The factor portfolios are constructed monthly using NYSE size and B/M breakpoints. Historical (1963-2023) US annual premiums: market ~5%, SMB ~2%, HML ~3.5%, RMW ~3%, CMA ~2.5%. Five-factor model adds: RMW (Robust Minus Weak operating profitability) and CMA (Conservative Minus Aggressive investment).",
-    "Factor construction: Fama-French use 2×3 independent sorts. For 3-factor: sort stocks into 2 size groups (small/big using NYSE median) and 3 B/M groups (bottom 30%, middle 40%, top 30%). Form 6 portfolios; SMB = average of 3 small-cap portfolios minus average of 3 large-cap portfolios; HML = average of 2 high-B/M portfolios minus average of 2 low-B/M portfolios. Updated monthly/annually. Data available at Ken French's data library (mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html)."
+    "Three-factor model: E[R_i] - r_f = beta_i × (E[R_m] - r_f) + s_i × E[SMB] + h_i × E[HML]. SMB (Small Minus Big) = return of small-cap stocks minus large-cap stocks. HML (High Minus Low) = return of high book-to-market stocks minus low book-to-market stocks. The factor portfolios are constructed monthly using NYSE size and B/M breakpoints. Historical (1963-2023) US annual premiums: market ~5%, SMB ~2%, HML ~3.5%, RMW ~3%, CMA ~2.5%. Five-factor model adds: RMW (Robust Minus Weak operating profitability) and CMA (Conservative Minus Aggressive investment).",
+    "Factor construction: Fama-French use 2×3 independent sorts. For 3-factor: sort stocks into 2 size groups (small/big using NYSE median) and 3 B/M groups (bottom 30%, middle 40%, top 30%). Form 6 portfolios; SMB = average of 3 small-cap portfolios minus average of 3 large-cap portfolios; HML = average of 2 high-B/M portfolios minus average of 2 low-B/M portfolios. Updated monthly/annually. Data available at Ken French's data library (mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html).",
+    "formula: r_i − r_f = α_i + β_m(r_m − r_f) + β_s·SMB + β_h·HML + ε_i"
   ],
   "deepDive": [
     {

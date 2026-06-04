@@ -33,7 +33,8 @@
     },
     {
       "heading": "Tail Risk Hedging and Variance Swaps",
-      "body": "Standard delta hedging protects against small, continuous price moves but not against large jumps (crash risk). Tail risk hedges: deep out-of-the-money puts (cheap individually but provide large payoffs in crashes), variance swaps (pay when realised volatility exceeds implied), CDS (pay when credit events occur). Variance swap payoff: N_var × (σ²_realised - K²_var), where K_var is the variance strike. Long variance swaps profit when markets are more volatile than priced — typically in crises. The VIX is approximately the fair value of a 30-day variance swap on the S&P 500 (square root of the fair variance). Crisis alpha strategies (trend following, long volatility) act as natural tail hedges — they tend to perform well when equities sell off sharply. [1]"
+      "body": "Standard delta hedging protects against small, continuous price moves but not against large jumps (crash risk). Tail risk hedges: deep out-of-the-money puts (cheap individually but provide large payoffs in crashes), variance swaps (pay when realised volatility exceeds implied), CDS (pay when credit events occur). Variance swap payoff: N_var × (σ²_realised - K²_var), where K_var is the variance strike. Long variance swaps profit when markets are more volatile than priced — typically in crises. The VIX is approximately the fair value of a 30-day variance swap on the S&P 500 (square root of the fair variance). Crisis alpha strategies (trend following, long volatility) act as natural tail hedges — they tend to perform well when equities sell off sharply. [1]",
+      "formula": "variance_swap_payoff = N × (σ²_realised − σ²_strike)"
     }
   ],
   "takeaways": [

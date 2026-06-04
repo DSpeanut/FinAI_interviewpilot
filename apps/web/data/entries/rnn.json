@@ -25,7 +25,8 @@
   ],
   "deepDiveIntro": [
     "The vanilla RNN defines a recurrence over a sequence (x_1, ..., x_T): h_t = tanh(W_h h_{t-1} + W_x x_t + b), ŷ_t = W_y h_t + b_y, where h_t ∈ ℝ^n is the hidden state, W_h ∈ ℝ^{n×n} is the recurrent weight matrix, W_x ∈ ℝ^{n×d} maps the input, and tanh is the activation. The same weights (W_h, W_x, b) are shared across all timesteps — this is why the RNN can handle sequences of any length with a fixed parameter count. The hidden state h_t is a fixed-size vector that encodes the network's 'memory' of the input history. [1]",
-    "Training RNNs uses Backpropagation Through Time (BPTT): unroll the RNN across all T timesteps, treating each step as a layer in a T-deep feedforward network, then apply standard backpropagation. The gradient of the loss with respect to h_0 involves the product ∏_{t=1}^{T} W_h · diag(tanh'(z_t)), where tanh'(z) = 1 − tanh²(z) ∈ (0, 1]. Over long sequences (large T), this product can vanish exponentially (if the spectral radius ρ(W_h) < 1) or explode (if ρ(W_h) > 1). This is the fundamental limitation of the vanilla RNN that motivated LSTM (Hochreiter & Schmidhuber, 1997) and gradient clipping as a training technique. [2]"
+    "Training RNNs uses Backpropagation Through Time (BPTT): unroll the RNN across all T timesteps, treating each step as a layer in a T-deep feedforward network, then apply standard backpropagation. The gradient of the loss with respect to h_0 involves the product ∏_{t=1}^{T} W_h · diag(tanh'(z_t)), where tanh'(z) = 1 − tanh²(z) ∈ (0, 1]. Over long sequences (large T), this product can vanish exponentially (if the spectral radius ρ(W_h) < 1) or explode (if ρ(W_h) > 1). This is the fundamental limitation of the vanilla RNN that motivated LSTM (Hochreiter & Schmidhuber, 1997) and gradient clipping as a training technique. [2]",
+    "formula: h_t = tanh(W_h h_{t−1} + W_x x_t + b)"
   ],
   "deepDive": [
     {

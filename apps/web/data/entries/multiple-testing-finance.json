@@ -45,7 +45,8 @@
     }
   ],
   "deepDiveIntro": [
-    "The expected maximum Sharpe ratio from N iid strategies with zero true alpha and T observations: E[max_i S_i | N, T] ≈ (2 ln N)^{0.5} - [(ln ln N + ln(4π)) / (2(2 ln N)^{0.5})]. For N = 100, T = 60 monthly observations: E[max S] ≈ 3.0. This means: observing a backtest Sharpe of 3.0 from 100 strategies tested provides ZERO evidence of skill — it's exactly what chance predicts. Required minimum backtesting period for significance at 5% level given N strategies tested: T* = (N_σ²_S / ε²) × [correction for N]. Harvey, Liu & Zhu (2016) minimum t-statistic: t* = 3.0 for a new factor to be considered genuinely significant given the literature's testing history."
+    "The expected maximum Sharpe ratio from N iid strategies with zero true alpha and T observations: E[max_i S_i | N, T] ≈ (2 ln N)^{0.5} - [(ln ln N + ln(4π)) / (2(2 ln N)^{0.5})]. For N = 100, T = 60 monthly observations: E[max S] ≈ 3.0. This means: observing a backtest Sharpe of 3.0 from 100 strategies tested provides ZERO evidence of skill — it's exactly what chance predicts. Required minimum backtesting period for significance at 5% level given N strategies tested: T* = (N_σ²_S / ε²) × [correction for N]. Harvey, Liu & Zhu (2016) minimum t-statistic: t* = 3.0 for a new factor to be considered genuinely significant given the literature's testing history.",
+    "formula: E[max SR | N, T] ≈ √(2 ln N)"
   ],
   "deepDive": [
     {

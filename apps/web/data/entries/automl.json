@@ -25,7 +25,8 @@
   ],
   "deepDiveIntro": [
     "AutoML formalises the CASH problem: given dataset D = (D_train, D_val), algorithm space A = {A₁,...,Aₖ}, hyperparameter space Λ = Λ₁ × ... × Λₖ: find (A*, λ*) = argmin_{A,λ} L(M_{A,λ}, D_train, D_val). This is a bilevel optimisation: outer level selects (A,λ), inner level trains model M_{A,λ} on D_train and evaluates on D_val. Auto-sklearn solves this with SMAC over the combined space, using meta-learned warm-starting configurations from 140 reference datasets. [1]",
-    "Automated feature engineering is a complementary AutoML component: FeatureTools (deep feature synthesis) automatically generates features from relational data (join tables, aggregations). TPOT uses genetic programming to optimise the full ML pipeline (feature transforms + model). AutoGluon handles tabular data by: (1) automatic feature type detection (categorical vs numerical); (2) automated missing value imputation; (3) label encoding and target encoding for categoricals. [1]"
+    "Automated feature engineering is a complementary AutoML component: FeatureTools (deep feature synthesis) automatically generates features from relational data (join tables, aggregations). TPOT uses genetic programming to optimise the full ML pipeline (feature transforms + model). AutoGluon handles tabular data by: (1) automatic feature type detection (categorical vs numerical); (2) automated missing value imputation; (3) label encoding and target encoding for categoricals. [1]",
+    "formula: min_{A∈A, λ∈Λ} L_val(A_λ(D_train), D_val)"
   ],
   "deepDive": [
     {
@@ -61,6 +62,9 @@
     }
   ],
   "sources": [
-    { "label": "Feurer et al. (2019) — Auto-sklearn 2.0: Hands-free AutoML via Meta-Learning arXiv:2007.04074", "url": "https://arxiv.org/abs/2007.04074" }
+    {
+      "label": "Feurer et al. (2019) — Auto-sklearn 2.0: Hands-free AutoML via Meta-Learning arXiv:2007.04074",
+      "url": "https://arxiv.org/abs/2007.04074"
+    }
   ]
 }

@@ -59,7 +59,8 @@
     },
     {
       "heading": "Algorithmic Order Types: VWAP and TWAP",
-      "body": "VWAP (Volume-Weighted Average Price): the benchmark price = Σ(price × volume) / Σ(volume) over a period. VWAP algorithms slice a large order to match the market's intraday volume distribution (typically U-shaped: high volume at open and close, low at midday). Goal: execute at or better than VWAP — a VWAP buy order below the VWAP benchmark is considered a successful execution. TWAP (Time-Weighted Average Price): slice the order equally over N time intervals. Simpler than VWAP; avoids participation in high-volume periods (which might increase market impact). POV (Participation of Volume): execute at X% of market volume. Adapts to actual market conditions. Choosing between them: VWAP is appropriate when the investor has no information advantage; TWAP when volume patterns are unreliable; POV when urgency varies dynamically. [2]"
+      "body": "VWAP is the benchmark price computed as the volume-weighted average of all trades over a period over a period. VWAP algorithms slice a large order to match the market's intraday volume distribution (typically U-shaped: high volume at open and close, low at midday). Goal: execute at or better than VWAP — a VWAP buy order below the VWAP benchmark is considered a successful execution. TWAP (Time-Weighted Average Price): slice the order equally over N time intervals. Simpler than VWAP; avoids participation in high-volume periods (which might increase market impact). POV (Participation of Volume): execute at X% of market volume. Adapts to actual market conditions. Choosing between them: VWAP is appropriate when the investor has no information advantage; TWAP when volume patterns are unreliable; POV when urgency varies dynamically. [2]",
+      "formula": "VWAP = Σ(P_i × V_i) / Σ V_i"
     }
   ],
   "takeaways": [

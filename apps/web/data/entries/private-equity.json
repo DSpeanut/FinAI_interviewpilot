@@ -45,7 +45,8 @@
     }
   ],
   "deepDiveIntro": [
-    "LBO IRR calculation: cash flows to equity = -equity_invested at t=0; +equity_proceeds at exit. IRR solves: 0 = -E₀ + Σ_t (dividends_t)/(1+IRR)^t + E_exit/(1+IRR)^T. For a simple case (no interim dividends, 5-year hold): E_exit = (EV_exit - Net_debt_exit). EV_exit = EBITDA_exit × exit_multiple. Net_debt_exit = initial_debt - EBITDA_FCF_conversion × EBITDA × years (debt repaid over hold period). IRR sensitivity: (a) Entry multiple: lower entry = higher IRR all else equal; (b) Exit multiple expansion: strong driver; (c) EBITDA growth: operational improvement; (d) Debt repayment: higher FCF conversion (EBITDA to cash) reduces exit debt, improves IRR; (e) Hold period: shorter hold amplifies IRR for same absolute return."
+    "LBO IRR calculation: cash flows to equity = -equity_invested at t=0; +equity_proceeds at exit. IRR solves: 0 = -E₀ + Σ_t (dividends_t)/(1+IRR)^t + E_exit/(1+IRR)^T. For a simple case (no interim dividends, 5-year hold): E_exit = (EV_exit - Net_debt_exit). EV_exit = EBITDA_exit × exit_multiple. Net_debt_exit = initial_debt - EBITDA_FCF_conversion × EBITDA × years (debt repaid over hold period). IRR sensitivity: (a) Entry multiple: lower entry = higher IRR all else equal; (b) Exit multiple expansion: strong driver; (c) EBITDA growth: operational improvement; (d) Debt repayment: higher FCF conversion (EBITDA to cash) reduces exit debt, improves IRR; (e) Hold period: shorter hold amplifies IRR for same absolute return.",
+    "formula: 0 = −E₀ + Σ_t D_t/(1+IRR)^t + E_exit/(1+IRR)^T"
   ],
   "deepDive": [
     {

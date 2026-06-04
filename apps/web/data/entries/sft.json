@@ -25,7 +25,8 @@
   ],
   "deepDiveIntro": [
     "SFT loss: L = −(1/|R|) Σₜ∈R log p_θ(wₜ|w₁,...,wₜ₋₁) where R = response token positions (not instruction tokens). This is the same causal LM objective, but the loss is masked (set to 0) for instruction tokens. The model learns to predict responses conditioned on the instruction prefix. Trained with teacher forcing: ground-truth response tokens are given as input at each position, not model-generated tokens. [1]",
-    "Data quality is the dominant factor in SFT performance. LIMA (Zhou et al., 2023) showed that 1000 carefully curated (instruction, response) pairs yields a model competitive with models trained on 50K+ examples of lower quality. The authors argued that alignment knowledge is 'shallow' — the model already has the knowledge from pre-training; SFT just teaches the format and style. [2]"
+    "Data quality is the dominant factor in SFT performance. LIMA (Zhou et al., 2023) showed that 1000 carefully curated (instruction, response) pairs yields a model competitive with models trained on 50K+ examples of lower quality. The authors argued that alignment knowledge is 'shallow' — the model already has the knowledge from pre-training; SFT just teaches the format and style. [2]",
+    "formula: L_SFT = −Σ_t log P(y_t | x_t, θ)"
   ],
   "deepDive": [
     {
@@ -65,7 +66,13 @@
     }
   ],
   "sources": [
-    { "label": "Ouyang et al. (2022) — Training language models to follow instructions with human feedback (InstructGPT) arXiv:2203.02155", "url": "https://arxiv.org/abs/2203.02155" },
-    { "label": "Zhou et al. (2023) — LIMA: Less Is More for Alignment arXiv:2305.11206", "url": "https://arxiv.org/abs/2305.11206" }
+    {
+      "label": "Ouyang et al. (2022) — Training language models to follow instructions with human feedback (InstructGPT) arXiv:2203.02155",
+      "url": "https://arxiv.org/abs/2203.02155"
+    },
+    {
+      "label": "Zhou et al. (2023) — LIMA: Less Is More for Alignment arXiv:2305.11206",
+      "url": "https://arxiv.org/abs/2305.11206"
+    }
   ]
 }

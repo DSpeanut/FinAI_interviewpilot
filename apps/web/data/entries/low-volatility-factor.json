@@ -45,7 +45,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Key measures: (1) Historical volatility: annualised standard deviation of daily returns over trailing 12 months; (2) Beta: covariance(stock, market) / variance(market) — measures systematic risk contribution; (3) Idiosyncratic volatility: residual from CAPM regression; some studies find idiosyncratic vol negatively predicts returns (IVOL anomaly). Minimum variance portfolio: min w'Σw s.t. Σw_i = 1, w_i ≥ 0 (long-only). With short-selling allowed, the solution is the GMV (global minimum variance) portfolio. Ledoit-Wolf shrinkage covariance estimator: Σ_shrunk = α × Σ_sample + (1-α) × Σ_target, where target is often a diagonal matrix or single-index model. This reduces estimation error for the covariance matrix (which has p(p+1)/2 parameters for p stocks)."
+    "Key measures: (1) Historical volatility: annualised standard deviation of daily returns over trailing 12 months; (2) Beta: covariance(stock, market) / variance(market) — measures systematic risk contribution; (3) Idiosyncratic volatility: residual from CAPM regression; some studies find idiosyncratic vol negatively predicts returns (IVOL anomaly). Minimum variance portfolio: min w'Σw s.t. Σw_i = 1, w_i ≥ 0 (long-only). With short-selling allowed, the solution is the GMV (global minimum variance) portfolio. Ledoit-Wolf shrinkage covariance estimator: Σ_shrunk = α × Σ_sample + (1-α) × Σ_target, where target is often a diagonal matrix or single-index model. This reduces estimation error for the covariance matrix (which has p(p+1)/2 parameters for p stocks).",
+    "formula: β = Cov(r_i, r_m) / Var(r_m)"
   ],
   "deepDive": [
     {
