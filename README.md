@@ -1,6 +1,8 @@
 # ChippoAI
 
-An AI-powered study companion for ML/AI and Finance interview prep. Runs fully locally — just bring your own (free) OpenRouter API key.
+AI-powered study companion for ML/AI and Finance interview prep. Runs fully locally — just bring your own (free) OpenRouter API key.
+
+**Stack**: Next.js 16 · React 19 · Tailwind CSS 4 · FastAPI (Python) · OpenRouter (free tier)
 
 ---
 
@@ -50,8 +52,8 @@ Before you start, make sure you have:
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/DSpeanut/FinAI_interviewpilot.git
-cd FinAI_interviewpilot
+git clone https://github.com/DSpeanut/ChippoAI.git
+cd ChippoAI
 ```
 
 ---
