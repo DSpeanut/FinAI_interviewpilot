@@ -23,8 +23,8 @@
     }
   ],
   "deepDiveIntro": [
-    "For a sample x₁ ≤ x₂ ≤ … ≤ xₙ (sorted), the sample median is x₍ₙ₊₁₎/₂ for odd n, and (x₍ₙ/₂₎ + x₍ₙ/₂₊₁₎)/2 for even n. The population median m is defined as any value satisfying P(X ≤ m) ≥ 0.5 and P(X ≥ m) ≥ 0.5.",
-    "The sample median minimises Σ|xᵢ − c| over all c. Under regularity conditions, the sample median is a consistent, asymptotically normal estimator of the population median with asymptotic variance 1/(4n f(m)²), where f(m) is the density at the population median. This variance is generally larger than that of the sample mean (σ²/n) for normal data, reflecting the efficiency cost of robustness."
+    "The sample median is the middle value after sorting: the exact middle for an odd-length sample, or the average of the two middle values for an even-length sample. The population median is the value that splits the distribution so at least half the probability mass lies on each side.",
+    "The sample median minimises the sum of absolute deviations, which is why it is the natural target when prediction error is measured with absolute rather than squared loss. It is a consistent estimator of the population median, and for large samples its estimation variance depends on the density of the distribution near the median — the denser that region, the more precisely the median is pinned down. Compared with the mean, the median typically requires more data to achieve the same precision on normally distributed data, but it is far more stable when outliers are present."
   ],
   "visualizationType": "median",
   "deepDive": [

@@ -24,8 +24,8 @@
     }
   ],
   "deepDiveIntro": [
-    "L2 regularised loss: L_total = L_data + λΣⱼwⱼ². Gradient: ∂L_total/∂wⱼ = ∂L_data/∂wⱼ + 2λwⱼ. The update rule wⱼ ← wⱼ(1 − 2ηλ) − η·∂L_data/∂wⱼ shows that each step multiplies weights by (1−2ηλ) < 1 — exponential decay toward zero. For linear regression, the closed-form solution is w* = (XᵀX + λI)⁻¹Xᵀy, which is always unique (unlike OLS which requires XᵀX to be invertible). [1]",
-    "Bayesian interpretation: L2 regularisation is equivalent to MAP estimation with a Gaussian prior on weights: p(w) = N(0, 1/(2λ)·I). Minimising L_data + λ‖w‖² = maximising log p(y|X,w) + log p(w) ∝ − likelihood − log prior. The L2 penalty corresponds to the negative log of a zero-mean Gaussian prior. Stronger regularisation (larger λ) = stronger prior belief that weights should be small. [2]"
+    "Adding the L2 penalty to a loss function changes the gradient update so that each weight is multiplied by a factor slightly less than one at every step, causing exponential decay toward zero. For linear regression, this regularised objective has an always-unique closed-form solution obtained by adding a small positive constant along the diagonal of the feature cross-product matrix before inverting — which also fixes numerical problems when features are collinear. [1]",
+    "From a Bayesian perspective, L2 regularisation is equivalent to maximum a posteriori estimation with a zero-mean Gaussian prior on all weights. The prior encodes the belief that most weights should be small, and a larger regularisation coefficient corresponds to a stronger prior — pulling estimates more aggressively toward zero regardless of what the data says. [2]"
   ],
   "deepDive": [
     {

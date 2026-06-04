@@ -23,8 +23,9 @@
     }
   ],
   "deepDiveIntro": [
-    "For a one-sample z-test with H₀: μ = μ₀ vs H₁: μ = μ₀ + δ (δ > 0), at significance level α (one-sided): Power = P(Z > z_α − δ√n/σ | μ = μ₀+δ) = Φ(δ√n/σ − z_α), where Φ is the standard normal CDF. Increasing n, δ, or α, or decreasing σ, increases power.",
-    "The required sample size for desired power 1−β (two-sided, one-sample): n = (z_{α/2} + z_β)²σ²/δ². For α = 0.05, power = 0.80: (1.96 + 0.842)² ≈ 7.85. For Cohen's d = δ/σ = 0.5 (medium effect): n = 7.85/(0.5²) ≈ 32 per group."
+    "For a one-sample z-test, power equals the probability that the test statistic exceeds the critical value when the true mean differs from the null. Increasing the sample size, the true effect size, or the significance level all raise power, while larger population variance reduces it. For two-sided tests, power is approximately the standard normal cumulative distribution function evaluated at the absolute effect divided by the standard error minus the critical value.",
+    "The required sample size for a two-sided test at significance level alpha with desired power one-minus-beta is the product of the squared sum of the two critical values divided by the squared standardized effect size. For alpha of five percent and power of eighty percent, the multiplier is approximately 7.85, so a medium standardized effect of 0.5 requires roughly thirty-two participants per group.",
+    "formula: n = (z_{α/2} + z_β)² · σ² / δ²"
   ],
   "deepDive": [
     {

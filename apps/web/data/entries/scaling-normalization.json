@@ -24,8 +24,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Standardization: x_std = (x − μ) / σ, where μ and σ are estimated from training data. The resulting feature has zero mean and unit variance. This does not constrain the range — extreme values (outliers) remain extreme in standardized form, just measured in units of standard deviation. MinMax: x_mm = (x − x_min) / (x_max − x_min) ∈ [0, 1]. Sensitive to outliers: a single extreme outlier defines x_max, compressing all other values into a small range. RobustScaler: x_rob = (x − median) / IQR — uses quantiles (Q1, Q3) which are robust to outliers. [1]",
-    "Box-Cox transform: y = (x^λ − 1)/λ for λ ≠ 0, log(x) for λ = 0. Requires x > 0. The parameter λ is estimated by maximum likelihood to maximize normality of the transformed variable. Yeo-Johnson extends Box-Cox to handle zero and negative values. PowerTransformer in sklearn implements both and estimates λ automatically. These transforms are stronger than log for making heavily skewed distributions normal-shaped. [2]"
+    "Standardisation subtracts the training mean and divides by the training standard deviation, producing features with zero mean and unit variance. Outliers remain outliers — they just get measured in standard-deviation units. Min-max scaling maps values to the zero-to-one range, which makes it very sensitive to a single extreme value because that value becomes the new maximum. Robust scaling centres on the median and divides by the interquartile range, so extreme outliers have little influence on the scale. [1]",
+    "The Box-Cox family of power transforms estimates an optimal exponent by maximum likelihood to make the distribution as close to normal as possible, but it requires all values to be positive. Yeo-Johnson is the generalisation that also handles zeros and negative values. Both are available in scikit-learn and automatically estimate the best exponent, making them more flexible than simply taking the log. [2]"
   ],
   "deepDive": [
     {

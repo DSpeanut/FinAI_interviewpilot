@@ -24,8 +24,8 @@
     }
   ],
   "deepDiveIntro": [
-    "The gradient descent update rule: w_{t+1} = w_t − η ∇L(w_t). For full-batch GD, ∇L is exact; for SGD, ∇L is estimated from a random mini-batch: ĝ_t = (1/B) Σ_{i∈B_t} ∇lᵢ(w_t). Under mild conditions (bounded gradient variance, decreasing step size), SGD converges to a stationary point. For convex functions: convergence rate O(1/√T). For non-convex: convergence to a stationary point (∇L ≈ 0) at rate O(1/T) with step size η = O(1/√T). [1]",
-    "The noise from mini-batching is a form of implicit regularisation. SGD explores parameter space stochastically, finding flat minima that generalise well (Keskar et al., 2016). Full-batch GD finds sharp minima that fit training data exactly but generalise poorly. This is why batch size matters: larger batches produce less noise and behave more like full-batch GD. [2]"
+    "The gradient descent update rule subtracts a step proportional to the gradient of the loss from the current weights. In mini-batch SGD, the gradient is estimated from a randomly sampled subset of the training data rather than computed exactly. Under mild conditions — bounded gradient variance and a decreasing step size — mini-batch SGD converges to a stationary point. For convex problems the convergence rate is proportional to one over the square root of the number of steps. [1]",
+    "The gradient noise from mini-batching acts as implicit regularization. Because the optimizer explores the loss landscape stochastically, it tends to find flat minima that are more robust to small perturbations and generalize better than the sharp minima found by full-batch gradient descent. Larger batches produce less noise and therefore converge to sharper, less generalizable solutions — this is the generalization gap of large-batch training. [2]"
   ],
   "deepDive": [
     {
@@ -35,15 +35,15 @@
     },
     {
       "heading": "Convergence Analysis",
-      "body": "For L-smooth (‖∇f(x)−∇f(y)‖ ≤ L‖x−y‖) non-convex functions: SGD with constant step size η ≤ 1/L converges to E[‖∇f(w_T)‖²] ≤ (f(w_0)−f*) / (ηT) + Lσ²η. The noise floor (Lσ²η) is irreducible unless η decreases. With η_t = c/√t: converges at O(1/√T) rate to a stationary point. In practice, learning rate schedules (cosine annealing, step decay) achieve this empirically. [1]"
+      "body": "For smooth non-convex functions, SGD with a constant step size converges toward a stationary point but leaves a residual noise floor proportional to the step size and gradient variance. This noise floor is irreducible unless the step size decreases. Using a step size that decays as one over the square root of the step number achieves convergence at the same asymptotic rate, and learning rate schedules such as cosine annealing achieve this empirically in practice. [1]"
     },
     {
       "heading": "Effect of Learning Rate and Batch Size",
-      "body": "Linear scaling rule (Goyal et al., 2017): when multiplying batch size by k, multiply learning rate by k. Intuition: with k times more samples per step, each step takes k times as long in 'clock time' of training — increase η to compensate. Works up to B ≈ 8192 for ResNet-50; beyond that, warmup and lower η are needed. The effective noise level ∝ η·σ²/B (η linear, σ² constant, B in denominator), so large batches need large η to maintain equivalent noise level. [2]"
+      "body": "The linear scaling rule says that when you multiply the batch size by a factor, you should multiply the learning rate by the same factor. The intuition is that a larger batch produces a lower-variance gradient estimate, so a larger step is safe. This rule works well up to batch sizes of roughly 8,000 for ResNet training; beyond that, additional warmup is needed. The effective gradient noise level scales inversely with batch size, so large batches need a larger learning rate to maintain the same implicit regularization. [2]"
     },
     {
       "heading": "Nesterov Accelerated SGD",
-      "body": "Nesterov (1983) proposed a modification: compute gradient at a look-ahead position (w − β·v) rather than current w. Update: v_{t+1} = β·vₜ + η·∇L(w_t − β·vₜ); w_{t+1} = w_t − v_{t+1}. For convex functions, Nesterov achieves O(1/T²) convergence vs O(1/T) for GD — provably optimal for first-order methods. In deep learning, Nesterov often gives slightly better results than standard momentum because it 'corrects' the momentum step using a more accurate gradient. [1]"
+      "body": "Nesterov momentum computes the gradient at a look-ahead position — where the current momentum would take you — rather than at the current weights. This produces a more accurate gradient estimate that partially corrects for the momentum overshoot. For convex functions, Nesterov acceleration achieves a provably faster convergence rate than standard gradient descent. In practice for deep learning, it often gives a small but consistent improvement over standard momentum SGD. [1]"
     }
   ],
   "youtubeLabel": "Gradient Descent — 3Blue1Brown (Neural Networks Ch. 2)",

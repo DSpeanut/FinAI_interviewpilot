@@ -24,28 +24,28 @@
     }
   ],
   "deepDiveIntro": [
-    "MSE for a dataset of n samples is L = (1/n) Σᵢ₌₁ⁿ (yᵢ - ŷᵢ)². It is the squared L2 norm of the residual vector divided by n. MSE is equivalent to negative log-likelihood under a Gaussian model: if yᵢ | xᵢ ~ N(f(xᵢ), σ²), then -log p(y|x) ∝ (1/2σ²) Σ(yᵢ - f(xᵢ))². Minimising MSE = maximising this likelihood. [1]",
-    "The bias-variance decomposition of MSE reveals its structure: E[(y - f̂(x))²] = [Bias(f̂(x))]² + Var(f̂(x)) + σ². Here σ² is irreducible noise. The training MSE gives a biased estimate of test MSE (optimism bias); cross-validation corrects this. [2]"
+    "MSE averages the squared prediction errors across all training examples. This is equivalent to maximizing likelihood under a Gaussian noise assumption: if the residuals are normally distributed with constant variance, minimizing MSE is the same as finding the most likely parameters. For linear regression this yields the closed-form ordinary least squares solution. [1]",
+    "The expected prediction error decomposes into three parts: the squared bias of the model, the variance of the model across different training sets, and irreducible noise. The training MSE systematically underestimates test MSE because the model has seen the training labels; cross-validation corrects for this optimism. [2]"
   ],
   "deepDive": [
     {
       "heading": "Definition and Gradient",
-      "body": "L = (1/n) Σᵢ (yᵢ - ŷᵢ)². The gradient with respect to prediction ŷᵢ is ∂L/∂ŷᵢ = -2/n (yᵢ - ŷᵢ). The gradient with respect to model parameter w is ∂L/∂w = (2/n) Σᵢ (ŷᵢ - yᵢ) ∂ŷᵢ/∂w via chain rule. For a linear model ŷ = wᵀx: ∂L/∂w = -(2/n) Xᵀ(y - Xw). Setting to zero gives the normal equations: w* = (XᵀX)⁻¹Xᵀy. [1]",
+      "body": "MSE is the average squared difference between true and predicted values. Its gradient with respect to each prediction is proportional to the residual — larger errors produce larger gradient signals, which accelerates convergence when predictions are far from the truth. For a linear model, setting the gradient to zero gives the normal equations with the familiar closed-form solution. [1]",
       "formula": "L = (1/n) Σᵢ (yᵢ - ŷᵢ)²"
     },
     {
       "heading": "MSE vs MAE vs Huber: Outlier Sensitivity",
-      "body": "MSE contribution from one sample: (yᵢ - ŷᵢ)². If residual = 10, MSE contribution = 100; MAE = 10. MSE is super-linear in error — an outlier with 10× typical error contributes 100× to MSE but only 10× to MAE. The Huber loss interpolates: quadratic for |e| ≤ δ, linear for |e| > δ. This gives MSE-like gradients for small residuals and MAE-like robustness for large ones. Choosing δ ≈ median absolute deviation is a data-driven rule of thumb. [3]",
+      "body": "Because errors are squared, an outlier with ten times the typical residual contributes a hundred times as much to MSE but only ten times as much to MAE. The Huber loss smoothly interpolates: it behaves like squared error for small residuals and like absolute error for large ones, giving stable gradients near zero while avoiding the outsized influence of extreme errors. A good default for the transition threshold is the median absolute deviation of the residuals. [3]",
       "formula": "L_Huber = 0.5e² if |e| ≤ δ, else δ|e| − 0.5δ²"
     },
     {
       "heading": "RMSE and Normalised MSE",
-      "body": "RMSE = √MSE puts the loss back in the units of y, making it interpretable as 'average deviation'. For comparing across datasets with different y scales, use normalised RMSE: NRMSE = RMSE / (y_max − y_min) or NRMSE = RMSE / ȳ. R² = 1 − MSE / Var(y) measures fraction of variance explained; R²=1 is perfect, R²=0 means the model is no better than predicting the mean, R² can be negative for models worse than the mean. [1]",
+      "body": "Taking the square root of MSE gives RMSE, which is in the same units as the target and interpretable as an average error magnitude. R-squared measures the fraction of target variance explained by the model: a value of 1 is perfect, 0 means the model does no better than predicting the mean, and negative values indicate a model worse than that baseline. [1]",
       "formula": "R² = 1 − Σ(yᵢ−ŷᵢ)² / Σ(yᵢ−ȳ)²"
     },
     {
       "heading": "Why MSE Fails for Classification",
-      "body": "For binary classification with sigmoid output ŷ ∈ (0,1) and labels y ∈ {0,1}: MSE gradient is ∂L/∂z = (ŷ − y) σ'(z) where σ'(z) = σ(z)(1−σ(z)). When predictions are saturated (ŷ ≈ 0 or 1), σ'(z) ≈ 0 and gradients vanish — training slows catastrophically. Cross-entropy avoids this: its gradient with sigmoid is simply (ŷ − y), not modulated by the derivative of sigmoid. [1]"
+      "body": "When a sigmoid output is nearly saturated — very close to 0 or 1 — the gradient of MSE with respect to the network's input is extremely small because it is multiplied by the sigmoid's own flat derivative. This causes learning to stall when the model is confidently wrong. Cross-entropy avoids this problem: its gradient through a sigmoid is simply the prediction error, independent of how saturated the sigmoid is. [1]"
     }
   ],
   "youtubeLabel": "MSE & MAE Loss Functions — StatQuest",

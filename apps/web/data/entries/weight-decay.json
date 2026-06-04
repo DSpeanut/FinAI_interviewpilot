@@ -24,8 +24,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Weight decay for SGD: wₜ₊₁ = wₜ − η∇L_data(wₜ) − ηλwₜ = wₜ(1−ηλ) − η∇L_data. This is exactly the same as the gradient update for L_total = L_data + (λ/2)‖w‖² (L2 penalty): ∂L_total/∂w = ∂L_data/∂w + λw, so wₜ₊₁ = wₜ − η(∂L_data/∂w + λw) = wₜ(1−ηλ) − η∂L_data/∂w. For SGD, weight_decay and L2 regularisation are identical. [1]",
-    "For Adam, L2 reg (Adam with weight_decay) modifies the gradient: g_reg = g + λw. This then goes through the adaptive scaling: w ← w − η·m̂(g_reg)/√(v̂(g_reg)+ε). The effective regularisation strength per parameter is η·λ/√(v̂+ε) — varying per parameter. AdamW (Loshchilov & Hutter, 2019) fixes this by applying the weight decay step separately after the Adam update, giving uniform regularisation η·λ per parameter. [2]"
+    "For SGD, weight decay and L2 regularisation produce identical update rules: subtracting a fraction of each weight at every step is mathematically the same as adding a squared-weight penalty to the loss before differentiating. The two descriptions are different ways of writing the same computation. [1]",
+    "For Adam, the equivalence breaks down. Adding an L2 penalty to the loss means the regularisation gradient gets passed through Adam's adaptive scaling, so the effective regularisation strength varies from parameter to parameter depending on each one's gradient history. AdamW separates the weight decay step from the gradient update entirely, applying a uniform shrinkage directly to the weights after the Adam step rather than folding it into the gradient. This separation is what makes AdamW the correct implementation of weight decay for adaptive optimisers. [2]"
   ],
   "deepDive": [
     {

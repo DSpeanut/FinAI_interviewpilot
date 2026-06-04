@@ -19,8 +19,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Perplexity derivation: Shannon entropy H(p) = −Σw p(w) log p(w) measures uncertainty. Cross-entropy H(p, q) = −Σw p(w) log q(w) measures how well model q approximates true distribution p. For a test corpus W = w₁,…,wₙ: H(W, q) ≈ −(1/n) Σᵢ log q(wᵢ|w₁,…,wᵢ₋₁) (empirical cross-entropy). Perplexity: PPL = 2^{H(W,q)} (base-2 bits) or exp(H(W,q)) (natural log, as used in practice with PyTorch cross-entropy loss).",
-    "Bits-per-character (BPC) and bits-per-word (BPW) are related metrics: BPC = −(1/|chars|) Σᵢ log₂P(charᵢ|prev chars); used for character-level LMs. Relation: if tokenizer averages k characters per token, then BPC ≈ BPW/k approximately. For subword LMs, the 'per-token perplexity' depends heavily on tokenization — SentencePiece with 32K vocab and GPT-2 BPE with 50K vocab give different per-token perplexities for the same underlying model quality."
+    "Perplexity is the exponential of the average cross-entropy per token on a test set. Cross-entropy measures how many bits (or nats) the model spends on average to encode each token given its context; perplexity converts that to the equivalent number of uniformly random choices at each step. Lower perplexity means the model assigns higher probability to the actual text and is less surprised.",
+    "Bits-per-character is a tokenizer-independent alternative that normalises the total information cost by the number of characters rather than tokens. Because different tokenisers split text into different numbers of tokens, per-token perplexity cannot be compared across models that use different vocabularies, but bits-per-character or bits-per-byte allows fairer comparison."
   ],
   "deepDive": [
     {

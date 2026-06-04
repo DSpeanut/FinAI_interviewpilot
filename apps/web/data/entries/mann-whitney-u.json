@@ -23,8 +23,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Given two independent samples X₁,…,Xₙ₁ and Y₁,…,Yₙ₂, compute U₁ = Σᵢ Σⱼ 1{Xᵢ > Yⱼ} (number of times a group-1 observation exceeds a group-2 observation). Note U₁ + U₂ = n₁n₂. Test statistic: U = min(U₁,U₂). Under H₀ (same distribution), E[U₁] = n₁n₂/2. Equivalently, compute the Wilcoxon rank-sum statistic W = sum of ranks in group 1; U₁ = W − n₁(n₁+1)/2.",
-    "For large samples (n₁,n₂ ≥ 10), U is approximately normal: z = (U₁ − n₁n₂/2) / √(n₁n₂(n₁+n₂+1)/12) under H₀. For ties, apply the continuity correction to the variance. For small samples, exact critical values are tabulated."
+    "The Mann-Whitney statistic counts how many times a value from group 1 exceeds a value from group 2 across all possible pairings. Under the null hypothesis that both groups have the same distribution, this count should be close to half the total number of pairs. The equivalent Wilcoxon rank-sum statistic works by ranking all observations together and summing the ranks from one group.",
+    "For samples of at least 10 in each group, the statistic is approximately normally distributed, and a standard z-score can be used to compute the p-value. For smaller samples, exact critical values are available in tables. Tied values are handled by assigning mid-ranks and applying a small correction to the variance."
   ],
   "visualizationType": "mann-whitney-u",
   "deepDive": [

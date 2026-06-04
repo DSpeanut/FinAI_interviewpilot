@@ -24,22 +24,22 @@
     }
   ],
   "deepDiveIntro": [
-    "The theoretical justification for decreasing learning rates comes from stochastic approximation theory (Robbins-Monro, 1951): SGD converges almost surely if Σₜ ηₜ = ∞ and Σₜ ηₜ² < ∞. A standard choice satisfying both: ηₜ = c/t (1/t decay). In practice, this decays too quickly — cosine annealing and step decay are empirical approximations that work better. [1]",
-    "Cyclical learning rates (Smith, 2017) challenged the monotone decrease paradigm: oscillating between η_min and η_max can escape saddle points and find flat minima. SGDR (Loshchilov & Hutter, 2016) adds cosine warm restarts: cosine decay to η_min, then reset to η_max and repeat. The restart allows re-exploration and ensemble-like effects — model snapshots at each restart are diverse and can be averaged. [2]"
+    "Stochastic approximation theory requires the learning rate to decrease over time for SGD to converge: the sum of all learning rates must be infinite (to reach the optimum), and the sum of their squares must be finite (to control noise). A simple 1/t schedule satisfies both conditions but decays too aggressively in practice. Cosine annealing and step decay are empirical approximations that work better on real problems. [1]",
+    "Cyclical learning rates challenge the idea that the schedule must monotonically decrease. Oscillating between a low and a high rate can help the optimizer escape saddle points and find wider minima. Cosine warm restarts take this further by periodically resetting the rate to its maximum and repeating the decay cycle, producing diverse model snapshots that can be averaged for better generalization. [2]"
   ],
   "deepDive": [
     {
       "heading": "Cosine Annealing Formula",
-      "body": "η_t = η_min + 0.5(η_max − η_min)(1 + cos(πt/T_max)). At t=0: η = η_max. At t=T_max/2: η = (η_max+η_min)/2. At t=T_max: η = η_min. The cosine shape keeps the learning rate high for most of training (first half) and then rapidly reduces it. SGDR (Stochastic Gradient Descent with Warm Restarts): after each cycle of T_max steps, reset t=0 and optionally increase T_max (T_mult > 1). [2]",
+      "body": "The cosine schedule starts at the peak learning rate and follows a cosine curve down to the minimum, spending more time at higher rates in the first half of training and then quickly settling. At the midpoint, the rate is halfway between maximum and minimum; at the end it reaches the minimum. SGDR resets the rate to the maximum after each cycle, allowing re-exploration and producing a diverse collection of model snapshots. [2]",
       "formula": "η_t = η_min + 0.5(η_max − η_min)(1 + cos(πt/T_max))"
     },
     {
       "heading": "Linear Warmup",
-      "body": "η_t = η_max · t/T_warmup for t ≤ T_warmup, then follow main schedule. Prevents divergence at initialisation when gradients are large and the second moment estimate v in Adam is near zero (so m̂/(√v̂+ε) is very large). Typical T_warmup: 500–2000 steps (or 1–5% of total steps). The 'warm start' is especially critical for AdamW: a cold start with lr=1e-3 can produce NaN in the first 100 steps. T_warmup ≈ 2000 steps is standard for LLMs. [1]"
+      "body": "During warmup, the learning rate increases linearly from near zero to its peak over a fixed number of steps. This prevents large, destructive updates at the start of training when gradients are noisy and Adam's second-moment estimate is not yet reliable. A warmup of 500 to 2000 steps is standard for LLMs; for AdamW, skipping warmup can cause NaN losses in the first hundred steps. [1]"
     },
     {
       "heading": "Polynomial and Inverse Square Root",
-      "body": "Polynomial decay: η_t = η_max · (1 − t/T)^p. p=1: linear decay. p=2: quadratic. Used in BERT fine-tuning and T5. Inverse square root: η_t = η_max / √max(t, T_warmup) — the schedule from Vaswani et al. (2017) in 'Attention is All You Need'. Combines warmup (t < T_warmup) with slow decay (t > T_warmup). For d_model=512: η = (1/√d_model) · min(t^(−0.5), t·T_warmup^(−1.5)). [3]",
+      "body": "Polynomial decay reduces the learning rate according to a power of the fraction of training remaining — linear with power 1, quadratic with power 2. BERT fine-tuning and T5 use this approach. The inverse square root schedule from the original transformer paper first ramps up during warmup, then decays slowly by dividing the peak rate by the square root of the step number, giving a schedule that naturally balances exploration and convergence. [3]",
       "formula": "Transformer: η_t = d_model^(−0.5) · min(t^(−0.5), t·T_warmup^(−1.5))"
     }
   ],

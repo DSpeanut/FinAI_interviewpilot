@@ -24,8 +24,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Binary hinge loss: L = (1/n) Σᵢ max(0, 1 − yᵢ f(xᵢ)) where yᵢ ∈ {−1, +1} and f(xᵢ) = wᵀxᵢ + b is the decision score. The loss is zero when yᵢ f(xᵢ) ≥ 1 (correctly classified with margin), and linear in violation otherwise. Combining with L2 penalty gives the SVM primal: min_w (λ‖w‖²/2) + (1/n)Σmax(0, 1 − yᵢ wᵀxᵢ). [1]",
-    "Hinge loss is a convex upper bound on the 0-1 loss. The 0-1 loss (1 if misclassified, 0 if not) is NP-hard to minimise directly — hinge provides a tractable surrogate. Other surrogate losses: logistic (cross-entropy), exponential (AdaBoost). Hinge is tighter than logistic for large-margin examples and sparser in its gradient. [2]"
+    "Binary hinge loss computes zero for any point that is correctly classified with at least unit margin, and a loss proportional to the shortfall otherwise. Adding an L2 penalty on the weights to this sum gives exactly the soft-margin SVM primal objective — so SVM training is equivalent to minimising hinge loss with L2 regularisation. [1]",
+    "Hinge loss is a convex upper bound on the 0-1 classification error, which is NP-hard to minimise directly. Other surrogate losses such as logistic (cross-entropy) and exponential (used in AdaBoost) play the same role. Hinge produces sparser gradients than logistic: points classified correctly beyond the margin contribute nothing to the update, so only support vectors drive learning. [2]"
   ],
   "deepDive": [
     {

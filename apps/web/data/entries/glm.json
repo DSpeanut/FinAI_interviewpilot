@@ -19,8 +19,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Exponential family: f(y|θ,φ) = exp[(yθ − b(θ))/a(φ) + c(y,φ)], where θ is the canonical parameter, φ is the dispersion parameter. Key properties: E[Y] = b'(θ), Var(Y) = b''(θ)·a(φ). The variance function V(μ) = b''(θ) characterizes each distribution: Normal → V = 1, Poisson → V = μ, Binomial(n,p) → V = μ(1−μ/n), Gamma → V = μ².",
-    "IRLS for GLMs: at each step, compute working response z = η̂ + (y−μ̂)·(dη/dμ) and weight W = diag(1/[Var(μᵢ)(dηᵢ/dμᵢ)²]), then solve β⁽ᵗ⁺¹⁾ = (X'WX)⁻¹X'Wz. This is equivalent to Newton-Raphson on the log-likelihood. Convergence is guaranteed for canonical links and well-conditioned data."
+    "The exponential family is a broad class of distributions — Normal, Poisson, Binomial, Gamma, and others — that share a common mathematical structure. Each member is characterized by how its variance grows with its mean: for the Normal it is constant, for the Poisson it equals the mean, and for the Gamma it grows as the square of the mean. This variance-mean relationship determines which distribution fits a given type of outcome.",
+    "GLMs are estimated by iteratively reweighted least squares (IRLS), which repeatedly solves a weighted regression problem using a linearized version of the outcome. Each iteration updates weights and a working response based on the current parameter estimates, then refits. This is mathematically equivalent to Newton-Raphson on the log-likelihood, and is guaranteed to converge for canonical links and well-conditioned data."
   ],
   "deepDive": [
     {

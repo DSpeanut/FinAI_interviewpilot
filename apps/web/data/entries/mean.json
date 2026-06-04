@@ -23,8 +23,8 @@
     }
   ],
   "deepDiveIntro": [
-    "The arithmetic mean of a sample x₁, …, xₙ is x̄ = (1/n)Σᵢxᵢ. For a random variable X with density f(x), the population mean is μ = E[X] = ∫x f(x)dx. The sample mean x̄ is an unbiased estimator of μ: E[x̄] = μ. Its variance is Var(x̄) = σ²/n, which decreases with sample size — the formal basis for the law of large numbers.",
-    "The mean uniquely minimises the sum of squared deviations: argmin_c Σ(xᵢ−c)² = x̄. In contrast, the median minimises the sum of absolute deviations, and the mode is the most probable value. This geometric property connects the mean directly to least-squares estimation and MSE loss."
+    "The arithmetic mean is the sum of all values divided by the count. For a random variable, the population mean is the expected value — the long-run average if you could observe infinitely many draws. The sample mean is an unbiased estimator of the population mean, and its variability shrinks as sample size grows — this is the formal basis of the law of large numbers.",
+    "The mean is the unique value that minimizes the sum of squared deviations. The median minimizes the sum of absolute deviations instead, which explains why the median is more robust to outliers. This least-squares property connects the mean directly to ordinary least squares regression and MSE loss."
   ],
   "visualizationType": "mean",
   "deepDive": [
@@ -49,7 +49,7 @@
     },
     {
       "heading": "Mean vs Expected Value",
-      "body": "Expected value is the long-run average implied by the population distribution, while the sample mean is the estimate computed from observed data. As the sample size grows, the sample mean settles closer to the population mean, and its fluctuations become more predictable. This is why the mean sits at the center of estimation, confidence intervals, and many classical statistical procedures.",
+      "body": "Expected value is the long-run average implied by the population distribution, while the sample mean is its estimate from observed data. As sample size grows, the sample mean converges to the population mean and its fluctuations shrink predictably. By the Central Limit Theorem, the standardized sample mean follows an approximately standard normal distribution for large samples, enabling z-tests and confidence intervals.",
       "formula": "E[X] = Σₖ xₖ P(X=xₖ) or ∫ x f(x) dx,   √n(x̄ − μ)/σ → N(0,1)"
     }
   ],

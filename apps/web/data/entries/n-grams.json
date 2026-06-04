@@ -19,13 +19,13 @@
     }
   ],
   "deepDiveIntro": [
-    "N-gram LM probability: P(w₁,…,wₙ) = ΠᵢP(wᵢ|wᵢ₋₍N₋₁₎,…,wᵢ₋₁) (chain rule + Markov assumption). Maximum likelihood estimate: P_MLE(wₙ|context) = C(context, wₙ)/C(context). Sparsity: MLE assigns P=0 to unseen N-grams → undefined log-probability for evaluation. Smoothing redistributes probability mass to unseen N-grams.",
-    "Kneser-Ney smoothing: uses the continuation count — how many unique words follow a given context — rather than the raw count. This captures the intuition that a word that appears in many different contexts (like 'Francisco' only after 'San') has low continuation probability. Interpolated KN: P_KN(wₙ|context) = max(C(context,wₙ)−d, 0)/C(context) + λ(context)·P_KN(wₙ|shorter context), where d ≈ 0.75 is the discount."
+    "An N-gram language model estimates the probability of the next word given the previous N minus 1 words by counting how often that sequence appears in a training corpus divided by how often the context appears. Most N-gram sequences never appear in training, so this maximum-likelihood estimate assigns zero probability to many valid continuations — making evaluation undefined.",
+    "Kneser-Ney smoothing addresses the sparsity problem by using a continuation count instead of a raw count: it asks how many distinct contexts a word appears in, rather than how often the word appears. A word like 'Francisco' that only appears after 'San' gets a low continuation probability, while a truly flexible word gets a higher one. A small probability mass is reserved from every observed context and redistributed to unobserved completions using this continuation signal."
   ],
   "deepDive": [
     {
       "heading": "N-gram Probability Estimation and Sparsity",
-      "body": "Bigram LM: P(wᵢ|wᵢ₋₁) = C(wᵢ₋₁,wᵢ)/C(wᵢ₋₁). For V=50K vocabulary: possible bigrams = V² = 2.5B — most never appear in any corpus. Trigrams: V³ = 125T possible, astronomically sparse. Data sparsity grows exponentially with N. Larger N captures more context but is sparser. In practice: N≤5 for word N-grams (beyond N=5 almost no gain). Character N-grams: N=3–6, much smaller character vocabulary makes them denser. [1]",
+      "body": "A bigram model estimates the probability of a word given the preceding word by dividing the count of that word pair by the count of the preceding word. For a 50,000-word vocabulary there are 2.5 billion possible bigrams, most of which never appear in any training corpus. Sparsity grows exponentially with N. In practice, word N-grams beyond order 5 provide almost no gain, while character N-grams are much denser because the character vocabulary is far smaller. [1]",
       "formula": "P(wₙ|wₙ₋₁) = C(wₙ₋₁, wₙ) / C(wₙ₋₁)"
     },
     {
@@ -34,7 +34,7 @@
     },
     {
       "heading": "BLEU and ROUGE Metrics",
-      "body": "BLEU (Papineni et al. 2002): BLEU = BP · exp(Σₙwₙ·log pₙ), where pₙ = modified N-gram precision (clipped by reference counts), BP = brevity penalty (exp(1−r/c) if c<r). Uniform weights wₙ=0.25 for N=1..4 is standard (BLEU-4). ROUGE-N: recall of N-gram overlaps. ROUGE-L: longest common subsequence. BLEU correlates with human judgment for MT, ROUGE for summarization — both have weaknesses (no synonyms, no semantics). BERTScore uses contextual embeddings for semantic similarity. [2]",
+      "body": "BLEU measures translation quality as the geometric mean of N-gram precision scores for orders 1 through 4, multiplied by a brevity penalty that discourages very short outputs. A standard single BLEU-4 score uses equal weights across all four orders. ROUGE measures summarization quality as N-gram recall between the generated summary and reference summaries. Both metrics ignore synonyms and word order beyond the N-gram window, which limits their correlation with human judgments. [2]",
       "formula": "BLEU = BP · exp(Σₙ₌₁⁴ 0.25·log pₙ)"
     },
     {

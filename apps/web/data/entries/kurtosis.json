@@ -23,8 +23,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Population kurtosis: κ = E[(X−μ)⁴]/σ⁴ = μ₄/σ⁴ (fourth standardised central moment). Excess kurtosis: γ₂ = κ − 3. The subtraction of 3 makes the normal distribution the reference (κ_normal = 3). Positive excess kurtosis: heavier tails than normal (leptokurtic). Negative: lighter tails (platykurtic).",
-    "Sample excess kurtosis (Fisher's adjusted): ĝ₂ = [(n(n+1))/((n−1)(n−2)(n−3)) Σ((xᵢ−x̄)/s)⁴] − [3(n−1)²/((n−2)(n−3))]. This is unbiased to O(1/n²) for normal populations. The simpler sample kurtosis m₄/m₂² is consistent but biased."
+    "Kurtosis is the fourth standardized central moment — it averages the fourth power of deviations from the mean, divided by the variance squared. Excess kurtosis subtracts three so that the normal distribution serves as the zero reference. Positive excess kurtosis indicates heavier tails than normal; negative indicates lighter tails. The sample version applies a finite-sample correction factor to reduce bias.",
+    "formula: γ₂ = E[(X−μ)⁴] / σ⁴ − 3"
   ],
   "visualizationType": "kurtosis",
   "deepDive": [

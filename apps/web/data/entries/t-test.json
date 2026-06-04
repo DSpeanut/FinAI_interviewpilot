@@ -23,8 +23,9 @@
     }
   ],
   "deepDiveIntro": [
-    "One-sample t-test: T = (x̄ − μ₀)/(s/√n) where s = √[Σ(xᵢ−x̄)²/(n−1)] is the sample standard deviation. Under H₀: μ = μ₀ with X₁,…,Xₙ ~ N(μ,σ²), T ~ t(n−1) (Student's t-distribution with n−1 degrees of freedom). The t-distribution arises because T = Z/√(χ²_{n−1}/(n−1)) where Z = (x̄−μ)/(σ/√n) ~ N(0,1) and (n−1)s²/σ² ~ χ²(n−1) are independent.",
-    "The Welch two-sample t-test (Welch 1947) handles unequal variances: T = (x̄₁−x̄₂)/√(s₁²/n₁ + s₂²/n₂) with degrees of freedom given by the Welch-Satterthwaite approximation. It is the recommended default over Student's t-test, which assumes equal variances."
+    "The one-sample t-test divides the deviation of the sample mean from the hypothesized value by the estimated standard error. Under the null hypothesis with normal data, this ratio follows a t-distribution with n-minus-one degrees of freedom. The t-distribution arises because the sample variance is estimated from the same data rather than known, adding extra uncertainty relative to the z-test — uncertainty that inflates the tails and shrinks with increasing sample size.",
+    "The Welch two-sample t-test handles the common situation where the two groups have different variances. It uses a combined standard error and approximates the degrees of freedom using the Welch-Satterthwaite formula. It is the recommended default over the pooled Student t-test because the equal-variance assumption is rarely verified in practice.",
+    "formula: T = (x̄ − μ₀) / (s / √n)  ~  t(n−1)"
   ],
   "visualizationType": "t-test",
   "deepDive": [

@@ -23,8 +23,8 @@
     }
   ],
   "deepDiveIntro": [
-    "To optimize f(x) subject to equality constraint g(x) = 0, form the Lagrangian L(x,λ) = f(x) - λg(x). At optima, ∇ₓL = 0 and ∂L/∂λ = 0 (which recovers g(x) = 0). The condition ∇f = λ∇g means objective and constraint gradients are parallel.",
-    "For multiple constraints gᵢ(x) = 0, L = f(x) - Σ λᵢgᵢ(x). The multiplier λᵢ represents the rate of change of the optimal value with respect to relaxing constraint i: λᵢ = d(f*)/d(bᵢ) if constraint is gᵢ(x) = bᵢ. Inequality constraints use KKT conditions (generalization with complementary slackness)."
+    "To optimize an objective subject to an equality constraint, form the Lagrangian by subtracting the multiplier times the constraint from the objective. Setting all partial derivatives to zero gives the stationarity conditions: the constraint is satisfied, and the objective and constraint gradients point in the same direction. The multiplier measures how sensitive the optimal value is to a small relaxation of the constraint.",
+    "With multiple equality constraints, one multiplier is assigned to each, and the Lagrangian sums all of them. Each multiplier is the rate at which the optimal objective value changes when that constraint is loosened slightly. Inequality constraints are handled by the Karush-Kuhn-Tucker conditions, which add the rule that a multiplier must be zero whenever the corresponding constraint is not active."
   ],
   "visualizationType": "lagrange-multipliers",
   "deepDive": [

@@ -23,8 +23,9 @@
     }
   ],
   "deepDiveIntro": [
-    "Sample standard deviation s = √s² = √[Σ(xᵢ−x̄)²/(n−1)]. Note: s is NOT an unbiased estimator of σ even though s² is unbiased for σ². This is because E[√s²] ≠ √E[s²] by Jensen's inequality (√ is concave). The bias is small for large n and is rarely corrected in practice.",
-    "For a normal distribution N(μ,σ²), the standard deviation σ fully characterises the spread. The empirical rule (68-95-99.7) follows directly from the normal CDF: Φ(1)−Φ(−1) ≈ 0.683, Φ(2)−Φ(−2) ≈ 0.954, Φ(3)−Φ(−3) ≈ 0.997."
+    "The sample standard deviation is the square root of the sample variance, computed with n-minus-one in the denominator to make the variance unbiased. Taking the square root introduces a small downward bias in the standard deviation itself because the square root is a concave function, but this correction is negligible for samples larger than about thirty and is rarely applied in practice.",
+    "For normally distributed data, the standard deviation fully characterizes the spread. The 68-95-99.7 rule follows directly from the areas under the normal curve within one, two, and three standard deviations of the mean respectively.",
+    "formula: s = √[ (1/(n−1)) Σᵢ (xᵢ − x̄)² ]"
   ],
   "visualizationType": "standard-deviation",
   "deepDive": [

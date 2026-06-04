@@ -24,18 +24,18 @@
     }
   ],
   "deepDiveIntro": [
-    "The rating matrix R ∈ ℝ^{m×n} is approximated as R ≈ PQᵀ, where P ∈ ℝ^{m×k} (user factors) and Q ∈ ℝ^{n×k} (item factors). The objective (regularised): min_{P,Q} Σ_{(u,i)∈Ω} (r_{u,i} − pᵤᵀqᵢ)² + λ(‖P‖²_F + ‖Q‖²_F), where Ω = set of observed (user, item) pairs. Koren, Bell & Volinsky (2009) add biases: r̂_{u,i} = μ + b_u + b_i + pᵤᵀqᵢ, where μ = global mean, b_u = user bias, b_i = item bias. Biases absorb systematic offsets (harsh raters, popular items), improving prediction accuracy. [1]",
-    "Funk SVD (Simon Funk, 2006, Netflix Prize): SGD update rules — ε_{u,i} = r_{u,i} − r̂_{u,i}; p_u ← p_u + η(ε_{u,i}·q_i − λ·p_u); q_i ← q_i + η(ε_{u,i}·p_u − λ·q_i). ALS update (closed form, parallelizable): p_u = (QᵀQ + λI)⁻¹Qᵀr_u for each user u independently. ALS is preferred for implicit feedback because all (u,i) pairs appear in the loss (including unobserved), making the matrix system dense and closed-form solvable per user. [2]"
+    "The user-item rating matrix is approximated by the product of a user factor matrix and an item factor matrix. The objective minimizes prediction error on observed ratings plus a regularization penalty on the magnitudes of both matrices. Adding user and item bias terms — absorbing the tendency of some users to rate harshly and some items to attract higher ratings overall — substantially improves prediction accuracy. [1]",
+    "SGD updates one observed rating at a time: compute the error, then nudge both the user and item factor vectors slightly toward each other. ALS instead fixes one matrix and solves for the other in closed form, then alternates. ALS is particularly well suited to implicit feedback because the dense system it creates can be solved in parallel for each user independently. [2]"
   ],
   "deepDive": [
     {
       "heading": "Funk SVD and the Netflix Prize",
-      "body": "This section explains the main idea behind this part of the method in plain language.",
+      "body": "Simon Funk popularized matrix factorization during the Netflix Prize by using SGD on observed ratings only, adding user and item bias terms to absorb systematic rating tendencies. The predicted rating for a user-item pair is the global average plus a user offset, an item offset, and the dot product of the user and item latent vectors.",
       "formula": "r̂_{u,i} = μ + b_u + b_i + pᵤᵀqᵢ   [with global mean and user/item biases]"
     },
     {
       "heading": "BPR: Bayesian Personalized Ranking for Implicit Feedback",
-      "body": "This section explains the main idea behind this part of the method in plain language.",
+      "body": "Bayesian Personalized Ranking trains on triples of a user, an item they interacted with, and a randomly sampled item they did not interact with. The model learns to score the interacted item higher than the unobserved one. This directly optimizes ranking quality rather than prediction error, which is more appropriate when the goal is to recommend a list of items.",
       "formula": "BPR objective: max Σ_{(u,i,j)} ln σ(x̂_{uij}) − λ‖Θ‖²,   x̂_{uij} = r̂_{u,i} − r̂_{u,j}"
     },
     {

@@ -19,8 +19,8 @@
     }
   ],
   "deepDiveIntro": [
-    "The logistic regression model: P(Y=1|X) = σ(Xβ) = 1/(1+exp(−Xβ)), where σ(·) is the logistic function. Log-likelihood: ℓ(β) = Σᵢ [yᵢ(Xᵢβ) − log(1+exp(Xᵢβ))] = Σᵢ [yᵢ log pᵢ + (1−yᵢ)log(1−pᵢ)]. Score (gradient): ∂ℓ/∂β = X'(y−p) where pᵢ = σ(Xᵢβ). Hessian: ∂²ℓ/∂β² = −X'WX where W = diag(p₁(1−p₁),…,pₙ(1−pₙ)) — negative definite, confirming global concavity.",
-    "IRLS (Iteratively Reweighted Least Squares): at each step, compute working response z = Xβ⁽ᵗ⁾ + W⁻¹(y−p) and weight matrix W, then solve the WLS problem β⁽ᵗ⁺¹⁾ = (X'WX)⁻¹X'Wz. This is Newton-Raphson applied to the log-likelihood and converges in a few iterations for well-conditioned problems."
+    "Logistic regression models the probability of the positive class as the logistic function applied to a linear combination of predictors. The log-likelihood is the sum of log probabilities of each observed outcome, and because the Hessian of this function is always negative definite, the likelihood surface is globally concave — there is a unique maximum and no local optima to worry about.",
+    "Coefficients are found by iteratively reweighted least squares (IRLS), which is Newton-Raphson applied to the log-likelihood. At each iteration the algorithm solves a weighted least-squares problem using a working response and weight matrix derived from the current probability estimates. This converges in a handful of iterations for well-behaved data."
   ],
   "deepDive": [
     {

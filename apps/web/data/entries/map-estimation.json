@@ -19,8 +19,8 @@
     }
   ],
   "deepDiveIntro": [
-    "θ̂_MAP = argmax_θ P(θ|x) = argmax_θ [log P(x|θ) + log P(θ)]. This combines the log-likelihood (data fit) with the log-prior (regularization). The gradient condition at the MAP: ∂ log P(x|θ)/∂θ + ∂ log P(θ)/∂θ = 0. Compare to MLE: ∂ log P(x|θ)/∂θ = 0.",
-    "Key difference from MLE: MAP is not invariant to reparametrization. If θ̂ is the MAP for θ, g(θ̂) is generally NOT the MAP for g(θ) (because the Jacobian of the transformation changes the prior). This contrasts with MLE's invariance property. The posterior mean and posterior median ARE transformation-invariant (in the limit of the full posterior)."
+    "MAP estimation finds the parameter value that maximises the posterior, which combines the log-likelihood with the log-prior. This is conceptually the same as maximum likelihood estimation but with an extra term that penalises implausible parameter values. At the optimal point, the gradient of the data fit is exactly cancelled by the gradient of the log-prior.",
+    "A key difference from MLE is that MAP estimates are not invariant to reparametrisation. Transforming the parameters changes the prior through a Jacobian factor, so the mode of the posterior shifts. The posterior mean and median, by contrast, are transformation-invariant in the full Bayesian sense but require integrating over the entire posterior rather than just finding its peak."
   ],
   "deepDive": [
     {

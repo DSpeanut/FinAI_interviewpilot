@@ -19,8 +19,8 @@
     }
   ],
   "deepDiveIntro": [
-    "A Markov chain {θ⁽ᵗ⁾} with transition kernel K(θ'|θ) is ergodic if it has a unique stationary distribution π. The detailed balance condition K(θ'|θ)π(θ) = K(θ|θ')π(θ') (reversibility) guarantees π is the stationary distribution. MCMC algorithms construct K to have detailed balance w.r.t. the target posterior π = P(θ|x). By the ergodic theorem, time averages converge to expectations under π: (1/T)Σ f(θ⁽ᵗ⁾) → E_π[f(θ)] as T→∞.",
-    "The mixing time of the chain (how long until samples look like draws from π) depends on the geometry of the posterior. Metropolis-Hastings mixes slowly in high dimensions and for correlated parameters. Gibbs sampling (sampling each parameter from its full conditional, conditional on all others) avoids proposal tuning but requires closed-form conditionals. HMC uses gradient information to make large, directed jumps across the posterior."
+    "MCMC algorithms work by constructing a Markov chain whose long-run behavior matches the target distribution. A sufficient condition is detailed balance: the probability of transitioning from state A to state B weighted by the probability of being at A equals the reverse. The ergodic theorem then guarantees that running-average functions of the chain converge to their expectations under the target as the chain length grows. The acceptance ratio in Metropolis-Hastings is designed to enforce detailed balance with respect to the posterior.",
+    "How quickly the chain converges to its stationary distribution depends on the shape of the posterior and the quality of the proposal. Random-walk Metropolis mixes slowly in high dimensions and when parameters are strongly correlated. Gibbs sampling sidesteps proposal tuning by drawing each parameter from its exact full conditional, but mixes poorly when parameters are correlated. Hamiltonian Monte Carlo uses gradient information to make large directed moves across the posterior surface."
   ],
   "deepDive": [
     {

@@ -24,27 +24,27 @@
     }
   ],
   "deepDiveIntro": [
-    "L1 regularised loss: L_total = L_data + λΣⱼ|wⱼ|. For linear regression, this is Lasso (Least Absolute Shrinkage and Selection Operator, Tibshirani, 1996). Lasso has no closed-form solution (unlike Ridge), but the coordinate descent algorithm solves it efficiently: update each wⱼ separately using the soft-thresholding operator. The solution has the property that many wⱼ = 0 exactly. [1]",
-    "Geometric interpretation: the L1 constraint ‖w‖₁ ≤ t defines a diamond (L1 ball) in weight space. The Lagrangian formulation shows that minimising L_data + λ‖w‖₁ is equivalent to minimising L_data subject to ‖w‖₁ ≤ t (for some t(λ)). The diamond has corners on the axes — the optimal solution is likely to hit a corner where all but one weight is zero. This is why L1 produces sparsity. [1]"
+    "The L1-regularized loss adds a penalty proportional to the sum of absolute weight values to the data loss. For linear regression this is Lasso. Unlike Ridge, Lasso has no closed-form solution, but coordinate descent solves it efficiently by updating one weight at a time using soft-thresholding: weights smaller than the threshold get set to exactly zero. [1]",
+    "Geometrically, the L1 constraint restricts the weight vector to lie inside a diamond shape in parameter space. Because the diamond has corners aligned with the coordinate axes, the optimal solution is likely to land at a corner where most weights are exactly zero. This geometry explains why L1 produces sparsity where L2 does not. [1]"
   ],
   "deepDive": [
     {
       "heading": "Gradient and Soft-Thresholding",
-      "body": "Subgradient of |wⱼ|: sign(wⱼ) for wⱼ ≠ 0; any value in [−1, 1] for wⱼ = 0. The L1 update: wⱼ ← wⱼ − η(∂L_data/∂wⱼ + λ sign(wⱼ)). This nudges weights toward zero by λη at each step. The proximal operator for L1 (used in ISTA/ADMM): prox_{ηλ‖·‖₁}(v)ⱼ = sign(vⱼ)·max(|vⱼ|−ηλ, 0) — soft thresholding. Small weights (|vⱼ| < ηλ) are exactly zeroed. Large weights are shrunk by ηλ. [1]",
+      "body": "The L1 penalty pushes each weight toward zero with a constant force equal to the regularization strength, regardless of how small the weight already is. The proximal update — called soft-thresholding — subtracts this amount from the weight's magnitude and clips the result at zero: weights whose magnitude falls below the threshold are set to exactly zero, while larger weights are simply shrunk by the threshold amount. [1]",
       "formula": "Soft thresholding: wⱼ ← sign(vⱼ) · max(|vⱼ| − ηλ, 0)"
     },
     {
       "heading": "L1 vs L2 Regularisation: Geometry",
-      "body": "L2 (Ridge): adds λ‖w‖² to loss. Gradient: 2λwⱼ — proportional to weight. Small weights get small penalty → L2 cannot zero out weights. L1 (Lasso): adds λ‖w‖₁. Subgradient: λ·sign(wⱼ) — constant magnitude regardless of wⱼ. Small weights still get a full penalty → pulled to exactly zero. Geometric: L2 ball is smooth sphere, L1 ball is diamond with corners. The data loss contours are most likely to touch the corners (sparsity) for L1, the edge (no exact zeros) for L2. [1][2]",
+      "body": "L2 penalizes the sum of squared weights, so its gradient shrinks as weights shrink — small weights receive a smaller push and never reach exactly zero. L1 penalizes the sum of absolute weights, so its subgradient has constant magnitude regardless of weight size — small weights still get the full push toward zero. Geometrically, the L2 constraint region is a smooth sphere while the L1 region is a diamond with corners on the axes; the optimal solution is more likely to land at a corner under L1, producing sparsity. [1][2]",
       "formula": "L_Lasso = L_data + λΣ|wⱼ|;  L_Ridge = L_data + λΣwⱼ²"
     },
     {
       "heading": "Coordinate Descent for Lasso",
-      "body": "Lasso solution via coordinate descent (Friedman et al., 2010): For linear regression, fix all weights except wⱼ and solve for wⱼ analytically: wⱼ ← (1/n) sign(rⱼ) · max(|rⱼ| − λ, 0) where rⱼ = Σᵢ xᵢⱼ(yᵢ − Xw + wⱼxᵢⱼ) is the partial residual. Cycle through all j until convergence. This is implemented in scikit-learn's Lasso (solver='coordinate_descent'). Path algorithms (LARS) solve the full regularisation path from λ=∞ (all zeros) to λ=0 (OLS) efficiently. [2]"
+      "body": "Lasso is solved by coordinate descent: cycle through each weight, hold all others fixed, and update the current weight to minimize the objective analytically using soft-thresholding on the partial residual. Repeat until convergence. This is the algorithm behind scikit-learn's Lasso. Path algorithms such as LARS can trace the full sequence of solutions from completely regularized (all weights zero) to unregularized, which is useful for model selection. [2]"
     },
     {
       "heading": "Elastic Net: L1 + L2",
-      "body": "Elastic Net (Zou & Hastie, 2005): L = L_data + λ₁‖w‖₁ + λ₂‖w‖². Combines L1 sparsity with L2 grouping effect (correlated features tend to be selected/zeroed together, unlike Lasso which picks one). Elastic Net is more stable than Lasso when features are highly correlated. In scikit-learn: ElasticNet(alpha=λ₁+λ₂, l1_ratio=λ₁/(λ₁+λ₂)). Used as default in logistic regression with 'elasticnet' penalty. [2]"
+      "body": "Elastic Net combines an L1 penalty for sparsity with an L2 penalty for stability among correlated features. Lasso tends to arbitrarily pick one feature from a correlated group; Elastic Net tends to include or exclude them together. This makes Elastic Net more stable when predictors are highly correlated. In scikit-learn, the alpha parameter controls overall strength and l1_ratio controls the mix between L1 and L2. [2]"
     }
   ],
   "youtubeLabel": "Lasso Regression (L1) — StatQuest",

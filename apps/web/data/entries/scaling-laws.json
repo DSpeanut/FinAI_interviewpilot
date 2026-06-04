@@ -19,22 +19,22 @@
     }
   ],
   "deepDiveIntro": [
-    "Kaplan et al. (2020) scaling laws: L(N) ≈ (Nc/N)^{αN}, L(D) ≈ (Dc/D)^{αD}, L(C) ≈ (Cc/C)^{αC}. Exponents: αN ≈ 0.076, αD ≈ 0.095, αC ≈ 0.050 (for compute-optimal training). These hold over 6+ orders of magnitude. Key prediction: model size N should scale faster than data D for fixed compute (Kaplan). This was revised by Hoffmann et al. (Chinchilla, 2022) who ran more careful controlled experiments.",
-    "Chinchilla scaling law: L(N,D) = E + A/N^α + B/D^β where E is irreducible entropy, A, B are fitted constants, α ≈ 0.34, β ≈ 0.28. Optimal allocation: minimize L subject to C = 6ND. Solution: N* = G·(C/6)^{0.5}, D* = G⁻¹·(C/6)^{0.5} where G ≈ 1 (approximately equal scaling of N and D). Chinchilla (70B, 1.4T tokens) matches Gopher (280B, 300B tokens) quality at 4× less compute."
+    "Kaplan et al. (2020) showed that language model test loss follows smooth power laws in model size, dataset size, and compute — each with a characteristic exponent holding over six or more orders of magnitude. Their key recommendation was to scale model size faster than data for a fixed compute budget. This was revised by Hoffmann et al. (Chinchilla, 2022) using more carefully controlled experiments.",
+    "The Chinchilla scaling law models test loss as an irreducible entropy floor plus terms that decrease as power laws with model size and data size. Minimizing this loss subject to a fixed compute budget — which is approximately proportional to the product of model size and training tokens — yields the result that both should scale equally. The practical rule of thumb is about 20 training tokens per model parameter."
   ],
   "deepDive": [
     {
       "heading": "Power Law Relationships",
-      "body": "Test loss as a function of model size N (fixed data): L ∝ N^{−0.076}. Doubling N reduces loss by 2^{0.076} ≈ 1.054 — about 5% per doubling. Loss as a function of data D (fixed model): L ∝ D^{−0.095}. These power laws hold from 10M to 10B+ parameters. Fit on log-log scale. The irreducible entropy floor E represents the minimum achievable loss — even an infinite model on infinite data has a floor (noise in the data itself). Beyond the floor, more compute always helps. [1]",
+      "body": "Doubling model size reduces test loss by about 5 percent; doubling training data reduces it by a similar but slightly larger amount. These power laws hold consistently from tens of millions to tens of billions of parameters, and the relationship fits well on a log-log scale. The irreducible entropy floor represents the minimum achievable loss — noise inherent in the training data that no model can predict. Beyond that floor, more compute always helps. [1]",
       "formula": "L(N, D) = E + A/N^α + B/D^β"
     },
     {
       "heading": "Chinchilla Optimal Compute Allocation",
-      "body": "FLOPs per training step: C ≈ 6ND (2 for forward pass: N FLOPs, 2× for backward ≈ 4N, total 6N per token × D tokens). Minimize L(N,D) subject to 6ND = C_budget. Lagrangian: ∂L/∂N = ∂L/∂D gives αA/N^{α+1} = βB/D^{β+1}, with 6ND = C. Solution: N* ∝ C^{0.5}, D* ∝ C^{0.5}. Chinchilla rule of thumb: 20 training tokens per parameter. 70B model → 1.4T tokens. GPT-3 (175B, 300B tokens): ≈ 1.7 tokens/param (severely undertrained by this standard). [2]"
+      "body": "Training compute is approximately proportional to model size times number of training tokens. Minimizing the Chinchilla loss function subject to a fixed compute budget shows that model size and training tokens should scale at the same rate — both proportional to the square root of the compute budget. The practical rule of thumb is 20 training tokens per parameter. GPT-3 used about 1.7 tokens per parameter, which by this standard is severely undertrained. [2]"
     },
     {
       "heading": "Emergent Abilities at Scale",
-      "body": "Wei et al. (2022): some capabilities (multi-step arithmetic, chain-of-thought reasoning, few-shot word unscrambling) are absent below ~10B params and appear sharply above a threshold. Proposed explanation: tasks require multiple steps, each individually low-probability — only at high per-step accuracy does the product probability become non-negligible. Debate: Schaeffer et al. (2023) argue emergence is a metric artifact — with continuous metrics (instead of accuracy), emergence disappears and scaling is smooth. Regardless, GPT-3 scale (175B) showed qualitatively new capabilities not present at GPT-2 scale (1.5B). [3]"
+      "body": "Some capabilities — multi-step arithmetic, chain-of-thought reasoning, few-shot word unscrambling — appear absent below around 10 billion parameters and then appear sharply above some threshold. One explanation is that these tasks require multiple correct steps in sequence, and the probability of a complete correct chain only becomes meaningful once per-step accuracy is high enough. However, Schaeffer et al. (2023) argue that emergence may be a metric artifact: switching from discrete accuracy to continuous evaluation metrics makes the improvement smooth rather than sudden. [3]"
     },
     {
       "heading": "Scaling Beyond Chinchilla: Inference-Optimal Models",

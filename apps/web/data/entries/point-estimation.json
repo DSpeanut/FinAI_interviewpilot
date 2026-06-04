@@ -23,8 +23,9 @@
     }
   ],
   "deepDiveIntro": [
-    "A point estimator δ(X₁,…,Xₙ) is a statistic used to estimate θ. Its quality is measured by: Bias(δ) = E[δ] − θ, Var(δ) = E[(δ−E[δ])²], and MSE(δ) = E[(δ−θ)²] = Var(δ) + Bias(δ)². An estimator is unbiased if Bias(δ) = 0 for all θ.",
-    "The Cramér-Rao Lower Bound (CRLB) gives the minimum variance any unbiased estimator can achieve: Var(δ) ≥ 1/I(θ), where I(θ) = E[(∂ log p(X|θ)/∂θ)²] is the Fisher information. An unbiased estimator achieving this bound is called efficient. MLE is asymptotically efficient."
+    "A point estimator is a function of the data that produces a single guess for an unknown parameter. Its quality is summarized by bias — the systematic deviation of its average from the truth — variance — how much it varies across samples — and mean squared error, which equals variance plus squared bias. Unbiasedness means the estimator hits the true value on average but says nothing about variance.",
+    "The Cramér-Rao Lower Bound gives the minimum variance achievable by any unbiased estimator, expressed in terms of the Fisher information — the expected squared score, a measure of how much information the data carries about the parameter. An unbiased estimator that reaches this bound is called efficient, and maximum likelihood estimation achieves it asymptotically under regularity conditions.",
+    "formula: MSE(θ̂) = Var(θ̂) + [Bias(θ̂)]²;   Var(δ) ≥ 1/I(θ)"
   ],
   "deepDive": [
     {

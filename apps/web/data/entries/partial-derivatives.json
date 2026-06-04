@@ -23,8 +23,8 @@
     }
   ],
   "deepDiveIntro": [
-    "For f: ℝⁿ → ℝ, the partial derivative with respect to xᵢ is ∂f/∂xᵢ = lim_{h→0} [f(x₁,…,xᵢ+h,…,xₙ) - f(x)]/h. It's computed by treating all variables except xᵢ as constants and differentiating with respect to xᵢ.",
-    "Clairaut's theorem (Schwarz's theorem): if second partials are continuous, then ∂²f/∂xᵢ∂xⱼ = ∂²f/∂xⱼ∂xᵢ. The Hessian matrix is symmetric. Total derivative combines partials with differentials: df = Σᵢ (∂f/∂xᵢ)dxᵢ = ∇fᵀdx."
+    "A partial derivative is defined exactly like a single-variable derivative, but with all other inputs held fixed. Geometrically it gives the slope of the function when you move only along one coordinate axis, leaving all others unchanged.",
+    "When second partial derivatives are continuous, the order in which you differentiate twice does not matter — the mixed partials are equal. This symmetry is the content of Clairaut's theorem, and it means the Hessian matrix of second derivatives is always symmetric. The total derivative combines all partial derivatives to describe how the function changes when all inputs shift simultaneously."
   ],
   "visualizationType": "partial-derivatives",
   "deepDive": [

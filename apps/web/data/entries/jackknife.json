@@ -19,8 +19,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Define θ̂₋ᵢ = T(x₁,…,xᵢ₋₁,xᵢ₊₁,…,xₙ) as the estimator with observation i removed, for i = 1,…,n. The jackknife estimate of variance: Var_jack(θ̂) = [(n−1)/n]Σᵢ(θ̂₋ᵢ − θ̄₋)², where θ̄₋ = (1/n)Σθ̂₋ᵢ. The n pseudovalues are θ̃ᵢ = nθ̂ − (n−1)θ̂₋ᵢ; then Var_jack(θ̂) = (1/(n(n−1)))Σᵢ(θ̃ᵢ − θ̂_jack)².",
-    "For a smooth functional T with influence function ℓ(xᵢ;F): θ̂₋ᵢ ≈ θ̂ − ℓ(xᵢ)/n. So θ̂₋ᵢ − θ̄₋ ≈ −(ℓ(xᵢ) − ℓ̄)/n and Var_jack(θ̂) ≈ (1/n²)Σᵢ(ℓ(xᵢ) − ℓ̄)² — the variance of the influence function divided by n. This is the sandwich estimator for nonparametric variance."
+    "The jackknife computes the statistic n times, each time leaving out one observation. The variance estimate uses the spread among those n leave-one-out values: multiply the sum of squared deviations from their mean by the factor (n minus 1) divided by n. Equivalently, each leave-one-out estimate can be turned into a pseudovalue, and the variance of those pseudovalues gives the same result.",
+    "For smooth estimators, each leave-one-out estimate is approximately the full-sample estimate minus the influence of that observation divided by n. This connects the jackknife to influence-function theory: the jackknife variance estimate approximates the sum of squared influence values divided by the sample size, which is also the nonparametric sandwich variance estimator."
   ],
   "deepDive": [
     {

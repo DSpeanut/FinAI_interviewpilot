@@ -1,8 +1,8 @@
 {
   "eli3": [
-    "Multiple linear regression extends SLR to p predictors: Y = β₀ + β₁X₁ + … + βₚXₚ + ε = Xβ + ε in matrix form, where X is the n×(p+1) design matrix. The OLS estimator β̂ = (X'X)⁻¹X'y minimizes the sum of squared residuals simultaneously across all coefficients.",
-    "Each coefficient βⱼ is the partial effect of Xⱼ on Y, holding all other predictors constant. This is the key difference from SLR: βⱼ controls for confounding by the other X variables. Omitting an important predictor that is correlated with Xⱼ causes omitted variable bias — the coefficient on Xⱼ absorbs the effect of the omitted variable.",
-    "Multicollinearity — high correlation among predictors — inflates the variance of OLS estimates (Var(β̂ⱼ) = σ²[(X'X)⁻¹]ⱼⱼ). Variance Inflation Factor VIFⱼ = 1/(1−Rⱼ²) where Rⱼ² is the R² from regressing Xⱼ on all other predictors. VIF > 10 is a common warning threshold. Multicollinearity makes individual coefficient estimates unstable but does not affect prediction accuracy."
+    "Multiple linear regression extends simple regression to several predictors: the outcome is modeled as a linear combination of all predictors plus an error term. The OLS estimator finds all coefficients simultaneously by minimizing the total squared residual across all data points.",
+    "Each coefficient gives the partial effect of its predictor on the outcome while holding all other predictors constant. This is the key advantage over simple regression: it controls for confounding. Omitting an important predictor that correlates with an included one causes omitted variable bias — the included predictor's coefficient absorbs the effect of the missing one.",
+    "Multicollinearity — strong correlation among predictors — inflates the variance of coefficient estimates, making them unstable and hard to interpret. The Variance Inflation Factor for each predictor measures how much its variance is inflated relative to the case where it is uncorrelated with the others; values above ten signal a serious problem. Prediction accuracy is largely unaffected."
   ],
   "whenWhy": [
     {
@@ -19,8 +19,9 @@
     }
   ],
   "deepDiveIntro": [
-    "Model: Y = Xβ + ε, X is n×(p+1) (including intercept column of 1s), β is (p+1)×1, ε ~ N(0,σ²I). OLS estimator: β̂ = (X'X)⁻¹X'y (exists when X'X is invertible, i.e., no perfect multicollinearity, n > p+1). Fitted values: ŷ = Xβ̂ = Hy where H = X(X'X)⁻¹X' is the hat matrix. Residuals: ê = y − ŷ = (I−H)y. ê'ê = SS_res, and s² = SS_res/(n−p−1) is an unbiased estimator of σ².",
-    "Gauss-Markov generalizes: β̂ is BLUE under E[ε|X] = 0, Var(ε|X) = σ²I. Under normality: β̂ ~ N(β, σ²(X'X)⁻¹). t-test for H₀: βⱼ = 0: Tⱼ = β̂ⱼ/(s·√[(X'X)⁻¹]ⱼⱼ) ~ t(n−p−1). Overall F-test: F = [SS_reg/p]/[SS_res/(n−p−1)] ~ F(p, n−p−1) under H₀: β₁ = … = βₚ = 0."
+    "The model is written as outcome equals design matrix times coefficient vector plus error, where the design matrix includes a column of ones for the intercept. The OLS estimator requires the product of the design matrix with its transpose to be invertible — which fails if any predictor is a perfect linear combination of others or if there are more predictors than observations. Fitted values come from multiplying the data by the hat matrix, which projects the outcome onto the column space of the predictors. The residual sum of squares divided by the degrees of freedom is an unbiased estimator of the error variance.",
+    "The Gauss-Markov theorem says OLS is the best linear unbiased estimator under linearity, constant error variance, and zero-mean errors conditional on the predictors. Adding a normality assumption gives exact t-tests for individual coefficients and an F-test for all non-intercept coefficients simultaneously.",
+    "formula: β̂ = (X'X)⁻¹ X'y;   Var(β̂) = σ²(X'X)⁻¹"
   ],
   "deepDive": [
     {

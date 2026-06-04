@@ -19,8 +19,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Weak stationarity: (1) E[Yₜ] = μ for all t; (2) Var(Yₜ) = σ² < ∞ for all t; (3) Cov(Yₜ,Yₜ₋ₖ) = γ(k) for all t. The autocorrelation function (ACF): ρ(k) = γ(k)/γ(0) = Corr(Yₜ,Yₜ₋ₖ). Strict stationarity: the joint distribution of (Yₜ₁,…,Yₜₘ) is invariant to time shifts — stronger than weak stationarity; for Gaussian processes they coincide.",
-    "The random walk Yₜ = Yₜ₋₁ + εₜ (εₜ ~ WN(0,σ²)) is a special case of an AR(1) with φ₁ = 1 (unit root). It is I(1): ΔYₜ = εₜ ~ WN (stationary). Properties: E[Yₜ] = Y₀, Var(Yₜ) = tσ² (grows without bound), Cov(Yₜ,Yₛ) = min(t,s)σ² (depends on t and s, not just |t−s|). Impulse responses: effects of shocks are permanent (no mean reversion)."
+    "Weak stationarity requires three properties: the mean is constant over time, the variance is finite and constant over time, and the covariance between two observations depends only on the time gap between them — not on when in the series they occur. The autocorrelation function summarizes this lag-dependent covariance structure. Strict stationarity is stronger and requires the entire joint distribution to be time-invariant; for Gaussian processes the two definitions coincide.",
+    "A random walk is the canonical non-stationary series: its variance grows without bound as time passes, and any shock has a permanent effect on its level. One difference produces a stationary series (white noise), which is why random walks are called integrated of order 1. The growing variance is what causes spurious correlations when two independent random walks are regressed on each other."
   ],
   "deepDive": [
     {

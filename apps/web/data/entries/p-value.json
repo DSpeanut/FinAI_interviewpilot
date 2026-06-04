@@ -23,8 +23,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Formally: given test statistic T and observed value t_obs, the p-value is p = P(T ≥ t_obs | H₀) for one-sided tests (right), P(T ≤ t_obs | H₀) for left-sided, and P(|T| ≥ |t_obs| | H₀) for two-sided tests against a symmetric distribution. Under H₀, the p-value is Uniform(0,1) — this is the foundation of validity: if H₀ is true, P(p ≤ α) = α for all α ∈ [0,1].",
-    "The p-value is a function of the data (through T) and the null model. It is NOT a Bayesian posterior: P(H₀ | data) ≠ p-value. Bayesian analysis of the same data would require specifying a prior over H₀ and Hₐ and computing a Bayes factor — a fundamentally different quantity."
+    "The p-value is the probability, computed under the null hypothesis, of observing a test statistic at least as extreme as the one actually computed from the data. For a one-sided test this means at least as large; for a two-sided test it means at least as far from the center in either direction. When the null is true and the test statistic is continuous, the p-value follows a uniform distribution on the interval from 0 to 1.",
+    "A p-value is not the probability that the null hypothesis is true. Answering that question requires Bayesian analysis with a prior probability on the null, which is a fundamentally different calculation. The p-value only tells you how surprising the observed data would be if the null were true."
   ],
   "deepDive": [
     {

@@ -23,8 +23,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Bayes' theorem: P(θ|x) = P(x|θ)P(θ)/P(x), where P(x) = ∫ P(x|θ)P(θ)dθ is the marginal likelihood (normalizing constant). Since P(x) does not depend on θ, inference uses P(θ|x) ∝ P(x|θ)P(θ). For conjugate models, this proportion becomes equality in closed form — no integral required.",
-    "Hyperparameters are the parameters of the prior distribution. For Beta(α,β): α−1 and β−1 act as pseudo-successes and pseudo-failures. Choosing α = β = 1 gives a uniform (flat) prior; α = β = 0.5 gives Jeffreys' prior for the Binomial (invariant under reparametrization). The effective sample size of the prior is α + β — a Beta(10,10) prior has the same weight as 20 observations."
+    "Bayes' theorem updates the prior distribution using the likelihood of the observed data to produce the posterior. Because the normalizing constant (the marginal likelihood) does not depend on the parameter, inference only requires that the posterior is proportional to the likelihood times the prior. For conjugate priors the update has a closed form and no numerical integration is needed.",
+    "The hyperparameters of a prior encode prior belief. For a Beta prior, the two parameters act as pseudo-counts of prior successes and failures. Setting both to 1 gives a uniform prior with no preference; setting both to 0.5 gives Jeffreys' prior, which is invariant to reparameterization. The total pseudo-count determines how strongly the prior resists updating: a Beta prior with total count 20 resists the data about as much as 20 actual observations would."
   ],
   "deepDive": [
     {

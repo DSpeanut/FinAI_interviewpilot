@@ -19,8 +19,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Population divided into H strata of sizes N₁,…,Nₕ (ΣNₕ = N). Draw SRS of size nₕ from stratum h. Stratum weight: wₕ = Nₕ/N. Population mean μ = Σwₕμₕ. Stratified estimator: x̄_st = Σwₕx̄ₕ. Under SRSWOR within each stratum: E[x̄_st] = μ (unbiased). Var(x̄_st) = Σwₕ²·σₕ²(1−fₕ)/nₕ, where fₕ = nₕ/Nₕ.",
-    "Proportional allocation: nₕ = n·Nₕ/N. Then Var_prop(x̄_st) = (1−f)/n · Σwₕσₕ² = (1−f)/n · σ̄_w² (within-stratum weighted mean variance). Neyman allocation: nₕ ∝ Nₕσₕ. Then nₕ = n·Nₕσₕ/ΣNₕσₕ. Var_opt(x̄_st) = (ΣwₕσₕΣwₕσₕ/n) − Σwₕσₕ²/N."
+    "The population is divided into non-overlapping strata. A separate simple random sample is drawn from each stratum, and the overall estimate is a weighted average of the within-stratum estimates, where the weights are the stratum population sizes divided by the total. This estimator is unbiased under simple random sampling without replacement within each stratum. Its variance depends on within-stratum variability and the sampling fraction in each stratum.",
+    "Proportional allocation assigns sample sizes proportional to stratum population sizes — every unit has the same probability of selection. Neyman optimal allocation instead assigns more sampling effort to strata that are larger or more variable, minimizing overall variance for a fixed total sample size. When all strata have the same within-stratum variability, Neyman allocation reduces to proportional."
   ],
   "deepDive": [
     {

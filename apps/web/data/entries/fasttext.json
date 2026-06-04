@@ -19,8 +19,8 @@
     }
   ],
   "deepDiveIntro": [
-    "FastText word embeddings: represent word w as its character n-gram set G(w) (n = 3–6 by default). Each character n-gram g has embedding zg. Word embedding: vw = Σg∈G(w) zg. The Skip-gram objective (SGNS) is applied to these composed vectors. Character n-grams are hashed to indices (feature hashing) — memory-efficient representation without explicit n-gram vocabulary.",
-    "FastText text classification (bag-of-tricks): given document with words w₁,…,wN: (1) compute word representations (average of n-gram embeddings); (2) average all word representations: x = (1/N)Σᵢvwᵢ; (3) classify: P(y|x) = softmax(Wx). Training: minimize cross-entropy. Hierarchical softmax for many classes: O(log K) instead of O(K) per example. Word n-grams (bigrams, trigrams) can be added as additional features to capture local context."
+    "FastText represents each word by summing the embeddings of all its character n-grams (n = 3–6 by default), rather than assigning a single vector per word. N-grams are mapped to a fixed hash table to save memory without storing an explicit vocabulary. The same skip-gram training objective used in Word2Vec is then applied to these composed vectors.",
+    "For text classification, FastText averages all word-level vectors in a document into a single representation, then passes it through a linear classifier with softmax. A hierarchical softmax variant reduces computation for large label sets by organising classes in a binary tree. Adding bigram and trigram features on top of word vectors helps capture some word-order information."
   ],
   "deepDive": [
     {

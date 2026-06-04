@@ -24,8 +24,8 @@
     }
   ],
   "deepDiveIntro": [
-    "KL divergence from Q to P: D_KL(P||Q) = Σ_x P(x) log(P(x)/Q(x)) for discrete distributions, or ∫ p(x) log(p(x)/q(x)) dx for continuous. It is always ≥ 0 by Gibbs' inequality, and = 0 iff P = Q. It equals H(P,Q) − H(P): cross-entropy minus entropy. So minimising KL(P||Q) w.r.t. Q is equivalent to minimising cross-entropy H(P,Q) when P is fixed. [1]",
-    "The two directions have different optimisation properties. Forward KL: D_KL(P||Q) — minimising over Q gives mean-seeking behaviour (Q spreads to cover all modes of P, because terms where P>0 and Q=0 are infinite). Reverse KL: D_KL(Q||P) — minimising over Q gives mode-seeking behaviour (Q concentrates on one mode of P, because terms where Q>0 and P=0 are infinite). In variational inference, the ELBO maximises a lower bound on log p(x), which is equivalent to minimising reverse KL. [2]"
+    "KL divergence measures the extra surprise incurred by using model distribution Q when the true distribution is P. It is always nonnegative and equals zero only when the two distributions are identical. Minimising KL divergence with respect to Q when P is fixed is equivalent to minimising cross-entropy, because the entropy of P is a constant. [1]",
+    "The two orderings of KL divergence have different practical effects. Minimising forward KL forces the model to cover all regions where P has mass, since any mode of P that Q ignores contributes infinite cost — this produces mean-seeking behaviour that spreads the model across all modes. Minimising reverse KL penalises the model for placing mass where P does not, which forces it to concentrate on a single mode rather than spreading out — this is mode-seeking behaviour and is what variational inference does in practice. [2]"
   ],
   "deepDive": [
     {

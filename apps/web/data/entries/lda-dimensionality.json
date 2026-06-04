@@ -23,8 +23,8 @@
     }
   ],
   "deepDiveIntro": [
-    "LDA as dimensionality reduction (Fisher Discriminant Analysis) finds the projection matrix W that maximises the Fisher criterion: the ratio of between-class scatter to within-class scatter. This generalises Fisher's original two-class linear discriminant to the multi-class case.",
-    "The solution is the generalised eigenvalue problem Sᴮw = λSᵂw, where Sᴮ is the between-class scatter matrix and Sᵂ is the within-class scatter matrix. The eigenvectors corresponding to the K−1 largest eigenvalues form the discriminant subspace."
+    "LDA as dimensionality reduction (also called Fisher Discriminant Analysis) finds a projection that maximises the ratio of between-class spread to within-class spread. The between-class scatter measures how far the class centres are from the overall mean, while the within-class scatter measures how spread out each class is around its own centre. Maximising their ratio produces directions where classes are as far apart as possible relative to their internal variation.",
+    "Finding this optimal projection reduces to a generalised eigenvalue problem involving both scatter matrices. Sorting the resulting eigenvectors by their eigenvalues and keeping the top ones gives the discriminant subspace. At most K minus one meaningful dimensions exist because the K class means span at most a subspace of that dimension."
   ],
   "visualizationType": "lda-dimensionality",
   "deepDive": [

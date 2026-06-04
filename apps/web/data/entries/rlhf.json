@@ -24,13 +24,13 @@
     }
   ],
   "deepDiveIntro": [
-    "RLHF objective (Ziegler et al., 2019): max_{π_θ} E_{x~D, y~π_θ(·|x)}[r_φ(x,y)] − β·KL(π_θ(y|x) || π_ref(y|x)). The reward r_φ is the reward model; π_ref is the SFT reference policy (frozen). The KL term penalises deviation from the SFT policy. The optimal policy has a closed form: π*_θ(y|x) ∝ π_ref(y|x)·exp(r_φ(x,y)/β). This is a tilted distribution that assigns higher probability to responses the reward model prefers. [1]",
-    "The reward model is trained on a comparison dataset: (prompt x, chosen y_w, rejected y_l). Bradley-Terry preference model: P(y_w > y_l | x) = σ(r(x,y_w) − r(x,y_l)). Loss: L = −E[log σ(r(x,y_w) − r(x,y_l))]. This is a pairwise ranking loss — the model learns a scalar reward that ranks chosen > rejected. [1]"
+    "The RLHF training objective maximizes the expected reward assigned by the reward model while penalizing how far the policy diverges from the original supervised fine-tuned reference model. The KL penalty keeps the policy from exploiting loopholes in the reward model. The theoretically optimal policy assigns higher probability to responses the reward model prefers, shaped by the strength of the penalty. [1]",
+    "The reward model is trained on human comparison data using the Bradley-Terry preference model: given two responses to the same prompt, the model learns to assign a higher scalar reward to the preferred one. The training loss is the negative log probability that the preferred response scores higher, which is a pairwise ranking loss. At convergence, the reward model consistently ranks preferred responses above rejected ones. [1]"
   ],
   "deepDive": [
     {
       "heading": "Three-Phase Pipeline",
-      "body": "Phase 1 — SFT: fine-tune base LLM on (instruction, response) pairs. Get π_SFT. Phase 2 — Reward Model: fine-tune a second LLM (often same architecture) as a scalar reward model using Bradley-Terry loss on human comparison data. Get r_φ(x,y). Phase 3 — PPO: use π_SFT as initialisation and reference. For each prompt x, generate y ~ π_θ, compute reward r_φ(x,y) and KL penalty log π_θ(y|x) − log π_ref(y|x). Update π_θ with PPO to maximise r_φ − β·KL. KL coefficient β is adaptively tuned via adaptive KL penalty. [1]"
+      "body": "Phase 1 is supervised fine-tuning: train the base language model on curated instruction-response pairs to produce a baseline policy. Phase 2 trains a reward model by fine-tuning a separate language model on human preference comparisons using the Bradley-Terry loss. Phase 3 uses PPO to improve the policy: sample a response from the current policy, score it with the reward model, subtract a KL penalty measuring divergence from the SFT baseline, and update the policy to maximize this penalized reward. The KL coefficient is adjusted dynamically to keep the policy within a reasonable distance from the reference. [1]"
     },
     {
       "heading": "Bradley-Terry Reward Model Loss",
@@ -39,7 +39,7 @@
     },
     {
       "heading": "PPO in RLHF",
-      "body": "PPO (Proximal Policy Optimisation) with clipped objective: L_CLIP(θ) = E[min(r_t(θ)·Aₜ, clip(r_t(θ), 1−ε, 1+ε)·Aₜ)] where r_t = π_θ(aₜ|sₜ)/π_old(aₜ|sₜ) and Aₜ is the advantage. In RLHF: action = next token, state = prompt + generated tokens so far, reward = sparse (reward model applied at [EOS] token). Additional KL reward: rₜ' = rₜ − β·(log π_θ(aₜ|sₜ) − log π_ref(aₜ|sₜ)) (dense per-token KL). [1]",
+      "body": "In the RLHF setting, each token generation is one action, and the state is the prompt concatenated with all tokens generated so far. The reward is sparse — the reward model produces a single score when the response is complete. A dense per-token KL penalty is added at every step to prevent the policy from drifting too far from the reference model on a token-by-token basis. The PPO clipping mechanism then prevents any single update from making the policy too different from the version that collected the experience. [1]",
       "formula": "r_RLHF(x,y) = r_φ(x,y) − β Σₜ log(π_θ(yₜ|y<t,x)/π_ref(yₜ|y<t,x))"
     },
     {

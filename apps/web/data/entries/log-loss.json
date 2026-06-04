@@ -24,22 +24,22 @@
     }
   ],
   "deepDiveIntro": [
-    "Binary log-loss: L = -(1/n)·Σᵢ[yᵢ·log p̂ᵢ + (1-yᵢ)·log(1-p̂ᵢ)] where yᵢ∈{0,1} and p̂ᵢ∈(0,1) is the predicted probability of class 1. Multi-class extension: L = -(1/n)·Σᵢ Σⱼ yᵢⱼ·log(p̂ᵢⱼ) where yᵢⱼ is the one-hot label. Log-loss is a proper scoring rule (Good, 1952): E[L] is minimised when p̂ᵢ = P(yᵢ=1|xᵢ) — the true conditional probability. Any model that reports true probabilities minimises expected log-loss; reporting anything else has higher expected loss. [1]",
-    "Numerical stability: log(0) = -∞. In practice, probabilities are clipped to [ε, 1-ε] with ε=1e-7 or ε=1e-15. sklearn.metrics.log_loss applies this clipping automatically. The log(p) term: as p→0 with y=1, the loss →+∞ (catastrophic prediction). As p→1 with y=1, the loss →0 (perfect). Interpretation: log-loss measures the number of bits needed to encode the true labels given the model's predictions (in nats if natural log is used; bits if log base 2). Lower log-loss = more compressed encoding = better model. [1]"
+    "Binary log-loss averages, over all samples, the negative log probability the model assigned to the correct label. For the multi-class case the same idea extends: sum the negative log probability of the true class for each example. Log-loss is a proper scoring rule — its expected value is uniquely minimized when the model reports the true probabilities. Any systematic over- or under-confidence increases the expected loss. [1]",
+    "Because the logarithm of zero is negative infinity, predicted probabilities must be kept away from exactly zero or one. Sklearn clips them automatically to a small range. The loss grows without bound as a model becomes confidently wrong, which is why confident mistakes are so heavily penalized. Conceptually, log-loss measures how many bits are needed to encode the true labels given the model's predictions. [1]"
   ],
   "deepDive": [
     {
       "heading": "Proper Scoring Rules and Calibration",
-      "body": "A scoring rule S(p, y) is proper if E[S(p, y)] is uniquely minimised at p = P(y|x) (the true probability). Log-loss is strictly proper: any deviation from truth increases expected score. This makes log-loss the right loss for training and evaluating probabilistic classifiers. Consequence: a model that is discriminative (high AUC) but not calibrated (probabilities ≠ true probabilities) will have suboptimal log-loss. Platt scaling and temperature scaling are post-hoc calibration methods that improve log-loss without changing AUC (they adjust probability estimates without changing the ranking). [1]"
+      "body": "Log-loss is a proper scoring rule: its expected value is minimized exactly when the model reports true probabilities, and any deviation from truth increases expected loss. A model can rank examples correctly (high AUC) while still producing poorly calibrated probabilities (high log-loss). Platt scaling and temperature scaling are post-hoc methods that improve calibration — and therefore log-loss — without changing the ranking. [1]"
     },
     {
       "heading": "Log-loss for Confident Mistakes",
-      "body": "For a correct prediction: log-loss = -log(p̂_true) ∈ [0, +∞). High p̂ → low loss. Incorrect prediction: log-loss = -log(1-p̂_wrong) which is large when p̂_wrong is large. Specifically: predicting p=0.99 for the wrong class gives -log(0.01)≈4.6 — a very high penalty. This 'punishment for confident mistakes' is the defining feature of log-loss vs accuracy. In practice: models that overfit often become overconfident → high log-loss on test set even when accuracy is OK. Calibration curves (reliability diagrams) show whether predicted probabilities match actual frequencies. [1]",
+      "body": "When the model assigns high probability to the correct class, log-loss is near zero. When the model assigns high probability to the wrong class — say, 99% confidence on an incorrect prediction — the loss grows very large. This heavy penalty for confident mistakes is what distinguishes log-loss from accuracy, which only cares whether the top-ranked class is correct. Models that overfit often become overconfident on training data, and that overconfidence shows up as elevated log-loss on the test set. [1]",
       "formula": "L = −(1/n)·Σᵢ[yᵢ·log(p̂ᵢ) + (1−yᵢ)·log(1−p̂ᵢ)]"
     },
     {
       "heading": "Relationship to Cross-Entropy and KL Divergence",
-      "body": "Binary log-loss = binary cross-entropy H(y, p̂) = -Σ y·log(p̂) - Σ(1-y)·log(1-p̂). Multi-class log-loss = categorical cross-entropy. Connection to KL divergence: H(p, q) = H(p) + D_KL(p||q) where H(p) is the entropy of the true distribution (irreducible). Minimising cross-entropy H(p, q) is equivalent to minimising D_KL(p||q) (since H(p) is constant). So training a neural network with cross-entropy loss = minimising KL divergence between the model distribution q and the true distribution p — maximum likelihood under the model family. [1]"
+      "body": "Log-loss is identical to cross-entropy between the true label distribution and the model's predicted distribution. Minimizing cross-entropy is equivalent to minimizing KL divergence from the true distribution because the true distribution's entropy is a constant. Training a neural network with cross-entropy loss therefore maximizes the likelihood of the observed labels under the model — it is maximum likelihood estimation in a categorical family. [1]"
     }
   ],
   "youtubeLabel": "Log Loss and Cross-Entropy — Classification Metrics",

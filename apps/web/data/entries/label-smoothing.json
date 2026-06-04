@@ -24,27 +24,27 @@
     }
   ],
   "deepDiveIntro": [
-    "Label smoothing (Szegedy et al., 2016): replace one-hot target y (with yₖ=1 if k=true class, 0 otherwise) with soft target ỹ: ỹₖ = (1−ε)·1{k=true} + ε/K. The cross-entropy with smooth target: L = −Σₖ ỹₖ log p̂ₖ = −(1−ε) log p̂_{true} − (ε/K)Σₖ log p̂ₖ. The first term is the standard CE; the second is the entropy of the uniform distribution H(U,p̂) = −(1/K)Σlog p̂ₖ. So label-smoothed CE = (1−ε)CE + ε·H(U,p̂) — a convex combination of standard CE and uniform entropy. [1]",
-    "The gradient effect: for logit z_j (true class j=c): ∂L/∂z_c = (1−ε)(p̂_c − 1) + ε(p̂_c − 1/K) = p̂_c − (1−ε) − ε/K = p̂_c − (1−ε(K−1)/K). This is zero when p̂_c = 1 − ε(K−1)/K ≈ 1−ε for large K. Standard CE drives p̂_c → 1; smoothed CE drives p̂_c → 1−ε. This is exactly the calibration mechanism. [1]"
+    "Label smoothing (Szegedy et al., 2016) replaces the one-hot target with a soft distribution that assigns most probability to the true class and spreads a small amount uniformly across all classes. The resulting loss is a blend of standard cross-entropy and a uniform-entropy penalty: it equals one minus epsilon times cross-entropy plus epsilon times the cross-entropy against a uniform distribution. The gradient of the smoothed loss drives the predicted probability for the true class toward one minus epsilon rather than toward one, which is the direct mechanism for calibration improvement. [1]",
+    "formula: ỹₖ = (1−ε)·1{k=true} + ε/K"
   ],
   "deepDive": [
     {
       "heading": "Smoothed Target Distribution",
-      "body": "ỹₖ = (1−ε) if k=true class, else ε/(K−1). Note: some formulations use ε/K for all classes including true class, giving ỹ_{true} = 1−ε+ε/K ≈ 1−ε. Both are common; PyTorch's label_smoothing=ε uses the first formulation. The target distribution has entropy H(ỹ) = −(1−ε)log(1−ε) − ε·log(ε/(K−1)). For ε=0.1, K=1000: H(ỹ) ≈ 0.33 bits — small but nonzero entropy, preventing overconfidence. [1]",
+      "body": "The smoothed target assigns probability one-minus-epsilon to the true class and distributes the remaining epsilon uniformly across all other classes. PyTorch implements one common variant where each wrong class receives epsilon divided by the total number of classes. Both variants are approximately equivalent for large class counts. The resulting target distribution has a small but nonzero entropy, which prevents the logits from growing toward infinity to force probabilities to exactly zero or one. [1]",
       "formula": "ỹₖ = (1−ε)·1{k=true} + ε/K"
     },
     {
       "heading": "Effect on Calibration",
-      "body": "Calibration: P(y=k | p̂=p) ≈ p — predicted probability matches actual frequency. Standard CE pushes logits toward ±∞ to achieve p̂_true → 1 and p̂_other → 0. In practice: overconfident predictions (p̂_true=0.999 when actual accuracy=0.90). Label smoothing targets p̂_true = 1−ε (≈0.9 for ε=0.1), much closer to typical model accuracy. Mueller & Thyagarajan (2019) showed smoothing improves Expected Calibration Error (ECE) by 40–60% compared to unsmoothed training. [2]",
+      "body": "A well-calibrated model produces predicted probabilities that match observed accuracy — if it says 90% confident, it should be right 90% of the time. Standard cross-entropy pushes predictions toward certainty, causing systematic overconfidence where predicted probabilities near one correspond to empirical accuracy well below one. Label smoothing corrects this by targeting a predicted probability of one-minus-epsilon for the true class, aligning predictions more closely with observed performance. Mueller and Thyagarajan (2019) found smoothing reduces expected calibration error by 40 to 60 percent. [2]",
       "formula": "Calibration target: p̂_true → 1 − ε (not → 1)"
     },
     {
       "heading": "Distillation Connection",
-      "body": "Knowledge distillation (Hinton et al., 2015) trains a student to match the teacher's soft predictions (p̂_teacher). Label smoothing can be seen as a simplified distillation where the teacher is a uniform distribution. Both approaches provide soft targets that encode inter-class relationships. The main difference: real distillation uses a teacher's trained predictions (which encode class similarities); label smoothing uses uniform smoothing (ignores class relationships). [1]"
+      "body": "Knowledge distillation trains a student network to match the soft probability outputs of a teacher, which carry information about which classes are similar to each other. Label smoothing can be seen as a special case where the teacher is replaced by a uniform distribution. The key difference is that a real teacher's soft predictions encode meaningful inter-class relationships, while uniform smoothing treats all wrong classes as equally irrelevant. This is why using a smoothed model as a distillation teacher discards the similarity information that distillation is intended to transfer. [1]"
     },
     {
       "heading": "When Label Smoothing Hurts",
-      "body": "Label smoothing hurts perplexity for language models (forces model to be less certain about the next token, even when it should be certain). Müller et al. (2019) showed it hurts teacher-student distillation: smooth teacher predictions erase information about class similarities. For tasks requiring high-confidence predictions (anomaly detection, OOD detection), smooth models produce smaller confidence gaps between in- and out-of-distribution samples. Use ε=0 (no smoothing) for knowledge distillation teachers and uncertainty-aware applications. [2]"
+      "body": "Label smoothing hurts perplexity for language models because it forces the model to be slightly uncertain even at positions where the next token is nearly deterministic. For knowledge distillation, training the teacher with smoothing erases the class-similarity information students need to learn. For anomaly detection and out-of-distribution detection, smoothed models produce smaller confidence gaps between in-distribution and out-of-distribution inputs, making it harder to distinguish them. Set epsilon to zero when training teacher models for distillation or when high-confidence discrimination is required. [2]"
     }
   ],
   "youtubeLabel": "Label Smoothing Explained — Vision Transformers",

@@ -24,8 +24,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Triplet loss: L = Σᵢ max(0, d(aᵢ, pᵢ) − d(aᵢ, nᵢ) + m) where d is Euclidean distance (or cosine distance when embeddings are L2-normalised), m > 0 is the margin. A triplet is 'active' (nonzero loss) when d(a,p) − d(a,n) + m > 0, i.e., the negative is not yet further from the anchor than the positive by at least m. The gradient pulls anchor toward positive and away from negative simultaneously within each active triplet. [1]",
-    "The number of possible triplets is O(N³) — most are trivially easy (inactive) after a few epochs. Selecting informative triplets (hard negative mining) is critical. FaceNet introduced online hard mining: within each mini-batch, select the hardest positive (d(a,p) is largest) and hardest negative (d(a,n) is smallest but still satisfying d(a,n) > d(a,p) — semi-hard). [1]"
+    "Triplet loss penalises any triplet where the anchor is not at least a margin's worth closer to the positive than to the negative. When the distance ordering is already correct by more than the margin, the loss is zero and no gradient flows. This means only the most informative triplets — those that are still violating the margin constraint — drive learning. The gradient simultaneously pulls the anchor toward the positive and pushes it away from the negative within each active triplet. [1]",
+    "With a batch of N examples, the number of possible triplets grows as N cubed. After a few training epochs, most triplets become trivially satisfied and contribute no gradient. Selecting genuinely informative triplets — hard negative mining — is therefore critical to maintaining a useful learning signal. FaceNet introduced online mining: within each batch, find the hardest positive and the hardest negative for each anchor, focusing updates on the most challenging cases while avoiding fully hard negatives that can cause training instability. [1]"
   ],
   "deepDive": [
     {

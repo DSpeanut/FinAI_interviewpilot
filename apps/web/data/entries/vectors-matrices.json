@@ -23,8 +23,8 @@
     }
   ],
   "deepDiveIntro": [
-    "A vector v ∈ ℝⁿ is an element of n-dimensional real vector space. It has magnitude (norm) ||v|| and direction. A matrix A ∈ ℝᵐˣⁿ represents a linear transformation T: ℝⁿ → ℝᵐ via matrix-vector multiplication: (Av)ᵢ = Σⱼ Aᵢⱼvⱼ. Linearity means T(av + bw) = aT(v) + bT(w).",
-    "Matrix multiplication corresponds to composition of linear transformations. If A: ℝⁿ → ℝᵐ and B: ℝᵐ → ℝᵖ, then BA: ℝⁿ → ℝᵖ. The identity matrix I has Iᵢⱼ = δᵢⱼ (Kronecker delta). The inverse A⁻¹ exists iff det(A) ≠ 0, giving the unique solution to Ax = b as x = A⁻¹b."
+    "A vector is a point in a multi-dimensional space, characterised by both a magnitude (its length) and a direction. A matrix represents a linear transformation that maps vectors from one space to another by scaling and rotating them. Linearity means the transformation of a sum or scalar multiple behaves in the expected additive and homogeneous way.",
+    "Matrix multiplication composes two linear transformations into one: applying the second matrix followed by the first is equivalent to multiplying their matrices in that order. The identity matrix leaves any vector unchanged. The inverse matrix, when it exists, undoes the original transformation — it exists if and only if the matrix does not collapse any direction to zero, which is equivalent to its determinant being nonzero."
   ],
   "visualizationType": "vectors-matrices",
   "deepDive": [

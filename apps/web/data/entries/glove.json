@@ -19,8 +19,8 @@
     }
   ],
   "deepDiveIntro": [
-    "GloVe objective: minimize J = ΣᵢΣⱼ f(Xᵢⱼ)·(vᵢᵀṽⱼ + bᵢ + b̃ⱼ − log Xᵢⱼ)², where Xᵢⱼ = co-occurrence count of words i and j within a window, vᵢ and ṽⱼ are the word and context vectors, bᵢ and b̃ⱼ are biases, and f is a weighting function that caps the influence of very frequent co-occurrences: f(x) = (x/x_max)^α if x < x_max else 1, with x_max = 100, α = 3/4.",
-    "The final embedding for word i is typically the average of its word vector and context vector: wᵢ = vᵢ + ṽᵢ. This reduces noise. Training: build the co-occurrence matrix X (O(C·w²) where C = corpus size, w = window size), then minimize J by AdaGrad SGD. The matrix X is sparse — only co-occurring pairs contribute. For large vocabularies, only pairs with X_{ij} > 0 are trained on."
+    "GloVe trains word vectors so that the dot product of any two vectors approximates the log of how often those two words co-occur in the corpus. A weighting function is applied so that very frequent word pairs (such as stop-word combinations) do not dominate training; pairs with co-occurrence count above a threshold receive maximum weight of 1. Both a word vector and a context vector are learned for each word.",
+    "After training, the final embedding for a word is typically the average of its word and context vectors, which reduces noise. Building the co-occurrence matrix from the corpus is the most memory-intensive step: it is stored sparsely since most word pairs never co-occur, and training updates only those non-zero entries using an adaptive gradient method."
   ],
   "deepDive": [
     {

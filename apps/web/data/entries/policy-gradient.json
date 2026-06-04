@@ -24,8 +24,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Policy Gradient Theorem (Williams, 1992; Sutton et al., 2000): for a parameterized policy π(a|s;θ), the gradient of the expected return J(θ) = E_π[Σ γᵗ R_t] with respect to θ is: ∇_θ J(θ) = E_π[Σ_t ∇_θ log π(A_t|S_t;θ) · Q^π(S_t,A_t)]. The REINFORCE estimator replaces Q^π(S_t, A_t) with the actual return G_t (Monte Carlo estimate): ∇_θ J(θ) ≈ (1/T) Σ_t ∇_θ log π(A_t|S_t;θ) · G_t. This is an unbiased estimate of the true gradient. Log-probability trick: ∇_θ π(a|s;θ) = π(a|s;θ) · ∇_θ log π(a|s;θ). This allows gradient computation via log probabilities (numerically stable, direct in PyTorch via dist.log_prob()). [1]",
-    "Variance reduction via baseline: the REINFORCE gradient has high variance because G_t can vary widely across episodes. A baseline b(s) that doesn't depend on action reduces variance without introducing bias: ∇_θ J(θ) = E_π[Σ_t ∇_θ log π(A_t|S_t;θ) · (G_t − b(S_t))]. Optimal baseline: b*(s) = E[G_t | S_t=s] = V^π(s) — the state value function. (G_t − V^π(s)) is the advantage A^π(s,a) = Q^π(s,a) − V^π(s): how much better this action is than the average action. Learning a critic V^π(s) to provide the baseline turns REINFORCE into Actor-Critic. [1]"
+    "The Policy Gradient Theorem states that the gradient of expected return with respect to the policy parameters equals the expected value of the gradient of the log probability of each action, multiplied by the action-value of that state-action pair. REINFORCE approximates this by replacing the action-value with the actual return observed in the episode — an unbiased but high-variance estimate. The log-probability formulation is numerically stable and directly supported by modern automatic differentiation libraries. [1]",
+    "A baseline subtracted from the return reduces variance without introducing bias, because the expected gradient of the log probability summed over all actions is zero — any constant multiplied by zero contributes nothing to the expected gradient update. Using the state value function as the baseline gives the advantage: how much better this specific action was compared to what the policy would typically achieve from that state. Learning a neural network critic to estimate this baseline turns REINFORCE into an Actor-Critic method. [1]"
   ],
   "deepDive": [
     {
@@ -35,11 +35,11 @@
     },
     {
       "heading": "Baseline and Advantage Estimation",
-      "body": "Without a baseline, REINFORCE has high gradient variance — G_t depends on the entire episode trajectory and can be very large or small depending on luck. (3) Normalised returns: (G_t − mean) / std — practical default in many implementations."
+      "body": "Without a baseline, REINFORCE has high gradient variance because the total return from an episode depends on every random transition and reward in the trajectory. Subtracting the average return across episodes, or subtracting the estimated state value, centers the signal and reduces variance while keeping the gradient estimator unbiased. A practical default is to normalize returns within each batch to zero mean and unit variance."
     },
     {
       "heading": "REINFORCE vs Actor-Critic vs PPO",
-      "body": "REINFORCE (Monte Carlo PG): unbiased gradient, very high variance (full-episode returns), sample inefficient. No critic needed. Lower variance (TD error vs MC return), slight bias due to bootstrapping. Learns a critic V(s;w) alongside the policy. A2C/A3C (synchronous/asynchronous actor-critic): parallelise data collection across multiple workers, combine their gradients. The clip prevents the updated policy from deviating too far from the old policy — prevents destructive updates. PPO is the dominant on-policy RL algorithm as of 2024 for both continuous control and RLHF.",
+      "body": "REINFORCE uses full-episode returns for an unbiased but high-variance gradient, making it sample inefficient. Actor-Critic methods learn a value function alongside the policy and use bootstrapped estimates instead of full returns, reducing variance at the cost of a small bias. PPO adds a clipping mechanism that prevents the updated policy from straying too far from the old one, avoiding destabilizing large updates. PPO is now the dominant on-policy algorithm for both continuous control and RLHF.",
       "formula": "PPO clip: L = E[min(r_t(θ)Â, clip(r_t(θ), 1−ε, 1+ε)Â)],  r_t=π_new/π_old"
     }
   ],

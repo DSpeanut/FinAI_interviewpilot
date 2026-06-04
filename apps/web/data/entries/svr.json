@@ -24,8 +24,8 @@
   ],
   "visualizationType": "svr",
   "deepDiveIntro": [
-    "The key concept is the ε-tube. SVR tries to find a function f(x) = wᵀx + b such that most training points fall within a tube of radius ε around f(x). Points inside the tube incur zero loss. Points outside the tube are penalised proportionally to how far they protrude.",
-    "This is captured by the ε-insensitive loss function: Lε(y, f(x)) = max(0, |y − f(x)| − ε). It is flat for small errors and linear for large ones — similar in spirit to Huber loss, but with a hard dead-zone."
+    "SVR finds a prediction function such that most training points fall within a tube of radius epsilon around the function. Points inside the tube contribute zero loss. Points outside are penalized in proportion to how far they protrude beyond the tube boundary.",
+    "This is the epsilon-insensitive loss: zero for errors smaller than epsilon, and linear growth for larger errors. It resembles the Huber loss in its treatment of outliers, but has a hard flat zone rather than a smooth quadratic core. The flat zone is what produces sparse solutions and robustness to small label noise."
   ],
   "deepDive": [
     {
@@ -39,8 +39,8 @@
       "formula": "min_{w,b,ξ,ξ*}  ½||w||² + C·Σᵢ(ξᵢ + ξᵢ*)  s.t.  yᵢ − wᵀxᵢ − b ≤ ε + ξᵢ,  wᵀxᵢ + b − yᵢ ≤ ε + ξᵢ*"
     },
     {
-      "heading": "Dual & the Kernel Trick",
-      "body": "This section explains the main idea behind this part of the method in plain language.",
+      "heading": "Dual and the Kernel Trick",
+      "body": "The dual formulation rewrites the prediction function as a sum over training points, weighted by their dual coefficients. Only support vectors — points on or outside the tube — have nonzero coefficients. Replacing the inner product with a kernel function allows SVR to fit nonlinear functions without ever explicitly computing the high-dimensional feature map. The RBF kernel is the most common choice for capturing complex nonlinear patterns.",
       "formula": "f(x) = Σᵢ (αᵢ − αᵢ*) K(xᵢ, x) + b"
     },
     {

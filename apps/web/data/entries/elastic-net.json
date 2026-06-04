@@ -26,27 +26,27 @@
   "deepDive": [
     {
       "heading": "The Objective",
-      "body": "Elastic Net adds both an L1 and an L2 penalty to the OLS loss. λ₁ controls sparsity (Lasso part) and λ₂ controls shrinkage of correlated groups (Ridge part). Setting λ₁ = 0 recovers Ridge; λ₂ = 0 recovers Lasso. [1]",
+      "body": "Elastic Net adds both an L1 and an L2 penalty to the squared prediction error. The L1 penalty controls sparsity (like Lasso) and the L2 penalty controls shrinkage of correlated groups (like Ridge). Setting the L1 weight to zero recovers Ridge; setting the L2 weight to zero recovers Lasso. [1]",
       "formula": "min_β  ||y − Xβ||² + λ₁Σⱼ|βⱼ| + λ₂Σⱼβⱼ²"
     },
     {
       "heading": "sklearn Parameterisation",
-      "body": "sklearn's ElasticNet uses two parameters: alpha (overall regularisation strength, equivalent to λ₁ + λ₂) and l1_ratio α ∈ [0, 1] (the fraction of the total penalty that is L1). This is the most common form in practice. When l1_ratio=1, ElasticNet reduces to Lasso; when l1_ratio=0, it reduces to Ridge. [2]",
+      "body": "sklearn's ElasticNet uses two parameters: alpha (overall regularisation strength) and l1_ratio (the fraction of the total penalty that is L1, ranging from 0 to 1). When l1_ratio equals 1, ElasticNet reduces to Lasso; when l1_ratio equals 0, it reduces to Ridge. [2]",
       "formula": "min_β  (1/2n)·RSS + alpha·[l1_ratio·Σ|βⱼ| + (1−l1_ratio)/2·Σβⱼ²]"
     },
     {
       "heading": "The Grouping Effect",
-      "body": "When two features are highly correlated, Elastic Net tends to assign them similar coefficient magnitudes and either includes or excludes them together. Perfectly correlated features receive identical coefficients. This grouping effect is the key advantage over Lasso, which arbitrarily picks one correlated feature and zeros out the others — an unstable choice that changes with small perturbations to the data. [1]",
+      "body": "When two features are highly correlated, Elastic Net tends to assign them similar coefficient magnitudes and either includes or excludes them together. This grouping effect is the key advantage over Lasso, which arbitrarily picks one correlated feature and zeros out the others — an unstable choice that changes with small perturbations to the data. The bound on the coefficient difference shrinks as the correlation between two features increases. [1]",
       "formula": "|β̂ⱼ − β̂ₖ| ≤ (1/λ₂) · √(2·RSS) · √(1 − corr(xⱼ, xₖ))"
     },
     {
       "heading": "Naive vs Corrected Elastic Net",
-      "body": "Applying both the L1 and L2 penalties simultaneously causes double shrinkage — the coefficients end up smaller than they should be. Zou and Hastie (2005) showed that multiplying the naive solution by a correction factor of one plus the L2 regularization strength recovers the right scale. sklearn implements this corrected version by default, so you get the right coefficients without manual adjustment. [1]",
+      "body": "Applying both penalties simultaneously causes double shrinkage — the coefficients end up smaller than they should be. Zou and Hastie (2005) showed that multiplying the naive solution by one plus the L2 regularization strength recovers the right scale. sklearn implements this corrected version by default, so you get properly scaled coefficients without manual adjustment. [1]",
       "formula": "β̂_elastic = (1 + λ₂) · β̂_naive"
     },
     {
       "heading": "Choosing α and λ",
-      "body": "Both parameters must be tuned jointly. Use ElasticNetCV with a grid of l1_ratio values (e.g. [0.1, 0.5, 0.7, 0.9, 0.95, 0.99, 1.0]) and a logarithmic grid of alpha values. The two-dimensional cross-validation surface is usually flat near the optimum, so results are robust to small changes in the grid. [2]"
+      "body": "Both parameters must be tuned jointly. Use ElasticNetCV with a grid of l1_ratio values (e.g. [0.1, 0.5, 0.7, 0.9, 0.95, 0.99, 1.0]) and a logarithmic grid of alpha values. The cross-validation surface is usually flat near the optimum, so results are robust to small changes in the grid. [2]"
     }
   ],
   "youtubeLabel": "StatQuest: Elastic Net",

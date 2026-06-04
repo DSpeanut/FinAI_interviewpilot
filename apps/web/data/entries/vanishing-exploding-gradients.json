@@ -24,8 +24,8 @@
     }
   ],
   "deepDiveIntro": [
-    "For an L-layer network, the gradient of the loss w.r.t. layer l weights involves the product of L−l Jacobian matrices: ∂L/∂wₗ = (∂L/∂aL) · ΠₖₗLaₖ. The spectral properties of this product determine gradient flow. If all singular values of the Jacobian factors are < 1/√d (where d is layer width), the product shrinks geometrically. If all are > 1/√d, it grows. [1]",
-    "Glorot & Bengio (2010) analysed this systematically: for a random Gaussian weight initialisation W ~ N(0, σ²) in a d×d linear layer, ‖∂a_l/∂a_{l-1}‖_F ≈ σ·√d. For stable gradient flow: σ·√d = 1, i.e., σ = 1/√d — the Xavier initialisation. This ensures the signal neither vanishes nor explodes at initialisation. [2]"
+    "Gradients flow backward through a deep network as a product of layer-wise Jacobian matrices. When this product is repeatedly multiplied by factors smaller than one — as happens with sigmoid activations — the gradient shrinks exponentially with depth and early layers receive essentially no learning signal. When the factors are consistently larger than one — as can happen with large weight magnitudes — the gradient grows exponentially and causes unstable updates. [1]",
+    "Glorot and Bengio (2010) showed that the gradient magnitude at initialisation is controlled by the product of weight standard deviation and the square root of layer width. Setting the weight standard deviation to the reciprocal of the square root of the layer width keeps the gradient signal approximately unit-scale at initialisation — this is Xavier initialisation. It ensures that neither vanishing nor exploding gradients are a problem at the start of training, giving optimisation a stable foundation. [2]"
   ],
   "deepDive": [
     {

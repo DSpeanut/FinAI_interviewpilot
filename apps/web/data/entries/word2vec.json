@@ -19,23 +19,23 @@
     }
   ],
   "deepDiveIntro": [
-    "Skip-gram objective: maximize Σ_{(w,c) ∈ D} log P(c|w) where P(c|w) = exp(vw·uc) / Σv exp(vw·uv). Negative sampling approximation: log σ(vw·uc) + Σk~Pn log σ(−vw·uk), where Pn(w) = f(w)^{3/4}/Z (unigram distribution raised to 3/4 power — samples frequent words as negatives more often but with dampening). Each word has two vectors: center word vector v, context word vector u.",
-    "CBOW: predict center word w from context words {c₁,…,c_{2k}}: maximize P(w|c₁,…,c_{2k}) ≈ P(w|mean(uc_i)). Faster than Skip-gram (fewer operations per word). Skip-gram: for each center word, predict each context word separately — more updates per word, better for rare words. In practice: Skip-gram with negative sampling (SGNS) gives better embeddings than CBOW and is the standard."
+    "Skip-gram trains by maximizing the probability of observing the actual context words given the center word. Computing a full softmax over the entire vocabulary is expensive, so negative sampling approximates it by training a binary classifier that distinguishes true context words from randomly sampled noise words. Frequent words are sampled as negatives more often but with a dampening factor to avoid over-representing them. Each word maintains two vectors: one for when it is the center word and one for when it is a context word. [1]",
+    "CBOW predicts the center word from the average of the surrounding context word vectors — it is faster because it makes fewer gradient updates per word. Skip-gram predicts each context word separately from the center word, making more updates per word and performing better on rare words. Skip-gram with negative sampling is the standard in practice and produces better-quality embeddings. [1]"
   ],
   "deepDive": [
     {
       "heading": "Skip-gram with Negative Sampling (SGNS)",
-      "body": "For each (center word w, context word c) pair within window size k: minimize binary cross-entropy: −log σ(vw·uc) − Σᵢ₌₁ᴷ log σ(−vw·unᵢ). Negative samples nᵢ drawn from Pn(w) ∝ f(w)^{3/4}. k = 5–20 negatives typically. Hyperparameters: vector dimension d = 100–300, window size = 5–10, Pn exponent = 0.75, subsampling frequent words (P(discard) = 1 − √(t/f(w))). Training: SGD or Adam. O(k·d) per word pair. [1]",
+      "body": "For each true center-context word pair, the model maximizes the dot product between their vectors (making the prediction confident) while minimizing the dot product with randomly sampled noise words (pushing them apart). Typical settings use 5 to 20 negative samples, embeddings of 100 to 300 dimensions, and a context window of 5 to 10 words. Training cost scales with the number of negatives and the embedding dimension, not the full vocabulary size. [1]",
       "formula": "L_SGNS = log σ(vw · uc) + Σₖ log σ(−vw · unₖ)"
     },
     {
       "heading": "Linear Structure and Analogical Reasoning",
-      "body": "The geometric meaning of word vectors: offsets between vectors encode semantic relations. king − man ≈ queen − woman (gender relation), Paris − France ≈ Berlin − Germany (capital-country). This linear structure arises because PMI (Pointwise Mutual Information) matrix factorization and SGNS are equivalent (Levy & Goldberg 2014): SGNS implicitly factorizes the shifted PMI matrix PMI(w,c) − log k. The analogy offset is a linear encoding of the relational semantic difference. [1]",
+      "body": "Word embedding offsets encode semantic relationships: the vector from 'man' to 'king' is approximately the same as the vector from 'woman' to 'queen'. This linear structure emerges because Skip-gram with negative sampling implicitly factorizes a shifted version of the pointwise mutual information matrix between words and contexts. Analogy arithmetic — subtracting one relationship vector and adding another — works because these relationship directions are consistent across the embedding space. [1]",
       "formula": "king − man + woman ≈ queen"
     },
     {
       "heading": "Subsampling and Rare Word Handling",
-      "body": "Frequent words ('the', 'a', 'is') appear too often — subsampling: discard word w with probability P(discard) = 1 − √(t/f(w)), threshold t = 10⁻⁵. This reduces training data while keeping semantic content. Rare words: min_count = 5 (default) — words appearing < 5 times are discarded. OOV words get no embedding — a limitation vs subword models. For better rare word coverage: FastText (character n-grams within words) extends Word2Vec. [1]"
+      "body": "Very frequent words such as 'the' and 'is' are downsampled during training with a probability that increases with their frequency. This discards occurrences that contribute little information while retaining semantic content. Words appearing fewer than 5 times are removed entirely because they lack sufficient context to learn meaningful representations. Out-of-vocabulary words receive no embedding — the main weakness of Word2Vec compared to subword models like FastText. [1]"
     },
     {
       "heading": "Static vs Contextual Embeddings",

@@ -23,8 +23,8 @@
     }
   ],
   "deepDiveIntro": [
-    "For discrete random variable X with PMF p(x), Shannon entropy is H(X) = -Σ_x p(x) log p(x) = E[-log p(X)]. Usually base-2 logarithm (bits), sometimes natural log (nats). H(X) ≥ 0 with equality iff X is deterministic. Maximum entropy for finite support is log|X| achieved by uniform distribution.",
-    "Joint entropy H(X,Y) = -Σ p(x,y) log p(x,y). Conditional entropy H(Y|X) = -Σ p(x,y) log p(y|x) = H(X,Y) - H(X). Chain rule: H(X₁,…,Xₙ) = Σᵢ H(Xᵢ|X₁,…,Xᵢ₋₁). Differential entropy extends to continuous variables: h(X) = -∫ f(x) log f(x) dx (but can be negative)."
+    "Shannon entropy measures the average uncertainty in a probability distribution. It is always nonnegative and equals zero only when the outcome is certain. The uniform distribution maximises entropy because every outcome is equally likely and therefore most surprising.",
+    "Joint entropy measures uncertainty across two variables together. Conditional entropy asks how much uncertainty remains in one variable after the other is revealed, and equals the joint entropy minus the entropy of the known variable. For continuous distributions, entropy can also be defined but it may be negative, which limits its direct interpretation as an information quantity."
   ],
   "visualizationType": "entropy",
   "deepDive": [

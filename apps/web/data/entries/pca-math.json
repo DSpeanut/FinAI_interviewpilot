@@ -23,8 +23,9 @@
     }
   ],
   "deepDiveIntro": [
-    "Given centered data X ∈ ℝⁿˣᵖ (n samples, p features), the sample covariance is S = (1/(n-1)) XᵀX. PCA finds the eigendecomposition S = VΛVᵀ where Λ = diag(λ₁,…,λₚ) with λ₁ ≥ … ≥ λₚ and V has orthonormal eigenvectors as columns.",
-    "The principal components are the columns of V. The k-th principal component score for sample i is zᵢₖ = xᵢᵀvₖ. The variance of the k-th score equals λₖ. Geometrically, PCA finds the best-fitting k-dimensional affine subspace in terms of least squares reconstruction error."
+    "PCA starts by centering the data — subtracting the column means — then computing the sample covariance matrix as the product of the transposed centered data matrix with itself divided by the number of samples minus one. Eigendecomposition of this symmetric matrix yields orthonormal eigenvectors and their associated eigenvalues sorted from largest to smallest. The eigenvectors are the principal component directions, and the eigenvalues are the variances of the projected data along those directions.",
+    "The k-th score for each sample is the dot product of that sample with the k-th eigenvector, giving a coordinate in the new reduced space. PCA also provides the best rank-k approximation of the data matrix in the sense of minimizing the total squared reconstruction error across all samples.",
+    "formula: S = (1/(n−1)) XᵀX;   Svₖ = λₖvₖ"
   ],
   "visualizationType": "pca-math",
   "deepDive": [

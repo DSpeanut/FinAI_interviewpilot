@@ -19,8 +19,9 @@
     }
   ],
   "deepDiveIntro": [
-    "Additive decomposition: Yₜ = Tₜ + Sₜ + Rₜ. Seasonal component Sₜ: periodic with period s, Σₖ₌₀ˢ⁻¹Sₜ₋ₖ = 0 (zero sum over each season). Estimated via moving average for Tₜ, then average of Yₜ−Tₜ within each season for Sₜ, residual Rₜ = Yₜ − Tₜ − Sₜ. Multiplicative: Yₜ = Tₜ · Sₜ · Rₜ — equivalent to additive after log transformation.",
-    "STL decomposition (Cleveland et al. 1990): iterates between seasonal smoother (loess within each season across time) and trend smoother (loess of seasonally adjusted series). Two tuning parameters: seasonal window n_s (larger → smoother seasonal component), trend window n_t (larger → smoother trend). Robust option: down-weight observations with large residuals. STL-ETS or STL-ARIMA: decompose with STL, forecast seasonally adjusted series with ETS or ARIMA, add back seasonal component."
+    "In additive decomposition the series equals the sum of trend, seasonal, and irregular components; in multiplicative decomposition it equals their product, which is equivalent to additive decomposition after taking logarithms. The seasonal component is constrained to average to zero over each full cycle so it does not absorb level shifts. Classical decomposition estimates the trend with a moving average, subtracts it to isolate the seasonal and irregular parts, then averages within each season to estimate the seasonal component.",
+    "STL decomposition iterates between a loess smoother applied within each season across time and a loess smoother applied to the seasonally adjusted series, controlled by a seasonal window and a trend window parameter. Larger windows produce smoother components. An optional robustness pass down-weights observations with large residuals, making STL resistant to outliers. After decomposition, the seasonally adjusted series can be forecast with any standard method and the seasonal component added back. [1]",
+    "formula: Additive: Yₜ = Tₜ + Sₜ + Rₜ;  Multiplicative: Yₜ = Tₜ · Sₜ · Rₜ"
   ],
   "deepDive": [
     {

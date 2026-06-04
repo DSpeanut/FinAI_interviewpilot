@@ -24,8 +24,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Precision-Recall curve: for classifier f(x) with threshold τ, Precision(τ) = TP(τ)/(TP(τ)+FP(τ)) and Recall(τ) = TP(τ)/(TP(τ)+FN(τ)). As τ decreases from +∞ to -∞: more examples predicted positive → recall increases → precision generally decreases. Average Precision (AP) = Σₙ(Rₙ-Rₙ₋₁)·Pₙ — the area under the PR curve using the trapezoidal rule on the discretised curve. AP = AUC-PR with interpolated precision. Davis & Goadrich (2006): the ROC and PR curves contain equivalent information — there is a pointwise one-to-one mapping — but PR reveals performance differences for rare classes that ROC conceals. [1]",
-    "Baseline comparison: ROC random classifier baseline is always AUC=0.5 regardless of class imbalance. PR random classifier baseline = class prevalence π₊ = n₊/n. For 5% positive rate: AP_baseline=0.05. This means AP=0.20 on a 5% positive rate dataset is 4× better than random, not 4/5 of perfect — more meaningful than the absolute value suggests. A useful benchmark: compare AP against AP_baseline (prevalence) and against AP of a model that always predicts the majority class (AP=π₊). [1]"
+    "The PR curve sweeps through all possible decision thresholds. Lowering the threshold causes more examples to be predicted positive, increasing recall but typically decreasing precision. Average Precision summarises the curve as a weighted area where each step in recall is multiplied by the precision at that threshold. The ROC and PR curves convey equivalent information via a one-to-one mapping, but the PR curve amplifies performance differences that matter for rare positive classes. [1]",
+    "The random classifier baseline for ROC-AUC is always 0.5 regardless of class balance. For a PR curve, the random baseline equals the positive class prevalence — about 0.05 for a 5% positive rate. This makes absolute AP values more meaningful: an AP of 0.20 on a 5% positive-rate task is four times better than random, which is a much harder comparison to see from ROC-AUC. Always compare AP against the prevalence baseline to contextualise performance. [1]"
   ],
   "deepDive": [
     {

@@ -23,8 +23,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Weak Law of Large Numbers (WLLN): For i.i.d. X₁, X₂, … with E|X₁| < ∞ and mean μ, the sample mean X̄ₙ = (1/n)ΣᵢXᵢ converges in probability to μ: for any ε > 0, P(|X̄ₙ - μ| > ε) → 0 as n → ∞. Can be proved using Chebyshev's inequality if variance is finite.",
-    "Strong Law of Large Numbers (SLLN): Under same conditions, X̄ₙ converges almost surely to μ: P(lim_{n→∞} X̄ₙ = μ) = 1. Stronger than WLLN. Requires more sophisticated proof (Kolmogorov's criterion, Borel-Cantelli lemmas). The distinction matters in theoretical probability but rarely in practice."
+    "The Weak Law of Large Numbers says that for independent identically distributed variables with a finite mean, the probability that the sample average deviates from the true mean by any fixed amount shrinks to zero as the sample grows. A proof via Chebyshev's inequality works when variance is also finite. The Strong Law strengthens this: with probability one, the sample average itself converges to the true mean along every realized path, not just in probability.",
+    "formula: P(|X̄ₙ − μ| > ε) → 0 as n → ∞   (WLLN)"
   ],
   "visualizationType": "law-of-large-numbers",
   "deepDive": [

@@ -24,23 +24,23 @@
     }
   ],
   "deepDiveIntro": [
-    "LayerNorm (Ba et al., 2016): given input x ∈ ℝᵈ (a single sample's feature vector): μ = (1/d)Σⱼxⱼ; σ² = (1/d)Σⱼ(xⱼ−μ)²; x̂ⱼ = (xⱼ−μ)/√(σ²+ε); yⱼ = γⱼx̂ⱼ + βⱼ. Normalises over the feature dimension, not the batch dimension. For a transformer with input (B, T, d_model), LayerNorm normalises over the d_model dimension for each of the B·T positions independently. [1]",
-    "The key difference from BatchNorm: statistics μ and σ are computed per-sample (or per-token in sequences) rather than per-feature across the batch. This means the same normalisation applies regardless of what other samples are in the batch — no coupling between samples. [1]"
+    "LayerNorm computes the mean and variance of a single token's feature vector, then subtracts the mean and divides by the standard deviation to produce a zero-mean, unit-variance vector. Learned scale and shift parameters restore expressiveness. The key point is that all statistics are computed within a single token, so the normalization is completely independent of batch size or other tokens in the sequence. [1]",
+    "This contrasts with BatchNorm, which computes statistics across the batch dimension for each feature position. LayerNorm therefore works equally well at batch size 1 and requires no running averages — the same computation applies at training and inference time. [1]"
   ],
   "deepDive": [
     {
       "heading": "Algorithm",
-      "body": "For input x ∈ ℝᵈ: μ = (1/d)Σxⱼ. σ² = (1/d)Σ(xⱼ−μ)². x̂ = (x − μ·1) / √(σ²·1 + ε). y = γ ⊙ x̂ + β. γ ∈ ℝᵈ, β ∈ ℝᵈ are learned (initialised γ=1, β=0). Unlike BatchNorm: no running statistics, no train/eval mode switch needed for normalisation (though dropout still needs model.eval()). For transformers: LayerNorm normalises over the embedding dimension d_model for each token position independently. [1]",
+      "body": "For each token, compute the mean and variance of its feature values, subtract the mean, and divide by the standard deviation plus a small constant for numerical stability. Then apply learned per-feature scale and shift parameters, initialized to one and zero respectively. No running averages are maintained, so there is no difference between training and evaluation mode for LayerNorm. [1]",
       "formula": "LN(x) = γ ⊙ (x − μ) / √(σ² + ε) + β"
     },
     {
       "heading": "Pre-Norm vs Post-Norm",
-      "body": "Original transformer (Vaswani 2017) uses post-norm: x = LN(x + Sublayer(x)). Modern transformers use pre-norm (GPT-2, LLaMA, Mistral): x = x + Sublayer(LN(x)). Pre-norm advantages: (1) Gradient flows through the residual stream without touching LayerNorm — stable gradients for deep networks. (2) Training is more stable at the start — LN(x) at the beginning is well-scaled by initialisation. (3) Allows removal of final LN in some architectures. LLaMA, GPT-2, and PaLM all use pre-norm. [1][2]",
+      "body": "In the original transformer, LayerNorm was applied after the residual addition. Modern LLMs such as GPT-2 and LLaMA apply it before the sublayer instead. Pre-norm keeps the residual stream completely unnormalized, so gradients flow through the skip connections without passing through LayerNorm in the backward pass — this produces more stable training for very deep networks. [1][2]",
       "formula": "Pre-norm: x = x + F(LN(x))  vs  Post-norm: x = LN(x + F(x))"
     },
     {
       "heading": "RMSNorm: Simplified LayerNorm",
-      "body": "RMSNorm (Zhang & Sennrich, 2019): removes the mean subtraction from LayerNorm. LN normalises by both mean and variance. RMSNorm normalises only by RMS: rmsⱼ = √((1/d)Σᵢxᵢ²). x̂ = x / rms. yⱼ = γⱼx̂ⱼ (no β). LLaMA, Mistral, and Gemma use RMSNorm instead of LayerNorm. Advantages: fewer parameters (no β), 10–20% faster computation. Empirically matches LN performance with 0.5–1% compute savings. [2]",
+      "body": "RMSNorm drops the mean subtraction step and normalizes only by the root mean square of the activations, then applies a learned scale. Removing the shift parameter saves a small amount of memory and computation. LLaMA, Mistral, and Gemma all use RMSNorm, finding that it matches LayerNorm quality with roughly 10 to 20 percent less compute cost for the normalization step. [2]",
       "formula": "RMSNorm(x) = x / √((1/d)Σxᵢ²) · γ"
     },
     {

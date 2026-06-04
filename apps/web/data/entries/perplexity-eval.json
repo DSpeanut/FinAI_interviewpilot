@@ -24,13 +24,13 @@
     }
   ],
   "deepDiveIntro": [
-    "Perplexity PP(W) = exp(-(1/N)·Σₜ₌₁ᴺ log p(wₜ|w₁,...,wₜ₋₁)) where W = w₁,...,wₙ is the test sequence and p is the model's conditional probability. This is exp(H) where H = -(1/N)·Σ log p(wₜ|...) is the empirical per-token cross-entropy. From information theory: perplexity is the exponentiated cross-entropy — the effective branching factor (average number of equally likely continuations) per step. A model with perplexity K is as good as uniformly choosing from K options at each step. [1]",
-    "Bits-per-character (BPC) and bits-per-token are equivalent formulations: BPC = log₂(PP)/chars_per_token. The difference is the base (natural log gives nats; log₂ gives bits) and the normalization unit (characters vs tokens vs words). When comparing perplexity across models, all three must be the same: same tokenizer, same test set, same normalization. LLaMA-2-7B achieves ~5.68 perplexity on the LLaMA-2 evaluation set (2048 token sliding window); reported in the LLaMA-2 paper (Touvron et al., 2023). [1]"
+    "Perplexity is the exponential of the average negative log probability that the model assigned to each token in the test sequence. It equals the exponentiated per-token cross-entropy. Intuitively, a perplexity of K means the model was as uncertain at each step as if it were choosing uniformly among K equally likely options — lower is better. [1]",
+    "Bits-per-character is an equivalent formulation that normalizes by characters rather than tokens, making it comparable across models with different tokenizers. Perplexity computed per token is not comparable across models with different vocabularies or tokenization schemes because the same text produces different numbers of tokens. When reporting or comparing perplexity, the tokenizer, test set, and normalization unit must all match. [1]"
   ],
   "deepDive": [
     {
       "heading": "Perplexity Formula and Computation",
-      "body": "For a causal LM: PP(W) = exp(-(1/N)·Σₜ log p_θ(wₜ|w<t)). This equals exp(L) where L is the cross-entropy training loss on the test set. In PyTorch: model(input_ids, labels=input_ids).loss gives the average cross-entropy per token; perplexity = exp(loss). For long texts exceeding max_length: use sliding window evaluation — compute NLL on a stride-length suffix of each window (to avoid edge effects from truncated context). The HuggingFace perplexity tutorial uses stride=512 for a 1024-token window model. [1]",
+      "body": "For a causal language model, perplexity is the exponential of the average cross-entropy loss on the test set. In PyTorch, calling the model with labels set to the input tokens returns this average loss directly; perplexity is then the exponential of that value. For texts longer than the model's context window, sliding-window evaluation scores only the latter portion of each window so that every token is conditioned on sufficient context. [1]",
       "formula": "PP(W) = exp(−(1/N)·Σₜ₌₁ᴺ log p(wₜ|w₁,...,wₜ₋₁))"
     },
     {

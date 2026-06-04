@@ -24,8 +24,8 @@
     }
   ],
   "deepDiveIntro": [
-    "ROC curve: plot TPR = TP/(TP+FN) vs FPR = FP/(FP+TN) as the classification threshold τ varies from +∞ (predict all negative) to -∞ (predict all positive). Each threshold τ gives one (FPR, TPR) point. AUC = ∫₀¹ TPR(FPR) d(FPR) = area under this curve. AUC has the probabilistic interpretation: AUC = P(f(x₊) > f(x₋)) where x₊ ~ P and x₋ ~ N are random positive and negative examples. This equals the Wilcoxon-Mann-Whitney U statistic normalised by n₊·n₋ (Hanley & McNeil, 1982). [1]",
-    "The ROC curve has invariance properties: (1) AUC is invariant to monotone transformations of the score — only the ranking matters, not the absolute values. (2) AUC is invariant to class imbalance — changing the ratio of positives to negatives in the test set doesn't change AUC (unlike accuracy, F1, or precision at a fixed threshold). (3) A classifier with AUC=0.5 is equivalent to random guessing; AUC<0.5 indicates an inverted classifier (flip predictions to get AUC=1-original AUC). [1]"
+    "The ROC curve traces the trade-off between true positive rate and false positive rate as the decision threshold is swept from permissive to strict. Each point on the curve corresponds to one threshold. AUC equals the probability that a randomly chosen positive example receives a higher model score than a randomly chosen negative example — a clean probabilistic statement about ranking quality that does not depend on any particular threshold. [1]",
+    "AUC has two important invariance properties. First, it does not change under any monotone transformation of the scores, so only the ranking of scores matters. Second, it does not change when the ratio of positives to negatives in the test set changes, unlike accuracy or F1 at a fixed threshold. A classifier scoring 0.5 AUC is no better than random; a classifier with AUC below 0.5 is reliably wrong and can be fixed by flipping its predictions. [1]"
   ],
   "deepDive": [
     {

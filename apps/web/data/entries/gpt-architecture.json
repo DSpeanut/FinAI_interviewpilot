@@ -20,26 +20,26 @@
     }
   ],
   "deepDiveIntro": [
-    "GPT transformer block: for each layer l — LayerNorm → Masked Multi-Head Self-Attention → residual → LayerNorm → Feed-Forward (MLP) → residual. Pre-norm (LayerNorm before attention/FFN) is used in GPT-2+ for training stability vs. post-norm in original transformer. Attention: Q=XWQ, K=XWK, V=XWV; Attn(Q,K,V)=softmax(QKᵀ/√d_k + M)V where M is the causal mask. FFN: two linear layers with GELU activation — FFN(x) = W₂·GELU(W₁x + b₁) + b₂, hidden size = 4×model_dim.",
-    "GPT-3 architecture specifics: 175B parameters, 96 layers, 96 attention heads, d_model=12288, d_ff=49152 (4× model), context window=2048 tokens. Trained on 300B tokens from a filtered mix of Common Crawl (60%), WebText2 (22%), Books1 (8%), Books2 (8%), Wikipedia (3%). Training: Adam optimizer, batch size 3.2M tokens, learning rate 6×10⁻⁵ with cosine decay. Training compute: ~3.14×10²³ FLOPs."
+    "Each GPT transformer block applies layer normalization before the sublayer (pre-norm style, adopted in GPT-2 for training stability at depth), runs masked multi-head self-attention with a causal mask so each token only attends to previous positions, adds a residual, then passes through a two-layer feedforward network with GELU activation and hidden size four times the model dimension, followed by another residual.",
+    "GPT-3 (175 billion parameters) uses 96 layers, 96 attention heads, a model dimension of 12,288, and a context window of 2,048 tokens. It was trained on about 300 billion tokens drawn from filtered Common Crawl, WebText, and books datasets using the Adam optimizer with cosine learning rate decay."
   ],
   "deepDive": [
     {
       "heading": "Transformer Decoder Block",
-      "body": "Pre-norm block (GPT-2+): x ← x + Attn(LayerNorm(x)); x ← x + FFN(LayerNorm(x)). Causal multi-head attention: h heads each with dimension d_k = d_model/h. Concatenate heads: MultiHead(Q,K,V) = Concat(head₁,…,headₕ)Wᴼ. FFN: GELU is preferred over ReLU (smoother gradient). GPT-4 architecture is not fully disclosed but likely uses mixture-of-experts (MoE) with sparse gating for efficiency — each token routes to a subset of expert FFN layers. [1]",
+      "body": "Each GPT-2+ block first normalizes its input, runs causal multi-head attention where queries, keys, and values all come from the same sequence with a lower-triangular mask, then adds the result back as a residual. A second normalization feeds a two-layer feedforward network with GELU activation and hidden size four times the model dimension, followed by another residual addition. GPT-4 likely uses sparse mixture-of-experts layers in place of dense feedforward layers, routing each token to a small subset of expert networks for efficiency. [1]",
       "formula": "Attn(Q,K,V) = softmax((QKᵀ/√d_k) + M) · V"
     },
     {
       "heading": "Positional Encoding",
-      "body": "GPT-1/2/3: learned absolute position embeddings — embedding table of size (context_length × d_model), added to token embeddings. Limitation: fixed context window — cannot extrapolate beyond pre-trained length. GPT-NeoX, Llama: Rotary Position Embeddings (RoPE, Su et al. 2021) — encode relative positions by rotating Q and K vectors in complex plane. RoPE naturally decays for long distances and enables context window extension. ALiBi (Press et al. 2022): add a linear bias −m·|i−j| to attention scores based on relative distance — even simpler, good length generalization. [1][2]"
+      "body": "GPT-1/2/3 use learned absolute positional embeddings — a lookup table with one vector per position added to the token embedding. These cannot generalize beyond the training context length. Llama and GPT-NeoX use Rotary Position Embeddings (RoPE), which rotate query and key vectors by an angle proportional to position so that dot products depend on the relative offset between tokens rather than absolute positions. ALiBi adds a simple linear penalty to attention scores based on distance, enabling length extrapolation without changing the embeddings at all. [1][2]"
     },
     {
       "heading": "GPT-3 Scale and In-Context Learning",
-      "body": "GPT-3 (175B) exhibited qualitative emergence: few-shot prompting with 3–5 examples matched fine-tuned BERT on many tasks. Key insight: at sufficiently large scale, the model implicitly 'learns' to do gradient descent in its forward pass via attention (hypothesis: meta-learning via ICL). Few-shot performance scales with model size (power law). GPT-3 on SuperGLUE: few-shot accuracy = 71.8% (fine-tuned BERT-large = 89%). At GPT-4 scale, ICL performance approaches fine-tuning. [1]"
+      "body": "At 175 billion parameters, GPT-3 showed that providing a few input-output examples directly in the prompt — without any gradient updates — lets the model adapt its behavior to new tasks. Few-shot performance improves reliably with model size following a power law. GPT-3 reached 71.8% on SuperGLUE with few-shot prompting, compared to 89% for fine-tuned BERT, and the gap has continued to close as models scale further. [1]"
     },
     {
       "heading": "GPT-4: Multimodal and Alignment",
-      "body": "GPT-4 (OpenAI 2023): accepts text and image inputs, text output. Architecture not fully disclosed. Key advances: (1) Multimodal encoder processes images into token embeddings, concatenated with text tokens; (2) RLHF alignment — PPO with reward model trained on human preference comparisons; (3) Constitutional AI / system prompt for safety; (4) Achieves 90th percentile on Bar exam (GPT-3.5: 10th percentile). Likely uses MoE with 8 experts of ~220B params each (community estimates: ~1.8T total params, ~220B active per token). [3]"
+      "body": "GPT-4 accepts both text and image inputs and produces text outputs, using a vision encoder to convert image patches into token embeddings that are processed alongside text. It was trained with RLHF — a reward model scores human-preferred responses and the policy is updated to maximize that reward via PPO. GPT-4 scores at approximately the 90th percentile on the Bar exam, compared to around the 10th percentile for GPT-3.5. Community estimates suggest the architecture uses sparse mixture-of-experts with many expert sub-networks, routing each token to a small active subset. [3]"
     }
   ],
   "takeaways": [

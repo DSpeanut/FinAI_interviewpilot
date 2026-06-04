@@ -23,8 +23,8 @@
     }
   ],
   "deepDiveIntro": [
-    "XGBoost (Chen & Guestrin, 2016) reformulates gradient boosting using a second-order Taylor expansion of the loss function at each step. This allows an exact closed-form solution for leaf weights and a principled split scoring criterion — without numerically searching for the best leaf prediction.",
-    "The regularised objective adds Ω(f) = γT + ½λΣⱼwⱼ² to the loss at each boosting step, where T is the number of leaves, wⱼ is the j-th leaf weight, and γ, λ are hyperparameters. This penalises tree complexity and large weights simultaneously."
+    "XGBoost reformulates gradient boosting using a second-order Taylor expansion of the loss function at each boosting step. This gives an exact closed-form formula for the optimal leaf weight and a principled split gain criterion, removing the need to search numerically for the best leaf prediction.",
+    "The regularised objective adds a penalty that charges for the number of leaves in each tree and for the magnitude of the leaf weights. This automatically prunes the trees without needing a separate pruning step, and the two regularisation parameters let practitioners control tree complexity and weight shrinkage independently."
   ],
   "visualizationType": "xgboost",
   "deepDive": [
@@ -35,7 +35,7 @@
     },
     {
       "heading": "Optimal Leaf Weights & Split Score",
-      "body": "This section explains the main idea behind this part of the method in plain language.",
+      "body": "Given the gradient and Hessian sums for all examples in a leaf, the optimal leaf weight has a closed form: it divides the sum of first-order gradients by the sum of second-order Hessians plus the regularisation term. Evaluating a candidate split compares the gain from separating examples into two children against the cost of adding a leaf, so only splits that improve the objective by more than the complexity penalty are accepted.",
       "formula": "w*ⱼ = −Gⱼ / (Hⱼ + λ),    Gain = ½[G²_L/(H_L+λ) + G²_R/(H_R+λ) − (G_L+G_R)²/(H_L+H_R+λ)] − γ"
     },
     {

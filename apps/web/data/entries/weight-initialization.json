@@ -24,23 +24,24 @@
     }
   ],
   "deepDiveIntro": [
-    "Glorot & Bengio (2010) derived the Xavier initialisation by requiring the variance of activations to be the same in every layer (forward condition) AND the variance of gradients to be the same (backward condition). For a linear layer with n_in inputs and n_out outputs: Var(aₗ) = n_in · Var(wₗ) · Var(aₗ₋₁). Setting Var(aₗ) = Var(aₗ₋₁) requires Var(wₗ) = 1/n_in (forward). Setting gradient variance constant requires Var(wₗ) = 1/n_out (backward). The compromise: Var(w) = 2/(n_in + n_out). [1]",
-    "He et al. (2015) extended this to ReLU: f(z) = max(0,z) has E[f(z)²] = E[z²|z>0]·P(z>0) = Var(z)·(1/2) (for zero-mean symmetric z). This halving of the variance requires Var(w) = 2/n_in to maintain unit activation variance. The 'gain' for ReLU is √2 relative to linear. [2]"
+    "Glorot and Bengio (2010) derived Xavier initialization by requiring the variance of activations to stay constant from one layer to the next in both the forward pass and the backward gradient pass. For a linear layer, the output variance equals the input variance times the number of inputs times the weight variance. Making this equal to the input variance requires weight variance equal to one over the number of inputs for the forward condition and one over the number of outputs for the backward condition. Xavier uses their harmonic mean, two divided by the sum of input and output widths. [1]",
+    "He et al. (2015) extended this to ReLU by noting that ReLU zeroes out about half of its inputs on average, which halves the effective variance. Doubling the weight variance to two divided by the number of inputs compensates for this, maintaining unit activation variance through deep ReLU networks. The practical gain factor for ReLU is the square root of two relative to a linear activation. [2]",
+    "formula: Xavier: Var(w) = 2/(n_in + n_out);   He: Var(w) = 2/n_in"
   ],
   "deepDive": [
     {
       "heading": "Xavier / Glorot Initialisation",
-      "body": "For a linear layer mapping n_in → n_out: Var(w) = 2/(n_in + n_out). Implemented as: uniform U[−a, a] where a = √(6/(n_in+n_out)), or normal N(0, 2/(n_in+n_out)). This is the harmonic mean of 1/n_in (forward condition) and 1/n_out (backward condition). Use when activation function's derivative has unit expectation (tanh at init ≈ 1, sigmoid < 0.25 so Xavier is suboptimal). [1]",
+      "body": "Xavier initialization sets the weight variance to two divided by the sum of the number of input and output units. In uniform form it draws from a symmetric interval whose half-width is the square root of six over that same sum. This balances the forward-pass and backward-pass variance conditions and is appropriate for activations whose derivative at initialization is close to one, such as tanh. Sigmoid activations have derivatives well below one at initialization, making Xavier suboptimal for them. [1]",
       "formula": "Xavier: Var(w) = 2/(n_in + n_out)"
     },
     {
       "heading": "He / Kaiming Initialisation",
-      "body": "For ReLU activations: Var(w) = 2/n_in. PyTorch: kaiming_normal_(tensor, mode='fan_in', nonlinearity='relu') → std = √(2/n_in). This accounts for ReLU zero-ing: only half the inputs survive, so you need double the variance in the weights to maintain signal strength. For leaky ReLU with slope a: Var(w) = 2/((1+a²)·n_in). For SELU: specific initialisation with std = 1/√n_in (LeCun init). [2]",
+      "body": "He initialization sets weight variance to two over the number of inputs, compensating for the fact that ReLU zeroes roughly half of its inputs and thereby halves the signal variance. PyTorch's kaiming_normal_ implements this with mode fan_in. For leaky ReLU with slope a, the denominator includes an additional factor of one plus a squared. For SELU the LeCun initialization uses variance equal to one over the number of inputs, which matches the self-normalizing property of that activation. [2]",
       "formula": "He: Var(w) = 2/n_in  (for ReLU)"
     },
     {
       "heading": "GPT-2 Scaled Residual Initialisation",
-      "body": "In a transformer with L residual blocks, each block adds a residual: x ← x + F(x). If F(x) has std σ_F, after L blocks: Var(x_L) ≈ Var(x_0) + L·σ_F² (variance grows with L). To keep Var(x_L) ≈ Var(x_0): σ_F = Var(x_0)/√L. In GPT-2: the weight matrices in residual paths (the second linear in MLP, and output projection in attention) are scaled by 1/√(2L). The factor 2 comes from 2 residual additions per transformer block (attention + FFN). [1]"
+      "body": "In a transformer with many residual blocks, each block adds a learned perturbation to the residual stream. If each block contributes independent variance, the total variance grows linearly with depth, causing the residual stream to drift in scale. GPT-2 prevents this by scaling the weights of residual projection layers by one over the square root of twice the number of blocks: one factor for depth and one because each block contains two residual additions — the attention output and the feedforward output. This keeps the variance of the residual stream approximately constant at initialization throughout training. [1]"
     }
   ],
   "youtubeLabel": "Weight Initialization in Neural Networks",

@@ -24,22 +24,22 @@
     }
   ],
   "deepDiveIntro": [
-    "Global gradient norm clipping: g = [g_1,...,g_n] is the concatenation of all parameter gradients. total_norm = ‖g‖₂ = √(Σᵢ‖gᵢ‖²_F). If total_norm > max_norm: g ← g·(max_norm/total_norm). This scales all gradients by the same factor, preserving the relative gradient direction. The update direction is unchanged; only its magnitude is bounded. [1]",
-    "An alternative: value clipping (clip_grad_value_): each gradient component gᵢⱼ ← clip(gᵢⱼ, −c, c). This does NOT preserve gradient direction — it clips each component independently, changing the gradient's direction. This can cause instability. Norm clipping is preferred. [1]"
+    "Global norm clipping computes the total size of all parameter gradients combined by taking the square root of the sum of squared gradient values. If that total exceeds the threshold, every gradient is scaled down by the same factor so the total just equals the threshold. This preserves the direction of the gradient vector — only its magnitude changes. [1]",
+    "Value clipping is an alternative that independently clips each individual gradient component to a fixed range. Unlike norm clipping, this changes the direction of the overall gradient, which can destabilize training. Norm clipping is the preferred method for this reason. [1]"
   ],
   "deepDive": [
     {
       "heading": "Global Norm Clipping Algorithm",
-      "body": "total_norm = √(Σₚ ‖∇_p L‖²_F). If total_norm > max_norm: scale = max_norm / total_norm; for each p: ∇_p L ← ∇_p L · scale. The scaling is the same for all parameters — the gradient vector is shortened proportionally, preserving direction. At no point are any individual gradients zeroed or changed in sign. After clipping, ‖g‖₂ = min(total_norm, max_norm). The clipping only fires when there's an abnormally large gradient — in normal training, it's a no-op. [1]",
+      "body": "Compute the combined gradient magnitude across all parameters. If it exceeds the threshold, multiply every gradient by the same scaling factor so the total lands exactly at the threshold. Because the factor is applied uniformly, the gradient direction is preserved. In typical training, gradients stay below the threshold and clipping is a no-op — it only activates on abnormally large steps. [1]",
       "formula": "g ← g · min(1, max_norm/‖g‖₂)"
     },
     {
       "heading": "Setting max_norm",
-      "body": "Common values: transformers/LLMs: 1.0 (GPT-3, LLaMA, BERT). RNNs: 1.0–5.0 (Pascanu et al., 2013 recommend 1.0). RL (PPO, SAC): 0.5–1.0. CNNs with BN: often not needed (BN stabilises gradients). Diagnostic: log the gradient norm at each step. If the 90th percentile is well below max_norm, clipping rarely fires and is harmless. If the median is close to max_norm, you're always clipping — either the lr is too high or max_norm is too low. Monitor clip frequency: ideally < 10% of steps. [1]"
+      "body": "The most common default is 1.0 for transformers, LLMs, and RLHF training. RNNs typically use 1.0 to 5.0. RL algorithms such as PPO and SAC use 0.5 to 1.0. A practical diagnostic is to log the gradient norm at every step: if clipping fires more than 10% of the time, the learning rate may be too high or the threshold too low. [1]"
     },
     {
       "heading": "Clipping vs RNN Stability",
-      "body": "Pascanu et al. (2013) proved that for RNNs with BPTT, gradient clipping provides a fixed-point guarantee: after clipping, the update direction is the same as the full gradient when total_norm ≤ max_norm, and points into a safe region when total_norm > max_norm. They showed this is strictly better than reducing the learning rate to handle gradient spikes, because clipping adapts to the gradient magnitude dynamically. The heuristic max_norm=5 for language modelling and max_norm=1 for image tasks has been validated empirically across many papers. [1]"
+      "body": "Pascanu et al. (2013) showed that for recurrent networks trained with backpropagation through time, gradient clipping is strictly better than simply lowering the learning rate to handle spikes. Lowering the rate slows all steps uniformly, while clipping only constrains the abnormally large ones. The commonly used threshold of 5 for language modeling and 1 for image tasks has been validated across many published results. [1]"
     }
   ],
   "youtubeLabel": "Gradient Clipping — Exploding Gradients Solution",

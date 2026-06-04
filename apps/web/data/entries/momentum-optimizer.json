@@ -24,22 +24,22 @@
     }
   ],
   "deepDiveIntro": [
-    "Classical momentum (Polyak, 1964): vₜ = β·vₜ₋₁ + gₜ; wₜ = wₜ₋₁ − η·vₜ. Unrolling the velocity: vₜ = Σₖ₌₀ᵗ β^(t−k) g_k. The velocity is a geometrically weighted sum of all past gradients, decaying at rate β. At steady state with constant gradient g: vₜ → g/(1−β), so the effective step size is η/(1−β). With β=0.9, the effective learning rate is 10× η. [1]",
-    "Nesterov Accelerated Gradient (NAG, Nesterov 1983): vₜ = β·vₜ₋₁ + η·∇L(wₜ₋₁ − β·vₜ₋₁). This computes the gradient at the 'look-ahead' position wₜ₋₁ − β·vₜ₋₁ rather than the current position. For convex functions, NAG achieves the optimal O(1/T²) convergence rate, while standard momentum achieves O(1/T). In practice, NAG often converges slightly faster and is available via nesterov=True in PyTorch. [2]"
+    "Classical momentum (Polyak, 1964) maintains a velocity that accumulates a geometrically decaying weighted sum of all past gradients: recent gradients contribute most while older ones fade exponentially at rate beta. At steady state with a constant gradient the effective step size grows to the learning rate divided by one minus beta, so with beta equal to 0.9 the effective learning rate is ten times the nominal value. [1]",
+    "Nesterov Accelerated Gradient improves on classical momentum by computing the gradient at the anticipated next position — where the current momentum vector would take the parameters — rather than at the current position. This look-ahead gradient is more informative and corrects for overshooting, giving a better convergence rate on convex problems and often faster early convergence in practice. [2]"
   ],
   "deepDive": [
     {
       "heading": "Classical Momentum Update",
-      "body": "vₜ = β·vₜ₋₁ + gₜ; wₜ = wₜ₋₁ − η·vₜ. The velocity vₜ is an exponential moving average of gradients (without bias correction). At steady state with fixed gradient g: vₜ → g/(1−β) (geometric series). Effective step = η·g/(1−β). For β=0.9: step = 10η; for β=0.99: step = 100η. This means momentum dramatically amplifies learning rate for directions with consistent gradients. Requires tuning both η and β — common choices: β∈{0.9, 0.95, 0.99}. [1]",
+      "body": "The velocity is an exponential moving average of all past gradients. At steady state with a fixed gradient, the velocity converges to a constant multiple of that gradient, so the effective step size grows to the learning rate divided by one minus beta. With beta equal to 0.9 the effective learning rate is ten times the nominal value; with 0.99 it is one hundred times. Common choices for the momentum coefficient are 0.9, 0.95, and 0.99. [1]",
       "formula": "vₜ = β·vₜ₋₁ + gₜ;  wₜ = wₜ₋₁ − η·vₜ"
     },
     {
       "heading": "Convergence on Quadratics",
-      "body": "For a quadratic f(w) = (1/2)wᵀAw with eigenvalues λ₁ ≤ ... ≤ λ_d (condition number κ = λ_d/λ₁): GD convergence: (λ_d−λ₁)²/(λ_d+λ₁)². Optimal momentum convergence: (√κ−1)²/(√κ+1)². Asymptotically, momentum reduces the number of iterations from O(κ) to O(√κ). Optimal momentum: β* = ((√κ−1)/(√κ+1))², optimal step: η* = 4/(λ₁+λ_d + 2√(λ₁λ_d)). In practice, these are set heuristically rather than computed. [2]"
+      "body": "For a quadratic loss whose curvature is poorly conditioned — a large ratio of the steepest to the shallowest curvature direction — vanilla gradient descent converges slowly. Momentum reduces the required number of iterations from proportional to the condition number to proportional to the square root of the condition number. In practice the optimal momentum coefficient and learning rate are set heuristically rather than computed from the curvature directly. [2]"
     },
     {
       "heading": "Nesterov vs Classical Momentum",
-      "body": "Classical: gradient at current position wₜ, then apply momentum. Nesterov: first take momentum step to predicted position wₜ − β·vₜ₋₁, then compute gradient there. Classical update: wₜ = wₜ₋₁ − η(β·vₜ₋₁ + gₜ). Nesterov: wₜ = wₜ₋₁ − η·vₜ where vₜ = β·vₜ₋₁ + ∇f(wₜ₋₁ − ηβ·vₜ₋₁). The look-ahead gradient is more informative — it corrects for 'overshooting'. Both converge to the same point but Nesterov is typically faster in the first phase of optimisation. [2]",
+      "body": "Classical momentum computes the gradient at the current position and then applies the velocity update. Nesterov Accelerated Gradient first jumps to the position where momentum alone would take the weights, then computes the gradient there. This look-ahead gradient is more informative and corrects for overshooting, giving faster early convergence in practice. Both methods converge to the same solution. [2]",
       "formula": "NAG: vₜ = β·vₜ₋₁ + ∇L(wₜ₋₁ − β·ηvₜ₋₁)"
     }
   ],

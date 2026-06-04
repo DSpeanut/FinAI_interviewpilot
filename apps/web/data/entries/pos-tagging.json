@@ -19,8 +19,8 @@
     }
   ],
   "deepDiveIntro": [
-    "HMM POS tagger (classic): maximize P(tags|words) ∝ P(words|tags)P(tags) = ΠP(wᵢ|tᵢ) · ΠP(tᵢ|tᵢ₋₁). Emission probability P(w|t) and transition probability P(t|t') estimated from tagged corpus. Decoding via Viterbi algorithm: O(T²N) where T = number of tags, N = sentence length. Supervised accuracy ~96% on Penn Treebank with trigram language model.",
-    "CRF tagger: conditions on the full observation sequence — P(tags|words) = (1/Z)exp(ΣₖλₖFₖ(tags,words)). Features: word identity, suffix, prefix, capitalization, surrounding words and tags. Viterbi decoding. BiLSTM-CRF (Ma & Hovy, 2016): character-level CNN + word embeddings + BiLSTM features fed into CRF — state-of-the-art before transformers. BERT fine-tuned on UD achieves >97% UPOS accuracy across most languages."
+    "The classic HMM tagger models how likely each tag is given the previous tag (transition probability) and how likely each word is given its tag (emission probability), both estimated from a hand-tagged corpus. At inference, the Viterbi algorithm efficiently finds the most probable tag sequence over a sentence in time proportional to the number of tags squared times sentence length. Trigram HMMs achieve about 96 percent accuracy on the Penn Treebank.",
+    "Conditional Random Fields (CRFs) condition directly on the entire observation sequence rather than making the Markov independence assumptions of an HMM, and can use arbitrary overlapping features such as word suffix, capitalisation, and neighbouring tags. The BiLSTM-CRF model feeds contextual BiLSTM representations into a CRF output layer, combining strong neural representations with globally consistent decoding. BERT fine-tuned on Universal Dependencies achieves over 97 percent UPOS accuracy across most languages."
   ],
   "deepDive": [
     {

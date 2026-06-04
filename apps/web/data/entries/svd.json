@@ -23,8 +23,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Any matrix A ∈ ℝᵐˣⁿ can be factored as A = UΣVᵀ where U ∈ ℝᵐˣᵐ and V ∈ ℝⁿˣⁿ are orthogonal matrices (UᵀU = I, VᵀV = I), and Σ ∈ ℝᵐˣⁿ is diagonal with non-negative entries σ₁ ≥ σ₂ ≥ … ≥ σᵣ > 0 where r = rank(A).",
-    "The columns of U (left singular vectors) form an orthonormal basis for the column space and left null space. The columns of V (right singular vectors) form an orthonormal basis for the row space and null space. The singular values are the square roots of eigenvalues of AᵀA and AAᵀ."
+    "Every matrix, regardless of shape, factors as the product of three matrices: a left orthogonal matrix, a diagonal matrix of singular values sorted from largest to smallest, and a right orthogonal matrix transposed. The singular values are the square roots of the eigenvalues of the product of the matrix with its transpose. The columns of the left factor span the column space, and the columns of the right factor span the row space.",
+    "formula: A = UΣVᵀ,  UᵀU = I,  VᵀV = I,  Σ = diag(σ₁ ≥ σ₂ ≥ … ≥ 0)"
   ],
   "visualizationType": "svd",
   "deepDive": [

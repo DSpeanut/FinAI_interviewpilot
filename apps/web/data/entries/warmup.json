@@ -24,8 +24,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Linear warmup: η_t = η_max · t/T_w for t ≤ T_w. After T_w steps, the main schedule (cosine, polynomial, etc.) takes over. The warmup ensures that during the first T_w steps, the effective learning rate is small and gradually increasing. The product η·m̂/(√v̂+ε) is small because η is small, even if m̂/(√v̂+ε) is large due to small v̂. [1]",
-    "The Adam warmup problem (Reddi et al., 2020; Liu et al., RAdam, 2020): in the first few steps, Adam's second moment estimate v̂ is biased and unreliable because (1−β₂ᵗ) is very small for large β₂=0.999. At t=1: v̂₁ = g₁²/(1−0.999) = 1000g₁². This overestimates the second moment at step 1 — but the bias correction makes v̂₁ = g₁², while the true long-run estimate would be different. RAdam (Rectified Adam) uses a formula to detect when the second moment estimate has low variance and falls back to SGD during warmup. [2]"
+    "Linear warmup increases the learning rate from zero to its peak value at a constant rate over a fixed number of steps. During this period the effective update size is small even if the gradient signal is large, protecting the model from large early updates when parameters are randomly initialized and gradients are noisy. After warmup, the main schedule takes over. [1]",
+    "The warmup requirement is particularly strong for Adam. In the first few steps, Adam's running estimate of the squared gradient magnitude is unreliable because very little data has been accumulated. RAdam detects when this estimate has high variance and falls back to plain SGD updates during that period, effectively providing an automatic warmup without a manually tuned warmup period. [2]"
   ],
   "deepDive": [
     {
@@ -35,7 +35,7 @@
     },
     {
       "heading": "Why Warmup Matters for Adam Specifically",
-      "body": "At step t=1: m̂₁ = g₁, v̂₁ = g₁². Effective step = η·g₁/|g₁| = η·sign(g₁) — magnitude η regardless of gradient size. This is fine. But at t=2: m̂₂ = β₁g₁ + (1−β₁)g₂, v̂₂ depends on both g₁ and g₂. The variance of v̂ is high in early steps — the second moment estimate fluctuates wildly. RAdam monitors the maximum length of the approximation of the SMA (simple moving average): when ρₜ < 4, the variance is too high and it falls back to SGD. This makes RAdam warmup-free but equivalent to Adam with warmup in practice. [2]"
+      "body": "Adam divides each gradient by an estimate of the root mean square of past gradients, which should normalize the step size. In the first few steps that estimate is based on very little data and fluctuates wildly, causing some updates to be far larger than intended. Warmup keeps the learning rate small during this unstable period so that even a large normalized gradient produces only a modest weight change. RAdam monitors the reliability of the second moment estimate and automatically switches between SGD-like and Adam-like updates, making it warmup-free in practice. [2]"
     },
     {
       "heading": "Warmup Steps: How Many?",

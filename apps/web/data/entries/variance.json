@@ -23,8 +23,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Population variance: σ² = E[(X−μ)²] = E[X²] − μ². Sample variance: s² = (1/(n−1))Σᵢ(xᵢ−x̄)². The divisor n−1 (Bessel's correction) makes s² an unbiased estimator of σ²: E[s²] = σ². Dividing by n gives the biased MLE, which underestimates σ² by a factor of (n−1)/n.",
-    "The variance exists only if E[X²] < ∞ (finite second moment). For heavy-tailed distributions like the Cauchy, variance is infinite and the sample variance diverges with n. In such cases, other measures of spread (interquartile range, median absolute deviation) are more meaningful."
+    "Population variance is the expected squared deviation from the mean. The sample version divides by n minus 1 rather than n — a correction that makes the estimator unbiased. Dividing by n instead gives the maximum likelihood estimator under a normal model, which systematically underestimates the population variance by a factor proportional to one over n.",
+    "Variance is only defined when the second moment of the distribution is finite. For heavy-tailed distributions such as the Cauchy, the variance is infinite and the sample variance diverges as sample size grows. In such cases, the interquartile range or median absolute deviation are more meaningful and stable measures of spread."
   ],
   "visualizationType": "variance",
   "deepDive": [

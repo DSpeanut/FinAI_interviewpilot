@@ -23,8 +23,9 @@
     }
   ],
   "deepDiveIntro": [
-    "Suppose X₁,…,Xₙ ~ N(μ, σ²) iid with σ² known. Test H₀: μ = μ₀ vs H₁: μ ≠ μ₀. The test statistic Z = (x̄ − μ₀)/(σ/√n) ~ N(0,1) under H₀. Reject H₀ if |Z| > z_{α/2} (two-sided) or Z > z_α (one-sided right) or Z < −z_α (one-sided left).",
-    "The z-test is the uniformly most powerful (UMP) test for H₀: μ = μ₀ vs H₁: μ > μ₀ in the normal location family with known σ, by the Neyman-Pearson lemma applied via Karlin-Rubin. The power function is β(μ) = P(reject H₀ | μ) = Φ(z_{α/2} − (μ−μ₀)√n/σ) + Φ(−z_{α/2} − (μ−μ₀)√n/σ)."
+    "For normally distributed data with known population variance, the test statistic is the sample mean minus the hypothesized mean divided by the population standard error. Under the null hypothesis this follows a standard normal distribution. The null is rejected for two-sided tests when the absolute value of the statistic exceeds the critical value for the chosen significance level.",
+    "The z-test is the uniformly most powerful test for the normal location family with known variance, as shown by the Neyman-Pearson lemma via Karlin-Rubin. Power increases with the true effect size and the square root of the sample size, and decreases with the population standard deviation.",
+    "formula: Z = (x̄ − μ₀) / (σ / √n)  ~  N(0,1)  under H₀"
   ],
   "visualizationType": "z-test",
   "deepDive": [

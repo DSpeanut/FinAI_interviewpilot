@@ -24,23 +24,23 @@
     }
   ],
   "deepDiveIntro": [
-    "Causal LM pre-training loss: L = −(1/T) Σₜ log p_θ(wₜ|w₁,...,wₜ₋₁). This is the cross-entropy between the true next token (one-hot) and the model's predicted distribution at each position. Perplexity = exp(L) — lower perplexity means the model is less surprised by the next token on average. Pre-training minimises this loss over a corpus of N tokens: L_total = −(1/N) Σₙ log p_θ(wₙ|w₁,...,wₙ₋₁). [1]",
-    "Chinchilla scaling law (Hoffmann et al., 2022): for a compute budget C (in FLOPs), the optimal number of parameters N and training tokens D satisfy N ≈ D ≈ C^0.5. More precisely: N_opt ≈ G/2 · (C/6)^0.5 where G ≈ 10. This overturned GPT-3's approach of prioritising model size — smaller models trained on more data are more compute-efficient. LLaMA-65B was trained on more tokens than Chinchilla-optimal to produce a smaller but capable model useful for inference. [2]"
+    "The causal language modeling loss averages the negative log-probability of each token given all preceding tokens. Perplexity, the exponential of this average loss, is the standard summary metric — lower values mean the model is less surprised by the text on average. Pre-training minimizes this loss over a corpus of billions of tokens using gradient descent. [1]",
+    "The Chinchilla scaling law (Hoffmann et al., 2022) showed that for a fixed compute budget, the optimal model size and number of training tokens are approximately equal when expressed in appropriate units — roughly twenty training tokens per parameter. This overturned the prior practice of prioritizing large models: smaller models trained on more data are more compute-efficient and cheaper to run at inference. Llama models deliberately exceed the Chinchilla-optimal token count to produce a smaller, better-trained model. [2]"
   ],
   "deepDive": [
     {
       "heading": "Causal Language Modelling",
-      "body": "Training: given sequence w₁,...,w_T, compute logits for positions 1,...,T−1: l_t = model(w₁,...,w_t) ∈ ℝ^V. Loss: L = −(1/(T−1)) Σₜ₌₁^{T-1} log softmax(l_t)[w_{t+1}]. At inference: generate autoregressively by sampling wₜ₊₁ ~ p(·|w₁,...,wₜ). Temperature T_sample controls randomness: p(wₜ₊₁) = softmax(l_t/T_sample). A decoder-only transformer processes all positions in parallel during training via causal masking (lower-triangular attention mask). [1]",
+      "body": "The model receives a sequence of tokens and is trained to predict each next token given all preceding ones. During training all positions are processed in parallel using a causal attention mask that prevents any position from attending to future positions. At inference the model generates tokens one at a time, sampling from the predicted distribution over the vocabulary. A temperature parameter scales the logits before the softmax — lower temperature sharpens the distribution toward high-probability tokens, higher temperature increases diversity. [1]",
       "formula": "L = −(1/T) Σₜ log p_θ(wₜ | w₁,...,wₜ₋₁)"
     },
     {
       "heading": "Data Pipeline and Tokenisation",
-      "body": "Typical pre-training data pipeline: (1) Raw text collection (Common Crawl, Wikipedia, Books, GitHub, StackExchange). (2) Deduplication (MinHash LSH, exact match). (3) Quality filtering (perplexity-based, classifier-based, heuristics). (4) Tokenisation (BPE/SentencePiece, vocab 32K–100K). (5) Packing: concatenate documents to fill context window (2048–128K tokens). LLaMA tokeniser: BPE, vocab=32K. GPT-4: cl100k_base, vocab=100K. Tokenisation choice affects language coverage and efficiency for code. [1]"
+      "body": "A typical pre-training data pipeline collects raw text from web crawls, Wikipedia, books, code repositories, and forums, then deduplicates using approximate hash matching, filters for quality with perplexity-based or classifier-based rules, and tokenizes using byte-pair encoding with a vocabulary of 32,000 to 128,000 tokens. Documents are packed end-to-end to fill each context window without wasting space. Tokenizer choice affects how many tokens different languages and code constructs consume, with larger vocabularies generally being more efficient per character. [1]"
     },
     {
       "heading": "Chinchilla Scaling Laws",
-      "body": "Hoffmann et al. (2022): loss L(N, D) = E + A/N^α + B/D^β where E ≈ 1.62 (irreducible entropy), A=406.4, B=410.7, α=0.336, β=0.283. For fixed compute C = 6ND (FLOPs ≈ 6 × params × tokens for a transformer): optimal N ∝ C^0.5, D ∝ C^0.5. Rule of thumb: train ~20 tokens per parameter. LLaMA-7B: 7B params × 1T tokens = 143 tokens/param — over-trained vs Chinchilla for inference efficiency. Over-training reduces inference cost: a smaller, better-trained model is cheaper to deploy than a larger, under-trained one. [2]",
-      "formula": "Optimal: N_opt ∝ C^0.5, D_opt ∝ C^0.5 (Chinchilla)"
+      "body": "Hoffmann et al. (2022) fitted a parametric loss function to many training runs and found that for a fixed compute budget, training losses are minimized when model size and training token count are both proportional to the square root of compute. This translates to roughly twenty training tokens per parameter as a rule of thumb. Llama 7B was trained on over 140 tokens per parameter — deliberately exceeding the Chinchilla optimum to produce a smaller model that is cheaper at inference while still achieving high accuracy. [2]",
+      "formula": "Optimal: N_opt ∝ C^0.5,  D_opt ∝ C^0.5"
     }
   ],
   "youtubeLabel": "How LLMs Are Pre-trained — Andrej Karpathy",

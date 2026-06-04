@@ -19,8 +19,9 @@
     }
   ],
   "deepDiveIntro": [
-    "OLS estimators: β̂₁ = Sxy/Sxx = Σ(xᵢ−x̄)(yᵢ−ȳ) / Σ(xᵢ−x̄)², β̂₀ = ȳ − β̂₁x̄. Properties: unbiased (E[β̂₁] = β₁), variance Var(β̂₁) = σ²/Sxx. The Gauss-Markov theorem says OLS is the Best Linear Unbiased Estimator — no linear unbiased estimator has lower variance, without requiring normality.",
-    "Under normality of ε: β̂₁ ~ N(β₁, σ²/Sxx). Estimated σ² = s² = SS_res/(n−2). t-statistic: T = (β̂₁−β₁)/(s/√Sxx) ~ t(n−2). 95% CI for β₁: β̂₁ ± t_{n−2, 0.025}·s/√Sxx."
+    "The OLS slope estimate is the sample covariance of x and y divided by the sample variance of x, and the intercept is chosen so the fitted line passes through the sample means. The slope is unbiased and its variance equals the error variance divided by the total sum of squares of x — more spread-out x values give more precise estimates. The Gauss-Markov theorem guarantees OLS is the minimum-variance linear unbiased estimator under linearity, homoscedasticity, and zero-mean errors, without requiring normality.",
+    "Adding a normality assumption for the errors gives the slope an exact normal distribution, which enables exact t-tests and confidence intervals using the residual standard error and n-minus-two degrees of freedom.",
+    "formula: β̂₁ = Sxy / Sxx = Σ(xᵢ−x̄)(yᵢ−ȳ) / Σ(xᵢ−x̄)²"
   ],
   "deepDive": [
     {

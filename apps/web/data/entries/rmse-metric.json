@@ -24,8 +24,8 @@
     }
   ],
   "deepDiveIntro": [
-    "RMSE = √((1/n)·Σᵢ(yᵢ-ŷᵢ)²). As n→∞, RMSE estimates √E[(y-f(x))²] — the expected squared error, which equals √(Bias²+Variance+σ²) from the bias-variance decomposition. RMSE is the sample estimate of the true risk under squared loss. It is measured in the same units as y — interpretable as 'typical error with large errors upweighted.' RMSE ≥ MAE always, with equality iff all errors are equal. The ratio RMSE/MAE measures the heterogeneity of error magnitudes: ratio=1 means all errors are the same size; larger ratio means a few large errors dominate. [1]",
-    "R² = 1 - SS_res/SS_tot = 1 - Σ(y-ŷ)²/Σ(y-ȳ)². Derivation: SS_tot = Σ(yᵢ-ȳ)² is the total variance; SS_res = Σ(yᵢ-ŷᵢ)² is the unexplained variance. R² = 1 - SS_res/SS_tot ∈ (-∞, 1]. For OLS (ordinary least squares), R² = square of Pearson correlation r between y and ŷ. On the test set, R² can be negative: if the model performs worse than the trivial mean predictor. Adjusted R² = 1-(1-R²)·(n-1)/(n-p-1) penalises the p additional parameters to prevent inflation from irrelevant features. [2]"
+    "RMSE is the square root of the average squared prediction error, expressed in the same units as the target variable. Because squaring amplifies large errors, RMSE gives them more weight than small ones. RMSE is always at least as large as MAE; when the ratio between the two is close to one, all errors are similar in size, but a large ratio signals that a few very large errors are dominating the average. [1]",
+    "R-squared measures how much of the target's variance the model explains relative to simply predicting the mean. It ranges from one (perfect fit) down through zero (no better than the mean predictor) and can be negative on a test set if the model performs worse than that trivial baseline. Adjusted R-squared penalises each additional predictor to prevent the metric from rising just because more variables were added. [2]"
   ],
   "deepDive": [
     {

@@ -24,22 +24,22 @@
     }
   ],
   "deepDiveIntro": [
-    "F1 = 2·TP / (2·TP + FP + FN) = 2·Precision·Recall / (Precision + Recall). This is the harmonic mean H(P,R) = 2/(1/P + 1/R). The harmonic mean is always ≤ the arithmetic mean, with equality only when P=R. It is particularly sensitive to the minimum of P and R — if either is near zero, F1 is near zero. Origin: van Rijsbergen (1979) defined the F-measure in information retrieval as the harmonic mean of precision and recall. [1]",
-    "Fβ generalisation: Fβ = (1+β²)·P·R / (β²·P + R). This is the weighted harmonic mean of precision and recall with P weighted β² times as much as R... wait, let me be precise: Fβ gives β² times as much weight to recall as to precision. At β=1: equal weight (F1). At β→0: Fβ → Precision. At β→∞: Fβ → Recall. Derivation: Fβ = (1+β²)·P·R/(β²·P+R) satisfies Fβ = 0 if R=0, and Fβ = P if β=0. [1]"
+    "F1 is the harmonic mean of precision and recall, computed as 2 times the number of true positives divided by the sum of two times true positives plus false positives and false negatives. The harmonic mean is always at most the arithmetic mean, with equality only when precision equals recall. It is particularly sensitive to whichever of the two is lower — if either is near zero, F1 is near zero. Van Rijsbergen (1979) introduced the F-measure in information retrieval. [1]",
+    "The Fβ variant gives a way to weight recall more or less than precision. When β is greater than 1, the formula puts more emphasis on recall; when β is less than 1, it emphasizes precision; when β equals 1 it is the standard F1. At the extremes, Fβ approaches pure recall as β grows large and approaches pure precision as β shrinks toward zero. [1]"
   ],
   "deepDive": [
     {
       "heading": "Harmonic Mean and Why It Matters",
-      "body": "Arithmetic mean of P=1.0 and R=0.0: AM = 0.5 (misleadingly high — model has zero recall). Harmonic mean (F1) = 2·1.0·0.0/(1.0+0.0) = 0.0 — correctly reflects that the model catches nothing. The harmonic mean punishes imbalance more aggressively than the arithmetic mean: H(P,R) ≤ (P+R)/2, with equality iff P=R. This makes F1 an appropriate metric when you want both precision AND recall to be high — not just their average. If either is unacceptably low, F1 is low. [1]",
+      "body": "A model with perfect precision but zero recall has an arithmetic average of 0.5, which looks deceptively acceptable. F1 gives zero for that model, correctly reflecting that it catches nothing useful. The harmonic mean penalizes imbalance between precision and recall more severely than a simple average does. If either component is unacceptably low, F1 is low — that is exactly the behavior you want when both matter. [1]",
       "formula": "F1 = 2·P·R/(P+R) = 2·TP/(2·TP+FP+FN)"
     },
     {
       "heading": "Macro vs Micro vs Weighted F1",
-      "body": "Given per-class F1 scores F1₁,...,F1ₖ and class supports n₁,...,nₖ: Macro F1 = (1/K)·ΣF1ₖ — simple average, treats all classes equally. Suitable when rare classes matter as much as common ones. Weighted F1 = (Σnₖ·F1ₖ)/n — weighted by support, reflects real-world class distribution. Micro F1 = 2·ΣTPₖ / (2·ΣTPₖ + ΣFPₖ + ΣFNₖ) — equivalent to accuracy for multi-class. Micro F1 gives no weight to class size: a 1000-sample class and a 10-sample class each contribute their TP equally. [1]"
+      "body": "For multi-class problems, there are three common ways to aggregate per-class F1 scores. Macro F1 takes a simple average across classes, giving equal weight to rare and common classes alike. Weighted F1 averages by the number of samples in each class, so larger classes dominate. Micro F1 pools all true positives, false positives, and false negatives globally before computing the score, which makes it equivalent to accuracy on balanced datasets. [1]"
     },
     {
       "heading": "F1 for Span-Level NLP Evaluation",
-      "body": "In NLP tasks (named entity recognition, slot filling, relation extraction), F1 is computed at the span level: a prediction is a TP only if it matches the exact span and label of a reference annotation. TP = exact matches, FP = predicted spans not in reference, FN = reference spans not predicted. This is stricter than token-level F1 (which allows partial credit per token). CoNLL NER evaluation uses span-level F1; SQuAD uses token-level F1 with text normalisation (lower-case, remove articles). Always clarify which F1 variant is being used when comparing across papers. [1]"
+      "body": "In tasks like named entity recognition, a prediction counts as a true positive only if it exactly matches both the span and the label of a reference annotation. Predicted spans that do not match are false positives, and reference spans that are missed are false negatives. This exact-match standard is stricter than token-level scoring, which allows partial credit. CoNLL NER uses span-level F1; SQuAD uses token-level F1 with text normalization. [1]"
     }
   ],
   "youtubeLabel": "F1 Score, Precision and Recall Explained",

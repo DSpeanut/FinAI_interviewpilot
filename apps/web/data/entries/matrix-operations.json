@@ -23,8 +23,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Matrix addition and scalar multiplication are elementwise and straightforward. Matrix multiplication is the fundamental operation: for A ∈ ℝᵐˣⁿ and B ∈ ℝⁿˣᵖ, (AB)ᵢₖ = Σⱼ AᵢⱼBⱼₖ. This represents composition of the linear transformations represented by A and B.",
-    "The transpose Aᵀ swaps rows and columns: (Aᵀ)ᵢⱼ = Aⱼᵢ. Key properties: (AB)ᵀ = BᵀAᵀ, (A⁻¹)ᵀ = (Aᵀ)⁻¹. The trace tr(A) = Σᵢ Aᵢᵢ is cyclic: tr(ABC) = tr(BCA) = tr(CAB), which is useful in derivations."
+    "Matrix addition and scalar multiplication are straightforward and act on each entry independently. Matrix multiplication represents the composition of two linear transformations: each output entry is computed by pairing a row from the first matrix with a column from the second, and both dimensions must be compatible for the product to be defined.",
+    "The transpose swaps rows and columns, and the transpose of a product reverses the order of the factors. The trace sums the diagonal entries and has the cyclic property, meaning the trace of a product does not depend on which factor you start with — a convenience that appears repeatedly in gradient derivations."
   ],
   "visualizationType": "matrix-operations",
   "deepDive": [

@@ -23,8 +23,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Online learning processes examples sequentially, updating model parameters after each observation (or mini-batch). Formally: at time t, observe xₜ, predict ŷₜ, observe true yₜ, suffer loss L(yₜ, ŷₜ), update model θₜ₊₁ = f(θₜ, xₜ, yₜ). Contrast with batch: accumulate {(xᵢ, yᵢ)}ᵢ₌₁ⁿ, then optimize.",
-    "Algorithms: Stochastic Gradient Descent (most common): θ ← θ - η∇L(θ; xₜ, yₜ). Passive-Aggressive: update only when mistake occurs, minimally. Follow-The-Regularized-Leader (FTRL): maintains per-coordinate learning rates, popular in ad systems (Google's approach). Multi-armed bandits for exploration-exploitation tradeoff."
+    "Online learning processes examples one at a time: observe an input, make a prediction, see the true outcome, compute the loss, and update the model before moving to the next example. This is in contrast to batch learning, which accumulates all data first and then optimizes. The immediate update means the model can adapt to new patterns as soon as they appear.",
+    "The most common algorithm is stochastic gradient descent, which takes a small step in the direction that reduces loss for the current example. Passive-Aggressive methods only update when a mistake occurs, making them highly efficient. Follow-The-Regularized-Leader, used by Google for ad prediction, maintains separate learning rates per feature coordinate and handles sparse, high-dimensional data well."
   ],
   "visualizationType": "online-learning",
   "deepDive": [
@@ -35,17 +35,17 @@
     },
     {
       "heading": "Concept Drift Adaptation",
-      "body": "Data distribution changes over time: P(X,Y) changes. Types: sudden (policy change), gradual (trend), seasonal (cyclical), recurring (patterns return). Solutions: (1) Decay old data: weighted loss L = Σ wₜ Lₜ with wₜ decreasing. (2) Change detection: monitor error rate, retrain when drift detected. (3) Ensemble methods: combine models trained on different windows.",
+      "body": "When the relationship between inputs and outputs changes over time — as in fraud patterns, user preferences, or market regimes — the model's accuracy degrades. The change can be sudden, gradual, seasonal, or recurring. Common responses include down-weighting old data so recent examples matter more, monitoring prediction error and triggering a retrain when it spikes, or maintaining an ensemble of models trained on different time windows.",
       "formula": "Pₜ(X,Y) ≠ Pₜ₊₁(X,Y) — distribution non-stationary"
     },
     {
       "heading": "Catastrophic Forgetting",
-      "body": "Model loses performance on old tasks/data when learning new ones. Critical in continual learning. Mitigations: (1) Elastic Weight Consolidation (EWC): penalize changes to important parameters. (2) Memory replay: buffer old examples, mix with new. (3) Regularization: constrain updates to prevent large deviations. (4) Modular architectures: separate networks per task with limited crosstalk.",
+      "body": "When a model updates on new data, it can overwrite the weights that represented old patterns, causing performance to collapse on earlier tasks. Elastic Weight Consolidation prevents this by penalizing large changes to parameters that were important for previous tasks. Memory replay buffers a sample of old examples and mixes them into the new training stream. Both approaches trade off plasticity (ability to learn new things) against stability (retention of old knowledge).",
       "formula": "EWC loss: L(θ) = L_new(θ) + λ Σᵢ Fᵢ(θᵢ - θ*ᵢ)²"
     },
     {
       "heading": "Follow-The-Regularized-Leader (FTRL)",
-      "body": "Google's choice for ad prediction. Per-coordinate learning rates: features that appear rarely get larger updates. Handles sparse, high-dimensional data well. Regularization: L1 for sparsity (feature selection), L2 for stability. Proximal updates for non-smooth regularizers.",
+      "body": "FTRL is Google's preferred algorithm for large-scale ad click prediction. It maintains a separate effective learning rate for each feature coordinate, giving rare features larger updates when they do appear. L1 regularization keeps the model sparse by zeroing out unimportant feature weights, while L2 regularization prevents instability. The result is a compact, adaptable model that handles millions of sparse features efficiently.",
       "formula": "θₜ₊₁ = argmin_θ { ηₜ g₁:ₜ · θ + ψ(θ) + (1/2)Σ σₛ||θ - θₛ||² }"
     },
     {

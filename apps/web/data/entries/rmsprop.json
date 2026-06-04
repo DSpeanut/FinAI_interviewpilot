@@ -24,22 +24,23 @@
     }
   ],
   "deepDiveIntro": [
-    "RMSProp (Hinton, 2012, unpublished): vₜ = γvₜ₋₁ + (1−γ)gₜ²; wₜ = wₜ₋₁ − (η/√(vₜ+ε)) gₜ. The exponential moving average vₜ estimates E[g²] near time t with memory γ. At steady state with stationary gradients, vₜ → E[g²]/(1−γ) ... actually: since vₜ = γvₜ₋₁ + (1−γ)gₜ², at stationarity vₜ ≈ E[gₜ²] (the (1−γ) and the geometric series normalise correctly). The effective learning rate stabilises at η/√E[g²] — unlike AdaGrad's monotone decay. [1]",
-    "Centered RMSProp (Graves, 2013): also subtracts the squared mean: μₜ = γμₜ₋₁ + (1−γ)gₜ; vₜ = γvₜ₋₁ + (1−γ)gₜ²; wₜ = wₜ₋₁ − η·gₜ/√(vₜ − μₜ² + ε). The denominator √(vₜ − μₜ²) estimates the standard deviation of gₜ (not RMS). This normalises the gradient by its variance rather than its second moment — a more principled normalisation when the mean gradient is nonzero. [2]"
+    "RMSProp maintains an exponential moving average of squared gradients and divides each gradient update by the square root of that average. At stationarity, the moving average converges to the true mean squared gradient, so the effective learning rate stabilizes rather than shrinking to zero as in AdaGrad. The decay rate controls the memory length — a value close to one gives a long memory, a value close to zero adapts quickly to recent gradient scale changes. [1]",
+    "Centered RMSProp (Graves, 2013) additionally maintains an exponential moving average of raw gradients, then subtracts its square from the squared-gradient average before taking the square root. This estimates the variance rather than the second moment of the gradient, which is a more principled normalization when the mean gradient is non-zero. [2]",
+    "formula: vₜ = γvₜ₋₁ + (1−γ)gₜ²;  wₜ = wₜ₋₁ − η·gₜ/√(vₜ+ε)"
   ],
   "deepDive": [
     {
       "heading": "Update Rule",
-      "body": "vₜ = γ·vₜ₋₁ + (1−γ)·gₜ². wₜ = wₜ₋₁ − η·gₜ / (√vₜ + ε). Effective lr for parameter i: η/√vᵢ,ₜ. Unlike AdaGrad, vₜ is bounded — it doesn't grow forever. For stationary gₜ with E[gₜ²] = σ², vₜ converges to σ² (geometric series sum: Σₖ γᵏ(1−γ)σ² = σ²). So effective lr stabilises at η/σ. Typical γ = 0.99 → 100-step memory; γ = 0.9 → 10-step memory. [1]",
+      "body": "The moving average of squared gradients is bounded rather than monotonically increasing, so the effective per-parameter learning rate stabilizes at the step size divided by the root mean squared gradient. For stationary gradients the moving average converges to the true mean squared gradient, giving a stable effective learning rate throughout training. A decay rate of 0.99 gives roughly a hundred-step memory; 0.9 gives roughly a ten-step memory. [1]",
       "formula": "vₜ = γvₜ₋₁ + (1−γ)gₜ²;  wₜ = wₜ₋₁ − η·gₜ/√(vₜ+ε)"
     },
     {
       "heading": "RMSProp vs AdaGrad: Dying Learning Rate",
-      "body": "AdaGrad accumulates: Gₜ = Σₖ₌₀ᵗ gₖ² → ∞. Effective lr → 0. RMSProp: vₜ = γvₜ₋₁ + (1−γ)gₜ². Weight of step t−k gradient: (1−γ)γᵏ → 0 as k → ∞. Only recent gradients matter. If gradients decrease (near minimum), vₜ decreases → effective lr increases. This non-monotone learning rate is crucial for long training runs. The half-life of a gradient is log(0.5)/log(γ) steps: ≈ 69 steps for γ=0.99. [1]"
+      "body": "AdaGrad accumulates all squared gradients from the start of training, so its denominator grows without bound and the effective learning rate shrinks to zero. RMSProp replaces this cumulative sum with an exponential moving average, so old gradients lose influence as training continues. If the gradient magnitude decreases near the minimum, the moving average decreases too and the effective learning rate recovers — the opposite of what AdaGrad does. This non-monotone learning rate behavior is critical for long training runs. A decay rate of 0.99 gives a gradient half-life of about 69 steps. [1]"
     },
     {
       "heading": "RMSProp + Momentum",
-      "body": "PyTorch RMSProp supports optional momentum: mₜ = ρ·mₜ₋₁ + gₜ/√(vₜ+ε); wₜ = wₜ₋₁ − η·mₜ. Adding momentum to RMSProp gets close to Adam but without bias correction. The main difference from Adam: (1) no first moment (momentum applied to the already-normalised gradient, not the raw gradient); (2) no bias correction for v (matters in first ~1/(1−γ) steps). Empirically, RMSProp + momentum ≈ Adam without bias correction on most tasks. [1]"
+      "body": "PyTorch RMSProp supports an optional momentum term that applies a velocity-style moving average to the normalized gradient update rather than to the raw gradient. This brings RMSProp close to Adam in behavior but without the bias correction that Adam applies to both its first and second moment estimates. The bias correction matters most in the first hundred steps or so, after which the two optimizers behave similarly. Empirically, RMSProp with momentum approximates Adam without bias correction on most supervised learning tasks. [1]"
     }
   ],
   "youtubeLabel": "RMSProp & Adaptive Learning Rates Explained",

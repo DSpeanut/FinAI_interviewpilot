@@ -24,13 +24,13 @@
     }
   ],
   "deepDiveIntro": [
-    "MAE = (1/n) Σᵢ |yᵢ − ŷᵢ|. This is the L1 norm of the residual vector divided by n. Unlike MSE (L2), minimizing L1 loss gives the conditional median: arg min_c E[|Y − c|] = median(Y). This is the statistical reason MAE is robust — the median is resistant to outlier contamination. [1]",
-    "The subdifferential of MAE at a residual eᵢ = yᵢ − ŷᵢ is ∂|eᵢ|/∂ŷᵢ = −sign(eᵢ) for eᵢ ≠ 0, and [−1, 1] at eᵢ = 0. Subgradient methods or smooth approximations (pseudo-Huber) are needed for efficient optimization. [2]"
+    "MAE is the average absolute residual — the L1 norm of the error vector divided by the number of samples. Minimizing L1 loss is equivalent to fitting the conditional median rather than the conditional mean, which is why MAE is resistant to outliers: the median changes little when extreme values are added or removed. The gradient of MAE is plus or minus one over the batch size everywhere except exactly at zero, where it is undefined; subgradient methods or smooth approximations such as pseudo-Huber handle this in practice. [1]",
+    "formula: L = (1/n) Σᵢ |yᵢ − ŷᵢ|;   arg min_c E[|Y − c|] = median(Y)"
   ],
   "deepDive": [
     {
       "heading": "Definition and Gradient",
-      "body": "L = (1/n) Σᵢ |yᵢ − ŷᵢ|. Gradient: ∂L/∂ŷᵢ = −sign(yᵢ − ŷᵢ) / n. The gradient magnitude is constant (1/n) regardless of residual size. This contrasts with MSE where ∂L/∂ŷᵢ = −2/n (yᵢ − ŷᵢ), which decays as the prediction improves. In practice, MAE optimizers converge more slowly near the minimum since gradient doesn't shrink. [1]",
+      "body": "MAE is one over n times the sum of absolute errors. Its gradient with respect to each prediction is negative one over n times the sign of the residual — a constant magnitude regardless of how large or small the error is. This contrasts with MSE, whose gradient shrinks as the prediction improves. As a result MAE optimizers converge more slowly near the minimum because there is no natural deceleration signal. [1]",
       "formula": "L = (1/n) Σᵢ |yᵢ − ŷᵢ|, ∂L/∂ŷᵢ = −sign(yᵢ − ŷᵢ)/n"
     },
     {
@@ -40,12 +40,12 @@
     },
     {
       "heading": "Quantile Regression and MAE",
-      "body": "MAE is a special case of quantile (pinball) loss. The τ-quantile loss is L_τ(e) = e(τ − 1{e < 0}). At τ = 0.5: L₀.₅(e) = 0.5|e| — exactly MAE up to scale. Setting τ ≠ 0.5 allows fitting other quantiles (e.g., τ = 0.9 for 90th percentile forecasting). This is used in conformal prediction and uncertainty quantification. [2]",
+      "body": "MAE is the symmetric special case of quantile loss, also called pinball loss. At the 0.5 quantile, the loss equals half the absolute residual — exactly MAE up to a constant scale. Changing the quantile parameter away from 0.5 makes the loss asymmetric, allowing the model to fit any desired conditional quantile rather than the median. This is used in conformal prediction, prediction intervals, and uncertainty quantification. [2]",
       "formula": "L_τ(e) = e(τ − 1{e<0}); τ=0.5 gives MAE"
     },
     {
       "heading": "MAE vs RMSE in Practice",
-      "body": "RMSE ≥ MAE always (by Jensen's inequality applied to the convex function √·). RMSE/MAE ratio ≥ 1, and the ratio grows with error variance — high ratio signals a few large errors dominate. For model selection, prefer MAE if you want equal weight on all errors, RMSE if large errors are disproportionately costly (e.g., rare big spikes in demand). Both are reported in many Kaggle competitions; choose based on business cost of errors. [1]"
+      "body": "RMSE is always at least as large as MAE because taking a square root of an average is always at most the average of the square roots by Jensen's inequality. The RMSE-to-MAE ratio is therefore always at least one, and a high ratio signals that a small number of large errors are dominating the squared-error sum. Prefer MAE when all errors should be weighted equally, and RMSE when large errors are disproportionately costly. Both metrics appear in practice; the choice should reflect the business cost structure of prediction errors. [1]"
     }
   ],
   "youtubeLabel": "MAE vs MSE — Loss Function Comparison",

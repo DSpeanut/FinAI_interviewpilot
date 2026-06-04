@@ -24,27 +24,27 @@
     }
   ],
   "deepDiveIntro": [
-    "The Huber loss (Huber, 1964) is defined piecewise: L_δ(e) = 0.5e² for |e| ≤ δ, and δ(|e| − 0.5δ) for |e| > δ. This ensures continuity and differentiability at |e| = δ (both value and derivative match). The gradient is: ∂L/∂e = e for |e| ≤ δ (like MSE), and δ·sign(e) for |e| > δ (like MAE). The gradient is clipped to ±δ for large residuals. [1]",
-    "Huber is the solution to a minimax problem: it is the loss function that minimises the maximum asymptotic variance over a contamination neighbourhood of a Gaussian distribution. In robust statistics, Huber's M-estimator with this loss achieves the best worst-case efficiency under ε-contamination. [1]"
+    "The Huber loss (Huber, 1964) is defined piecewise: quadratic for residuals smaller than the threshold and linear beyond it. Both the value and the gradient are continuous at the transition point. For small residuals the gradient behaves like MSE, shrinking as the prediction improves; for large residuals the gradient is capped at the threshold value, preventing outliers from dominating the update. [1]",
+    "Huber loss is the solution to a minimax problem: among all loss functions, it minimizes the worst-case asymptotic variance when the data comes from a Gaussian distribution contaminated by a small fraction of arbitrary outliers. This is why it is called robust — it has the best possible worst-case efficiency under model misspecification. [1]"
   ],
   "deepDive": [
     {
       "heading": "Definition and Gradient",
-      "body": "L_δ(e) = 0.5e² if |e| ≤ δ, else δ|e| − 0.5δ². The −0.5δ² term ensures continuity at |e|=δ: value = 0.5δ² from the left, δ·δ − 0.5δ² = 0.5δ² from the right. Gradient: ∂L/∂e = e if |e| ≤ δ, else δ·sign(e). Clipping the gradient to ±δ prevents large residuals from dominating the parameter update — this is the core robustness mechanism. [1]",
+      "body": "Huber loss is quadratic for residuals smaller than the threshold and shifts to a linear penalty beyond it, with a small constant subtracted to keep the function continuous at the boundary. The gradient equals the residual itself inside the threshold and is capped at the threshold value outside it. This gradient clipping is the core robustness mechanism: no single large outlier can push the gradient beyond the cap. [1]",
       "formula": "L_δ(e) = {0.5e²  if |e|≤δ;  δ(|e|−0.5δ)  if |e|>δ}"
     },
     {
       "heading": "Pseudo-Huber / Smooth Approximation",
-      "body": "L_δ(e) = δ²(√(1 + (e/δ)²) − 1). This is differentiable everywhere and smooth (unlike the piecewise Huber). As e→0: L ≈ 0.5e² (matches Huber). As |e|→∞: L ≈ δ|e| (linear, like Huber). Used when second-order optimisation (Newton methods) requires twice-differentiable losses. Gradient: δ·e/√(δ²+e²), which is smooth at 0. [2]",
+      "body": "The pseudo-Huber loss is a fully smooth version that approximates the quadratic behavior near zero and linear behavior for large residuals without a kink. It is twice differentiable everywhere, which matters when second-order optimization methods such as Newton steps require a smooth Hessian. The gradient is smooth at zero, avoiding the subgradient complication of the piecewise Huber. [2]",
       "formula": "L_pseudo(e) = δ²(√(1+(e/δ)²) − 1)"
     },
     {
       "heading": "Huber vs MSE vs MAE: Gradient Comparison",
-      "body": "| |e| value | MSE gradient | MAE gradient | Huber gradient |\n|---|---|---|---|\n| 0.1 | 0.1 | 0.5 | 0.1 |\n| 0.5 | 0.5 | 0.5 | 0.5 |\n| 1.0 (=δ) | 1.0 | 0.5 | 1.0 |\n| 5.0 | 5.0 | 0.5 | 1.0 |\n| 50.0 | 50.0 | 0.5 | 1.0 |\nFor |e| > δ, Huber gradient is capped at δ, preventing large residuals from causing explosive updates. For |e| ≤ δ, Huber matches MSE's adaptive (decreasing) gradient. [1]"
+      "body": "For small residuals, Huber and MSE behave identically — both have gradients that shrink toward zero as the prediction improves. For large residuals, MSE gradients grow without bound while Huber gradients are capped at the threshold, and MAE gradients stay constant at plus or minus one over the batch size. This means Huber combines the smooth convergence behavior of MSE near the optimum with the outlier resistance of MAE at large errors. [1]"
     },
     {
       "heading": "Huber in Reinforcement Learning (DQN)",
-      "body": "In DQN, the Bellman error δₜ = r + γ max_a' Q(s',a'; θ⁻) − Q(s,a; θ) can be very large in early training. Using MSE loss on this error produces enormous gradients that destabilise the Q-network. Huber loss clamps the gradient to ±1 for large TD errors, making training stable. This is standard practice in value-based RL (DQN, DDPG, TD3). [3]"
+      "body": "In DQN, the temporal-difference error between the current Q-value estimate and the target can be very large in early training when the Q-network is still far from accurate. Using squared-error loss on these large errors produces huge gradients that destabilize learning. Huber loss caps the gradient at plus or minus one for large errors, keeping updates moderate and training stable. This is now standard across value-based RL algorithms. [3]"
     }
   ],
   "youtubeLabel": "Huber Loss vs MSE vs MAE — ML Explained",

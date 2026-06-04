@@ -24,8 +24,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Chawla et al. (2002) introduced SMOTE. Algorithm: for each minority sample xᵢ, find its k nearest minority neighbours. For each synthetic sample to generate: (1) Pick a random neighbour xₙₙ from the k neighbours. (2) Generate a synthetic point: x_syn = xᵢ + λ·(xₙₙ − xᵢ), where λ ~ Uniform(0,1). This creates points on the line segment between xᵢ and xₙₙ. The sampling_strategy parameter controls how many synthetic points to generate: strategy = minority_count_target / majority_count. [1]",
-    "Borderline-SMOTE (Han et al., 2005) identifies minority samples near the decision boundary (DANGER region: more than half of their k nearest neighbours are majority class) and applies SMOTE only to those. Samples well inside the minority cluster (SAFE) are not oversampled — they're already well-represented. ADASYN (He et al., 2008) takes a different approach: samples harder to classify (those with more majority neighbours) receive proportionally more synthetic samples, adaptively focusing oversampling where the model most needs help. [2]"
+    "SMOTE (Chawla et al., 2002) generates each synthetic minority sample by picking a real minority example, choosing one of its nearest minority-class neighbours at random, and placing the new point somewhere on the line segment between the two. This populates the minority class's region of feature space rather than simply duplicating existing points. The sampling strategy parameter controls the target ratio of minority to majority samples after oversampling. [1]",
+    "Borderline-SMOTE focuses oversampling on the minority examples that sit near the decision boundary — those whose neighbourhood is dominated by majority-class points. Samples deep inside the minority cluster are already well-represented and are left alone. ADASYN takes an adaptive approach: minority examples that are hardest to classify receive more synthetic neighbours, concentrating the oversampling budget where the model needs the most help. [2]"
   ],
   "deepDive": [
     {

@@ -19,8 +19,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Autoregressive LM: P(w₁,…,wₙ) = Πᵢ P(wᵢ|w₁,…,wᵢ₋₁) by chain rule (exact, no approximation). Transformer LM: each token attends to all previous tokens via causal (masked) self-attention. Training objective: minimize cross-entropy loss — equivalently, maximize log-likelihood of the training corpus. This is equivalent to minimizing perplexity on the training data.",
-    "Masked LM (BERT): sample 15% of tokens to mask; of these, replace 80% with [MASK], 10% with a random token, 10% keep unchanged. Train to predict original tokens at masked positions. MLM is not an autoregressive model — it is a denoising objective. MLM produces bidirectional representations (each token sees full context), making BERT better than GPT for understanding tasks but incapable of direct generation."
+    "An autoregressive language model factors the probability of a token sequence by predicting each word given all previous words in order — a chain-rule decomposition that is exact with no approximation. The transformer implements this by masking the attention pattern so each position can only attend leftward. Training minimises the average cross-entropy over all token positions, which is equivalent to maximising the log-likelihood of the training corpus.",
+    "Masked language modelling takes a different approach: randomly replace a subset of tokens with a special mask symbol and train the model to predict the original tokens from the surrounding context in both directions. This bidirectional signal produces stronger representations for understanding tasks, but the model cannot generate text directly because it has no left-to-right factorisation."
   ],
   "deepDive": [
     {

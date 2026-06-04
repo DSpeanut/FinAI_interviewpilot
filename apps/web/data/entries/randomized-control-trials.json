@@ -19,8 +19,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Potential outcomes framework (Rubin, 1974): each unit i has potential outcome Yᵢ(1) under treatment and Yᵢ(0) under control. The unit-level treatment effect is τᵢ = Yᵢ(1) − Yᵢ(0). The fundamental problem of causal inference: we observe only one potential outcome per unit (either Yᵢ(1) or Yᵢ(0), not both). The average treatment effect (ATE) = E[Yᵢ(1) − Yᵢ(0)] = E[Yᵢ(1)] − E[Yᵢ(0)].",
-    "Under randomization: Zᵢ ⊥ (Yᵢ(0), Yᵢ(1)) — treatment assignment is independent of potential outcomes. Then E[Y|Z=1] = E[Yᵢ(1)] and E[Y|Z=0] = E[Yᵢ(0)], so the ATE = E[Y|Z=1] − E[Y|Z=0] = x̄_treatment − x̄_control. The difference-in-means estimator is unbiased for the ATE under randomization."
+    "The potential outcomes framework (Rubin, 1974) defines the treatment effect for each individual as the difference between what would happen with treatment and what would happen without it. The fundamental problem of causal inference is that only one of these outcomes is ever observed — you cannot simultaneously treat and not treat the same person. The average treatment effect is the difference in expected outcomes across the whole population.",
+    "Randomisation makes treatment assignment independent of both potential outcomes. Because of this independence, the average observed outcome in the treatment group equals the average potential outcome under treatment across the whole population, and similarly for the control group. The simple difference in group means is therefore an unbiased estimate of the average treatment effect — no adjustment for confounders is needed."
   ],
   "deepDive": [
     {

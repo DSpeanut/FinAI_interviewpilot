@@ -24,8 +24,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Formal MDP definition: ⟨S, A, P, R, γ⟩ where S = state space, A = action space, P(s'|s,a) = transition probability, R(s,a) = expected immediate reward, γ ∈ [0,1) = discount factor. Markov property: P(s_{t+1}|s_t, a_t, s_{t-1}, a_{t-1}, ...) = P(s_{t+1}|s_t, a_t). Policy π: S → A (deterministic) or π: S × A → [0,1] (stochastic). State-value function V^π(s) = E_π[Σ_{t≥0} γᵗ R_{t+1} | S_0=s]. Action-value function Q^π(s,a) = E_π[Σ_{t≥0} γᵗ R_{t+1} | S_0=s, A_0=a]. Bellman expectation equation: V^π(s) = Σ_a π(a|s)[R(s,a) + γ Σ_{s'} P(s'|s,a)V^π(s')]. [1]",
-    "Bellman optimality equation: V*(s) = max_a [R(s,a) + γ Σ_{s'} P(s'|s,a)V*(s')]. Q*(s,a) = R(s,a) + γ Σ_{s'} P(s'|s,a) max_{a'} Q*(s',a'). The optimal policy: π*(s) = argmax_a Q*(s,a). Value Iteration convergence: the Bellman operator T is a γ-contraction mapping in the sup-norm; applying it repeatedly converges to V* at rate γᵏ. Policy Iteration: policy evaluation (solve V^π via linear system) + policy improvement (set π'(s) = argmax_a Q^π(s,a)). Policy Iteration converges in finite steps for finite MDPs; Value Iteration converges asymptotically. [2]"
+    "An MDP is defined by its state space, action space, transition probabilities, reward function, and discount factor. The Markov property means the next state depends only on the current state and action, not on the full history. A policy maps states to actions (deterministic) or to probability distributions over actions (stochastic). The value of a state under a policy is the expected total discounted reward obtained by following that policy from that state. [1]",
+    "The Bellman optimality equation says the optimal value of a state equals the best expected immediate reward plus the discounted optimal value of the resulting state, maximized over all actions. This has a unique solution, and Value Iteration finds it by repeatedly applying the update rule until the values stop changing. Policy Iteration alternates between evaluating the current policy exactly and improving it greedily, converging in a finite number of steps. [2]"
   ],
   "deepDive": [
     {
@@ -35,7 +35,7 @@
     },
     {
       "heading": "Value Iteration vs Policy Iteration",
-      "body": "This section explains the main idea behind this part of the method in plain language."
+      "body": "Value Iteration applies the Bellman update to every state repeatedly until the values converge. It is simple to implement but converges only asymptotically. Policy Iteration evaluates the current policy by solving a linear system exactly, then improves it by choosing the greedy action at each state. Each full iteration is more expensive but the algorithm terminates in a finite number of steps for finite state and action spaces."
     },
     {
       "heading": "Discount Factor γ and Return",

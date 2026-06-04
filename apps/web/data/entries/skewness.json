@@ -23,8 +23,8 @@
     }
   ],
   "deepDiveIntro": [
-    "The population skewness is γ₁ = μ₃/σ³ where μ₃ = E[(X−μ)³] is the third central moment. The sample skewness is ĝ₁ = [n/((n−1)(n−2))] Σᵢ [(xᵢ−x̄)/s]³ (Fisher's adjusted formula — unbiased to O(1/n²)). The simpler estimator m₃/m₂^{3/2} is biased but consistent.",
-    "Skewness γ₁ > 0: right (positive) tail — mean > median. γ₁ < 0: left (negative) tail — mean < median. γ₁ = 0: symmetric (but not necessarily normal). Thresholds: |γ₁| < 0.5 (approximately symmetric), 0.5 ≤ |γ₁| < 1 (moderately skewed), |γ₁| ≥ 1 (highly skewed)."
+    "Population skewness is the expected value of the cubed standardized deviation — the third standardized central moment. The sample version adjusts the raw moment estimate with a correction factor to reduce bias. A simpler biased estimator divides the third central moment by the cube of the standard deviation.",
+    "Positive skewness indicates a longer right tail and corresponds to a mean that exceeds the median. Negative skewness indicates a longer left tail and a mean below the median. Zero skewness means the distribution is symmetric, though not necessarily normal. Values with absolute skewness below 0.5 are roughly symmetric; above 1 is considered highly skewed."
   ],
   "visualizationType": "skewness",
   "deepDive": [

@@ -19,18 +19,18 @@
     }
   ],
   "deepDiveIntro": [
-    "TF-IDF formula variants: (1) Raw: TF = count(t,d), IDF = log(N/df(t)). (2) Normalized TF: TF = count(t,d)/max_term_count(d) — normalizes for document length. (3) Sublinear TF: TF = 1 + log(count(t,d)) if count > 0 else 0 — dampens the effect of very high counts. (4) Smooth IDF: IDF = log((N+1)/(df(t)+1)) + 1 — prevents division by zero for terms in all documents. scikit-learn's default uses sublinear_tf=False, smooth_idf=True, L2-normalized vectors.",
-    "BM25 (Best Match 25, Robertson et al. 1995): score(d,q) = ΣₜIDF(t)·(tf(t,d)·(k₁+1))/(tf(t,d)+k₁·(1−b+b·|d|/avgdl)), where k₁ ∈ [1.2, 2.0] controls TF saturation, b ∈ [0.75, 1.0] controls document length normalization, avgdl = average document length. BM25 consistently outperforms TF-IDF in IR benchmarks — it is the default retrieval function in Elasticsearch and Solr."
+    "TF-IDF has several common variants. Raw term frequency uses the raw count; normalized TF divides by document length; sublinear TF replaces the raw count with its logarithm, dampening the effect of very high counts. Smooth IDF adds one to the denominator to avoid dividing by zero for terms that appear in every document. Scikit-learn's default uses smooth IDF and L2-normalized document vectors.",
+    "BM25 improves on TF-IDF by adding TF saturation — a term appearing a thousand times is not a thousand times as informative as one appearing once — and by normalizing for document length. Two parameters control these adjustments: one for how quickly TF saturates, and one for how strongly to normalize. BM25 consistently outperforms raw TF-IDF on information retrieval benchmarks and is the default ranker in Elasticsearch."
   ],
   "deepDive": [
     {
       "heading": "TF-IDF Formulation",
-      "body": "Standard TF-IDF: w(t,d) = (1 + log tf(t,d)) × log(N/(1+df(t))) [sublinear TF, smooth IDF]. Document vector = [w(t₁,d), w(t₂,d), …, w(tV,d)] normalized to unit L2 norm. Cosine similarity for ranking: sim(q,d) = Σₜ w(t,q)·w(t,d) / (||q||·||d||) = dot product of L2-normalized vectors. Higher IDF → rarer term → higher discriminative value. Zero weight for terms not in document (sparse representation). [1]",
+      "body": "Each term in a document receives a weight equal to its term frequency score — either raw or log-dampened — multiplied by the inverse document frequency, which rewards rarity across the corpus. Documents are represented as sparse vectors over the vocabulary, normalized to unit length. Relevance of a document to a query is measured by cosine similarity: the dot product of their normalized vectors. Terms that do not appear in a document contribute zero weight. [1]",
       "formula": "TF-IDF(t,d) = (1 + log tf(t,d)) × log(N / (1 + df(t)))"
     },
     {
       "heading": "BM25: The Dominant Successor",
-      "body": "BM25 addresses two TF-IDF limitations: (1) TF saturation — a term appearing 1000× should not be 1000× as informative as appearing 1×; BM25 saturates at k₁+1 × IDF. (2) Document length normalization — long documents have higher raw TF; BM25 normalizes by |d|/avgdl. Empirically, BM25 with k₁=1.5, b=0.75 is a robust default. On TREC benchmarks, BM25 improves MAP by 5–15% over TF-IDF. Elasticsearch's default since 5.0. [2]",
+      "body": "BM25 adds a saturation function that limits how much a very frequent term can boost a document's score, and a length normalization that penalizes long documents for their inherently higher raw counts. Default parameters of roughly 1.5 for the saturation constant and 0.75 for the length normalization are robust across many datasets. On TREC benchmarks, BM25 typically improves retrieval quality by 5 to 15 percent over raw TF-IDF. [2]",
       "formula": "BM25(t,d) = IDF(t) · tf(t,d)·(k₁+1) / (tf(t,d) + k₁·(1 − b + b·|d|/avgdl))"
     },
     {

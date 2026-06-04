@@ -19,26 +19,26 @@
     }
   ],
   "deepDiveIntro": [
-    "Reciprocal Rank Fusion (RRF): combine ranked lists from BM25 and dense retrieval. RRF score(d) = Σ_r 1/(k + rank_r(d)) where k=60 is a constant. Documents ranked high by multiple systems get a high fused score. Advantage: rank-based combination — robust to score scale differences between BM25 and dense retrieval (BM25 scores are not directly comparable to cosine similarities). No learning required. Simple to implement.",
-    "Convex combination: hybrid_score(d) = α·dense_score(d) + (1−α)·sparse_score(d). Requires normalizing scores to [0,1] before combining. α is a hyperparameter tuned on a validation set. Advantage over RRF: α can be tuned to emphasize dense (better for semantic queries) or sparse (better for exact-match queries). More complex than RRF. Production systems often use RRF for simplicity and tune α via A/B testing for quality."
+    "Reciprocal Rank Fusion (RRF) merges ranked result lists from BM25 and dense retrieval without needing to normalize their very different score scales. Each document's fused score is the sum of 1 divided by (60 plus its rank) across all systems. Documents that rank highly in both lists accumulate more score, naturally surfacing multi-system agreement. The constant 60 prevents a rank-1 document from completely dominating. [1]",
+    "A convex combination instead assigns a weight to each system's raw score and adds them — for example, 50% dense plus 50% sparse. This requires normalizing both score types to the same range first, which is tricky in practice. The mixing weight can be tuned to favor whichever system performs better on your query distribution. RRF is usually preferred for its simplicity; score combination is used when precise tuning via A/B testing is feasible. [1]"
   ],
   "deepDive": [
     {
       "heading": "Sparse Retrieval: BM25",
-      "body": "BM25: score(d,q) = Σₜ∈q IDF(t)·(tf(t,d)·(k₁+1))/(tf(t,d)+k₁·(1−b+b·|d|/avgdl)). k₁≈1.5, b≈0.75 are defaults. BM25 is an inverted index — for a query with m terms, retrieval is O(m·posting_list_length), fast for large corpora. Implemented in: Elasticsearch (default ranker), Apache Lucene, BM25Okapi in rank_bm25 Python package. Strengths: exact term matching, efficient for large corpora, no GPU needed, interpretable scores. Weaknesses: vocabulary mismatch (synonyms get zero overlap), no semantic understanding, language-dependent tokenization. [1]"
+      "body": "BM25 scores a document by summing, over all query terms, the product of the term's rarity across the corpus and a saturating count of how often it appears in the document, adjusted for document length. Default parameters work well out of the box. BM25 uses an inverted index so retrieval is fast without a GPU. Its weakness is vocabulary mismatch: synonyms of a query term score zero even if the meaning is the same. [1]"
     },
     {
       "heading": "Dense Retrieval: Bi-encoder ANN Search",
-      "body": "Dense retrieval: embed query and all documents with a bi-encoder. ANN search (HNSW in most vector DBs): sub-linear time retrieval even for 100M+ vectors. HNSW (Hierarchical Navigable Small World): hierarchical graph-based index. Build time: O(nlogn). Query time: O(logn). Recall@k ≈ 95–99% of exact kNN. IVF-PQ (Faiss): partition vectors into clusters (IVF), compress with product quantization (PQ) — trades recall for memory. For production RAG: HNSW at up to 10M vectors; IVF-PQ for larger corpora. [2]"
+      "body": "Dense retrieval encodes both the query and all documents into fixed-size vectors, then finds the closest document vectors to the query vector using approximate nearest neighbor search. HNSW graphs support sub-linear query time with very high recall, making it practical at hundreds of millions of documents. Larger corpora can use compressed indexes that trade a small amount of recall for a large reduction in memory. [2]"
     },
     {
       "heading": "Sparse-Dense Fusion with RRF",
-      "body": "RRF algorithm: (1) Get BM25 top-100 results with ranks 1..100. (2) Get dense top-100 results with ranks 1..100. (3) For each document d: score = 1/(60+rank_BM25(d)) + 1/(60+rank_dense(d)), where rank(d) = 101 if not in the list. (4) Sort by fused score, take top-k. Properties: k=60 smoothing prevents a document ranked 1st in one system from dominating. Documents appearing in both lists get approximately doubled score — naturally up-ranks results with multi-system agreement. No need to normalize heterogeneous BM25 and cosine scores. [1]",
+      "body": "To fuse results, retrieve the top 100 documents from BM25 and the top 100 from dense retrieval separately. For each document, add up the reciprocal of its rank in each list, using 60 as a smoothing constant. Documents that appear near the top in both lists receive the highest combined scores. Documents absent from a list receive a rank of 101, contributing only a small amount. No score normalization is needed. [1]",
       "formula": "RRF(d) = Σ_r 1 / (k + rank_r(d)),  k=60"
     },
     {
       "heading": "Learned Sparse Retrieval: SPLADE",
-      "body": "SPLADE (Formal et al. 2021): learned sparse representations that combine the benefits of BM25 (sparse vectors, fast inverted index) with semantic understanding. Architecture: BERT encoder → MLM head → apply ReLU + log(1+x) activation → sparse vector over vocabulary. Training: contrastive loss + FLOPS regularization (penalizes non-zero terms to maintain sparsity). SPLADE vectors can be indexed in BM25-style inverted indexes for fast retrieval, but the non-zero terms include semantically related vocabulary (not just exact terms). Outperforms BM25 and dense-only on BEIR benchmark. [2]"
+      "body": "SPLADE learns sparse document representations that can be indexed in a standard inverted index, just like BM25, but with vocabulary expanded to include semantically related terms rather than just exact matches. A BERT encoder produces a vector over the full vocabulary, and a sparsity-inducing activation keeps most entries at zero. This gives BM25-speed retrieval with near-dense-retrieval quality, and it outperforms both on diverse benchmark collections. [2]"
     }
   ],
   "takeaways": [
