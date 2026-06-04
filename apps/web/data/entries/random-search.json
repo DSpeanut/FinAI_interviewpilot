@@ -24,8 +24,8 @@
     }
   ],
   "deepDiveIntro": [
-    "Bergstra & Bengio (2012) formal argument: consider a d-dimensional hyperparameter space where only d_eff < d dimensions are important (the loss is insensitive to the other d-d_eff dimensions). A grid search with n points per dimension covers only n^{1/d_eff} distinct values in the effective dimensions. Random search with N total configurations covers N distinct values per effective dimension (since each sample is independent). For N evaluations: random search has N^{1/d} effective coverage per dimension; grid search has (N/n^{d-d_eff})^{1/d_eff} = n distinct values. For d=9, d_eff=2, n=3: grid search covers 3 values per effective dimension; random search covers 3^9=19,683 values. [1]",
-    "Successive Halving (Jamieson & Talwalkar, 2016): starting with n configurations and budget B, allocate B/n resources each. Keep the top 1/η configurations (η=3 standard), multiply resources by η, repeat for ⌈log_η(n)⌉ rounds. Hyperband (Li et al., 2018) runs successive halving for multiple bracket values of n, amortising the bias-variance tradeoff of choosing n. Total cost: O(B·log(n)/η) model fits, compared to O(n·B) for full training on all configs. [2]"
+    "Bergstra and Bengio (2012) showed that when only a small number of hyperparameters truly influence the objective, random search is much more efficient than grid search. Grid search wastes most of its evaluations on unimportant dimensions, exploring only a few distinct values of the important ones. Random search, by sampling independently in each dimension, sees many more distinct values for the important hyperparameters within the same total budget. [1]",
+    "Successive Halving extends random search with early stopping: start many configurations cheaply, keep the top fraction, double the budget, and repeat. Hyperband runs several brackets of Successive Halving simultaneously to avoid the need to choose the initial number of configurations upfront. The total computational cost is logarithmic in the number of starting configurations rather than linear, making it much more efficient than full training on all candidates. [2]"
   ],
   "deepDive": [
     {
@@ -34,7 +34,7 @@
     },
     {
       "heading": "Successive Halving and Hyperband",
-      "body": "Successive halving (SHA): R = {c₁,...,cₙ} configurations. Allocate r₀ resources each. Train, evaluate, keep top 1/η, multiply resources by η. Repeat. Final round: 1 configuration, full R resources. Example: n=81, η=3, R=100 epochs. Round 1: 81 configs × ⌊100/81⌋≈1 epoch each. Round 2: 27 configs × 3 epochs. Round 3: 9 configs × 9 epochs. Round 4: 3 configs × 27 epochs. Round 5: 1 config × 81 epochs. Total: 81+81+81+81+81 ≈ 5× fewer epochs than training all 81 for 100 epochs. Hyperband adds multiple brackets with different n to avoid bias from choosing n. [2]"
+      "body": "Successive Halving starts with many configurations given a small resource budget, evaluates all of them, keeps only the top fraction, multiplies the budget by a fixed factor, and repeats. As a concrete example with 81 starting configurations, a halving factor of 3, and a maximum of 100 epochs: round 1 trains all 81 for roughly 1 epoch, round 2 trains the surviving 27 for 3 epochs, and so on until a single winner is trained for 81 epochs. The total compute is several times less than training all 81 configurations to completion. Hyperband runs multiple such brackets simultaneously with different starting counts. [2]"
     },
     {
       "heading": "When Random Search Underperforms",

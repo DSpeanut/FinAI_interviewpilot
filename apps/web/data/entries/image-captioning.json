@@ -19,17 +19,18 @@
     }
   ],
   "deepDiveIntro": [
-    "Standard captioning model pipeline: (1) Image encoder: ViT or CNN produces visual feature maps or patch embeddings; (2) Cross-attention decoder: transformer decoder where each generation step attends to visual features. Query = current decode state, Key/Value = visual embeddings. The decoder generates one token at a time, attending to image regions relevant to the current word.",
-    "Evaluation metrics: BLEU-4 (4-gram precision vs reference captions), METEOR (synonym-aware), CIDEr (consensus image description evaluation — weights distinctive N-grams higher), SPICE (semantic propositional image caption evaluation — scene graph matching). CIDEr is the standard COCO captioning metric: CIDEr correlates best with human judgment. SPICE evaluates whether the caption captures objects, attributes, and relations, not just N-gram overlap."
+    "Standard captioning models use an image encoder (CNN or Vision Transformer) to produce visual features, followed by a text decoder that generates the caption one token at a time. At each generation step the decoder uses cross-attention to focus on the image regions most relevant to the word being produced, allowing the model to describe different parts of the scene in sequence.",
+    "Captioning evaluation goes beyond simple n-gram overlap. CIDEr weights informative n-grams more heavily than common phrases, producing scores that correlate better with human judgments than BLEU. SPICE parses both the candidate and reference captions into scene graphs and compares the objects, attributes, and relations they mention, which captures semantic content that n-gram metrics miss."
   ],
   "deepDive": [
     {
       "heading": "Attention-based Captioning: Show, Attend and Tell",
-      "body": "Xu et al. (2015) — 'Show, Attend and Tell': first captioning model with soft attention. Architecture: CNN (VGG) extracts L=196 spatial feature vectors from the image. LSTM decoder: at each step t, compute attention αₜₗ = softmax(eₜₗ), where eₜₗ = f_att(aₗ, hₜ₋₁). Context vector: ẑₜ = Σₗ αₜₗ aₗ. Generate word: P(wₜ) = softmax(L_o(E_wₜ₋₁ + L_h hₜ + L_z ẑₜ)). Hard vs soft attention: soft (used above) uses expected attention; hard samples one location at each step (trained with REINFORCE). Soft attention is differentiable and more widely adopted. [1]"
+      "body": "Xu et al. (2015) introduced the first captioning model with soft visual attention. A CNN extracts a grid of spatial feature vectors from the image. At each decoding step, an LSTM computes an attention score for each spatial location based on the previous hidden state, normalizes these scores with softmax, and produces a context vector as a weighted sum of the spatial features. The word at each step is then generated from a combination of the previous word embedding, the current hidden state, and this context vector. Soft attention uses the expected weighted sum and is differentiable; hard attention samples a single location per step and requires reinforcement learning. [1]",
+      "formula": "α_tl = softmax( f_att(a_l, h_{t−1}) ),     ẑ_t = Σ_l α_tl a_l,     P(w_t) = softmax( W_o(E y_{t−1} + W_h h_t + W_z ẑ_t) )"
     },
     {
       "heading": "BLIP: Bootstrapping Language-Image Pre-training",
-      "body": "BLIP (Li et al. 2022): unified model for image-text understanding and generation. Architecture: (1) Image-Text Contrastive (ITC) — CLIP-style alignment; (2) Image-Text Matching (ITM) — binary classifier for (image, text) pair relevance; (3) Image-Captioning (LM) — generate captions from images. Key innovation: CapFilt (Captioning + Filtering) — use BLIP's own captioning model to generate captions for noisy web image-text pairs, then filter out poor-quality generated captions with BLIP's ITM. This bootstrapped data cleaning significantly improves model quality. BLIP-2 extends to use a frozen LLM (OPT, FlanT5) connected via Q-Former. [2]"
+      "body": "BLIP (Li et al. 2022): unified model for image-text understanding and generation that combines three objectives — image-text contrastive alignment, image-text matching as a binary classifier, and autoregressive caption generation. The key innovation is CapFilt: the model first generates captions for noisy web image-text pairs, then filters out poor-quality captions using its own matching head. This bootstrapped data cleaning significantly improves downstream performance. BLIP-2 extends this by connecting a frozen image encoder to a frozen large language model through a lightweight Q-Former module. [2]"
     },
     {
       "heading": "Dense Captioning and Region Descriptions",
@@ -37,7 +38,8 @@
     },
     {
       "heading": "CIDEr and SPICE Evaluation Metrics",
-      "body": "CIDEr (Consensus-based Image Description Evaluation, Vedantam et al. 2015): weight N-grams by their TF-IDF across the caption reference set — distinctive, informative N-grams get higher weight than common phrases. Score = cosine similarity between TF-IDF weighted N-gram vectors of candidate and references. Correlates better with human judgment than BLEU/METEOR. CIDEr-D: adds clipping to penalize repeated N-grams. SPICE (Anderson et al. 2016): parse candidate and reference into scene graphs (objects, attributes, relations), compute F1 of graph triplets. Captures semantic content better than N-gram overlap — 'a black dog running' and 'a running black canine' have high SPICE despite low BLEU. [1]"
+      "body": "CIDEr evaluates caption quality by weighting n-grams by how distinctive they are across the reference set, so informative phrases get more credit than common ones. The score is the cosine similarity between TF-IDF-weighted n-gram vectors of the candidate and the references, and the CIDEr-D variant clips repeated n-grams to penalize redundancy. SPICE takes a different approach: it parses both the candidate and the references into scene graphs of objects, attributes, and relations, then computes an F-score over matching tuples. This captures semantic content more faithfully than n-gram overlap. [1]",
+      "formula": "CIDEr(c, S) = Σ_n w_n · cos( g^n(c), g^n(S) ),    SPICE = F1( G(c) ∩ G(S) )"
     }
   ],
   "takeaways": [

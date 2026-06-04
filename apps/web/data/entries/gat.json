@@ -24,17 +24,20 @@
     }
   ],
   "deepDiveIntro": [
-    "Veličković et al. (2018) introduced Graph Attention Networks with learnable, edge-wise attention coefficients. For edge (i,j), the un-normalised attention score is: e_{ij} = LeakyReLU(a^T [Wh_i || Wh_j]), where W ∈ ℝ^{F'×F} projects features, a ∈ ℝ^{2F'} is the attention weight vector, and || denotes concatenation. The normalised coefficient: α_{ij} = softmax_j(e_{ij}) = exp(e_{ij}) / Σ_{k ∈ N(i)} exp(e_{ik}). The updated node representation: h_i' = σ(Σ_{j ∈ N(i)} α_{ij} W h_j). Multi-head attention: compute K independent attention heads and concatenate (or average for the final layer): h_i' = ||_{k=1}^K σ(Σ_{j ∈ N(i)} α_{ij}^k W^k h_j). GAT adds no assumption about the graph structure — all nodes and their neighbourhoods are processed the same way, enabling inductive generalisation to unseen nodes. [1]",
-    "GATv2 (Brody, Alon & Yahav, 2021) identified a fundamental limitation in the original GAT: the static attention problem. In GAT, e_{ij} = a^T [Wh_i || Wh_j] = a_1^T Wh_i + a_2^T Wh_j — the i and j contributions are fully separable, meaning the attention score can be factored into a term depending only on i and a term depending only on j. This means the attention ranking of j's neighbours is the same regardless of j's own features — a 'static' attention. GATv2 fixes this by computing: e_{ij} = a^T LeakyReLU(W[h_i || h_j]), which is non-separable (dynamic attention). On benchmarks requiring flexible attention, GATv2 consistently outperforms GAT while using the same number of parameters. [2]"
+    "Veličković et al. (2018) introduced Graph Attention Networks with learnable, edge-wise attention coefficients. For each edge, the model computes an un-normalized attention score by applying a LeakyReLU nonlinearity to a learned linear combination of the concatenated source and destination node features. Softmax over a node's neighborhood turns these raw scores into weights that sum to one. The updated representation of each node is a weighted sum of its neighbors' projected features, with optional multi-head aggregation. Because attention weights depend only on node features and not on graph topology, GAT generalizes inductively to unseen nodes. [1]",
+    "GATv2 (Brody et al., 2021) identified a fundamental limitation in the original GAT: the attention score factors into a sum of a term that depends only on the source node and a term that depends only on the destination. This means the ranking of a node's neighbors by attention weight is the same regardless of the query node's own features — so-called static attention. GATv2 fixes this by applying the nonlinearity before the final dot product, creating a non-separable score that lets the attention ranking vary with both endpoints. On tasks requiring flexible attention, GATv2 consistently outperforms GAT with the same parameter count. [2]",
+    "formula (GAT): α_ij = softmax_j( LeakyReLU( a^T [Wh_i || Wh_j] ) )"
   ],
   "deepDive": [
     {
       "heading": "Attention Score Computation",
-      "body": "This section explains how the model represents interactions or sequence order and why that design choice matters."
+      "body": "For each directed edge, the model projects both endpoint features into a shared space, concatenates them, passes the result through a LeakyReLU, and takes a dot product with a learned vector to get a raw attention score. Applying softmax over all neighbors normalizes these scores into probabilities. The updated node embedding is then a probability-weighted sum of neighbor features. This approach lets the model learn which neighbors matter most for each node, rather than treating all neighbors equally as graph convolution does. [1]",
+      "formula": "α_ij = softmax_j( LeakyReLU( a^T [Wh_i || Wh_j] ) ),    h'_i = σ( Σ_j α_ij W h_j )"
     },
     {
       "heading": "Multi-Head Attention in GAT",
-      "body": "This section explains how the model represents interactions or sequence order and why that design choice matters."
+      "body": "Running K independent attention heads in parallel and concatenating their outputs gives the model K different views of each node's neighborhood. Hidden layers use concatenation so the dimensionality grows by a factor of K; the final layer averages the heads instead to produce a fixed-size output. More heads generally improve accuracy on heterogeneous graphs up to a point, after which compute cost grows without further benefit. [1]",
+      "formula": "h'_i = ||_{k=1}^K σ( Σ_j α^k_ij W^k h_j ),    final: h'_i = σ( 1/K Σ_k Σ_j α^k_ij W^k h_j )"
     },
     {
       "heading": "GAT vs GCN: When Does Attention Help?",
@@ -42,7 +45,7 @@
     },
     {
       "heading": "Sparse Attention and Computational Cost",
-      "body": "For sparse graphs (E ≪ N²), attention is much cheaper than all-to-all Transformer attention O(N²). For dense graphs (social networks with millions of edges per node), GAT becomes expensive. Graph transformers (e.g., Graphormer, GRIT) add structural encodings to standard attention, enabling sparse attention that combines the expressiveness of attention with the efficiency of graph sparsity. Graph transformers with virtual nodes and shortest-path distance encodings achieve state-of-the-art on molecular benchmarks while maintaining O(N+E) complexity for sparse graphs."
+      "body": "For sparse graphs, attention over neighbors is much cheaper than all-to-all Transformer attention because the number of edges is far smaller than the square of the number of nodes. For dense graphs such as social networks with very high-degree nodes, GAT becomes expensive. Graph transformers add structural encodings such as shortest-path distances to standard attention, combining the expressiveness of attention with the efficiency of graph sparsity while maintaining linear-in-edges complexity for sparse graphs."
     }
   ],
   "takeaways": [

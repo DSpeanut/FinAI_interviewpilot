@@ -24,21 +24,21 @@
     }
   ],
   "deepDiveIntro": [
-    "Kingma & Welling (2013) introduced the VAE as a latent variable generative model with tractable training via the Evidence Lower BOund (ELBO). The model: prior p(z) = N(0, I); likelihood p_θ(x|z) parameterised by a neural network decoder; approximate posterior q_φ(z|x) = N(μ_φ(x), diag(σ²_φ(x))) parameterised by a neural network encoder. Direct maximisation of log p_θ(x) = log ∫ p_θ(x|z)p(z)dz is intractable. Instead, maximise the ELBO: L(θ,φ;x) = E_{q_φ(z|x)}[log p_θ(x|z)] − KL(q_φ(z|x) || p(z)) ≤ log p_θ(x). The ELBO is the reconstruction term minus the KL regulariser. [1]",
-    "The reparameterisation trick is essential for backpropagating through the sampling step. Sampling z ~ q_φ(z|x) = N(μ, σ²I) is a non-differentiable operation — gradients cannot flow through the sample. Solution: z = μ_φ(x) + σ_φ(x) ⊙ ε, where ε ~ N(0,I) is an independent random variable. Now μ and σ are deterministic functions of x with parameters φ, so ∂z/∂φ = ∂μ/∂φ + ε·∂σ/∂φ is well-defined. The ε sampling is pushed outside the gradient computation. This trick makes the VAE trainable by standard backpropagation. [2]"
+    "Kingma and Welling (2013) introduced the VAE as a latent variable model trained by maximizing a lower bound on the data log-likelihood — the Evidence Lower Bound (ELBO). Directly maximizing the log-likelihood requires integrating over all possible latent codes, which is intractable. The ELBO decomposes this into two terms: a reconstruction loss that measures how well the decoder recovers the input from a sampled code, and a KL divergence that regularizes the encoder's distribution to stay close to the prior. [1]",
+    "The reparameterization trick makes training possible. Sampling from the encoder's distribution is a random operation through which gradients cannot flow. The trick rewrites the sample as the mean plus the standard deviation times an independent noise variable drawn from a standard normal. The mean and standard deviation are deterministic functions of the input, so gradients flow through them normally — only the noise variable is treated as a constant. [2]"
   ],
   "deepDive": [
     {
       "heading": "ELBO Derivation",
-      "body": "This section explains the main idea behind this part of the method in plain language."
+      "body": "The ELBO is a lower bound on the log-likelihood because the KL divergence between the approximate and true posterior is always non-negative. Maximizing the ELBO therefore pushes up the log-likelihood. The bound is tight when the approximate posterior exactly equals the true posterior, which VAEs approach but never reach because the encoder is restricted to a Gaussian family. Training jointly optimizes the encoder and decoder to maximize this bound."
     },
     {
       "heading": "KL Collapse and Posterior Collapse",
-      "body": "The decoder then learns to ignore z entirely, modelling p_θ(x) independently of the latent code. Causes: for powerful decoders (e.g., autoregressive decoders), it's easier to ignore z and model p(x) directly than to coordinate with the encoder."
+      "body": "Posterior collapse occurs when the encoder learns to ignore the input and outputs the prior distribution for every example. The KL term then goes to zero and the decoder receives no information from the encoder, learning instead to model the data from scratch. This failure mode is most common with very powerful autoregressive decoders, which can bypass the latent code entirely. Fixes include annealing the KL weight from zero to one during training, or reserving a minimum amount of information flow through the bottleneck."
     },
     {
-      "heading": "β-VAE and Disentanglement",
-      "body": "Higgins et al. Higher β forces stronger independence between latent dimensions, promoting disentanglement: each dimension of z captures an independent factor of variation (e.g., one dimension controls lighting, another controls pose, another controls object colour). Measuring disentanglement: β-VAE score (Higgins et al.), DCI framework (Eastwood & Williams, 2018). Disentangled representations are valuable for downstream tasks requiring compositional generalisation (style transfer, data augmentation, causal reasoning)."
+      "heading": "Beta-VAE and Disentanglement",
+      "body": "Beta-VAE multiplies the KL term by a coefficient greater than 1, imposing stronger pressure for the latent dimensions to be independent of each other. This encourages each dimension to capture a separate factor of variation — one for lighting, one for pose, one for object identity. Higher beta values improve disentanglement but reduce reconstruction quality because more information is lost at the bottleneck. The beta-VAE score and DCI framework are standard benchmarks for measuring disentanglement."
     },
     {
       "heading": "VAE vs GAN: Comparison",

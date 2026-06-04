@@ -45,7 +45,7 @@
     }
   ],
   "deepDiveIntro": [
-    "Cointegration test (Engle-Granger): for two price series P_A and P_B, run regression P_A = α + β P_B + ε. Test residuals ε for stationarity using ADF test. If ε is stationary, the pair is cointegrated — the spread is mean-reverting. The Johansen test generalises to multiple assets. Ornstein-Uhlenbeck process models the spread: dX_t = κ(μ - X_t)dt + σ dW_t, where κ is mean reversion speed, μ is equilibrium spread, σ is volatility. Half-life = log(2)/κ. Optimal entry/exit (Bertram 2010): enter at ±entry_threshold × σ, exit at 0 (or ±exit_threshold). Optimal thresholds balance frequency of trades vs. profit per trade given transaction costs."
+    "Cointegration is tested by running a regression of one price on another and checking whether the residuals are stationary using the Augmented Dickey-Fuller test. Stationary residuals confirm that the spread between the two prices tends to revert to a stable relationship over time. The Johansen test extends this to groups of three or more assets. The Ornstein-Uhlenbeck process is the standard model for the spread: it describes a mean-reverting process with a long-run equilibrium and a reversion speed parameter. The half-life — the expected time to revert halfway to equilibrium — determines optimal holding periods and is key input for sizing and entry/exit threshold selection."
   ],
   "deepDive": [
     {

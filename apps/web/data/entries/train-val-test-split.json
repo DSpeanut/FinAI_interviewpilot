@@ -24,13 +24,13 @@
     }
   ],
   "deepDiveIntro": [
-    "The three-way split formalises the machine learning workflow: (1) Training set: minimise L(θ; D_train) w.r.t. θ. (2) Validation set: choose hyperparameters λ that minimise L(θ*(λ); D_val). (3) Test set: report L(θ*(λ*); D_test) as the final generalisation estimate. The validation and test errors are estimates of the expected loss on new data from the same distribution. The test error is unbiased only if the test set is used exactly once — each additional look inflates the estimate via implicit multiple testing. Hastie et al. (ESL, Chapter 7): 'Using the test set to choose the model is as bad as using the training set.' [1]",
-    "For small datasets where a 15% test set might have high variance, k-fold cross-validation is preferred over a single train/val split. But even with cross-validation, a held-out test set should still be kept for final evaluation — cross-validation is used for model selection, not final performance reporting. The two-stage protocol: use CV to select the model, train on all non-test data, evaluate once on the test set. [1]"
+    "The three-way split formalizes three distinct roles. Training data fits model parameters. Validation data selects hyperparameters — the chosen hyperparameters are those that minimize validation error. Test data estimates generalization performance, and this estimate is unbiased only if the test set is used exactly once. Every additional look at the test set during development inflates the estimate through implicit multiple comparisons, which is why the test set must be sealed until the final model is ready. [1]",
+    "For small datasets, a single fifteen-percent test set may have high variance as an estimator of true error. K-fold cross-validation reduces this variance by averaging over multiple held-out folds. Even so, a dedicated test set should still be reserved for the final evaluation — cross-validation is appropriate for model selection, but the final number reported in a paper or product should come from a test set not used during selection. [1]"
   ],
   "deepDive": [
     {
       "heading": "Split Ratios and Dataset Size",
-      "body": "The right split ratio depends on dataset size. For n=1000: 60/20/20 — the val and test sets each need ~200 examples for meaningful estimates. For n=100K: 80/10/10. For n=10M: 98/1/1 — 100K examples per set is more than enough. The key: test set needs enough examples to estimate the metric with low variance. For a 5% error rate with ±0.5% precision, you need ~n=7600 test examples (by Wilson confidence interval for proportions). For regression: variance of RMSE estimate decreases as 1/√n. [1]"
+      "body": "The right split ratio depends on dataset size. For about a thousand examples, a 60/20/20 split gives roughly two hundred examples per evaluation set, which is marginal but workable. For a hundred thousand examples, 80/10/10 is standard. For ten million, 98/1/1 still leaves a hundred thousand per set — more than enough. The key constraint is that the test set needs enough examples to estimate the target metric with low variance. For a five percent error rate, achieving plus-or-minus half a point of precision requires roughly 7,600 test examples by a Wilson confidence interval calculation. [1]"
     },
     {
       "heading": "Data Leakage",
@@ -38,7 +38,7 @@
     },
     {
       "heading": "Walk-Forward Validation for Time Series",
-      "body": "Time series cross-validation: expanding window — train on t₁..tₖ, evaluate on tₖ₊₁; then train on t₁..tₖ₊₁, evaluate on tₖ₊₂; etc. Sliding window — fix training window size, advance the entire window forward each fold. Both prevent lookahead bias. Gap between train end and val start: important for features that use future data (e.g., exponential moving averages that mix past and future). sklearn TimeSeriesSplit implements expanding-window CV with configurable gap parameter. [1]"
+      "body": "Time series cross-validation maintains chronological order. The expanding window variant trains on all data up to a cutoff and evaluates on the next window, then extends the cutoff and repeats. The sliding window variant trains on a fixed-length window that advances forward each fold. Both prevent lookahead bias. A gap between the training end and the evaluation start is sometimes necessary when features are computed over trailing windows that would otherwise mix training and evaluation periods. Sklearn's TimeSeriesSplit implements expanding-window cross-validation with a configurable gap parameter. [1]"
     }
   ],
   "youtubeLabel": "Train, Validation, Test Split — Why and How",

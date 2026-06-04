@@ -27,7 +27,7 @@
     }
   ],
   "deepDiveIntro": [
-    "Gu, Kelly & Xiu (2020) benchmark: 30,000 individual US stocks (1957-2016), 94 characteristics. Models evaluated by monthly OOS R² = 1 - Σ(r_t - r̂_t)² / Σ(r_t - r̄_t)². OLS: R² ≈ 0.3%. Neural nets: R² ≈ 0.4-0.5%. Improvement seems small but significant: a 0.1-0.2% improvement in monthly R² corresponds to a meaningful Sharpe ratio increase when applied at portfolio scale. Sharpe ratios (long-top-decile, short-bottom-decile): linear models Sharpe ≈ 1.0-1.3; neural networks Sharpe ≈ 1.5-2.0 (gross, before transaction costs). After costs in large-cap universe: modest but persistent improvement. Long-short portfolio from NN predictions: highest decile vs. lowest decile by predicted return."
+    "Gu, Kelly and Xiu (2020) benchmarked machine learning models on 30,000 US stocks from 1957 to 2016, using 94 stock characteristics as features. Models were evaluated by out-of-sample monthly return prediction accuracy. Linear models explained about 0.3% of return variance; neural networks improved this to about 0.4 to 0.5%. While those numbers sound tiny, at portfolio scale the improvement translates to meaningfully higher Sharpe ratios — roughly 1.0 to 1.3 for linear models versus 1.5 to 2.0 for neural networks before transaction costs. After accounting for costs in the large-cap universe, the advantage persists but is more modest."
   ],
   "deepDive": [
     {
@@ -36,7 +36,8 @@
     },
     {
       "heading": "Regularisation Techniques for Financial Neural Networks",
-      "body": "Financial ML requires stronger regularisation than typical ML because: (1) Sample size is small relative to feature space (30,000 × 94 features, 720 months — not big data by ML standards); (2) Signal is extremely weak (Sharpe ≈ 0.03 per monthly observation); (3) Non-stationarity: patterns from 1960s may not hold in 2020s. Regularisation arsenal: (1) Dropout (0.05-0.20): randomly zero out neurons during training; forces redundant representations; (2) L1/L2 weight decay: penalise large weights; equivalent to Bayesian prior; (3) Ensemble averaging: train 10 models with different random seeds; average predictions; reduces estimation variance; (4) Early stopping: monitor validation loss; stop before overfitting; use the checkpoint with best validation performance; (5) Batch normalisation: normalise layer inputs; stabilises training; reduces sensitivity to learning rate; (6) Bagging (for trees): train on bootstrap samples; reduces variance; (7) Input feature shrinkage: winsorise features at ±3σ cross-sectionally before feeding to model. [2]"
+      "body": "Financial ML requires stronger regularisation than typical ML because the sample size is small relative to the feature space, the signal is extremely weak, and patterns from the 1960s may not hold today. Key regularisation techniques include dropout that randomly silences neurons during training, weight decay that penalises large weights, ensemble averaging across models with different random seeds, and early stopping based on validation loss. Input features should be winsorised at three standard deviations cross-sectionally before being fed to the model to limit the influence of extreme observations. [2]",
+      "formula": "L_regularised = L_data + λ₁ Σ|w| + λ₂ Σ w²,    x_winsorised = clip(x, −3σ, +3σ)"
     },
     {
       "heading": "Transaction Costs and Capacity in ML-Based Portfolios",

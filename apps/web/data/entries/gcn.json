@@ -24,21 +24,24 @@
     }
   ],
   "deepDiveIntro": [
-    "Kipf & Welling (2016) introduced the graph convolutional network with layer-wise propagation: H^{(l+1)} = σ(D̃^{-1/2} Ã D̃^{-1/2} H^{(l)} W^{(l)}), where Ã = A + I_N is the adjacency matrix with self-loops added, D̃ is the degree matrix of Ã (D̃_{ii} = Σ_j Ã_{ij}), and W^{(l)} ∈ ℝ^{d_l×d_{l+1}} is the learnable weight matrix. The D̃^{-1/2} Ã D̃^{-1/2} term is the symmetrically normalised adjacency matrix: it ensures that the aggregated feature vector is a normalised average of neighbour features, preventing high-degree nodes from dominating. For a single node v: h_v^{(l+1)} = σ(W^{(l)} · Σ_{u ∈ N(v) ∪ {v}} h_u^{(l)} / √(d_v+1)·√(d_u+1)), where d_v is the degree of node v. [1]",
-    "The spectral interpretation: GCN is derived from spectral graph theory. The graph Laplacian L = D − A and its normalised version L̃ = I − D^{-1/2}AD^{-1/2} encode the graph's spectral structure. Graph convolution in the spectral domain is g_θ ★ x = U g_θ(Λ) U^T x, where U is the eigenvectors of L and Λ the eigenvalues. Kipf & Welling approximate g_θ(Λ) ≈ θ_0 + θ_1 Λ (first-order Chebyshev approximation) and use a single parameter θ = θ_0 = −θ_1, giving the D^{-1/2}ÃD^{-1/2} propagation rule. The spatial interpretation is more intuitive: each node aggregates a normalised average of its neighbours' features. [2]"
+    "The GCN propagation rule (Kipf & Welling, 2016) updates each node's representation by taking a normalised weighted average of its own features and those of all its neighbours, then applying a learned linear transformation and a nonlinearity. Adding self-loops ensures each node includes its own previous representation in the average. The normalisation divides each neighbour's contribution by the square root of both nodes' degrees, so high-degree hubs do not dominate the aggregation. [1]",
+    "The spectral interpretation derives this rule from graph signal processing: graph convolution in the frequency domain can be approximated with a single-parameter first-order filter, which collapses to the same symmetric normalisation used in the spatial view. The spatial interpretation is more intuitive — each node simply gathers a normalised average of its neighbourhood — but both perspectives lead to identical computations. [2]"
   ],
   "deepDive": [
     {
       "heading": "Symmetric Normalisation: Why It Matters",
-      "body": "Symmetric normalisation is more statistically justified: it's equivalent to graph normalised cuts and is the standard in spectral graph theory."
+      "body": "Symmetric normalisation is more statistically justified: it's equivalent to graph normalised cuts and is the standard in spectral graph theory.",
+      "formula": "H^(l+1) = σ( D̃^{−1/2} Ã D̃^{−1/2} H^(l) W^(l) ),    Ã = A + I"
     },
     {
       "heading": "Over-smoothing: Depth Limitation of GCN",
-      "body": "A critical limitation: deep GCNs suffer over-smoothing — as the number of layers increases, node representations converge to the same value (become indistinguishable). Li et al. (2018) showed that after L layers, all node representations converge to the graph's stationary distribution weighted by √d_v."
+      "body": "A critical limitation: deep GCNs suffer over-smoothing — as the number of layers increases, node representations converge to the same value and become indistinguishable. Li et al. (2018) showed that after sufficiently many layers, all node representations converge to a single point proportional to the square root of each node's degree, regardless of the input features.",
+      "formula": "lim_{L→∞} h^(L)_v ∝ √d_v · c"
     },
     {
       "heading": "Semi-Supervised Learning with GCN",
-      "body": "But because GCN aggregates features across the graph, unlabeled nodes influence the representations of labeled nodes and vice versa — the graph structure acts as a regulariser that propagates label information. This is a form of graph-based semi-supervised learning without explicit graph Laplacian regularisation (as in earlier methods like label propagation). Performance comparison (Cora, 140 labeled nodes): Logistic regression on features: 57.2%; DeepWalk: 67.2%; GCN: 81.5%."
+      "body": "GCN aggregates features across the graph, so unlabeled nodes influence the representations of labeled nodes and vice versa — the graph structure acts as a regulariser that propagates label information. This is a form of graph-based semi-supervised learning without explicit graph Laplacian regularisation (as in earlier methods like label propagation). Performance comparison (Cora, 140 labeled nodes): Logistic regression on features: 57.2%; DeepWalk: 67.2%; GCN: 81.5%.",
+      "formula": "L = −Σ_{i∈L} Σ_c Y_{ic} log(Z_{ic}),   Z = softmax( Â ReLU(Â X W^(0) ) W^(1) )"
     },
     {
       "heading": "Mini-Batch Training and Neighbourhood Sampling",

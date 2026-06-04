@@ -19,7 +19,7 @@
     }
   ],
   "deepDiveIntro": [
-    "IRS valuation: swap = portfolio of forward rate agreements (FRAs). Value at time t: V_swap = PV(floating leg) - PV(fixed leg). Fixed leg: Σ_i K × N × Δt_i × B(t, T_i), where B(t,T) = zero-coupon bond price. Floating leg: N × (B(t,t_0) - B(t,T_n)) (assuming SOFR, the floating leg resets perfectly). Par swap rate K* = [B(t,t_0) - B(t,T_n)] / Σ_i Δt_i B(t,T_i) (annuity weighted). At inception, K = K*, so V = 0. DV01 (Dollar Value of a Basis Point): change in swap value for 1bp parallel shift in the yield curve. DV01 ≈ N × T × 0.0001 × Annuity_factor. For a 10-year $100M IRS: DV01 ≈ $90,000."
+    "An interest rate swap can be valued by treating each periodic payment as a separate forward rate agreement and discounting all cash flows at current market rates. The fixed leg is a series of known payments discounted to the present; the floating leg, because it resets to the prevailing rate at each period, has a present value equal to the notional at the start minus the notional discounted back from the last payment date. The par swap rate is the fixed rate that makes both legs equal in value at inception. DV01 measures how much the swap's value changes for a one-basis-point shift in all interest rates — for a 10-year swap on 100 million dollars of notional, DV01 is roughly 90,000 dollars."
   ],
   "deepDive": [
     {
@@ -32,7 +32,8 @@
     },
     {
       "heading": "Variance Swaps and Volatility Trading",
-      "body": "A variance swap exchanges realised variance against a fixed variance strike: payoff = N × (σ²_realised - K²_var). Unlike options, variance swaps provide pure exposure to realised variance without delta hedging. Valuation: K_var (fair variance strike) is the VIX² value approximately — the risk-neutral expectation of future variance. The variance risk premium: K_var consistently exceeds subsequent realised variance — variance sellers systematically earn a premium (~3-5 variance points per year historically). Why? Investors pay for variance protection because variance spikes correlate with portfolio losses. Uses: (1) Hedge a book of options: buy variance swap to offset gamma exposure; (2) Express volatility views: buy variance swap to profit from future volatility spike; (3) Volatility carry trade: sell variance swap, earn risk premium; (4) Realised vs. implied spread: variance swap payoff = difference between realised and implied variance. Related instruments: VIX futures (less pure volatility exposure than variance swaps due to VIX being implied vol, not variance). [1]"
+      "body": "A variance swap exchanges realised variance against a fixed variance strike, giving pure exposure to realised variance without needing delta hedging. The fair variance strike approximates the square of the VIX and represents the risk-neutral expectation of future variance. The variance risk premium means the strike consistently exceeds subsequent realised variance, allowing variance sellers to earn a premium because investors pay for protection against volatility spikes that correlate with portfolio losses. VIX futures provide a less pure form of volatility exposure since they reference implied rather than realised variance. [1]",
+      "formula": "Payoff = N × (σ²_realised − K²_var),    K_var ≈ E_Q[σ²] ≈ VIX²"
     }
   ],
   "takeaways": [

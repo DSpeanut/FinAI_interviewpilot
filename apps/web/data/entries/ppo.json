@@ -24,17 +24,17 @@
     }
   ],
   "deepDiveIntro": [
-    "Schulman et al. (2017) introduced PPO as a simpler alternative to TRPO (Trust Region Policy Optimisation). TRPO maximises the surrogate objective subject to a KL constraint: max_{θ} L^{CPI}(θ) = E[π_θ(a|s)/π_{θ_old}(a|s) · A(s,a)] subject to E[KL(π_{θ_old}||π_θ)] ≤ δ. The constraint prevents the new policy from deviating too far, but requires computing the Fisher information matrix and solving a constrained optimisation problem — expensive and complex. PPO replaces the KL constraint with a clipped objective: L^{CLIP}(θ) = E[min(r_t(θ)·A_t, clip(r_t(θ), 1−ε, 1+ε)·A_t)], where r_t(θ) = π_θ(a_t|s_t)/π_{θ_old}(a_t|s_t). The clipping prevents r_t from moving outside [1−ε, 1+ε], automatically limiting the policy update. [1]",
-    "PPO training proceeds in epochs: (1) Collect T timesteps of experience using the current policy π_{θ_old}; (2) Compute advantages Â_t using Generalised Advantage Estimation (GAE): Â_t = Σ_{l=0}^∞ (γλ)^l δ_{t+l}, where δ_t = r_t + γV(s_{t+1}) − V(s_t). GAE with λ ∈ [0,1] interpolates between high-variance (λ=1, Monte Carlo returns) and high-bias (λ=0, one-step TD) advantage estimates; (3) Update the policy by running K epochs of minibatch gradient ascent on L^{CLIP} using the T collected transitions; (4) Update the value network on the same transitions. The PPO total loss: L = L^{CLIP} − c_1·L^{VF} + c_2·S[π_θ], where L^{VF} is the value loss and S is an entropy bonus for exploration. [1]"
+    "PPO simplifies its predecessor TRPO. TRPO maximizes a surrogate objective while enforcing that the new policy stays close to the old one via a KL constraint — but satisfying that constraint requires computing second-order information and solving a constrained optimization problem, making it expensive and complex to implement. PPO replaces this with a clipped objective: the policy update ratio is limited to a range around 1, so updates that would move the policy too far are simply zeroed out. No second-order computation is needed. [1]",
+    "PPO alternates between collecting experience under the current policy and running several epochs of mini-batch gradient updates on the collected data. The advantage for each timestep is estimated using Generalized Advantage Estimation, which interpolates between low-variance single-step estimates and high-variance full-return estimates using a parameter that controls the tradeoff. The full PPO loss combines the clipped policy objective, a value function loss, and an entropy bonus to encourage exploration. [1]"
   ],
   "deepDive": [
     {
       "heading": "Clipped Surrogate Objective",
-      "body": "This section explains the objective or theoretical result that drives the method and what it means in practice."
+      "body": "The PPO objective uses the ratio of the new policy's action probability to the old policy's probability. When this ratio is close to 1 the policies are similar and the full advantage signal is used. When the ratio would push the policy too far — above 1 plus epsilon or below 1 minus epsilon — the gradient is clipped to zero, preventing the update from proceeding in that direction. The minimum of the clipped and unclipped objectives is taken, so the gradient is never encouraged to move the policy outside the safe range."
     },
     {
       "heading": "Generalised Advantage Estimation (GAE)",
-      "body": "This section explains the main idea behind this part of the method in plain language."
+      "body": "GAE blends one-step TD errors across multiple future timesteps using an exponential decay controlled by a parameter between 0 and 1. When this parameter equals 1, GAE reduces to the full Monte Carlo return, which is unbiased but noisy. When it equals 0, it reduces to a one-step TD error, which is stable but biased. A value around 0.95 is a reliable default that balances these tradeoffs."
     },
     {
       "heading": "PPO vs TRPO: Simplicity and Performance",
@@ -42,7 +42,7 @@
     },
     {
       "heading": "PPO for RLHF: InstructGPT and ChatGPT",
-      "body": "Ouyang et al. (2022) applied PPO to align language models with human preferences. PPO-specific challenges in RLHF: (1) the policy is a 1.3B–175B parameter LM — requires gradient checkpointing, mixed precision, and careful memory management; (2) the reward is per-sequence (sparse), not per-token — GAE distributes it across tokens; (3) the rollout buffer stores full token sequences (∼1024 tokens) rather than state-action pairs."
+      "body": "Applying PPO to language model alignment requires careful engineering. The policy is a billion-parameter model, so gradient checkpointing and mixed precision are essential. The reward is sparse — a single scalar score produced by the reward model at the end of each generated sequence — and GAE distributes this signal back across all the tokens in the response. The rollout buffer stores complete token sequences rather than compact state-action pairs, making memory management significantly more demanding than in standard RL."
     }
   ],
   "takeaways": [

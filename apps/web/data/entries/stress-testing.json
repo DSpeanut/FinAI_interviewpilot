@@ -19,7 +19,7 @@
     }
   ],
   "deepDiveIntro": [
-    "Scenario P&L approximation: ΔP ≈ Σ_k ∂P/∂F_k × ΔF_k + ½ Σ_{k,l} ∂²P/∂F_k∂F_l × ΔF_k ΔF_l. For a linear portfolio: ΔP = w'Δr (just the factor exposures times factor shocks). For non-linear portfolios (options): include delta, gamma, vega, rho terms. Full revaluation: reprice each instrument using full model (Black-Scholes for options, yield curve model for bonds) — more accurate for large shocks and non-linear instruments but computationally expensive. Proxy revaluation: use a Taylor approximation; less accurate but fast. Regulatory stress test (CCAR): Federal Reserve provides 9-quarter macroeconomic scenario (GDP growth, unemployment, interest rates, equity prices); banks must demonstrate capital adequacy under stressed scenario."
+    "Portfolio profit and loss under a scenario can be estimated in two ways. Proxy revaluation uses the portfolio's sensitivities to risk factors — essentially a Taylor approximation that is fast but less accurate for large shocks. Full revaluation reprices every instrument individually using the appropriate model, which is more accurate for non-linear instruments such as options and bonds with embedded features but is computationally expensive. For regulatory stress tests such as CCAR, the Federal Reserve provides a nine-quarter macroeconomic scenario including GDP, unemployment, interest rates, and equity prices, and banks must demonstrate they would remain adequately capitalised throughout that scenario."
   ],
   "deepDive": [
     {

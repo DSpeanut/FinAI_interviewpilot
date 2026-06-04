@@ -45,7 +45,7 @@
     }
   ],
   "deepDiveIntro": [
-    "Hedge fund return decomposition: R_HF = α + β_eq × R_equity + β_credit × R_credit_spread + β_vol × R_volatility + ε. Many 'hedge fund' strategies have significant equity beta (long/short equity: β ≈ 0.3-0.5) and credit beta (event-driven: β_credit ≈ 0.3). True alpha is the residual ε after stripping out all systematic risk exposures. Study (Fung & Hsieh 2004): 7-factor model explains most hedge fund returns — equity market, size spread, bond market, credit spread, currency trend, commodity trend, short-term rate trend. True alpha in most hedge funds ≈ 0-2%/year; not enough to justify 2+20 fees after costs."
+    "Hedge fund returns can be decomposed into a true alpha component and systematic risk exposures. Many strategies carry significant equity and credit market risk — long/short equity funds typically have meaningful positive correlation with equity markets, and event-driven funds carry credit sensitivity. Stripping out these systematic exposures reveals the true alpha, which is the return not explained by any priced risk factor. Fung and Hsieh (2004) showed that a seven-factor model — covering equity, size, bonds, credit spreads, and trend-following factors — explains most of the variation in hedge fund returns, leaving true alpha of only around 0 to 2% per year for the average fund."
   ],
   "deepDive": [
     {
