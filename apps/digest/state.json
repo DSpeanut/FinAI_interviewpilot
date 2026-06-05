@@ -13,6 +13,8 @@
     "k-nearest-neighbors",
     "map-estimation",
     "bleu",
-    "speech-to-text"
+    "speech-to-text",
+    "vision-language-models",
+    "law-of-large-numbers"
   ]
 }
