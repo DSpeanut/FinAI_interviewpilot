@@ -19,6 +19,8 @@
     "llm-eval-frameworks",
     "causal-lm",
     "greeks",
-    "neural-architecture-search"
+    "neural-architecture-search",
+    "taylor-series",
+    "bootstrap"
   ]
 }
