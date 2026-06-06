@@ -17,6 +17,8 @@
     "vision-language-models",
     "law-of-large-numbers",
     "llm-eval-frameworks",
-    "causal-lm"
+    "causal-lm",
+    "greeks",
+    "neural-architecture-search"
   ]
 }
