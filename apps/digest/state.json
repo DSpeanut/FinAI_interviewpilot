@@ -27,6 +27,8 @@
     "feature-stores",
     "rouge",
     "correlation-risk",
-    "cosine-annealing"
+    "cosine-annealing",
+    "mode",
+    "cross-validation"
   ]
 }
