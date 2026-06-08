@@ -25,6 +25,8 @@
     "gru",
     "swaps",
     "feature-stores",
-    "rouge"
+    "rouge",
+    "correlation-risk",
+    "cosine-annealing"
   ]
 }
