@@ -33,6 +33,8 @@
     "bert-architecture",
     "real-assets",
     "evaluation-under-imbalance",
-    "multi-armed-bandit"
+    "multi-armed-bandit",
+    "adagrad",
+    "vectors-matrices"
   ]
 }
