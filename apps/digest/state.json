@@ -35,6 +35,8 @@
     "evaluation-under-imbalance",
     "multi-armed-bandit",
     "adagrad",
-    "vectors-matrices"
+    "vectors-matrices",
+    "mean",
+    "benchmark-selection"
   ]
 }
