@@ -37,6 +37,8 @@
     "adagrad",
     "vectors-matrices",
     "mean",
-    "benchmark-selection"
+    "benchmark-selection",
+    "tool-calling-patterns",
+    "lof"
   ]
 }
