@@ -43,6 +43,8 @@
     "concept-drift",
     "huber-loss",
     "bayesian-optimization-hpo",
-    "etl-vs-elt"
+    "etl-vs-elt",
+    "lasso-regression",
+    "agent-loop"
   ]
 }
