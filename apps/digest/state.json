@@ -47,6 +47,8 @@
     "lasso-regression",
     "agent-loop",
     "mae-loss",
-    "logistic-regression"
+    "logistic-regression",
+    "chain-of-thought",
+    "gradient-clipping"
   ]
 }
