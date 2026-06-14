@@ -49,6 +49,8 @@
     "mae-loss",
     "logistic-regression",
     "chain-of-thought",
-    "gradient-clipping"
+    "gradient-clipping",
+    "class-weights",
+    "lambda-architecture"
   ]
 }
